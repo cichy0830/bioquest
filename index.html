@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>生命祕境 BioQuest｜單元入口</title>
+  <link rel="stylesheet" href="portal.css?v=20260709-portal-life-entry-fix-v1">
+</head>
+<body>
+  <main class="portal-shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">生命祕境 BioQuest</p>
+        <h1>七年級生物自主學習入口</h1>
+        <p class="lead">依正式課程順序整理所有單元進度；九年級複習時可直接從這裡進入各任務。</p>
+      </div>
+      <div class="hero-stats" aria-label="目前進度統計">
+        <div><span>可測試</span><strong id="readyCount">0</strong></div>
+        <div><span>已備料</span><strong id="specCount">0</strong></div>
+        <div><span>待製作</span><strong id="plannedCount">0</strong></div>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="篩選工具">
+      <label>
+        <span>搜尋單元</span>
+        <input id="unitSearch" type="search" placeholder="輸入關鍵字，例如：細胞、遺傳、生態">
+      </label>
+      <div class="filter-group" role="group" aria-label="狀態篩選">
+        <button class="filter active" data-filter="all">全部</button>
+        <button class="filter" data-filter="ready">可測試</button>
+        <button class="filter" data-filter="spec">已備料</button>
+        <button class="filter" data-filter="planned">待製作</button>
+      </div>
+    </section>
+
+    <section class="status-guide" aria-label="狀態說明">
+      <div><b class="dot ready"></b><strong>可測試原型</strong><span>已有學生端網頁，可直接打開檢閱。</span></div>
+      <div><b class="dot spec"></b><strong>規格已備料</strong><span>已有內容、視覺或成就規格，尚未完成正式網頁。</span></div>
+      <div><b class="dot planned"></b><strong>待製作</strong><span>已列入全冊地圖，等待依教學進度製作。</span></div>
+    </section>
+
+    <section>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">正式課程序列</p>
+          <h2>上、下冊單元進度</h2>
+        </div>
+        <p class="muted">不顯示版本章節編號，避免不同版本標號造成誤解。</p>
+      </div>
+      <div id="unitGrid" class="unit-grid" aria-live="polite"></div>
+    </section>
+
+    <section class="template-zone">
+      <div>
+        <p class="eyebrow">模板驗證</p>
+        <h2>細胞的構造</h2>
+        <p>這是先用來建立標準小節模板的驗證單元。本次公開測試版先不開放，避免和正式課程序列混淆。</p>
+      </div>
+      <span class="disabled-link">暫不開放</span>
+    </section>
+  </main>
+
+  <script src="portal.js?v=20260709-portal-units-1-3-role-brief-drag-v1"></script>
+</body>
+</html>
