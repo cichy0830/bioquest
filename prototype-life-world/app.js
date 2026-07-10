@@ -19,16 +19,16 @@ const mentorImages = {
   primary: "assets/mentor-life-world-azhe-v2.png"
 };
 const owlImages = {
-  prep: "assets/owl-life-classify.png",
+  prep: "assets/owl-life-world-prep-reminder.png",
   reflection: "assets/owl-life-feedback.png",
   result: "assets/owl-life-result.png"
 };
 const feedbackMentorImages = {
-  flawless: { label: "零提示全對", image: mentorImages.primary },
-  strong: { label: "概念穩定", image: mentorImages.primary },
-  steady: { label: "持續整理", image: mentorImages.primary },
-  needs_review: { label: "需要再釐清", image: mentorImages.primary },
-  retry_growth: { label: "再挑戰進步", image: mentorImages.primary }
+  excellent: { label: "零提示全對", image: "assets/mentor-life-world-feedback-excellent.png" },
+  strong: { label: "概念穩定", image: "assets/mentor-life-world-feedback-strong.png" },
+  stable: { label: "持續整理", image: "assets/mentor-life-world-feedback-stable.png" },
+  needs_review: { label: "需要再釐清", image: "assets/mentor-life-world-feedback-needs-review.png" },
+  retry_ready: { label: "再挑戰準備", image: "assets/mentor-life-world-feedback-retry-ready.png" }
 };
 const studentTitleCharacterImages = {
   neutral: {
@@ -47,12 +47,13 @@ const REVISION_RAW_MAX = 225;
 const unitBadgeCatalog = [
   { id: "life_world_entry", name: "生命觀測入門徽章", condition: "完成生命訊號偵測任務。", badge_image_path: "" },
   { id: "living_evidence_detector", name: "生命證據偵測徽章", condition: "生物與非生物判斷關卡達 85% 以上。", badge_image_path: "" },
-  { id: "life_phenomena_mapper", name: "生命現象配對徽章", condition: "生命現象配對關卡達 85% 以上。", badge_image_path: "" },
+  { id: "life_phenomena_mapper", name: "生命現象配對徽章", condition: "生命現象配對關卡達 85% 以上。", badge_image_path: "assets/badges/life_world_life_phenomena_mapper.png" },
   { id: "survival_condition_guardian", name: "生存條件守門徽章", condition: "生存條件題組達 85% 以上。", badge_image_path: "" },
   { id: "biosphere_observer", name: "生物圈觀察徽章", condition: "生物圈與環境關卡達 85% 以上。", badge_image_path: "" },
-  { id: "life_signal_flawless", name: "生命訊號零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。", badge_image_path: "" },
+  { id: "life_signal_flawless", name: "生命訊號零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。", badge_image_path: "assets/badges/life_world_life_signal_flawless.png" },
   { id: "misconception_reviser_life_world", name: "生命迷思修正徽章", condition: "至少 1 題使用提示後修正成功。", badge_image_path: "" },
-  { id: "retry_growth_life_world", name: "再探生命進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。位階低於零提示全對。", badge_image_path: "" }
+  { id: "retry_growth_life_world", name: "再探生命進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。位階低於零提示全對。", badge_image_path: "" },
+  { id: "reflection_reporter_life_world", name: "高品質回報候選徽章", condition: "回報內容能提出具體、可帶到課堂討論的本單元問題。", badge_image_path: "assets/badges/life_world_reflection_reporter.png" }
 ];
 
 const storageKey = "bioquest_life_world_state_v1";
@@ -246,22 +247,22 @@ function owlReminderCard(title, text, image = owlImages.prep) {
 }
 
 function feedbackMentorState(result) {
-  if (result.retry_improved) return "retry_growth";
-  if (result.no_hint_perfect) return "flawless";
+  if (result.retry_improved) return "retry_ready";
+  if (result.no_hint_perfect) return "excellent";
   if (result.accuracy >= 0.85 && !result.teacher_attention_needed) return "strong";
   if (result.teacher_attention_needed || result.reflection_review_status === "pending_review") return "needs_review";
-  return "steady";
+  return "stable";
 }
 
 function feedbackMentorCard(result) {
   const stateKey = feedbackMentorState(result);
-  const visual = feedbackMentorImages[stateKey] || feedbackMentorImages.steady;
+  const visual = feedbackMentorImages[stateKey] || feedbackMentorImages.stable;
   const copy = {
-    flawless: "你能不用提示完成全部判斷，接下來可以練習把判斷證據說給同學聽。",
+    excellent: "你能不用提示完成全部判斷，接下來可以練習把判斷證據說給同學聽。",
     strong: "你的生命現象判斷已經穩定，請把仍想確認的例子帶到課堂討論。",
-    steady: "你已完成任務，接下來請整理最能支持判斷的證據與還會混淆的情境。",
+    stable: "你已完成任務，接下來請整理最能支持判斷的證據與還會混淆的情境。",
     needs_review: "系統偵測到幾個需要再釐清的概念，請先閱讀下方建議，再用自己的話提問。",
-    retry_growth: "這次再挑戰有進步，請保留這次修正成功的判斷線索。"
+    retry_ready: "這次再挑戰有進步，請保留這次修正成功的判斷線索。"
   };
   return `
     <div class="feedback-mentor-card" data-feedback-mentor-state="${stateKey}" data-feedback-mentor-image-hook="${visual.image}">
@@ -400,12 +401,13 @@ async function login(id) {
 
 function renderBrief() {
   const titleCharacter = studentTitleCharacterPath(titleForExp(0).id);
+  const briefingBackground = "assets/bg-life-world-briefing-azhe-wide.png";
   return `
     <div class="wide-layout">
-      <div class="panel hero-panel brief-scene-card" data-brief-mentor-background-hook="assets/bg-life-entry-wide.png" data-student-character-hook="${titleCharacter}">
+      <div class="panel hero-panel brief-scene-card" data-brief-mentor-background-hook="${briefingBackground}" data-student-character-hook="${titleCharacter}">
         <p class="eyebrow">任務檔案開啟</p>
         <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
-        ${renderBriefBackground("assets/bg-life-entry-wide.png", "多彩多姿的生命世界任務背景", "多彩環境影像已接入，請用生命現象與生存條件作為判斷證據。")}
+        ${renderBriefBackground(briefingBackground, "阿澤老師在生命觀測站的任務簡報背景", "多彩環境影像已接入，請用生命現象與生存條件作為判斷證據。")}
         <div class="story-panel highlight">
           <strong>生命觀測站收到新影像</strong>
           <p>水族館、森林、沙漠、深海和校園角落傳來不同影像。這些畫面裡有生物，也有非生物。只看會不會動很容易誤判，這次任務要用生命現象和生存條件作為證據。</p>
@@ -983,6 +985,7 @@ function calculateResult() {
   if (noHintPerfect) badges.push(unitBadgeCatalog[5].name);
   if (revisionExp > 0) badges.push(unitBadgeCatalog[6].name);
   if (retryImproved) badges.push(unitBadgeCatalog[7].name);
+  if (reflectionEvaluation.reflection_quality === "discussion_question") badges.push(unitBadgeCatalog[8].name);
   return {
     unit_max_exp: UNIT_EXP_CAP,
     unit_exp_cap: UNIT_EXP_CAP,

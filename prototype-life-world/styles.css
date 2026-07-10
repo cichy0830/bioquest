@@ -29,7 +29,7 @@ body {
     linear-gradient(120deg, rgba(238, 248, 246, 0.68), rgba(230, 246, 242, 0.52)),
     radial-gradient(circle at 18% 22%, rgba(24, 143, 158, 0.14), transparent 26%),
     radial-gradient(circle at 84% 18%, rgba(216, 155, 50, 0.18), transparent 24%),
-    url("assets/bg-life-entry-wide.png"),
+    url("assets/bg-life-world-briefing-azhe-wide.png"),
     var(--paper);
   background-attachment: fixed;
   background-position: center;
@@ -197,7 +197,7 @@ p {
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(236, 249, 246, 0.56)),
     radial-gradient(circle at 84% 16%, rgba(216, 155, 50, 0.20), transparent 26%),
-    url("assets/bg-life-entry-wide.png");
+    url("assets/bg-life-world-briefing-azhe-wide.png");
   background-position: center;
   background-size: cover;
 }
@@ -542,7 +542,11 @@ textarea {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  object-position: center;
+  object-position: center top;
+}
+
+.brief-scene-card .brief-background-figure img {
+  object-position: center top;
 }
 
 .brief-background-figure figcaption {
@@ -1001,7 +1005,7 @@ textarea {
     min-height: auto;
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(242, 250, 248, 0.72)),
-      url("assets/bg-life-entry-wide.png");
+      url("assets/bg-life-world-briefing-azhe-wide.png");
     background-position: center top;
     background-size: cover;
   }
