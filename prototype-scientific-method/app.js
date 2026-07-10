@@ -18,6 +18,10 @@ const mentorName = "阿澤老師";
 const mentorImages = {
   primary: "assets/mentor-method-azhe-v2.png"
 };
+const sceneImages = {
+  briefingSceneImage: "assets/bg-scientific-method-briefing-azhe-wide.png",
+  ambientBackgroundImage: "assets/bg-mold-toast-investigation-wide.png"
+};
 const owlImages = {
   opening: "assets/owl-method-opening.png",
   scan: "assets/owl-method-scan.png",
@@ -532,24 +536,31 @@ async function login(id) {
 }
 
 function renderBrief() {
-  return layout(`
-    <p class="eyebrow">任務檔案開啟</p>
-    <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
-    ${mentorCard("吐司樣本出現差異", "室溫吐司很快發霉，低溫吐司幾乎沒有變化。先不要急著猜原因，科學方法會幫我們把觀察轉成可檢驗的問題。")}
-    <div class="story-panel highlight">
-      <strong>任務核心</strong>
-      <p>整理科學探究流程，分辨觀察與推論，辨識變因和對照設計，最後用資料判讀結論並修正假說。</p>
+  return `
+    <div class="wide-layout">
+      <div class="panel hero-panel brief-scene-card" data-briefing-scene-image="${sceneImages.briefingSceneImage}" data-ambient-background-image="${sceneImages.ambientBackgroundImage}">
+        <p class="eyebrow">任務檔案開啟</p>
+        <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
+        ${renderBriefBackground(sceneImages.briefingSceneImage, "阿澤老師在科學偵查站的任務簡報主視覺", "吐司樣本、紀錄板與調查站已就緒，請用科學方法整理證據。")}
+        <div class="story-panel highlight">
+          <strong>吐司樣本出現差異</strong>
+          <p>室溫吐司很快發霉，低溫吐司幾乎沒有變化。先不要急著猜原因，科學方法會幫我們把觀察轉成可檢驗的問題。</p>
+        </div>
+        <div class="story-panel">
+          <strong>任務核心</strong>
+          <p>整理科學探究流程，分辨觀察與推論，辨識變因和對照設計，最後用資料判讀結論並修正假說。</p>
+        </div>
+        <div class="status-line">
+          <span class="pill">${state.student.class_name} 班 ${state.student.seat_no} 號</span>
+          <span class="pill ${state.attempt_type === "retry" ? "warn" : ""}">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</span>
+          ${state.student.is_guest ? `<span class="pill warn">guest 測試</span>` : ""}
+        </div>
+        <div class="actions">
+          <button class="primary" id="briefNext">開始任務準備</button>
+        </div>
+      </div>
     </div>
-    ${renderBriefBackground("assets/bg-mold-toast-investigation-wide.png", "發霉吐司調查任務背景", "吐司樣本、紀錄板與調查站已就緒，請用科學方法整理證據。")}
-    <div class="status-line">
-      <span class="pill">${state.student.class_name} 班 ${state.student.seat_no} 號</span>
-      <span class="pill ${state.attempt_type === "retry" ? "warn" : ""}">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</span>
-      ${state.student.is_guest ? `<span class="pill warn">guest 測試</span>` : ""}
-    </div>
-    <div class="actions">
-      <button class="primary" id="briefNext">開始任務準備</button>
-    </div>
-  `, owlImages.opening);
+  `;
 }
 
 function renderScan() {

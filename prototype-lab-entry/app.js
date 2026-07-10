@@ -20,9 +20,11 @@ const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
 const DIRECT_RAW_MAX = 435;
 const REVISION_RAW_MAX = 261;
-const LAB_ENTRY_VERSION = "20260710-cell-basic-unit-v1";
+const LAB_ENTRY_VERSION = "20260710-unit23-briefing-scenes-v1";
 
 const labVisualAssets = {
+  briefingSceneImage: "assets/bg-lab-entry-briefing-azhe-wide.png",
+  ambientBackgroundImage: "assets/bg-lab-entry-safety-station-wide.png",
   mentorPrimary: "assets/mentor-lab-azhe-v2.png",
   mentorFallback: "assets/mentor-life-world-azhe.png",
   mentorReplacementHook: "assets/mentor-lab-azhe-v2.png",
@@ -497,24 +499,31 @@ async function login(id) {
 }
 
 function renderBrief() {
-  return layout(`
-    <p class="eyebrow">任務檔案開啟</p>
-    <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
-    ${mentorCard("實驗室入口檢查", "器材不是只背名稱，安全也不是口號。今天要用「我要做什麼」和「可能有什麼風險」來判斷每一步。")}
-    <div class="story-panel highlight">
-      <strong>任務核心</strong>
-      <p>辨識器材用途，選擇合適器材，判斷加熱、玻璃、藥品與廢液風險，並理解安全處理順序與實驗紀錄態度。</p>
+  return `
+    <div class="wide-layout">
+      <div class="panel hero-panel brief-scene-card" data-briefing-scene-image="${labVisualAssets.briefingSceneImage}" data-ambient-background-image="${labVisualAssets.ambientBackgroundImage}">
+        <p class="eyebrow">任務檔案開啟</p>
+        <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
+        ${renderBriefBackground(labVisualAssets.briefingSceneImage, "阿澤老師在實驗室安全訓練站的任務簡報主視覺", "安全訓練站已開啟，請用器材用途與風險線索完成判斷。")}
+        <div class="story-panel highlight">
+          <strong>實驗室入口檢查</strong>
+          <p>器材不是只背名稱，安全也不是口號。今天要用「我要做什麼」和「可能有什麼風險」來判斷每一步。</p>
+        </div>
+        <div class="story-panel">
+          <strong>任務核心</strong>
+          <p>辨識器材用途，選擇合適器材，判斷加熱、玻璃、藥品與廢液風險，並理解安全處理順序與實驗紀錄態度。</p>
+        </div>
+        <div class="status-line">
+          <span class="pill">${state.student.class_name} 班 ${state.student.seat_no} 號</span>
+          <span class="pill ${state.attempt_type === "retry" ? "warn" : ""}">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</span>
+          ${state.student.is_guest ? `<span class="pill warn">guest 測試</span>` : ""}
+        </div>
+        <div class="actions">
+          <button class="primary" id="briefNext">開始任務準備</button>
+        </div>
+      </div>
     </div>
-    ${renderBriefBackground("assets/bg-lab-entry-safety-station-wide.png", "實驗室安全訓練站背景", "安全訓練站已開啟，請用器材用途與風險線索完成判斷。")}
-    <div class="status-line">
-      <span class="pill">${state.student.class_name} 班 ${state.student.seat_no} 號</span>
-      <span class="pill ${state.attempt_type === "retry" ? "warn" : ""}">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</span>
-      ${state.student.is_guest ? `<span class="pill warn">guest 測試</span>` : ""}
-    </div>
-    <div class="actions">
-      <button class="primary" id="briefNext">開始任務準備</button>
-    </div>
-  `, "opening", "實驗室安全掃描貓頭鷹助理");
+  `;
 }
 
 function renderScan() {
