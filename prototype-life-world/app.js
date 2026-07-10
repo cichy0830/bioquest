@@ -400,7 +400,7 @@ async function login(id) {
 }
 
 function renderBrief() {
-  const titleCharacter = studentTitleCharacterPath(titleForExp(0).id);
+  const titleCharacter = studentTitleCharacterPath(state.student?.current_title_id || titleForExp(0).id);
   const briefingBackground = "assets/bg-life-world-briefing-azhe-wide.png";
   return `
     <div class="wide-layout">
@@ -1351,6 +1351,8 @@ function studentGenderKey() {
 }
 
 function studentTitleCharacterPath(titleId) {
+  if (state.student?.title_avatar_path) return state.student.title_avatar_path;
+  if (state.student?.progress?.title_avatar_path) return state.student.progress.title_avatar_path;
   const gender = studentGenderKey();
   return studentTitleCharacterImages[gender]?.[titleId]
     || studentTitleCharacterImages.neutral[titleId]

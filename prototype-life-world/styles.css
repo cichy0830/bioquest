@@ -29,7 +29,7 @@ body {
     linear-gradient(120deg, rgba(238, 248, 246, 0.68), rgba(230, 246, 242, 0.52)),
     radial-gradient(circle at 18% 22%, rgba(24, 143, 158, 0.14), transparent 26%),
     radial-gradient(circle at 84% 18%, rgba(216, 155, 50, 0.18), transparent 24%),
-    url("assets/bg-life-world-briefing-azhe-wide.png"),
+    url("assets/bg-life-entry-wide.png"),
     var(--paper);
   background-attachment: fixed;
   background-position: center;
@@ -195,11 +195,7 @@ p {
 .hero-panel {
   min-height: 540px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(236, 249, 246, 0.56)),
-    radial-gradient(circle at 84% 16%, rgba(216, 155, 50, 0.20), transparent 26%),
-    url("assets/bg-life-world-briefing-azhe-wide.png");
-  background-position: center;
-  background-size: cover;
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(236, 249, 246, 0.78));
 }
 
 .hero-title {
@@ -303,10 +299,7 @@ p {
   border-radius: 8px;
   background:
     radial-gradient(circle at 50% 45%, rgba(16, 152, 166, 0.24), transparent 36%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.66), rgba(231, 246, 241, 0.56)),
-    url("assets/bg-life-entry-wide.png");
-  background-position: center;
-  background-size: cover;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(231, 246, 241, 0.64));
   box-shadow: var(--shadow);
 }
 
@@ -1003,11 +996,7 @@ textarea {
 
   .hero-panel {
     min-height: auto;
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(242, 250, 248, 0.72)),
-      url("assets/bg-life-world-briefing-azhe-wide.png");
-    background-position: center top;
-    background-size: cover;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(242, 250, 248, 0.78));
   }
 
   .owl-frame {
