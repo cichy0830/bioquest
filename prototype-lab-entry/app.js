@@ -568,11 +568,13 @@ function renderApparatusMatch() {
       </div>
       <div class="sequence-list">
         ${orderedItems.map((item) => `
-          <label class="sequence-item">${item.label}
-            <select data-match="apparatus" data-id="${item.id}">
+          <label class="sequence-item match-item ${selected[item.id] ? "has-selection" : ""}">
+            <strong>${item.label}</strong>
+            <select class="match-select" data-match="apparatus" data-id="${item.id}">
               <option value="">選擇用途</option>
               ${optionOrder("apparatusOptions", apparatusOptions).map((option) => `<option value="${option}" ${selected[item.id] === option ? "selected" : ""}>${option}</option>`).join("")}
             </select>
+            <span class="selected-answer">${selected[item.id] ? `已選：${selected[item.id]}` : "尚未選擇用途"}</span>
           </label>
         `).join("")}
       </div>

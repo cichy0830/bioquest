@@ -760,6 +760,46 @@ textarea {
   font-weight: 900;
 }
 
+.match-item {
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: start;
+}
+
+.match-item strong {
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  line-height: 1.4;
+}
+
+.match-select {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding-right: 36px;
+  color: var(--ink);
+  font-weight: 850;
+  text-overflow: ellipsis;
+}
+
+.selected-answer {
+  grid-column: 2;
+  display: block;
+  min-height: 28px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--muted);
+  background: rgba(8, 115, 111, 0.07);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.match-item.has-selection .selected-answer {
+  color: var(--teal-dark);
+  background: #e0f8f6;
+}
+
 .sortable-list {
   touch-action: manipulation;
 }
@@ -1132,6 +1172,22 @@ textarea {
 
   .sortable-item {
     grid-template-columns: 34px 24px minmax(0, 1fr);
+  }
+
+  .match-item {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 8px 10px;
+    align-items: start;
+  }
+
+  .match-item .match-select,
+  .match-item .selected-answer {
+    grid-column: 1 / -1;
+  }
+
+  .match-select {
+    min-height: 52px;
+    font-size: 16px;
   }
 
   .sequence-move-buttons {
