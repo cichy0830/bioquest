@@ -592,7 +592,7 @@ textarea {
 }
 
 .brief-background-figure {
-  margin: 18px 0;
+  margin: 0;
   overflow: hidden;
   border: 1px solid rgba(68, 132, 99, 0.22);
   border-radius: 8px;
@@ -613,6 +613,62 @@ textarea {
   padding: 10px 12px;
   color: var(--muted);
   font-size: 14px;
+  line-height: 1.55;
+}
+
+.brief-visual-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(230px, 0.55fr);
+  gap: 16px;
+  align-items: stretch;
+  margin: 18px 0 14px;
+}
+
+.brief-title-avatar-card {
+  display: grid;
+  grid-template-rows: minmax(220px, 1fr) auto;
+  gap: 12px;
+  min-height: 100%;
+  padding: 14px;
+  border: 1px solid rgba(8, 115, 111, 0.18);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 32%, rgba(16, 152, 166, 0.20), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(235, 249, 247, 0.78));
+  box-shadow: 0 12px 26px rgba(25, 64, 54, 0.12);
+}
+
+.brief-title-avatar {
+  display: grid;
+  place-items: end center;
+  min-height: 220px;
+  overflow: hidden;
+}
+
+.brief-title-avatar img {
+  width: 100%;
+  height: min(34vw, 330px);
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.brief-title-avatar-card span {
+  display: block;
+  color: var(--teal-dark);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.brief-title-avatar-card strong {
+  display: block;
+  margin: 3px 0 5px;
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.brief-title-avatar-card p {
+  margin: 0;
+  color: var(--muted);
   line-height: 1.55;
 }
 
@@ -1168,6 +1224,25 @@ textarea {
   .brief-background-figure img {
     aspect-ratio: 4 / 3;
     object-position: center top;
+  }
+
+  .brief-visual-row {
+    grid-template-columns: 1fr;
+  }
+
+  .brief-title-avatar-card {
+    grid-template-columns: minmax(110px, 34vw) minmax(0, 1fr);
+    grid-template-rows: auto;
+    align-items: center;
+    min-height: auto;
+  }
+
+  .brief-title-avatar {
+    min-height: 160px;
+  }
+
+  .brief-title-avatar img {
+    height: min(48vw, 220px);
   }
 
   .sortable-item {

@@ -16,7 +16,7 @@ const units = [
     sequence: 2,
     summary: "正式順序第二單元。已完成學生端靜態原型，含流程排序、變因分類、資料判讀與結論修正。",
     tags: ["正式原型", "科學方法", "已可測試"],
-    url: "prototype-scientific-method/?v=20260710-unit23-briefing-scenes-v1"
+    url: "prototype-scientific-method/?v=20260711-unit23-title-avatar-v1"
   },
   {
     title: "進入實驗室",
@@ -25,7 +25,7 @@ const units = [
     sequence: 3,
     summary: "正式順序第三單元。已完成學生端靜態原型，含器材功能、器材選用、安全情境、操作順序與實驗紀錄。",
     tags: ["正式原型", "實驗安全", "已可測試"],
-    url: "prototype-lab-entry/?v=20260710-unit23-briefing-scenes-v1"
+    url: "prototype-lab-entry/?v=20260711-unit23-title-avatar-v1"
   },
   {
     title: "顯微鏡的使用",

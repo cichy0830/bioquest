@@ -1,8 +1,8 @@
 const roster = {
-  S70101: { student_id: "S70101", class_name: "701", seat_no: "01", student_name: "林安安" },
-  S70102: { student_id: "S70102", class_name: "701", seat_no: "02", student_name: "陳柏宇" },
-  S70103: { student_id: "S70103", class_name: "701", seat_no: "03", student_name: "許若晴" },
-  guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
+  S70101: { student_id: "S70101", class_name: "701", seat_no: "01", student_name: "林安安", profile_gender: "female" },
+  S70102: { student_id: "S70102", class_name: "701", seat_no: "02", student_name: "陳柏宇", profile_gender: "male" },
+  S70103: { student_id: "S70103", class_name: "701", seat_no: "03", student_name: "許若晴", profile_gender: "female" },
+  guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", profile_gender: "neutral", is_guest: true }
 };
 
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
@@ -20,7 +20,7 @@ const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
 const DIRECT_RAW_MAX = 435;
 const REVISION_RAW_MAX = 261;
-const LAB_ENTRY_VERSION = "20260710-unit23-briefing-scenes-v1";
+const LAB_ENTRY_VERSION = "20260711-unit23-title-avatar-v1";
 
 const labVisualAssets = {
   briefingSceneImage: "assets/bg-lab-entry-briefing-azhe-wide.png",
@@ -37,6 +37,32 @@ const labVisualAssets = {
     result: "assets/owl-lab-cleanup.png"
   }
 };
+
+const TITLE_AVATAR_BASE_PATH = "../shared-assets/title-avatars";
+const TITLE_LEVELS = [
+  { id: "trainee_investigator", order: "01", need: 0, title: "見習調查員" },
+  { id: "life_observer", order: "02", need: 1500, title: "生命觀察員" },
+  { id: "ecology_recorder", order: "03", need: 3500, title: "生態記錄員" },
+  { id: "concept_solver", order: "04", need: 6500, title: "概念解謎者" },
+  { id: "micro_explorer", order: "05", need: 10000, title: "微觀探索者" },
+  { id: "systems_investigator", order: "06", need: 14000, title: "系統調查員" },
+  { id: "life_researcher", order: "07", need: 18000, title: "生命研究員" },
+  { id: "bioquest_expert", order: "08", need: 22000, title: "BioQuest 專家" },
+  { id: "bioquest_guardian", order: "09", need: 26000, title: "生命祕境守護者" }
+];
+const titleIdAliases = {
+  micro_world_explorer: "micro_explorer",
+  system_investigator: "systems_investigator",
+  life_mystery_guardian: "bioquest_guardian"
+};
+const titleAvatarImages = TITLE_LEVELS.reduce((images, title) => {
+  images[title.id] = {
+    male: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-male.png`,
+    female: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-female.png`
+  };
+  return images;
+}, {});
+const fallbackTitleAvatarPath = `${TITLE_AVATAR_BASE_PATH}/title-01-trainee_investigator-male.png`;
 
 const unitBadgeCatalog = [
   { id: "lab_intro_entry", name: "實驗室入門徽章", condition: "完成實驗室安全啟動任務。" },
@@ -467,8 +493,15 @@ async function login(id) {
       message.innerHTML = `<span class="pill warn">查無此學號，請重新輸入。</span>`;
       return;
     }
+    const remoteProgress = remote.progress || remote.student_progress || {};
     student = {
       ...remote.student,
+      progress: remoteProgress,
+      current_title_id: remoteProgress.current_title_id || remote.student.current_title_id,
+      current_title: remoteProgress.current_title || remote.student.current_title,
+      title_avatar_variant: remoteProgress.title_avatar_variant || remote.student.title_avatar_variant,
+      title_avatar_path: remoteProgress.title_avatar_path || remote.student.title_avatar_path,
+      total_exp: remoteProgress.total_exp ?? remote.student.total_exp,
       is_guest: remote.student.student_id === "guest" || String(remote.student.is_guest).toUpperCase() === "TRUE"
     };
     attemptType = remote.attempt_type || "first";
@@ -499,12 +532,26 @@ async function login(id) {
 }
 
 function renderBrief() {
+  const title = currentStudentTitle();
+  const titleCharacter = studentTitleCharacterPath(title.id);
   return `
     <div class="wide-layout">
-      <div class="panel hero-panel brief-scene-card" data-briefing-scene-image="${labVisualAssets.briefingSceneImage}" data-ambient-background-image="${labVisualAssets.ambientBackgroundImage}">
+      <div class="panel hero-panel brief-scene-card" data-briefing-scene-image="${labVisualAssets.briefingSceneImage}" data-ambient-background-image="${labVisualAssets.ambientBackgroundImage}" data-student-character-hook="${titleCharacter}">
         <p class="eyebrow">任務檔案開啟</p>
         <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
-        ${renderBriefBackground(labVisualAssets.briefingSceneImage, "阿澤老師在實驗室安全訓練站的任務簡報主視覺", "安全訓練站已開啟，請用器材用途與風險線索完成判斷。")}
+        <div class="brief-visual-row">
+          ${renderBriefBackground(labVisualAssets.briefingSceneImage, "阿澤老師在實驗室安全訓練站的任務簡報主視覺", "安全訓練站已開啟，請用器材用途與風險線索完成判斷。")}
+          <aside class="brief-title-avatar-card" data-student-gender="${studentGenderKey()}" data-current-title-id="${title.id}" data-title-avatar-path="${titleCharacter}">
+            <div class="brief-title-avatar">
+              <img src="${titleCharacter}" alt="${state.student.student_name}的${title.current}稱號角色">
+            </div>
+            <div>
+              <span>你的任務稱號</span>
+              <strong>${title.current}</strong>
+              <p>${studentTitleVariantLabel()}角色形象已接入簡報頁；稱號文字與 EXP 進度由網頁顯示。</p>
+            </div>
+          </aside>
+        </div>
         <div class="story-panel highlight">
           <strong>實驗室入口檢查</strong>
           <p>器材不是只背名稱，安全也不是口號。今天要用「我要做什麼」和「可能有什麼風險」來判斷每一步。</p>
@@ -1383,23 +1430,79 @@ function renderBadgeCatalog(earnedBadges) {
 }
 
 function titleForExp(exp) {
-  const titles = [
-    { need: 0, title: "見習調查員" },
-    { need: 1500, title: "生命觀察員" },
-    { need: 3500, title: "生態記錄員" },
-    { need: 6500, title: "概念解謎者" },
-    { need: 10000, title: "微觀探索者" },
-    { need: 14000, title: "系統調查員" },
-    { need: 18000, title: "生命研究員" },
-    { need: 22000, title: "BioQuest 專家" },
-    { need: 26000, title: "生命祕境守護者" }
-  ];
-  const currentIndex = titles.reduce((index, item, itemIndex) => exp >= item.need ? itemIndex : index, 0);
-  const current = titles[currentIndex];
-  const next = titles[currentIndex + 1];
+  const currentIndex = TITLE_LEVELS.reduce((index, item, itemIndex) => exp >= item.need ? itemIndex : index, 0);
+  const current = TITLE_LEVELS[currentIndex];
+  const next = TITLE_LEVELS[currentIndex + 1];
   return next
-    ? { current: current.title, next: next.title, need: next.need, remaining: next.need - exp }
-    : { current: current.title, next: "已達目前最高稱號", need: current.need, remaining: 0 };
+    ? { id: current.id, current: current.title, next_id: next.id, next: next.title, need: next.need, remaining: next.need - exp }
+    : { id: current.id, current: current.title, next_id: current.id, next: "已達目前最高稱號", need: current.need, remaining: 0 };
+}
+
+function normalizeTitleId(titleId) {
+  const value = String(titleId || "").trim();
+  return titleIdAliases[value] || value;
+}
+
+function titleLevelById(titleId) {
+  const normalized = normalizeTitleId(titleId);
+  return TITLE_LEVELS.find((item) => item.id === normalized) || TITLE_LEVELS[0];
+}
+
+function currentStudentTitle() {
+  const explicitId = normalizeTitleId(state.student?.progress?.current_title_id || state.student?.current_title_id);
+  if (explicitId && TITLE_LEVELS.some((item) => item.id === explicitId)) {
+    const title = titleLevelById(explicitId);
+    return {
+      id: title.id,
+      current: state.student?.progress?.current_title || state.student?.current_title || title.title,
+      next_id: title.id,
+      next: "",
+      need: title.need,
+      remaining: 0
+    };
+  }
+  const remoteTotal = Number(state.student?.progress?.total_exp ?? state.student?.total_exp ?? NaN);
+  const localTotal = state.student ? aggregateStudent().totalExp : 0;
+  return titleForExp(Number.isFinite(remoteTotal) ? remoteTotal : localTotal);
+}
+
+function normalizeTitleAvatarPath(path) {
+  if (!path) return "";
+  if (/^(https?:|data:|\/|\.\.\/)/.test(path)) return path;
+  if (path.startsWith("shared-assets/")) return `../${path}`;
+  return path;
+}
+
+function studentGenderKey() {
+  const value = String(
+    state.student?.preferred_avatar_variant
+    || state.student?.progress?.title_avatar_variant
+    || state.student?.title_avatar_variant
+    || state.student?.profile_gender
+    || state.student?.gender
+    || state.student?.sex
+    || state.student?.student_gender
+    || "neutral"
+  ).toLowerCase();
+  if (["m", "male", "boy", "男"].includes(value)) return "male";
+  if (["f", "female", "girl", "女"].includes(value)) return "female";
+  return "neutral";
+}
+
+function studentTitleVariantLabel() {
+  const gender = studentGenderKey();
+  if (gender === "male") return "男版";
+  if (gender === "female") return "女版";
+  return "預設";
+}
+
+function studentTitleCharacterPath(titleId) {
+  const directPath = normalizeTitleAvatarPath(state.student?.title_avatar_path || state.student?.progress?.title_avatar_path);
+  if (directPath) return directPath;
+  const normalizedTitleId = titleLevelById(titleId).id;
+  const gender = studentGenderKey();
+  const avatarSet = titleAvatarImages[normalizedTitleId] || titleAvatarImages.trainee_investigator;
+  return avatarSet?.[gender] || avatarSet?.male || fallbackTitleAvatarPath;
 }
 
 function renderAchievements() {
