@@ -50,7 +50,7 @@ const units = [
   { title: "物質進出細胞的方式", unitId: "cell_transport", status: "spec", sequence: 8, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材與主控確認後建立原型。", tags: ["規格備料", "擴散", "滲透", "半透膜"] },
   { title: "生物體的組成層次", unitId: "biological_organization", status: "spec", sequence: 9, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材與主控確認後建立原型。", tags: ["規格備料", "層次", "排序", "植物器官"] },
   { title: "尺度", unitId: "scale", status: "spec", sequence: 10, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材與主控確認後建立原型。", tags: ["規格備料", "尺度", "比例尺", "觀察工具"] },
-  { title: "食物中的養分與能量", unitId: "nutrients_energy", status: "planned", sequence: 11, summary: "醣類、蛋白質、脂質、水、礦物質與維生素功能。", tags: ["養分", "能量"] },
+  { title: "食物中的養分與能量", unitId: "nutrients_energy", status: "spec", sequence: 11, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材與主控確認後建立原型。", tags: ["規格備料", "養分", "能量", "均衡飲食"] },
   { title: "養分檢測", unitId: "nutrient_tests", status: "planned", sequence: 12, summary: "澱粉、糖類、蛋白質、脂質等檢測與結果判讀。", tags: ["實驗", "檢測"] },
   { title: "酵素", unitId: "enzymes", status: "planned", sequence: 13, summary: "酵素作用、影響因子與消化相關情境。", tags: ["酵素", "變因"] },
   { title: "植物如何製造養分", unitId: "photosynthesis", status: "planned", sequence: 14, summary: "光合作用、葉綠體、光照、二氧化碳與養分製造。", tags: ["光合作用", "植物"] },
