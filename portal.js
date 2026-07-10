@@ -47,7 +47,7 @@ const units = [
   },
   { title: "細胞的構造", unitId: "cell_structure", status: "ready", sequence: 6, summary: "已有模板驗證原型，具細胞圖、構造高亮、配對、比較、EXP 明細與徽章。", tags: ["模板驗證", "細胞構造", "已可測試"], url: "prototype-cell-structure/?v=20260709-attempt-lock-v1", note: "模板驗證單元" },
   { title: "細胞的觀察", unitId: "cell_observation", status: "spec", sequence: 7, summary: "已有學科與視覺備料，尚未製作正式學生端網頁。", tags: ["規格備料", "顯微觀察"] },
-  { title: "物質進出細胞的方式", unitId: "cell_transport", status: "planned", sequence: 8, summary: "擴散、滲透、濃度差與細胞變化，適合後續做簡易模擬。", tags: ["擴散", "滲透"] },
+  { title: "物質進出細胞的方式", unitId: "cell_transport", status: "spec", sequence: 8, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材與主控確認後建立原型。", tags: ["規格備料", "擴散", "滲透", "半透膜"] },
   { title: "生物體的組成層次", unitId: "biological_organization", status: "planned", sequence: 9, summary: "細胞、組織、器官、器官系統與個體階層排序。", tags: ["層次", "排序"] },
   { title: "尺度", unitId: "scale", status: "planned", sequence: 10, summary: "微米、毫米、公分、公尺與比例尺判讀。", tags: ["尺度", "比例尺"] },
   { title: "食物中的養分與能量", unitId: "nutrients_energy", status: "planned", sequence: 11, summary: "醣類、蛋白質、脂質、水、礦物質與維生素功能。", tags: ["養分", "能量"] },
