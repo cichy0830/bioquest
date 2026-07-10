@@ -16,7 +16,7 @@ const mission = {
 
 const mentorName = "阿澤老師";
 const mentorImages = {
-  primary: "assets/mentor-life-world-azhe.png"
+  primary: "assets/mentor-method-azhe-v2.png"
 };
 const owlImages = {
   opening: "assets/owl-method-opening.png",

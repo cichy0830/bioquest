@@ -315,6 +315,76 @@ p {
   max-height: 420px;
 }
 
+.owl-reminder-card,
+.feedback-mentor-card,
+.student-title-card {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid rgba(8, 115, 111, 0.18);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(240, 252, 250, 0.94), rgba(255, 250, 231, 0.9));
+}
+
+.owl-reminder-card span,
+.feedback-mentor-card span,
+.student-title-card span {
+  display: block;
+  color: var(--teal-dark);
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.owl-reminder-card strong,
+.feedback-mentor-card strong,
+.student-title-card strong {
+  display: block;
+  margin: 2px 0 4px;
+  color: var(--ink);
+}
+
+.owl-reminder-card p,
+.feedback-mentor-card p,
+.student-title-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.owl-reminder-avatar,
+.student-character {
+  display: grid;
+  place-items: center;
+  width: 82px;
+  height: 82px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.76);
+  overflow: hidden;
+}
+
+.owl-reminder-avatar img,
+.student-character img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.feedback-mentor-card .mentor-avatar {
+  width: 82px;
+  height: 82px;
+  min-height: 82px;
+}
+
+.section-note {
+  margin: -2px 0 12px;
+  color: var(--muted);
+  font-weight: 750;
+  line-height: 1.65;
+}
+
 .mission-hud,
 .score-grid {
   display: grid;
@@ -481,6 +551,32 @@ textarea {
   color: var(--muted);
   font-size: 14px;
   line-height: 1.55;
+}
+
+.brief-scene-card .brief-background-figure {
+  margin-bottom: 14px;
+}
+
+.student-character-hook {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(8, 115, 111, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.student-character-hook img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
 }
 
 .scan-dot {
@@ -768,6 +864,32 @@ textarea {
   padding: 14px;
 }
 
+.badge-visual {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  color: #0e4c4a;
+  background: #dff8f6;
+  border: 1px solid rgba(8, 115, 111, 0.18);
+  font-size: 26px;
+  font-weight: 950;
+}
+
+.badge-visual.gold {
+  color: #6b4300;
+  background: linear-gradient(135deg, #ffe58a, #fff8dc);
+  border-color: rgba(217, 152, 43, 0.44);
+}
+
+.badge-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .badge.earned {
   border-color: rgba(217, 152, 43, 0.4);
   background: linear-gradient(135deg, #fff8dc, #e0f8f6);
@@ -903,6 +1025,25 @@ textarea {
   .brief-background-figure img {
     aspect-ratio: 4 / 3;
     object-position: center top;
+  }
+
+  .owl-reminder-card,
+  .feedback-mentor-card,
+  .student-title-card {
+    grid-template-columns: 64px minmax(0, 1fr);
+    padding: 12px;
+  }
+
+  .owl-reminder-avatar,
+  .student-character,
+  .feedback-mentor-card .mentor-avatar {
+    width: 62px;
+    height: 62px;
+    min-height: 62px;
+  }
+
+  .student-character-hook {
+    width: 100%;
   }
 
   .actions {

@@ -7,7 +7,7 @@ const units = [
     summary: "正式順序第一單元。已完成學生端靜態原型，含生命現象、生物/非生物、環境條件、EXP 與徽章。",
     tags: ["正式原型", "生命現象", "已可測試"],
     aliases: ["多采多姿的生命世界"],
-    url: "prototype-life-world/?v=20260709-units-1-3-role-brief-drag-v1"
+    url: "prototype-life-world/?v=20260710-life-flow-hooks-v1"
   },
   {
     title: "探究自然的科學方法",
@@ -16,7 +16,7 @@ const units = [
     sequence: 2,
     summary: "正式順序第二單元。已完成學生端靜態原型，含流程排序、變因分類、資料判讀與結論修正。",
     tags: ["正式原型", "科學方法", "已可測試"],
-    url: "prototype-scientific-method/?v=20260709-units-1-3-role-brief-drag-v1"
+    url: "prototype-scientific-method/?v=20260710-cell-basic-unit-v1"
   },
   {
     title: "進入實驗室",
@@ -25,18 +25,27 @@ const units = [
     sequence: 3,
     summary: "正式順序第三單元。已完成學生端靜態原型，含器材功能、器材選用、安全情境、操作順序與實驗紀錄。",
     tags: ["正式原型", "實驗安全", "已可測試"],
-    url: "prototype-lab-entry/?v=20260709-units-1-3-role-brief-drag-v1"
+    url: "prototype-lab-entry/?v=20260710-cell-basic-unit-v1"
   },
   {
     title: "顯微鏡的使用",
     unitId: "microscope_use",
-    status: "spec",
+    status: "ready",
     sequence: 4,
-    summary: "正式順序第四單元。正在修正顯微鏡互動、視野滑桿與角色素材，測試版暫不開放。",
-    tags: ["製作中", "顯微鏡", "暫不開放"]
+    summary: "正式順序第四單元。已完成學生端靜態原型，含部位功能、低倍到高倍操作、倍率視野與搬運收納安全。",
+    tags: ["正式原型", "顯微鏡", "已可測試"],
+    url: "prototype-microscope-use/?v=20260709-attempt-lock-v1"
   },
-  { title: "生物體的基本單位", unitId: "cell_basic_unit", status: "planned", sequence: 5, summary: "需整理細胞是構造與功能基本單位、細胞型態與功能。", tags: ["細胞", "基本單位"] },
-  { title: "細胞的構造", unitId: "cell_structure", status: "spec", sequence: 6, summary: "已有模板驗證原型，但本次公開測試版暫不開放，避免與正式課程序列混淆。", tags: ["模板驗證", "細胞構造", "暫不開放"], note: "模板驗證單元" },
+  {
+    title: "生物體的基本單位",
+    unitId: "cell_basic_unit",
+    status: "ready",
+    sequence: 5,
+    summary: "正式順序第五單元。已完成學生端靜態原型，含細胞基本單位、單細胞/多細胞、形狀功能與顯微證據判讀。",
+    tags: ["正式原型", "細胞", "已可測試"],
+    url: "prototype-cell-basic-unit/?v=20260710-cell-basic-unit-v1"
+  },
+  { title: "細胞的構造", unitId: "cell_structure", status: "ready", sequence: 6, summary: "已有模板驗證原型，具細胞圖、構造高亮、配對、比較、EXP 明細與徽章。", tags: ["模板驗證", "細胞構造", "已可測試"], url: "prototype-cell-structure/?v=20260709-attempt-lock-v1", note: "模板驗證單元" },
   { title: "細胞的觀察", unitId: "cell_observation", status: "spec", sequence: 7, summary: "已有學科與視覺備料，尚未製作正式學生端網頁。", tags: ["規格備料", "顯微觀察"] },
   { title: "物質進出細胞的方式", unitId: "cell_transport", status: "planned", sequence: 8, summary: "擴散、滲透、濃度差與細胞變化，適合後續做簡易模擬。", tags: ["擴散", "滲透"] },
   { title: "生物體的組成層次", unitId: "biological_organization", status: "planned", sequence: 9, summary: "細胞、組織、器官、器官系統與個體階層排序。", tags: ["層次", "排序"] },

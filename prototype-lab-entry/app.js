@@ -20,12 +20,12 @@ const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
 const DIRECT_RAW_MAX = 435;
 const REVISION_RAW_MAX = 261;
-const LAB_ENTRY_VERSION = "20260710-mentor-hooks-publish-v1";
+const LAB_ENTRY_VERSION = "20260710-cell-basic-unit-v1";
 
 const labVisualAssets = {
-  mentorPrimary: "assets/mentor-life-world-azhe.png",
+  mentorPrimary: "assets/mentor-lab-azhe-v2.png",
   mentorFallback: "assets/mentor-life-world-azhe.png",
-  mentorReplacementHook: "assets/mentor-lab-safety-guide-half.png",
+  mentorReplacementHook: "assets/mentor-lab-azhe-v2.png",
   owlHooks: {
     opening: "assets/owl-lab-safety-scan.png",
     scan: "assets/owl-lab-safety-scan.png",

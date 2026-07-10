@@ -16,7 +16,27 @@ const mission = {
 
 const mentorName = "阿澤老師";
 const mentorImages = {
-  primary: "assets/mentor-life-world-azhe.png"
+  primary: "assets/mentor-life-world-azhe-v2.png"
+};
+const owlImages = {
+  prep: "assets/owl-life-classify.png",
+  reflection: "assets/owl-life-feedback.png",
+  result: "assets/owl-life-result.png"
+};
+const feedbackMentorImages = {
+  flawless: { label: "零提示全對", image: mentorImages.primary },
+  strong: { label: "概念穩定", image: mentorImages.primary },
+  steady: { label: "持續整理", image: mentorImages.primary },
+  needs_review: { label: "需要再釐清", image: mentorImages.primary },
+  retry_growth: { label: "再挑戰進步", image: mentorImages.primary }
+};
+const studentTitleCharacterImages = {
+  neutral: {
+    default: owlImages.result,
+    trainee_investigator: owlImages.result,
+    life_observer: owlImages.result,
+    life_mystery_guardian: owlImages.result
+  }
 };
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -25,14 +45,14 @@ const DIRECT_RAW_MAX = 405;
 const REVISION_RAW_MAX = 225;
 
 const unitBadgeCatalog = [
-  { id: "life_world_entry", name: "生命觀測入門徽章", condition: "完成生命訊號偵測任務。" },
-  { id: "living_evidence_detector", name: "生命證據偵測徽章", condition: "生物與非生物判斷關卡達 85% 以上。" },
-  { id: "life_phenomena_mapper", name: "生命現象配對徽章", condition: "生命現象配對關卡達 85% 以上。" },
-  { id: "survival_condition_guardian", name: "生存條件守門徽章", condition: "生存條件題組達 85% 以上。" },
-  { id: "biosphere_observer", name: "生物圈觀察徽章", condition: "生物圈與環境關卡達 85% 以上。" },
-  { id: "life_signal_flawless", name: "生命訊號零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。" },
-  { id: "misconception_reviser_life_world", name: "生命迷思修正徽章", condition: "至少 1 題使用提示後修正成功。" },
-  { id: "retry_growth_life_world", name: "再探生命進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。位階低於零提示全對。" }
+  { id: "life_world_entry", name: "生命觀測入門徽章", condition: "完成生命訊號偵測任務。", badge_image_path: "" },
+  { id: "living_evidence_detector", name: "生命證據偵測徽章", condition: "生物與非生物判斷關卡達 85% 以上。", badge_image_path: "" },
+  { id: "life_phenomena_mapper", name: "生命現象配對徽章", condition: "生命現象配對關卡達 85% 以上。", badge_image_path: "" },
+  { id: "survival_condition_guardian", name: "生存條件守門徽章", condition: "生存條件題組達 85% 以上。", badge_image_path: "" },
+  { id: "biosphere_observer", name: "生物圈觀察徽章", condition: "生物圈與環境關卡達 85% 以上。", badge_image_path: "" },
+  { id: "life_signal_flawless", name: "生命訊號零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。", badge_image_path: "" },
+  { id: "misconception_reviser_life_world", name: "生命迷思修正徽章", condition: "至少 1 題使用提示後修正成功。", badge_image_path: "" },
+  { id: "retry_growth_life_world", name: "再探生命進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。位階低於零提示全對。", badge_image_path: "" }
 ];
 
 const storageKey = "bioquest_life_world_state_v1";
@@ -212,6 +232,49 @@ function mentorCard(title, text, image = mentorImages.primary) {
   `;
 }
 
+function owlReminderCard(title, text, image = owlImages.prep) {
+  return `
+    <div class="owl-reminder-card">
+      <div class="owl-reminder-avatar"><img src="${image}" alt="貓頭鷹助理"></div>
+      <div>
+        <span>貓頭鷹助理</span>
+        <strong>${title}</strong>
+        <p>${text}</p>
+      </div>
+    </div>
+  `;
+}
+
+function feedbackMentorState(result) {
+  if (result.retry_improved) return "retry_growth";
+  if (result.no_hint_perfect) return "flawless";
+  if (result.accuracy >= 0.85 && !result.teacher_attention_needed) return "strong";
+  if (result.teacher_attention_needed || result.reflection_review_status === "pending_review") return "needs_review";
+  return "steady";
+}
+
+function feedbackMentorCard(result) {
+  const stateKey = feedbackMentorState(result);
+  const visual = feedbackMentorImages[stateKey] || feedbackMentorImages.steady;
+  const copy = {
+    flawless: "你能不用提示完成全部判斷，接下來可以練習把判斷證據說給同學聽。",
+    strong: "你的生命現象判斷已經穩定，請把仍想確認的例子帶到課堂討論。",
+    steady: "你已完成任務，接下來請整理最能支持判斷的證據與還會混淆的情境。",
+    needs_review: "系統偵測到幾個需要再釐清的概念，請先閱讀下方建議，再用自己的話提問。",
+    retry_growth: "這次再挑戰有進步，請保留這次修正成功的判斷線索。"
+  };
+  return `
+    <div class="feedback-mentor-card" data-feedback-mentor-state="${stateKey}" data-feedback-mentor-image-hook="${visual.image}">
+      <div class="mentor-avatar"><img src="${visual.image}" alt="${mentorName}：${visual.label}"></div>
+      <div class="mentor-copy">
+        <span>${mentorName}｜${visual.label}</span>
+        <strong>任務回饋</strong>
+        <p>${copy[stateKey]}</p>
+      </div>
+    </div>
+  `;
+}
+
 function layout(content, image = "assets/owl-life-opening.png", imageAlt = "貓頭鷹助理") {
   return `
     <div class="mission-layout">
@@ -243,32 +306,35 @@ function renderBriefBackground(src, alt, caption) {
 
 function renderLogin() {
   const value = state.student?.student_id && state.student.student_id !== "guest" ? state.student.student_id : "";
-  return layout(`
-    <p class="eyebrow">生命祕境 BioQuest</p>
-    <h2 class="hero-title">任務登入</h2>
-    ${mentorCard("先確認身分", "請先輸入學號並確認姓名。下一頁才會開啟本單元任務情境與角色說明。")}
-    <div class="story-panel">
-      <strong>任務登入</strong>
-      <p>輸入學號後，系統會顯示姓名，請確認是否正確。老師測試流程時可使用 guest。</p>
+  return `
+    <div class="wide-layout">
+      <div class="panel hero-panel">
+        <p class="eyebrow">生命祕境 BioQuest</p>
+        <h2 class="hero-title">任務登入</h2>
+        <div class="story-panel">
+          <strong>先確認身分</strong>
+          <p>請先輸入學號並確認姓名。下一頁才會開啟本單元任務情境與角色說明。老師測試流程時可使用 guest。</p>
+        </div>
+        <div class="mission-hud">
+          <div><span>任務代號</span><strong>life_world</strong></div>
+          <div><span>預估時間</span><strong>10-15 分鐘</strong></div>
+          <div><span>任務類型</span><strong>預習檢核</strong></div>
+        </div>
+        <div class="form-grid">
+          <label>
+            學號
+            <input id="studentIdInput" value="${value}" placeholder="例如 S70101 或 guest" autocomplete="off">
+          </label>
+        </div>
+        <div class="actions">
+          <button class="primary" id="loginButton">登入任務</button>
+          <button class="secondary" id="guestButton">老師測試 guest</button>
+          <button class="ghost" id="resetButton">清除本機測試紀錄</button>
+        </div>
+        <div id="loginMessage" class="status-line"></div>
+      </div>
     </div>
-    <div class="mission-hud">
-      <div><span>任務代號</span><strong>life_world</strong></div>
-      <div><span>預估時間</span><strong>10-15 分鐘</strong></div>
-      <div><span>任務類型</span><strong>預習檢核</strong></div>
-    </div>
-    <div class="form-grid">
-      <label>
-        學號
-        <input id="studentIdInput" value="${value}" placeholder="例如 S70101 或 guest" autocomplete="off">
-      </label>
-    </div>
-    <div class="actions">
-      <button class="primary" id="loginButton">登入任務</button>
-      <button class="secondary" id="guestButton">老師測試 guest</button>
-      <button class="ghost" id="resetButton">清除本機測試紀錄</button>
-    </div>
-    <div id="loginMessage" class="status-line"></div>
-  `);
+  `;
 }
 
 function attachLogin() {
@@ -333,42 +399,55 @@ async function login(id) {
 }
 
 function renderBrief() {
-  return layout(`
-    <p class="eyebrow">任務檔案開啟</p>
-    <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
-    ${mentorCard("生命觀測站收到新影像", "水族館、森林、沙漠、深海和校園角落傳來不同影像。這些畫面裡有生物，也有非生物。只看會不會動很容易誤判，我們要用生命現象和生存條件作為證據。")}
-    <div class="story-panel highlight">
-      <strong>任務核心</strong>
-      <p>協助貓頭鷹助理掃描生命訊號，分辨生物與非生物，整理生命現象、生存條件與生物圈的概念。</p>
+  const titleCharacter = studentTitleCharacterPath(titleForExp(0).id);
+  return `
+    <div class="wide-layout">
+      <div class="panel hero-panel brief-scene-card" data-brief-mentor-background-hook="assets/bg-life-entry-wide.png" data-student-character-hook="${titleCharacter}">
+        <p class="eyebrow">任務檔案開啟</p>
+        <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
+        ${renderBriefBackground("assets/bg-life-entry-wide.png", "多彩多姿的生命世界任務背景", "多彩環境影像已接入，請用生命現象與生存條件作為判斷證據。")}
+        <div class="story-panel highlight">
+          <strong>生命觀測站收到新影像</strong>
+          <p>水族館、森林、沙漠、深海和校園角落傳來不同影像。這些畫面裡有生物，也有非生物。只看會不會動很容易誤判，這次任務要用生命現象和生存條件作為證據。</p>
+        </div>
+        <div class="story-panel">
+          <strong>任務核心</strong>
+          <p>掃描生命訊號，分辨生物與非生物，整理生命現象、生存條件與生物圈的概念。</p>
+        </div>
+        <div class="student-character-hook">
+          <span>學生稱號角色圖預留</span>
+          <img src="${titleCharacter}" alt="學生稱號角色預留圖">
+        </div>
+        <div class="status-line">
+          <span class="pill">${state.student.class_name} 班 ${state.student.seat_no} 號</span>
+          <span class="pill ${state.attempt_type === "retry" ? "warn" : ""}">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</span>
+          ${state.student.is_guest ? `<span class="pill warn">guest 測試</span>` : ""}
+        </div>
+        <div class="actions">
+          <button class="primary" id="briefNext">開始任務準備</button>
+        </div>
+      </div>
     </div>
-    ${renderBriefBackground("assets/bg-life-entry-wide.png", "多彩多姿的生命世界任務背景", "多彩環境影像已接入，請用生命現象與生存條件作為判斷證據。")}
-    <div class="status-line">
-      <span class="pill">${state.student.class_name} 班 ${state.student.seat_no} 號</span>
-      <span class="pill ${state.attempt_type === "retry" ? "warn" : ""}">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</span>
-      ${state.student.is_guest ? `<span class="pill warn">guest 測試</span>` : ""}
-    </div>
-    <div class="actions">
-      <button class="primary" id="briefNext">開始任務準備</button>
-    </div>
-  `, "assets/owl-life-opening.png");
+  `;
 }
 
 function renderScan() {
   const tools = ["不用單看會不會動", "尋找多種生命現象", "區分生物生長與非生物變大", "連結生存條件與環境", "用證據修正直覺判斷"];
-  return layout(`
-    <p class="eyebrow">任務準備</p>
-    <h2 class="hero-title">進關卡前先整理判斷工具</h2>
-    <div class="story-panel">
-      <strong>生命訊號掃描提醒</strong>
-      <p>生物不一定會快速移動，會移動的物體也不一定是生物。接下來請用代謝、生長與發育、感應與運動、生殖，以及生存條件來判斷。</p>
+  return `
+    <div class="wide-layout">
+      <div class="panel hero-panel">
+        <p class="eyebrow">任務準備</p>
+        <h2 class="hero-title">進關卡前先整理判斷工具</h2>
+        ${owlReminderCard("生命訊號掃描提醒", "生物不一定會快速移動，會移動的物體也不一定是生物。接下來請用代謝、生長與發育、感應與運動、生殖，以及生存條件來判斷。")}
+        <div class="card-grid">
+          ${tools.map((tool) => `<div class="life-card"><span class="life-icon"></span><strong>${tool}</strong></div>`).join("")}
+        </div>
+        <div class="actions">
+          <button class="primary" id="scanNext">進入生命訊號分類</button>
+        </div>
+      </div>
     </div>
-    <div class="card-grid">
-      ${tools.map((tool) => `<div class="life-card"><span class="life-icon"></span><strong>${tool}</strong></div>`).join("")}
-    </div>
-    <div class="actions">
-      <button class="primary" id="scanNext">進入生命訊號分類</button>
-    </div>
-  `, "assets/owl-life-classify.png");
+  `;
 }
 
 const classifyItems = [
@@ -622,6 +701,12 @@ function attachCheckpointHandlers() {
       const item = adaptationPairs.find((entry) => entry.id === select.dataset.id);
       if (item && select.value !== item.answer) state.answers[`${select.dataset.selectGroup}Hints`][select.dataset.id] = true;
       saveState();
+      const field = select.closest(".match-field");
+      const selectedAnswer = field?.querySelector(".selected-answer");
+      if (field && selectedAnswer) {
+        field.classList.toggle("has-selection", Boolean(select.value));
+        selectedAnswer.textContent = select.value ? `已選：${select.value}` : "尚未選擇生存意義";
+      }
       if (item && select.value !== item.answer) render();
     });
   });
@@ -1042,26 +1127,28 @@ function getConceptReview() {
 
 function renderReview() {
   const review = getConceptReview();
+  const result = calculateResult();
   return `
-    <div class="mission-layout">
+    <div class="wide-layout">
       <div class="panel">
         <p class="eyebrow">貓頭鷹助理概念回饋</p>
         <h2>先整理證據，再回報</h2>
-        ${mentorCard("課堂前提醒", "請不要只寫「不知道」或直接複製系統方向詞。試著用自己的話說明：你會用哪些生命現象判斷？哪一種情境還會混淆？")}
+        ${feedbackMentorCard(result)}
         <h3>目前較穩定的概念</h3>
         <div class="status-line">${review.stable.map((item) => `<span class="pill">${item}</span>`).join("")}</div>
         <h3>建議再閱讀理解</h3>
+        <p class="section-note">這裡列出的是本次作答中可能需要再釐清的概念，請先回到題目情境想一想：你是用生命現象、生存條件，還是只用外表直覺判斷？</p>
         <div class="checkpoint-grid">
           ${review.revisit.map((item) => `<div class="question-row"><strong>${item.text}</strong></div>`).join("")}
         </div>
         <h3>可以帶到課堂的提問方向</h3>
+        <p class="section-note">這些方向是幫你準備「希望老師課堂再解釋的部分」。填寫回報時，請選擇一個方向並改成自己的問題。</p>
         <div class="status-line">${review.directions.map((item) => `<span class="pill warn">${item}</span>`).join("")}</div>
         <p class="muted">上面的方向詞只是提醒，回報時請用自己的話補充，不要直接複製。</p>
         <div class="actions">
           <button class="primary" id="reviewNext">填寫任務回報</button>
         </div>
       </div>
-      <div class="owl-frame"><img src="assets/owl-life-feedback.png" alt="貓頭鷹助理概念回饋"></div>
     </div>
   `;
 }
@@ -1069,11 +1156,11 @@ function renderReview() {
 function renderReflection() {
   const reflection = state.answers.reflection;
   return `
-    <div class="mission-layout">
+    <div class="wide-layout">
       <div class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把你的預習狀態回報給老師</h2>
-        ${mentorCard("留下自己的判斷線索", "空白可以提交但沒有回報 EXP；具體且和本單元概念相關的問題或不確定，才會取得回報 EXP。")}
+        ${owlReminderCard("留下自己的判斷線索", "空白可以提交但沒有回報 EXP；具體且和本單元概念相關、希望老師課堂再解釋的問題，才會取得回報 EXP。", owlImages.reflection)}
         <div class="story-panel">
           <strong>回報 EXP 怎麼判定？</strong>
           <p>只寫「不知道」「好難」或直接複製提問方向不會取得高分。請寫出生物、非生物、生命現象、代謝、生長、感應、生殖、生存條件或生物圈等概念，並補充自己的疑問。</p>
@@ -1086,11 +1173,11 @@ function renderReflection() {
             <textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea>
           </label>
           <label>選一個你想帶到課堂討論的方向，並用自己的話補充
-            <span class="field-help">方向可參考上一頁，但不要直接複製方向詞。</span>
+            <span class="field-help">請寫下你希望老師在課堂上再解釋的部分。方向可參考上一頁，但不要直接複製方向詞。</span>
             <textarea id="studentQuestion">${reflection.student_question || ""}</textarea>
           </label>
           <label>信心分數
-            <span class="field-help">1 分代表「我需要老師帶著整理」；5 分代表「我能用證據說明」。</span>
+            <span class="field-help">1 分代表「我需要老師帶著整理」；5 分代表「我能自己說明本單元重點概念」。</span>
             <select id="confidenceScore">
               ${[1, 2, 3, 4, 5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}
             </select>
@@ -1100,7 +1187,6 @@ function renderReflection() {
           <button class="primary" id="submitMission">提交任務</button>
         </div>
       </div>
-      <div class="owl-frame"><img src="assets/owl-life-feedback.png" alt="貓頭鷹助理提示"></div>
     </div>
   `;
 }
@@ -1111,6 +1197,8 @@ function attachReflection() {
       setScreen("result");
       return;
     }
+    const confirmed = window.confirm("提交後會進行結算，本次作答不能再修改；若要再挑戰，請重新登入並從頭完成。確定要提交任務嗎？");
+    if (!confirmed) return;
     const button = event.currentTarget;
     button.disabled = true;
     button.textContent = "送出中...";
@@ -1208,29 +1296,62 @@ function aggregateStudent() {
   return { totalExp, badges, attempts, completedUnits: bestByUnit.size };
 }
 
+function badgeFallbackIcon(badge) {
+  if (badge.id === "life_signal_flawless") return "★";
+  if (badge.id.includes("retry")) return "↗";
+  if (badge.id.includes("reviser")) return "✓";
+  return "◆";
+}
+
 function renderBadgeCatalog(earnedBadges) {
   const earned = new Set(earnedBadges || []);
-  return `<div class="badge-grid">${unitBadgeCatalog.map((badge) => `<div class="badge ${earned.has(badge.name) ? "earned" : "locked"}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div>`;
+  return `<div class="badge-grid">${unitBadgeCatalog.map((badge) => {
+    const isEarned = earned.has(badge.name);
+    const imageMarkup = badge.badge_image_path
+      ? `<img src="${badge.badge_image_path}" alt="${badge.name}">`
+      : `<span aria-hidden="true">${badgeFallbackIcon(badge)}</span>`;
+    return `
+      <div class="badge ${isEarned ? "earned" : "locked"}" data-badge-id="${badge.id}" data-badge-image-hook="${badge.badge_image_path}">
+        <div class="badge-visual ${badge.id === "life_signal_flawless" ? "gold" : ""}">${imageMarkup}</div>
+        <strong>${badge.name}</strong>
+        <p>${badge.condition}</p>
+      </div>
+    `;
+  }).join("")}</div>`;
 }
 
 function titleForExp(exp) {
   const titles = [
-    { need: 0, title: "見習調查員" },
-    { need: 1500, title: "生命觀察員" },
-    { need: 3500, title: "生態記錄員" },
-    { need: 6500, title: "概念解謎者" },
-    { need: 10000, title: "微觀探索者" },
-    { need: 14000, title: "系統調查員" },
-    { need: 18000, title: "生命研究員" },
-    { need: 22000, title: "BioQuest 專家" },
-    { need: 26000, title: "生命祕境守護者" }
+    { id: "trainee_investigator", need: 0, title: "見習調查員" },
+    { id: "life_observer", need: 1500, title: "生命觀察員" },
+    { id: "ecology_recorder", need: 3500, title: "生態記錄員" },
+    { id: "concept_solver", need: 6500, title: "概念解謎者" },
+    { id: "micro_world_explorer", need: 10000, title: "微觀探索者" },
+    { id: "system_investigator", need: 14000, title: "系統調查員" },
+    { id: "life_researcher", need: 18000, title: "生命研究員" },
+    { id: "bioquest_expert", need: 22000, title: "BioQuest 專家" },
+    { id: "life_mystery_guardian", need: 26000, title: "生命祕境守護者" }
   ];
   const currentIndex = titles.reduce((index, item, itemIndex) => exp >= item.need ? itemIndex : index, 0);
   const current = titles[currentIndex];
   const next = titles[currentIndex + 1];
   return next
-    ? { current: current.title, next: next.title, need: next.need, remaining: next.need - exp }
-    : { current: current.title, next: "已達目前最高稱號", need: current.need, remaining: 0 };
+    ? { id: current.id, current: current.title, next_id: next.id, next: next.title, need: next.need, remaining: next.need - exp }
+    : { id: current.id, current: current.title, next_id: current.id, next: "已達目前最高稱號", need: current.need, remaining: 0 };
+}
+
+function studentGenderKey() {
+  const value = String(state.student?.gender || state.student?.sex || state.student?.student_gender || "neutral").toLowerCase();
+  if (["m", "male", "boy", "男"].includes(value)) return "male";
+  if (["f", "female", "girl", "女"].includes(value)) return "female";
+  return "neutral";
+}
+
+function studentTitleCharacterPath(titleId) {
+  const gender = studentGenderKey();
+  return studentTitleCharacterImages[gender]?.[titleId]
+    || studentTitleCharacterImages.neutral[titleId]
+    || studentTitleCharacterImages.neutral.default;
 }
 
 function renderAchievements() {
@@ -1245,6 +1366,14 @@ function renderAchievements() {
         <p class="eyebrow">累積成就</p>
         <h2>${state.student.student_name}</h2>
         <p class="lead">${state.student.class_name} 班 ${state.student.seat_no} 號｜目前稱號：${title.current}</p>
+        <div class="student-title-card" data-student-gender="${studentGenderKey()}" data-current-title-id="${title.id}" data-title-character-hook="${studentTitleCharacterPath(title.id)}">
+          <div class="student-character"><img src="${studentTitleCharacterPath(title.id)}" alt="${title.current}稱號角色預留圖"></div>
+          <div>
+            <span>稱號角色圖預留</span>
+            <strong>${title.current}</strong>
+            <p>未來將依登入資料的 gender 與 current_title_id 顯示學生稱號角色；目前先使用 fallback 圖示。</p>
+          </div>
+        </div>
         <div class="score-grid">
           <div class="score-box"><span>累積認列 EXP</span><strong>${aggregate.totalExp}</strong></div>
           <div class="score-box"><span>亮起徽章</span><strong>${aggregate.badges.length}</strong></div>
