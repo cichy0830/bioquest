@@ -956,6 +956,62 @@ function buildAttempt() {
   };
 }
 
+function buildBackendPayload(attempt) {
+  return {
+    attempt_id: `${mission.unit_id}_${attempt.student.student_id}_${Date.now()}`,
+    student_id: attempt.student.student_id,
+    student_name: attempt.student.student_name,
+    class_name: attempt.student.class_name,
+    seat_no: attempt.student.seat_no,
+    unit_id: attempt.mission.unit_id,
+    unit_title: attempt.mission.unit_title,
+    attempt_type: attempt.attempt_type,
+    started_at: attempt.started_at,
+    submitted_at: attempt.submitted_at,
+    total_questions: attempt.total,
+    correct: attempt.correct,
+    accuracy: attempt.accuracy,
+    hints_used: attempt.hint_used ? 1 : 0,
+    correct_without_hint: attempt.correct_without_hint,
+    corrected_after_hint: attempt.corrected_after_hint,
+    completion_exp: attempt.completion_exp,
+    concept_exp: attempt.concept_exp,
+    revision_exp: attempt.revision_exp,
+    question_exp: attempt.question_exp,
+    mastery_exp: attempt.mastery_exp,
+    retry_exp: attempt.retry_exp,
+    attempt_total_exp: attempt.attempt_total_exp,
+    unit_credited_exp: attempt.unit_credited_exp,
+    credited_delta: attempt.credited_delta,
+    confidence_score: attempt.confidence_score,
+    reflection_quality: attempt.reflection_quality,
+    teacher_attention_needed: attempt.teacher_attention_needed,
+    student_question: attempt.student_question,
+    question_logs: (attempt.section_stats || []).map((section, index) => ({
+      question_id: `${attempt.mission.unit_id}_section_${index + 1}`,
+      skill_tag: section.title,
+      is_correct: section.correct === section.total,
+      used_hint: section.corrected_after_hint > 0,
+      attempt_answer: `答對 ${section.correct}/${section.total}`,
+      correct_answer: "詳見單元題組",
+      exp_awarded: section.exp
+    }))
+  };
+}
+
+async function submitAttemptToBackend(attempt) {
+  const body = new URLSearchParams();
+  body.set("payload", JSON.stringify(buildBackendPayload(attempt)));
+  const response = await fetch(`${BACKEND_URL}?action=submitAttempt`, {
+    method: "POST",
+    body
+  });
+  if (!response.ok) throw new Error(`backend_${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || "backend_submit_failed");
+  return data;
+}
+
 function misconceptionText(tag) {
   const map = {
     movement_equals_life: "會動不一定是生物，機械移動或被動移動不等於生命現象。",
@@ -1047,11 +1103,14 @@ function renderReflection() {
 }
 
 function attachReflection() {
-  document.querySelector("#submitMission").addEventListener("click", () => {
+  document.querySelector("#submitMission").addEventListener("click", async (event) => {
     if (state.submitted_at) {
       setScreen("result");
       return;
     }
+    const button = event.currentTarget;
+    button.disabled = true;
+    button.textContent = "送出中...";
     state.answers.reflection = {
       confident_concept: document.querySelector("#confidentConcept").value.trim(),
       uncertain_concept: document.querySelector("#uncertainConcept").value.trim(),
@@ -1060,11 +1119,26 @@ function attachReflection() {
     };
     Object.assign(state.answers.reflection, evaluateReflectionQuality(state.answers.reflection));
     state.result = calculateResult();
-    state.submitted_at = new Date().toISOString();
-    saveAttempt(buildAttempt());
-    unlock("result", "achievements");
-    saveState();
-    setScreen("result");
+    const submittedAt = new Date().toISOString();
+    state.submitted_at = submittedAt;
+    const attempt = buildAttempt();
+    try {
+      await submitAttemptToBackend(attempt);
+      saveAttempt(attempt);
+      state.remote_completed_attempts = Number(state.remote_completed_attempts || 0) + 1;
+      unlock("result", "achievements");
+      saveState();
+      setScreen("result");
+    } catch (error) {
+      state.submitted_at = null;
+      button.disabled = false;
+      button.textContent = "提交任務";
+      saveState();
+      const warning = document.createElement("div");
+      warning.className = "feedback warn";
+      warning.textContent = "目前無法寫入後台，請稍後再按一次提交任務。";
+      button.closest(".actions").after(warning);
+    }
   });
 }
 
