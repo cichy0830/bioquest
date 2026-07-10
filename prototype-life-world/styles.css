@@ -705,6 +705,39 @@ textarea {
   accent-color: var(--teal);
 }
 
+.match-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.match-select {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding-right: 36px;
+  color: var(--ink);
+  font-weight: 850;
+  text-overflow: ellipsis;
+}
+
+.selected-answer {
+  display: block;
+  min-height: 28px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--muted);
+  background: rgba(8, 115, 111, 0.07);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.match-field.has-selection .selected-answer {
+  color: var(--teal-dark);
+  background: #e0f8f6;
+}
+
 .result-row,
 .exp-row {
   display: grid;
@@ -835,6 +868,11 @@ textarea {
   .mission-hud,
   .score-grid {
     grid-template-columns: 1fr;
+  }
+
+  .match-select {
+    min-height: 52px;
+    font-size: 16px;
   }
 
   .hero-panel {

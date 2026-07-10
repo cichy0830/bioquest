@@ -542,10 +542,13 @@ function renderCheckpoint4() {
             <strong>${item.label}</strong>
             ${hintUsed ? `<div class="hint">${adaptationHint(item.id)}</div>` : ""}
           </div>
-          <select data-select-group="checkpoint4" data-id="${item.id}">
+          <div class="match-field ${current ? "has-selection" : ""}">
+            <select class="match-select" data-select-group="checkpoint4" data-id="${item.id}">
             <option value="">選擇生存意義</option>
             ${optionOrder("adaptationOptions", adaptationOptions).map((option) => `<option value="${option}" ${current === option ? "selected" : ""}>${option}</option>`).join("")}
-          </select>
+            </select>
+            <span class="selected-answer">${current ? `已選：${current}` : "尚未選擇生存意義"}</span>
+          </div>
           <button class="ghost hint-button" data-group="checkpoint4" data-id="${item.id}">提示</button>
         </div>
       `;
