@@ -389,8 +389,15 @@ async function login(id) {
       message.innerHTML = `<span class="pill warn">查無此學號，請重新輸入。</span>`;
       return;
     }
+    const remoteProgress = remote.progress || remote.student_progress || {};
     student = {
       ...remote.student,
+      progress: remoteProgress,
+      current_title_id: remoteProgress.current_title_id || remote.student.current_title_id,
+      current_title: remoteProgress.current_title || remote.student.current_title,
+      title_avatar_variant: remoteProgress.title_avatar_variant || remote.student.title_avatar_variant,
+      title_avatar_path: remoteProgress.title_avatar_path || remote.student.title_avatar_path,
+      total_exp: remoteProgress.total_exp ?? remote.student.total_exp,
       is_guest: remote.student.student_id === "guest" || String(remote.student.is_guest).toUpperCase() === "TRUE"
     };
     attemptType = remote.attempt_type || "first";
