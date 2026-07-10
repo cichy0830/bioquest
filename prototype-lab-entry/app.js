@@ -5,6 +5,8 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
+
 const mission = {
   unit_id: "lab_intro",
   unit_title: "進入實驗室",
@@ -18,11 +20,12 @@ const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
 const DIRECT_RAW_MAX = 435;
 const REVISION_RAW_MAX = 261;
-const LAB_ENTRY_VERSION = "20260709-units-1-3-role-brief-drag-v1";
+const LAB_ENTRY_VERSION = "20260710-mentor-hooks-publish-v1";
 
 const labVisualAssets = {
-  mentorPrimary: "assets/mentor-lab-safety-guide-half.png",
+  mentorPrimary: "assets/mentor-life-world-azhe.png",
   mentorFallback: "assets/mentor-life-world-azhe.png",
+  mentorReplacementHook: "assets/mentor-lab-safety-guide-half.png",
   owlHooks: {
     opening: "assets/owl-lab-safety-scan.png",
     scan: "assets/owl-lab-safety-scan.png",
@@ -54,6 +57,7 @@ const defaultState = {
   screen: "login",
   student: null,
   attempt_type: "first",
+  remote_completed_attempts: 0,
   started_at: null,
   completedScreens: ["login", "rules"],
   activeToken: null,
@@ -318,12 +322,12 @@ function renderNav() {
     studentMini.innerHTML = `<p class="muted">尚未登入</p><p class="muted">可用測試學號 S70101 或 guest</p>`;
     return;
   }
-  const attempts = studentAttempts(state.student.student_id);
+  const attempts = state.remote_completed_attempts ?? studentAttempts(state.student.student_id).length;
   studentMini.innerHTML = `
     <p><strong>${state.student.student_name}</strong></p>
     <p>${state.student.class_name} 班 ${state.student.seat_no} 號</p>
     <p class="muted">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</p>
-    <p class="muted">完成紀錄：${attempts.length} 筆</p>
+    <p class="muted">完成紀錄：${attempts} 筆</p>
   `;
 }
 
@@ -438,17 +442,53 @@ function attachLogin() {
   });
 }
 
-function login(id) {
-  const student = roster[id];
+async function fetchStudentStatus(id) {
+  const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}`;
+  const response = await fetch(url, { method: "GET", cache: "no-store" });
+  if (!response.ok) throw new Error(`backend_${response.status}`);
+  return response.json();
+}
+
+async function login(id) {
   const message = document.querySelector("#loginMessage");
+  if (!id) {
+    message.innerHTML = `<span class="pill warn">請先輸入學號。</span>`;
+    return;
+  }
+  message.innerHTML = `<span class="pill">正在查詢後台名單...</span>`;
+  let student = null;
+  let attemptType = "first";
+  let completedAttempts = 0;
+  try {
+    const remote = await fetchStudentStatus(id);
+    if (!remote.ok) {
+      message.innerHTML = `<span class="pill warn">查無此學號，請重新輸入。</span>`;
+      return;
+    }
+    student = {
+      ...remote.student,
+      is_guest: remote.student.student_id === "guest" || String(remote.student.is_guest).toUpperCase() === "TRUE"
+    };
+    attemptType = remote.attempt_type || "first";
+    completedAttempts = Number(remote.completed_attempts || 0);
+  } catch (error) {
+    student = roster[id];
+    if (!student) {
+      message.innerHTML = `<span class="pill warn">目前無法連線後台，且本機測試名單查無此學號。</span>`;
+      return;
+    }
+    completedAttempts = studentAttempts(student.student_id).length;
+    attemptType = completedAttempts > 0 ? "retry" : "first";
+    message.innerHTML = `<span class="pill warn">後台暫時無法連線，先使用本機測試模式。</span>`;
+  }
   if (!student) {
     message.innerHTML = `<span class="pill warn">查無此學號，請重新輸入。</span>`;
     return;
   }
-  const attempts = studentAttempts(student.student_id);
   state = structuredClone(defaultState);
   state.student = { ...student, is_guest: Boolean(student.is_guest) };
-  state.attempt_type = attempts.length > 0 ? "retry" : "first";
+  state.attempt_type = attemptType;
+  state.remote_completed_attempts = completedAttempts;
   state.started_at = new Date().toISOString();
   state.optionOrders = {};
   unlock("brief", "rules", "achievements");
