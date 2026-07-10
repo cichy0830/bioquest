@@ -45,14 +45,14 @@ const DIRECT_RAW_MAX = 405;
 const REVISION_RAW_MAX = 225;
 
 const unitBadgeCatalog = [
-  { id: "life_world_entry", name: "生命觀測入門徽章", condition: "完成生命訊號偵測任務。", badge_image_path: "" },
-  { id: "living_evidence_detector", name: "生命證據偵測徽章", condition: "生物與非生物判斷關卡達 85% 以上。", badge_image_path: "" },
+  { id: "life_world_entry", name: "生命觀測入門徽章", condition: "完成生命訊號偵測任務。", badge_image_path: "assets/badges/life_world_entry.png" },
+  { id: "living_evidence_detector", name: "生命證據偵測徽章", condition: "生物與非生物判斷關卡達 85% 以上。", badge_image_path: "assets/badges/life_world_living_evidence_detector.png" },
   { id: "life_phenomena_mapper", name: "生命現象配對徽章", condition: "生命現象配對關卡達 85% 以上。", badge_image_path: "assets/badges/life_world_life_phenomena_mapper.png" },
-  { id: "survival_condition_guardian", name: "生存條件守門徽章", condition: "生存條件題組達 85% 以上。", badge_image_path: "" },
-  { id: "biosphere_observer", name: "生物圈觀察徽章", condition: "生物圈與環境關卡達 85% 以上。", badge_image_path: "" },
+  { id: "survival_condition_guardian", name: "生存條件守門徽章", condition: "生存條件題組達 85% 以上。", badge_image_path: "assets/badges/life_world_survival_condition_guardian.png" },
+  { id: "biosphere_observer", name: "生物圈觀察徽章", condition: "生物圈與環境關卡達 85% 以上。", badge_image_path: "assets/badges/life_world_biosphere_observer.png" },
   { id: "life_signal_flawless", name: "生命訊號零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。", badge_image_path: "assets/badges/life_world_life_signal_flawless.png" },
-  { id: "misconception_reviser_life_world", name: "生命迷思修正徽章", condition: "至少 1 題使用提示後修正成功。", badge_image_path: "" },
-  { id: "retry_growth_life_world", name: "再探生命進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。位階低於零提示全對。", badge_image_path: "" },
+  { id: "misconception_reviser_life_world", name: "生命迷思修正徽章", condition: "至少 1 題使用提示後修正成功。", badge_image_path: "assets/badges/life_world_misconception_reviser.png" },
+  { id: "retry_growth_life_world", name: "再探生命進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。位階低於零提示全對。", badge_image_path: "assets/badges/life_world_retry_growth.png" },
   { id: "reflection_reporter_life_world", name: "高品質回報候選徽章", condition: "回報內容能提出具體、可帶到課堂討論的本單元問題。", badge_image_path: "assets/badges/life_world_reflection_reporter.png" }
 ];
 
