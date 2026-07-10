@@ -1,8 +1,8 @@
 const roster = {
-  S70101: { student_id: "S70101", class_name: "701", seat_no: "01", student_name: "林安安" },
-  S70102: { student_id: "S70102", class_name: "701", seat_no: "02", student_name: "陳柏宇" },
-  S70103: { student_id: "S70103", class_name: "701", seat_no: "03", student_name: "許若晴" },
-  guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
+  S70101: { student_id: "S70101", class_name: "701", seat_no: "01", student_name: "林安安", profile_gender: "female" },
+  S70102: { student_id: "S70102", class_name: "701", seat_no: "02", student_name: "陳柏宇", profile_gender: "male" },
+  S70103: { student_id: "S70103", class_name: "701", seat_no: "03", student_name: "許若晴", profile_gender: "female" },
+  guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", profile_gender: "neutral", is_guest: true }
 };
 
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
@@ -30,14 +30,31 @@ const feedbackMentorImages = {
   needs_review: { label: "需要再釐清", image: "assets/mentor-life-world-feedback-needs-review.png" },
   retry_ready: { label: "再挑戰準備", image: "assets/mentor-life-world-feedback-retry-ready.png" }
 };
-const studentTitleCharacterImages = {
-  neutral: {
-    default: owlImages.result,
-    trainee_investigator: owlImages.result,
-    life_observer: owlImages.result,
-    life_mystery_guardian: owlImages.result
-  }
+const TITLE_AVATAR_BASE_PATH = "../shared-assets/title-avatars";
+const TITLE_LEVELS = [
+  { id: "trainee_investigator", order: "01", need: 0, title: "見習調查員" },
+  { id: "life_observer", order: "02", need: 1500, title: "生命觀察員" },
+  { id: "ecology_recorder", order: "03", need: 3500, title: "生態記錄員" },
+  { id: "concept_solver", order: "04", need: 6500, title: "概念解謎者" },
+  { id: "micro_explorer", order: "05", need: 10000, title: "微觀探索者" },
+  { id: "systems_investigator", order: "06", need: 14000, title: "系統調查員" },
+  { id: "life_researcher", order: "07", need: 18000, title: "生命研究員" },
+  { id: "bioquest_expert", order: "08", need: 22000, title: "BioQuest 專家" },
+  { id: "bioquest_guardian", order: "09", need: 26000, title: "生命祕境守護者" }
+];
+const titleIdAliases = {
+  micro_world_explorer: "micro_explorer",
+  system_investigator: "systems_investigator",
+  life_mystery_guardian: "bioquest_guardian"
 };
+const titleAvatarImages = TITLE_LEVELS.reduce((images, title) => {
+  images[title.id] = {
+    male: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-male.png`,
+    female: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-female.png`
+  };
+  return images;
+}, {});
+const fallbackTitleAvatarPath = `${TITLE_AVATAR_BASE_PATH}/title-01-trainee_investigator-male.png`;
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -400,14 +417,27 @@ async function login(id) {
 }
 
 function renderBrief() {
-  const titleCharacter = studentTitleCharacterPath(state.student?.current_title_id || titleForExp(0).id);
+  const title = currentStudentTitle();
+  const titleCharacter = studentTitleCharacterPath(title.id);
   const briefingBackground = "assets/bg-life-world-briefing-azhe-wide.png";
   return `
     <div class="wide-layout">
       <div class="panel hero-panel brief-scene-card" data-brief-mentor-background-hook="${briefingBackground}" data-student-character-hook="${titleCharacter}">
         <p class="eyebrow">任務檔案開啟</p>
         <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
-        ${renderBriefBackground(briefingBackground, "阿澤老師在生命觀測站的任務簡報背景", "多彩環境影像已接入，請用生命現象與生存條件作為判斷證據。")}
+        <div class="brief-visual-row">
+          ${renderBriefBackground(briefingBackground, "阿澤老師在生命觀測站的任務簡報背景", "多彩環境影像已接入，請用生命現象與生存條件作為判斷證據。")}
+          <aside class="brief-title-avatar-card" data-student-gender="${studentGenderKey()}" data-current-title-id="${title.id}" data-title-avatar-path="${titleCharacter}">
+            <div class="brief-title-avatar">
+              <img src="${titleCharacter}" alt="${state.student.student_name}的${title.current}稱號角色">
+            </div>
+            <div>
+              <span>你的任務稱號</span>
+              <strong>${title.current}</strong>
+              <p>${studentTitleVariantLabel()}角色形象已接入簡報頁；稱號文字與 EXP 進度由網頁顯示。</p>
+            </div>
+          </aside>
+        </div>
         <div class="story-panel highlight">
           <strong>生命觀測站收到新影像</strong>
           <p>水族館、森林、沙漠、深海和校園角落傳來不同影像。這些畫面裡有生物，也有非生物。只看會不會動很容易誤判，這次任務要用生命現象和生存條件作為證據。</p>
@@ -415,10 +445,6 @@ function renderBrief() {
         <div class="story-panel">
           <strong>任務核心</strong>
           <p>掃描生命訊號，分辨生物與非生物，整理生命現象、生存條件與生物圈的概念。</p>
-        </div>
-        <div class="student-character-hook">
-          <span>學生稱號角色圖預留</span>
-          <img src="${titleCharacter}" alt="學生稱號角色預留圖">
         </div>
         <div class="status-line">
           <span class="pill">${state.student.class_name} 班 ${state.student.seat_no} 號</span>
@@ -1324,39 +1350,79 @@ function renderBadgeCatalog(earnedBadges) {
 }
 
 function titleForExp(exp) {
-  const titles = [
-    { id: "trainee_investigator", need: 0, title: "見習調查員" },
-    { id: "life_observer", need: 1500, title: "生命觀察員" },
-    { id: "ecology_recorder", need: 3500, title: "生態記錄員" },
-    { id: "concept_solver", need: 6500, title: "概念解謎者" },
-    { id: "micro_world_explorer", need: 10000, title: "微觀探索者" },
-    { id: "system_investigator", need: 14000, title: "系統調查員" },
-    { id: "life_researcher", need: 18000, title: "生命研究員" },
-    { id: "bioquest_expert", need: 22000, title: "BioQuest 專家" },
-    { id: "life_mystery_guardian", need: 26000, title: "生命祕境守護者" }
-  ];
-  const currentIndex = titles.reduce((index, item, itemIndex) => exp >= item.need ? itemIndex : index, 0);
-  const current = titles[currentIndex];
-  const next = titles[currentIndex + 1];
+  const currentIndex = TITLE_LEVELS.reduce((index, item, itemIndex) => exp >= item.need ? itemIndex : index, 0);
+  const current = TITLE_LEVELS[currentIndex];
+  const next = TITLE_LEVELS[currentIndex + 1];
   return next
     ? { id: current.id, current: current.title, next_id: next.id, next: next.title, need: next.need, remaining: next.need - exp }
     : { id: current.id, current: current.title, next_id: current.id, next: "已達目前最高稱號", need: current.need, remaining: 0 };
 }
 
+function normalizeTitleId(titleId) {
+  const value = String(titleId || "").trim();
+  return titleIdAliases[value] || value;
+}
+
+function titleLevelById(titleId) {
+  const normalized = normalizeTitleId(titleId);
+  return TITLE_LEVELS.find((item) => item.id === normalized) || TITLE_LEVELS[0];
+}
+
+function currentStudentTitle() {
+  const explicitId = normalizeTitleId(state.student?.progress?.current_title_id || state.student?.current_title_id);
+  if (explicitId && TITLE_LEVELS.some((item) => item.id === explicitId)) {
+    const title = titleLevelById(explicitId);
+    return {
+      id: title.id,
+      current: state.student?.progress?.current_title || state.student?.current_title || title.title,
+      next_id: title.id,
+      next: "",
+      need: title.need,
+      remaining: 0
+    };
+  }
+  const remoteTotal = Number(state.student?.progress?.total_exp ?? state.student?.total_exp ?? NaN);
+  const localTotal = state.student ? aggregateStudent().totalExp : 0;
+  return titleForExp(Number.isFinite(remoteTotal) ? remoteTotal : localTotal);
+}
+
+function normalizeTitleAvatarPath(path) {
+  if (!path) return "";
+  if (/^(https?:|data:|\/|\.\.\/)/.test(path)) return path;
+  if (path.startsWith("shared-assets/")) return `../${path}`;
+  return path;
+}
+
 function studentGenderKey() {
-  const value = String(state.student?.gender || state.student?.sex || state.student?.student_gender || "neutral").toLowerCase();
+  const value = String(
+    state.student?.preferred_avatar_variant
+    || state.student?.progress?.title_avatar_variant
+    || state.student?.title_avatar_variant
+    || state.student?.profile_gender
+    || state.student?.gender
+    || state.student?.sex
+    || state.student?.student_gender
+    || "neutral"
+  ).toLowerCase();
   if (["m", "male", "boy", "男"].includes(value)) return "male";
   if (["f", "female", "girl", "女"].includes(value)) return "female";
   return "neutral";
 }
 
-function studentTitleCharacterPath(titleId) {
-  if (state.student?.title_avatar_path) return state.student.title_avatar_path;
-  if (state.student?.progress?.title_avatar_path) return state.student.progress.title_avatar_path;
+function studentTitleVariantLabel() {
   const gender = studentGenderKey();
-  return studentTitleCharacterImages[gender]?.[titleId]
-    || studentTitleCharacterImages.neutral[titleId]
-    || studentTitleCharacterImages.neutral.default;
+  if (gender === "male") return "男版";
+  if (gender === "female") return "女版";
+  return "預設";
+}
+
+function studentTitleCharacterPath(titleId) {
+  const directPath = normalizeTitleAvatarPath(state.student?.title_avatar_path || state.student?.progress?.title_avatar_path);
+  if (directPath) return directPath;
+  const normalizedTitleId = titleLevelById(titleId).id;
+  const gender = studentGenderKey();
+  const avatarSet = titleAvatarImages[normalizedTitleId] || titleAvatarImages.trainee_investigator;
+  return avatarSet?.[gender] || avatarSet?.male || fallbackTitleAvatarPath;
 }
 
 function renderAchievements() {
@@ -1372,11 +1438,11 @@ function renderAchievements() {
         <h2>${state.student.student_name}</h2>
         <p class="lead">${state.student.class_name} 班 ${state.student.seat_no} 號｜目前稱號：${title.current}</p>
         <div class="student-title-card" data-student-gender="${studentGenderKey()}" data-current-title-id="${title.id}" data-title-character-hook="${studentTitleCharacterPath(title.id)}">
-          <div class="student-character"><img src="${studentTitleCharacterPath(title.id)}" alt="${title.current}稱號角色預留圖"></div>
+          <div class="student-character"><img src="${studentTitleCharacterPath(title.id)}" alt="${title.current}稱號角色"></div>
           <div>
-            <span>稱號角色圖預留</span>
+            <span>稱號角色</span>
             <strong>${title.current}</strong>
-            <p>未來將依登入資料的 gender 與 current_title_id 顯示學生稱號角色；目前先使用 fallback 圖示。</p>
+            <p>依登入資料與目前稱號顯示；缺少性別或稱號資料時使用穩定預設角色。</p>
           </div>
         </div>
         <div class="score-grid">
