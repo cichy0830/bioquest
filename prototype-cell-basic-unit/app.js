@@ -6,7 +6,7 @@ const roster = {
 };
 
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
-const BASIC_UNIT_VERSION = "20260710-cell-basic-unit-v1";
+const BASIC_UNIT_VERSION = "20260710-cell-basic-unit-brief-hook-v1";
 const mission = {
   unit_id: "cell_basic_unit",
   unit_title: "生物體的基本單位",
@@ -15,6 +15,10 @@ const mission = {
 };
 const mentorName = "阿澤老師";
 const mentorImages = { primary: "assets/mentor-basic-unit-guide-half.png" };
+const sceneImages = {
+  ambient: "assets/bg-basic-unit-entry-wide.png",
+  briefingAzhe: "assets/bg-basic-unit-briefing-azhe-wide.png"
+};
 const owlImages = {
   opening: "assets/owl-basic-unit-micro-guide.png",
   scan: "assets/owl-basic-unit-cell-scan.png",
@@ -242,7 +246,7 @@ function layout(content, image = owlImages.opening, imageAlt = "貓頭鷹助理"
   return `<div class="mission-layout"><div class="panel hero-panel">${content}</div><div class="owl-frame"><img src="${image}" alt="${imageAlt}"></div></div>`;
 }
 function briefBackground() {
-  return `<figure class="brief-background-figure"><img src="assets/bg-basic-unit-entry-wide.png" alt="微觀生命站任務背景"><figcaption>微觀生命站已開啟：把顯微鏡看到的小單位，連回整個生物體。</figcaption></figure>`;
+  return `<figure class="brief-background-figure" data-briefing-scene-hook="${sceneImages.briefingAzhe}" data-ambient-background="${sceneImages.ambient}"><img src="${sceneImages.briefingAzhe}" alt="微觀生命站任務簡報主視覺" onerror="this.onerror=null;this.src='${sceneImages.ambient}';"><figcaption>微觀生命站已開啟：把顯微鏡看到的小單位，連回整個生物體。</figcaption></figure>`;
 }
 
 function renderLogin() {
@@ -322,15 +326,19 @@ function attachLogin() {
 }
 
 function renderBrief() {
-  return layout(`
-    <p class="eyebrow">任務檔案開啟</p>
-    <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
-    ${mentorCard("進入微觀生命站", "上一個任務學會使用顯微鏡後，這次要把看到的小單位連回核心概念：生物體由細胞組成，細胞是構造與功能的基本單位。")}
-    <div class="story-panel highlight"><strong>任務核心</strong><p>辨認細胞基本單位、單細胞與多細胞、細胞形狀和功能，以及顯微觀察提供的證據。</p></div>
-    ${briefBackground()}
-    <div class="status-line"><span class="pill">${state.student.class_name} 班 ${state.student.seat_no} 號</span><span class="pill ${state.attempt_type === "retry" ? "warn" : ""}">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</span></div>
-    <div class="actions"><button class="primary" id="briefNext">開始任務準備</button></div>
-  `, owlImages.opening);
+  return `
+    <div class="wide-layout">
+      <div class="panel hero-panel brief-scene-card">
+        <p class="eyebrow">任務檔案開啟</p>
+        <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
+        ${briefBackground()}
+        <div class="story-panel highlight"><strong>進入微觀生命站</strong><p>上一個任務學會使用顯微鏡後，這次要把看到的小單位連回核心概念：生物體由細胞組成，細胞是構造與功能的基本單位。</p></div>
+        <div class="story-panel"><strong>任務核心</strong><p>辨認細胞基本單位、單細胞與多細胞、細胞形狀和功能，以及顯微觀察提供的證據。</p></div>
+        <div class="status-line"><span class="pill">${state.student.class_name} 班 ${state.student.seat_no} 號</span><span class="pill ${state.attempt_type === "retry" ? "warn" : ""}">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</span></div>
+        <div class="actions"><button class="primary" id="briefNext">開始任務準備</button></div>
+      </div>
+    </div>
+  `;
 }
 function renderScan() {
   const concepts = ["細胞是構造與功能基本單位", "生物體由細胞組成", "有些生物只由一個細胞構成", "不同細胞形狀常和功能有關", "顯微鏡影像可作為細胞證據"];

@@ -43,7 +43,7 @@ const units = [
     sequence: 5,
     summary: "正式順序第五單元。已完成學生端靜態原型，含細胞基本單位、單細胞/多細胞、形狀功能與顯微證據判讀。",
     tags: ["正式原型", "細胞", "已可測試"],
-    url: "prototype-cell-basic-unit/?v=20260710-cell-basic-unit-v1"
+    url: "prototype-cell-basic-unit/?v=20260710-cell-basic-unit-brief-hook-v1"
   },
   { title: "細胞的構造", unitId: "cell_structure", status: "ready", sequence: 6, summary: "已有模板驗證原型，具細胞圖、構造高亮、配對、比較、EXP 明細與徽章。", tags: ["模板驗證", "細胞構造", "已可測試"], url: "prototype-cell-structure/?v=20260709-attempt-lock-v1", note: "模板驗證單元" },
   { title: "細胞的觀察", unitId: "cell_observation", status: "spec", sequence: 7, summary: "已有學科與視覺備料，尚未製作正式學生端網頁。", tags: ["規格備料", "顯微觀察"] },
