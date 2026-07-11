@@ -1,0 +1,114 @@
+.bq-feedback-mentor {
+  display: grid !important;
+  grid-template-columns: minmax(260px, 40%) minmax(0, 1fr) !important;
+  align-items: center !important;
+  min-height: 390px !important;
+  margin: 18px 0 24px !important;
+  overflow: hidden !important;
+}
+
+.bq-feedback-mentor .mentor-avatar,
+.bq-feedback-mentor__visual {
+  display: grid !important;
+  place-items: center !important;
+  width: 100% !important;
+  min-height: 350px !important;
+  height: clamp(350px, 42vw, 500px) !important;
+  padding: 8px !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+.bq-feedback-mentor .mentor-avatar img,
+.bq-feedback-mentor__visual img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+}
+
+.bq-feedback-mentor__copy {
+  padding: 20px !important;
+}
+
+.bq-feedback-mentor__copy span,
+.bq-feedback-mentor__copy strong {
+  display: block;
+}
+
+.bq-feedback-mentor__copy strong {
+  margin: 4px 0 8px;
+  font-size: 20px;
+}
+
+.bq-review-assistant-secondary {
+  display: none !important;
+}
+
+.bq-result-hero {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 330px;
+  margin: 16px 0 20px;
+  padding: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(25, 104, 111, 0.18);
+  border-radius: 8px;
+  background: rgba(244, 251, 249, 0.82);
+}
+
+.bq-result-hero .owl-frame {
+  display: grid !important;
+  place-items: center !important;
+  width: min(100%, 460px) !important;
+  min-height: 300px !important;
+  height: clamp(300px, 40vw, 440px) !important;
+  margin: 0 auto !important;
+  padding: 8px !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.bq-result-hero .owl-frame img,
+.bq-result-hero__image {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+@media (max-width: 760px) {
+  .bq-feedback-mentor {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+  }
+
+  .bq-feedback-mentor .mentor-avatar,
+  .bq-feedback-mentor__visual {
+    min-height: 300px !important;
+    height: clamp(300px, 96vw, 430px) !important;
+  }
+
+  .bq-feedback-mentor__copy {
+    padding: 12px !important;
+  }
+
+  .bq-result-hero {
+    min-height: 280px;
+    padding: 8px;
+  }
+
+  .bq-result-hero .owl-frame {
+    min-height: 260px !important;
+    height: clamp(260px, 88vw, 390px) !important;
+  }
+}

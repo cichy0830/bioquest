@@ -412,6 +412,13 @@ function owlPanel(stage = owlStageFor(), imageAlt = "貓頭鷹助理") {
   `;
 }
 
+function owlImageFor(stage = "result") {
+  return {
+    src: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
+    className: `microscope-owl-frame owl-${stage} using-fallback`
+  };
+}
+
 function layout(content, owlStage = owlStageFor(), imageAlt = "貓頭鷹助理") {
   return `
     <div class="mission-layout">

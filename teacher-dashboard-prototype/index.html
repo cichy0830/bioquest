@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>生命祕境 BioQuest｜教師儀表板</title>
+  <link rel="stylesheet" href="styles.css?v=20260711-teacher-dashboard-live-v1">
+</head>
+<body>
+  <main class="dashboard-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">生命祕境 BioQuest</p>
+        <h1>教師儀表板</h1>
+      </div>
+      <p class="connection-state" id="connectionState">尚未連線</p>
+    </header>
+
+    <section class="access-panel" id="accessPanel" aria-labelledby="accessTitle">
+      <div>
+        <p class="eyebrow">教師驗證</p>
+        <h2 id="accessTitle">輸入教師存取碼</h2>
+        <p class="muted">存取碼只保留在目前頁面記憶體中，不會寫入瀏覽器儲存或 GitHub。</p>
+      </div>
+      <form id="accessForm" class="access-form">
+        <label>教師存取碼
+          <input id="teacherKey" type="password" autocomplete="current-password" required>
+        </label>
+        <button class="primary" id="loadDashboard" type="submit">載入實際資料</button>
+      </form>
+      <div id="accessStatus" class="status-box" role="status"></div>
+    </section>
+
+    <section id="dashboardContent" hidden>
+      <div class="controlbar">
+        <div class="filters" aria-label="後台篩選">
+          <label>班級
+            <select id="classFilter"></select>
+          </label>
+          <label>單元
+            <select id="unitFilter"></select>
+          </label>
+          <label id="studentFilterLabel" hidden>學生
+            <select id="studentFilter"></select>
+          </label>
+        </div>
+        <button class="secondary" id="disconnectButton" type="button">離開儀表板</button>
+      </div>
+
+      <nav class="tabs" aria-label="教師後台視圖">
+        <button class="active" data-view="unit" type="button">單元總覽</button>
+        <button data-view="class" type="button">班級總覽</button>
+        <button data-view="student" type="button">學生歷程</button>
+      </nav>
+
+      <div id="dataWarnings" class="status-box" hidden></div>
+      <section id="viewRoot" class="view-root" aria-live="polite"></section>
+    </section>
+  </main>
+
+  <script src="app.js?v=20260711-teacher-dashboard-live-v1"></script>
+</body>
+</html>

@@ -1274,7 +1274,7 @@ function renderResult() {
           <button class="secondary" id="goRules">查看 EXP 規則</button>
         </div>
       </div>
-      <div class="owl-frame"><img src="../AI貓頭鷹-結算.png" alt="任務結算貓頭鷹助理"></div>
+      <div class="owl-frame"><img src="../prototype-cell-basic-unit/assets/owl-basic-unit-result.png" alt="任務結算貓頭鷹助理"></div>
     </div>
   `;
 }
