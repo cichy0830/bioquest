@@ -28,7 +28,7 @@ const microscopeVisualAssets = {
   mentorFallback: "assets/mentor-life-world-azhe.webp",
   briefingSceneWide: "assets/bg-microscope-use-briefing-azhe-wide.webp?v=20260711-microscope-brief-checkpoint-v2",
   briefingSceneMobile: "assets/bg-microscope-use-briefing-azhe-mobile.webp?v=20260711-microscope-brief-checkpoint-v2",
-  diagramParts: "",
+  diagramParts: "assets/microscope-parts-interactive.webp",
   owlHooks: {
     opening: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
     scan: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
@@ -112,12 +112,12 @@ function normalizeLockedScreen() {
 }
 
 const partItems = [
-  { id: "eyepiece", label: "目鏡", answer: "上方觀察處", function: "讓眼睛觀察，並與物鏡一起放大影像。", x: 36, y: 14, w: 16, h: 12, shape: "rect", misconception: "parts_names_only" },
-  { id: "objective", label: "物鏡", answer: "靠近玻片的放大鏡頭", function: "靠近標本，負責主要放大；觀察時會先低倍再高倍。", x: 43, y: 38, w: 20, h: 13, shape: "rect", misconception: "parts_names_only" },
-  { id: "stage", label: "載物臺", answer: "承放玻片的位置", function: "放置並固定玻片，讓標本位在光線通過的位置。", x: 40, y: 58, w: 35, h: 9, shape: "rect", misconception: "parts_names_only" },
-  { id: "coarse", label: "粗調節輪", answer: "側邊大幅調焦", function: "大幅調整焦距，通常在低倍找焦時使用。", x: 68, y: 42, w: 14, h: 14, shape: "circle", misconception: "coarse_on_high_power" },
-  { id: "fine", label: "細調節輪", answer: "側邊微調焦距", function: "小幅微調焦距，高倍下影像稍微模糊時使用。", x: 72, y: 55, w: 10, h: 10, shape: "circle", misconception: "coarse_on_high_power" },
-  { id: "light", label: "光圈或光源", answer: "載物臺下方調整進光", function: "調整進入視野的光量；視野太暗時先檢查這裡。", x: 47, y: 71, w: 24, h: 10, shape: "rect", misconception: "focus_vs_light_confusion" }
+  { id: "eyepiece", label: "目鏡", answer: "上方觀察處", function: "讓眼睛觀察，並與物鏡一起放大影像。", x: 35, y: 13, w: 18, h: 18, shape: "rect", misconception: "parts_names_only" },
+  { id: "objective", label: "物鏡", answer: "靠近玻片的放大鏡頭", function: "靠近標本，負責主要放大；觀察時會先低倍再高倍。", x: 42, y: 40, w: 22, h: 18, shape: "rect", misconception: "parts_names_only" },
+  { id: "stage", label: "載物臺", answer: "承放玻片的位置", function: "放置並固定玻片，讓標本位在光線通過的位置。", x: 43, y: 52, w: 38, h: 12, shape: "rect", misconception: "parts_names_only" },
+  { id: "coarse", label: "粗調節輪", answer: "側邊大幅調焦", function: "大幅調整焦距，通常在低倍找焦時使用。", x: 73, y: 61, w: 16, h: 16, shape: "circle", misconception: "coarse_on_high_power" },
+  { id: "fine", label: "細調節輪", answer: "側邊微調焦距", function: "小幅微調焦距，高倍下影像稍微模糊時使用。", x: 62, y: 69, w: 11, h: 11, shape: "circle", misconception: "coarse_on_high_power" },
+  { id: "light", label: "光圈或光源", answer: "載物臺下方調整進光", function: "調整進入視野的光量；視野太暗時先檢查這裡。", x: 43, y: 72, w: 20, h: 12, shape: "rect", misconception: "focus_vs_light_confusion" }
 ];
 
 const partPositionOptions = ["上方觀察處", "靠近玻片的放大鏡頭", "承放玻片的位置", "側邊大幅調焦", "側邊微調焦距", "載物臺下方調整進光"];
@@ -591,23 +591,20 @@ function renderScan() {
 
 function checkpointShell(title, description, rows, nextId, owlState = state.screen) {
   return `
-    <div class="mission-layout">
-      <div class="wide-layout">
-        <div class="panel">
-          <p class="eyebrow">${mission.unit_title}</p>
-          <h2>${title}</h2>
-          <p class="lead">${description}</p>
-        </div>
-        <div class="panel checkpoint-grid">${rows}</div>
-        <div class="panel">
-          <div id="checkpointFeedback" class="feedback"></div>
-          <div class="actions">
-            <button class="primary" id="${nextId}">完成本關</button>
-            <button class="secondary" data-nav-target="rules">查看 EXP 規則</button>
-          </div>
+    <div class="wide-layout checkpoint-layout" data-checkpoint-screen="${owlState}">
+      <div class="panel">
+        <p class="eyebrow">${mission.unit_title}</p>
+        <h2>${title}</h2>
+        <p class="lead">${description}</p>
+      </div>
+      <div class="panel checkpoint-grid">${rows}</div>
+      <div class="panel">
+        <div id="checkpointFeedback" class="feedback"></div>
+        <div class="actions">
+          <button class="primary" id="${nextId}">完成本關</button>
+          <button class="secondary" data-nav-target="rules">查看 EXP 規則</button>
         </div>
       </div>
-      ${owlPanel(owlStageFor(owlState), "顯微鏡任務貓頭鷹助理")}
     </div>
   `;
 }
@@ -670,7 +667,22 @@ function renderMicroscopePartsExplorer() {
       </div>
       <div class="microscope-explorer">
         <div class="microscope-diagram" aria-label="顯微鏡構造互動圖">
-          <div class="microscope-diagram-asset"></div>
+          <div class="microscope-diagram-asset">
+            <img
+              class="microscope-parts-image"
+              src="${microscopeVisualAssets.diagramParts}"
+              alt="複式顯微鏡部位互動圖"
+              onerror="this.hidden=true;this.parentElement.classList.add('image-failed');"
+            >
+            <div class="microscope-css-fallback" role="img" aria-label="顯微鏡示意圖">
+              <span class="fallback-eyepiece"></span>
+              <span class="fallback-arm"></span>
+              <span class="fallback-stage"></span>
+              <span class="fallback-focus"></span>
+              <span class="fallback-light"></span>
+              <span class="fallback-base"></span>
+            </div>
+          </div>
           ${partItems.map((part) => `
             <button
               class="part-hotspot ${active.id === part.id ? "active" : ""} ${viewed[part.id] ? "viewed" : ""} ${part.shape}"
