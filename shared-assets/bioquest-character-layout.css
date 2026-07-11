@@ -185,8 +185,9 @@
   object-position: center !important;
 }
 
-.badge img,
-.badge-image,
+.badge > img,
+.badge > .badge-image,
+.badge-card > .badge-image,
 .badge-card > img,
 [data-badge-image-hook] > img,
 [data-badge-image-path] > img {
@@ -196,6 +197,25 @@
   max-width: var(--bq-badge-size) !important;
   max-height: var(--bq-badge-size) !important;
   margin: 0 auto 8px !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+.badge-visual {
+  position: relative;
+  flex: 0 0 auto;
+  min-width: 0;
+  overflow: hidden !important;
+  line-height: 0;
+}
+
+.badge-visual > img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  margin: 0 !important;
   object-fit: contain !important;
   object-position: center !important;
 }
