@@ -54,7 +54,7 @@ const units = [
   { title: "養分檢測", unitId: "nutrient_test", status: "spec", sequence: 12, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材、檢測方法版本與主控確認後建立原型。", tags: ["規格備料", "試劑", "顏色判讀", "對照組"] },
   { title: "酵素", unitId: "enzymes", status: "spec", sequence: 13, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材、BadgeRules 與主控確認後建立原型。", tags: ["規格備料", "酵素", "專一性", "資料判讀"] },
   { title: "植物如何製造養分", unitId: "photosynthesis", status: "spec", sequence: 14, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材、BadgeRules 與主控確認後建立原型。", tags: ["規格備料", "光合作用", "葉綠體", "變因判讀"] },
-  { title: "人體如何獲得養分", unitId: "human_nutrition", status: "planned", sequence: 15, summary: "消化道、消化腺、養分吸收與消化後利用。", tags: ["消化", "人體"] },
+  { title: "人體如何獲得養分", unitId: "human_nutrition", status: "spec", sequence: 15, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材、BadgeRules 與主控確認後建立原型。", tags: ["規格備料", "消化", "吸收", "食物流向"] },
   { title: "植物的運輸構造", unitId: "plant_transport_structures", status: "planned", sequence: 16, summary: "根、莖、葉與維管束相關構造。", tags: ["植物", "運輸"] },
   { title: "植物體內物質的運輸", unitId: "plant_transport", status: "planned", sequence: 17, summary: "水分、礦物質、養分在植物體內的運輸。", tags: ["導管", "篩管"] },
   { title: "人體心血管系統的組成", unitId: "cardiovascular_components", status: "planned", sequence: 18, summary: "心臟、血管、血液組成與功能。", tags: ["心血管", "血液"] },
