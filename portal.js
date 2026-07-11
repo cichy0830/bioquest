@@ -49,7 +49,7 @@ const units = [
   { title: "細胞的觀察", unitId: "cell_observation", status: "ready", sequence: 7, summary: "正式順序第七單元。已完成學生端靜態原型，含玻片製作、低高倍策略、顯微視野判讀、染色目的與迷思修正。", tags: ["正式原型", "顯微觀察", "已可測試"], url: "prototype-cell-observation/?v=20260711-character-layout-v1" },
   { title: "物質進出細胞的方式", unitId: "cell_transport", status: "ready", sequence: 8, summary: "正式順序第八單元。已完成學生端靜態原型，含擴散與滲透、半透膜、濃度方向、資料判讀與動植物細胞變化。", tags: ["正式原型", "擴散", "滲透", "已可測試"], url: "prototype-cell-transport/?v=20260711-character-layout-v1" },
   { title: "生物體的組成層次", unitId: "biological_organization", status: "ready", sequence: 9, summary: "正式順序第九單元。已完成學生端靜態原型，含組成層次排序、例子分類、單多細胞判斷、植物器官與動植物比較。", tags: ["正式原型", "組成層次", "排序", "植物器官", "已可測試"], url: "prototype-biological-organization/?v=20260711-character-layout-v1" },
-  { title: "尺度", unitId: "scale", status: "spec", sequence: 10, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材與主控確認後建立原型。", tags: ["規格備料", "尺度", "比例尺", "觀察工具"] },
+  { title: "尺度", unitId: "scale", status: "ready", sequence: 10, summary: "正式順序第十單元。已完成學生端靜態原型，含尺度排序、單位配對、觀察工具、標尺判讀、圖像與實際大小。", tags: ["正式原型", "尺度", "比例尺", "觀察工具", "已可測試"], url: "prototype-scale/?v=20260711-scale-v1" },
   { title: "食物中的養分與能量", unitId: "nutrients_energy", status: "spec", sequence: 11, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材與主控確認後建立原型。", tags: ["規格備料", "養分", "能量", "均衡飲食"] },
   { title: "養分檢測", unitId: "nutrient_test", status: "spec", sequence: 12, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材、檢測方法版本與主控確認後建立原型。", tags: ["規格備料", "試劑", "顏色判讀", "對照組"] },
   { title: "酵素", unitId: "enzymes", status: "spec", sequence: 13, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材、BadgeRules 與主控確認後建立原型。", tags: ["規格備料", "酵素", "專一性", "資料判讀"] },
