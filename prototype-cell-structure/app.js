@@ -17,6 +17,11 @@ const titleProgressRules = window.BioQuestTitleProgress;
 const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
 const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
 const badgeAsset = (id) => `../shared-assets/badges/cell_structure/badge-cell_structure-${id}.webp`;
+const cellStructureOwlAssets = {
+  prep: "assets/owl-cell-structure-prep-scan.webp",
+  report: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
+  result: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp"
+};
 
 const unitBadgeCatalog = [
   { id: "cell_structure_entry", name: "細胞工廠入門徽章", condition: "完成細胞工廠掃描任務。" },
@@ -187,11 +192,11 @@ navButtons.forEach((button) => {
   });
 });
 
-function layout(content, image = "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp", imageAlt = "貓頭鷹助理") {
+function layout(content, image = "", imageAlt = "貓頭鷹助理") {
   return `
     <div class="mission-layout">
       <div class="panel hero-panel">${content}</div>
-      <div class="owl-frame"><img src="${image}" alt="${imageAlt}"></div>
+      ${image ? `<div class="owl-frame"><img src="${image}" alt="${imageAlt}"></div>` : ""}
     </div>
   `;
 }
@@ -236,7 +241,7 @@ function renderLogin() {
       <button class="ghost" id="resetButton">清除本機測試紀錄</button>
     </div>
     <div id="loginMessage" class="status-line"></div>
-  `, "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp");
+  `);
 }
 
 function attachLogin() {
@@ -295,7 +300,7 @@ function renderBrief() {
     <div class="actions">
       <button class="primary" id="briefNext">開始貓頭鷹助理預習掃描</button>
     </div>
-  `, "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.webp");
+  `);
 }
 
 function renderScan() {
@@ -320,7 +325,7 @@ function renderScan() {
     <div class="actions">
       <button class="primary" id="scanNext">進入關卡一</button>
     </div>
-  `, "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp");
+  `, cellStructureOwlAssets.prep, "胞器掃描準備貓頭鷹助理");
 }
 
 const checkpoint1Items = [
@@ -840,7 +845,7 @@ function renderReflection() {
           <button class="primary" id="submitMission">提交任務</button>
         </div>
       </div>
-      <div class="owl-frame"><img src="../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp" alt="貓頭鷹助理提示"></div>
+      <div class="owl-frame"><img src="${cellStructureOwlAssets.report}" alt="任務回報貓頭鷹助理"></div>
     </div>
   `;
 }
@@ -952,7 +957,6 @@ function renderReview() {
           <button class="primary" id="reviewNext">填寫任務回報</button>
         </div>
       </div>
-      <div class="owl-frame"><img src="../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp" alt="貓頭鷹助理概念回饋"></div>
     </div>
   `;
 }
@@ -1289,7 +1293,7 @@ function renderResult() {
           <button class="secondary" id="goRules">查看 EXP 規則</button>
         </div>
       </div>
-      <div class="owl-frame"><img src="../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp" alt="任務結算貓頭鷹助理"></div>
+      <div class="owl-frame"><img src="${cellStructureOwlAssets.result}" alt="任務結算貓頭鷹助理"></div>
     </div>
   `;
 }
