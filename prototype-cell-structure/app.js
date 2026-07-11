@@ -16,15 +16,19 @@ const mentorName = "阿澤老師";
 const titleProgressRules = window.BioQuestTitleProgress;
 const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
 const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
+const badgeAsset = (id) => `../shared-assets/badges/cell_structure/badge-cell_structure-${id}.webp`;
 
 const unitBadgeCatalog = [
-  { id: "micro_intro", name: "微觀入門徽章", condition: "完成本次細胞工廠任務。" },
-  { id: "structure_spotter", name: "細胞構造辨識徽章", condition: "細胞構造辨識關卡達 85% 以上。" },
-  { id: "function_matcher", name: "細胞功能配對徽章", condition: "功能配對關卡達 85% 以上。" },
-  { id: "cell_comparer", name: "動植物比較徽章", condition: "動植物比較關卡達 85% 以上。" },
-  { id: "revision_mindset", name: "迷思修正徽章", condition: "使用提示後完成修正。" },
-  { id: "cell_mastery", name: "細胞工廠精熟徽章", condition: "整體正確率達 90% 以上，並留下具體提問。" }
-];
+  { id: "cell_structure_entry", name: "細胞工廠入門徽章", condition: "完成細胞工廠掃描任務。" },
+  { id: "cell_organelle_identifier", name: "細胞構造辨識徽章", condition: "主要細胞構造辨識關卡達 85% 以上。" },
+  { id: "cell_function_matcher", name: "細胞功能配對徽章", condition: "構造與功能配對關卡達 85% 以上。" },
+  { id: "animal_plant_compare_guardian", name: "動植物細胞比較徽章", condition: "動植物細胞共有構造與差異分類關卡達 85% 以上。" },
+  { id: "membrane_wall_distinctor", name: "膜壁分辨徽章", condition: "細胞膜與細胞壁位置、功能判斷題組達標。" },
+  { id: "energy_photosynthesis_mapper", name: "能量與光合配對徽章", condition: "粒線體、葉綠體與呼吸作用、光合作用配對題組達標。" },
+  { id: "cell_structure_flawless", name: "細胞工廠零提示全對徽章", condition: "全部答對，且全程未使用提示。" },
+  { id: "cell_structure_reflection_reporter", name: "高品質細胞構造回報徽章", condition: "回報品質達 discussion_question，且具備細胞構造或功能關聯。" },
+  { id: "retry_growth_cell_structure", name: "再探細胞工廠進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。" }
+].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id) }));
 
 const storageKey = "bioquest_cell_structure_state_v1";
 const screen = document.querySelector("#screen");
@@ -1160,12 +1164,21 @@ function calculateResult() {
   const retryExp = state.attempt_type === "retry" ? 50 : 0;
   const totalExp = completionExp + conceptExp + revisionExp + questionExp + masteryExp + retryExp;
   const misconceptions = [...s1.misconceptions, ...s2.misconceptions, ...s3.misconceptions, ...s4.misconceptions];
+  const membraneWallCorrect = state.answers.checkpoint4.wall === misconceptionQuestions.find((item) => item.id === "wall")?.answer;
+  const energyFunctionCorrect = ["mitochondria", "chloroplast"].every((id) => state.answers.checkpoint2[id] === checkpoint2Items.find((item) => item.id === id)?.answer);
+  const chloroplastConceptCorrect = state.answers.checkpoint4.chloroplast === misconceptionQuestions.find((item) => item.id === "chloroplast")?.answer;
+  const noHintPerfect = correct === total && hintUsed === 0;
+  const previousAccuracies = state.student ? studentAttempts(state.student.student_id).map((attempt) => Number(attempt.accuracy)).filter(Number.isFinite) : [];
+  const retryImproved = state.attempt_type === "retry" && previousAccuracies.length > 0 && accuracy > Math.max(...previousAccuracies);
   const badges = [unitBadgeCatalog[0].name];
   if (s1.correct / s1.total >= 0.85) badges.push(unitBadgeCatalog[1].name);
   if (s2.correct / s2.total >= 0.85) badges.push(unitBadgeCatalog[2].name);
   if (s3.correct / s3.total >= 0.85) badges.push(unitBadgeCatalog[3].name);
-  if (revisionExp > 0) badges.push(unitBadgeCatalog[4].name);
-  if (accuracy >= 0.9 && reflectionEvaluation.question_exp >= 30) badges.push(unitBadgeCatalog[5].name);
+  if (membraneWallCorrect) badges.push(unitBadgeCatalog[4].name);
+  if (energyFunctionCorrect && chloroplastConceptCorrect) badges.push(unitBadgeCatalog[5].name);
+  if (noHintPerfect) badges.push(unitBadgeCatalog[6].name);
+  if (reflectionEvaluation.reflection_quality === "discussion_question") badges.push(unitBadgeCatalog[7].name);
+  if (retryImproved) badges.push(unitBadgeCatalog[8].name);
   return {
     completion_exp: completionExp,
     concept_exp: conceptExp,
@@ -1294,8 +1307,8 @@ function renderBadgeCatalog(earnedBadges) {
   return `
     <div class="badge-grid">
       ${unitBadgeCatalog.map((badge) => `
-        <div class="badge ${earned.has(badge.name) ? "earned" : "locked"}">
-          <span>${earned.has(badge.name) ? "已亮燈" : "未取得"}</span>
+        <div class="badge ${earned.has(badge.name) ? "earned" : "locked"}" data-badge-id="${badge.id}">
+          <img src="${badge.badge_image_path}" alt="${badge.name}">
           <strong>${badge.name}</strong>
           <p>${badge.condition}</p>
         </div>

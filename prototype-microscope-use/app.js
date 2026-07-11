@@ -39,6 +39,7 @@ const microscopeVisualAssets = {
   }
 };
 
+const badgeAsset = (id) => `../shared-assets/badges/microscope_use/badge-microscope_use-${id}.webp`;
 const unitBadgeCatalog = [
   { id: "microscope_use_entry", name: "微觀校準入門徽章", condition: "完成微觀視野校準任務。" },
   { id: "microscope_parts_identifier", name: "顯微鏡部位功能徽章", condition: "顯微鏡部位與功能辨識關卡達 85% 以上。" },
@@ -48,7 +49,7 @@ const unitBadgeCatalog = [
   { id: "microscope_use_flawless", name: "顯微鏡零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。" },
   { id: "microscope_reflection_reporter", name: "高品質顯微回報徽章", condition: "回報品質達 discussion_question，且具備顯微操作或視野概念。" },
   { id: "retry_growth_microscope_use", name: "再探微觀視野進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。" }
-];
+].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id) }));
 
 const storageKey = "bioquest_microscope_use_state_v1";
 const attemptsKey = "bioquest_attempts_v1";
@@ -1333,7 +1334,7 @@ function aggregateStudent() {
 
 function renderBadgeCatalog(earnedBadges) {
   const earned = new Set(earnedBadges || []);
-  return `<div class="badge-grid">${unitBadgeCatalog.map((badge) => `<div class="badge ${earned.has(badge.name) ? "earned" : "locked"}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div>`;
+  return `<div class="badge-grid">${unitBadgeCatalog.map((badge) => `<div class="badge ${earned.has(badge.name) ? "earned" : "locked"}" data-badge-id="${badge.id}"><img src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div>`;
 }
 
 function titleForExp(exp) {

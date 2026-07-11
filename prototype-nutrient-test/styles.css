@@ -370,6 +370,26 @@ textarea { min-height: 96px; resize: vertical; }
 }
 .question-mode-banner strong { padding: 4px 8px; border-radius: 6px; color: #fff; background: #a86f10; }
 .question-mode-banner span { font-weight: 900; }
+.question-evidence,
+.completed-observation-card {
+  display: grid;
+  gap: 10px;
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid rgba(22, 105, 111, .28);
+  border-radius: 8px;
+  background: #f5faf5;
+}
+.completed-observation-card { border-left: 5px solid #d39b32; background: #fff9e8; }
+.completed-observation-card p,
+.completed-observation-card small,
+.question-evidence p { margin: 0; }
+.completed-observation-card small { color: var(--muted); font-weight: 800; }
+.evidence-table { display: grid; gap: 6px; overflow-x: auto; }
+.evidence-row { display: grid; grid-template-columns: minmax(130px, .7fr) minmax(190px, 1fr); gap: 6px; min-width: 360px; }
+.evidence-row > span { padding: 9px 11px; border-radius: 6px; background: #fff; }
+.evidence-head > span { color: #fff; background: var(--teal-dark); font-weight: 900; }
+.qualitative-note { border-left: 5px solid var(--teal); }
 .nutrition-data-table { display: grid; gap: 6px; padding: 14px; border-top: 1px solid var(--line); background: #f8fbf5; }
 .nutrition-data-table [role="row"] { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, .45fr); gap: 8px; align-items: center; }
 .nutrition-data-table [role="row"] > * { padding: 9px 11px; border-radius: 7px; background: #fff; }
@@ -456,4 +476,10 @@ textarea { min-height: 96px; resize: vertical; }
   .scale-evidence-strip { align-items: stretch; }
   .question-mode-banner { grid-template-columns: 1fr; }
   .nutrition-data-table [role="row"] { grid-template-columns: minmax(0, 1fr) minmax(86px, .45fr); }
+}
+
+@media (max-width: 560px) {
+  .question-evidence,
+  .completed-observation-card { padding: 11px; }
+  .evidence-row { grid-template-columns: minmax(110px, .72fr) minmax(170px, 1fr); min-width: 310px; }
 }

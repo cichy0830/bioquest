@@ -38,6 +38,7 @@ const studentMini = document.querySelector("#studentMini");
 const LOCK_MESSAGE = "本次任務已提交，作答結果已鎖定；若要再挑戰，請重新登入並從頭完成。";
 const LOCKED_SCREENS_AFTER_SUBMIT = new Set(["brief", "scan", "checkpoint1", "checkpoint2", "checkpoint3", "checkpoint4", "review", "reflection"]);
 
+const badgeAsset = (id) => `../shared-assets/badges/cell_basic_unit/badge-cell_basic_unit-${id}.webp`;
 const badges = [
   { id: "cell_basic_unit_entry", name: "細胞基礎入門徽章", condition: "完成生命積木辨識任務。" },
   { id: "cell_unit_concept_keeper", name: "細胞基本單位徽章", condition: "細胞基本單位題組達 85% 以上。" },
@@ -47,7 +48,7 @@ const badges = [
   { id: "cell_basic_unit_flawless", name: "細胞基礎零提示全對徽章", condition: "全部答對且全程未使用提示。" },
   { id: "cell_basic_reflection_reporter", name: "高品質細胞回報徽章", condition: "回報品質達 discussion_question。" },
   { id: "retry_growth_cell_basic_unit", name: "再探細胞基礎進步徽章", condition: "再挑戰完整完成且正確率進步。" }
-];
+].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id) }));
 
 const defaultState = {
   screen: "login",
@@ -712,7 +713,7 @@ function renderResult() {
 }
 function renderAchievements() {
   const result = state.result || calculateResult();
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就收藏</p><h2>本單元成就</h2><div class="badge-grid">${badges.map((badge) => `<div class="badge-card ${result.badges.includes(badge.name) ? "lit" : ""}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div><div class="actions"><button class="secondary" id="achieveResult">返回結算</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就收藏</p><h2>本單元成就</h2><div class="badge-grid">${badges.map((badge) => `<div class="badge-card ${result.badges.includes(badge.name) ? "lit" : ""}" data-badge-id="${badge.id}"><img src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div><div class="actions"><button class="secondary" id="achieveResult">返回結算</button></div></div></div>`;
 }
 function renderRules() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元封頂</strong><p>本單元認列 EXP 上限為 500。第一次零提示全對是最高路徑。</p></div><div class="story-panel"><strong>提示後修正</strong><p>提示會給判斷線索，不直接公布答案。提示後答對仍有修正 EXP，但低於未提示答對。</p></div><div class="story-panel"><strong>提交鎖定</strong><p>提交任務後本次作答結果鎖定。再挑戰必須重新登入並從頭完成整份任務。</p></div></div><div class="actions"><button class="secondary" id="rulesBack">返回目前任務</button></div></div></div>`;

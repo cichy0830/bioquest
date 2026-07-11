@@ -143,7 +143,7 @@
     if (!panel.querySelector(".bq-report-assistant")) {
       const reminder = document.createElement("div");
       reminder.className = "bq-report-assistant";
-      reminder.innerHTML = `<img src="${bodyPath("reportOwlSrc", "../shared-assets/assistants/owl-bioquest-report-reminder.webp")}" alt="貓頭鷹助理回報提醒"><div><span>貓頭鷹助理</span><strong>留下希望老師課堂再解釋的部分</strong><p>空白可以提交但沒有回報 EXP；請用自己的話寫下具體且與本單元相關的疑問。</p></div>`;
+      reminder.innerHTML = `<img src="${bodyPath("reportOwlSrc", "../shared-assets/characters/owl-bioquest-report-reminder.webp")}" alt="貓頭鷹助理回報提醒"><div><span>貓頭鷹助理</span><strong>留下希望老師課堂再解釋的部分</strong><p>空白可以提交但沒有回報 EXP；請用自己的話寫下具體且與本單元相關的疑問。</p></div>`;
       heading.insertAdjacentElement("afterend", reminder);
     }
   }

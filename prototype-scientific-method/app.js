@@ -61,17 +61,18 @@ const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
 const DIRECT_RAW_MAX = 453;
 const REVISION_RAW_MAX = 270;
+const badgeAsset = (id) => `../shared-assets/badges/scientific_method/badge-scientific_method-${id}.webp`;
 
 const unitBadgeCatalog = [
-  { id: "scientific_method_entry", name: "探究入門徽章", condition: "完成發霉吐司調查任務。", badge_image_path: "assets/badges/scientific_method_entry.webp" },
+  { id: "scientific_method_entry", name: "探究入門徽章", condition: "完成發霉吐司調查任務。" },
   { id: "inquiry_sequence_mapper", name: "探究流程排序徽章", condition: "科學流程與觀察推論關卡達 85% 以上。" },
   { id: "variable_identifier", name: "變因辨識徽章", condition: "操作變因、應變變因、控制變因辨識達 85% 以上。" },
   { id: "control_group_designer", name: "對照設計徽章", condition: "實驗組與對照組判斷達 85% 以上。" },
   { id: "evidence_reasoner", name: "證據推論徽章", condition: "資料判讀與根據證據下結論關卡達 85% 以上。" },
-  { id: "scientific_method_flawless", name: "探究零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。", badge_image_path: "assets/badges/scientific_method_flawless.webp" },
-  { id: "scientific_question_reporter", name: "高品質探究回報徽章", condition: "回報品質達 discussion_question，且未複製系統方向。", badge_image_path: "assets/badges/scientific_question_reporter.webp" },
+  { id: "scientific_method_flawless", name: "探究零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。" },
+  { id: "scientific_question_reporter", name: "高品質探究回報徽章", condition: "回報品質達 discussion_question，且未複製系統方向。" },
   { id: "retry_growth_scientific_method", name: "再探證據進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。" }
-];
+].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id) }));
 
 const storageKey = "bioquest_scientific_method_state_v1";
 const attemptsKey = "bioquest_attempts_v1";

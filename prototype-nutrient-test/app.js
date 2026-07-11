@@ -36,9 +36,7 @@ const assets = {
   ambientBackgroundHook: "assets/bg-nutrient-test-entry-wide.webp",
   iodineStarchColorHook: "assets/iodine-starch-color-cards.webp",
   biuretProteinColorHook: "assets/biuret-protein-color-cards.webp",
-  benedictSafetyObservationHook: "assets/benedict-glucose-safety-water-bath.webp",
-  lipidOilSpotHook: "assets/lipid-oil-spot-cards.webp",
-  controlEvidenceBoardHook: "assets/control-group-evidence-board.webp"
+  lipidOilSpotHook: "assets/lipid-oil-spot-cards.webp"
 };
 
 const badgeAsset = (id) => `../shared-assets/badges/nutrient_test/badge-nutrient_test-${id}.webp`;
@@ -64,26 +62,26 @@ const badges = [
 ].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id) }));
 
 const sequenceSteps = [
-  { id: "label", label: "樣品與比較組已有清楚標示" },
-  { id: "reagent", label: "紀錄卡已確認檢測液加入狀態" },
-  { id: "safe_heat", label: "安全加熱條件與試管口方向已確認" },
-  { id: "observe", label: "完成觀察後的顏色現象已記錄" },
-  { id: "compare", label: "已與比較組一起判讀證據" }
+  { id: "label", label: "辨認紀錄中的樣品與比較組標示" },
+  { id: "reagent", label: "確認紀錄註明的檢測資料類型" },
+  { id: "safe_heat", label: "確認安全條件已由老師完成並記錄" },
+  { id: "observe", label: "讀取完成觀察後的顏色現象" },
+  { id: "compare", label: "將現象和比較組一起解讀" }
 ];
 const correctSequence = ["label", "reagent", "safe_heat", "observe", "compare"];
 
 const questions = [
   { id: "q02", section: "checkpoint1", concept: "starch_iodine_test", answer: "starch_possible", prompt: "資料卡顯示：樣品接觸碘液後呈藍黑色。這個結果最能支持哪一項判斷？", hint: "先想碘液常用來追蹤哪一類和主食、麵粉有關的養分。", misconception: "iodine_benedict_confusion", visual: "iodine", options: [{ id: "starch_possible", text: "樣品可能含澱粉" }, { id: "glucose_certain", text: "樣品一定含葡萄糖" }, { id: "protein_certain", text: "樣品一定含蛋白質" }, { id: "all_absent", text: "樣品完全沒有其他養分" }] },
   { id: "q03", section: "checkpoint1", concept: "glucose_benedict_test", answer: "glucose_possible", prompt: "老師提供的完成觀察紀錄中，本氏液安全加熱後由藍色轉為橙紅色。這最能支持什麼？", hint: "注意「本氏液」和「完成加熱觀察」兩個線索，再回到它追蹤的養分。", misconception: "benedict_no_heat", visual: "benedict", options: [{ id: "glucose_possible", text: "樣品可能含葡萄糖" }, { id: "starch_certain", text: "樣品一定含澱粉" }, { id: "lipid_certain", text: "樣品一定含脂質" }, { id: "all_nutrients", text: "所有養分都很多" }] },
-  { id: "q04", section: "checkpoint1", concept: "protein_biuret_test", answer: "protein_possible", prompt: "蛋白質檢測資料卡出現紫色反應。哪個判斷較合理？", hint: "回想蛋白質檢測常見的陽性顏色，不需要推到化學反應式。", misconception: "protein_method_confusion", visual: "biuret", options: [{ id: "protein_possible", text: "樣品可能含蛋白質" }, { id: "water_only", text: "樣品可能只含水" }, { id: "starch_purple", text: "紫色代表澱粉" }, { id: "no_heat", text: "紫色代表本氏液沒有加熱" }] },
-  { id: "q05", section: "checkpoint2", concept: "lipid_test", answer: "lipid_possible", prompt: "資料卡中可見紅橘色染色情形，或紙張留下透明油斑。這較適合支持什麼？", hint: "這些線索和油脂較有關，但不要把它擴大成其他養分的結論。", misconception: "lipid_overgeneralization", visual: "lipid", options: [{ id: "lipid_possible", text: "樣品可能含脂質" }, { id: "starch_certain", text: "樣品一定含澱粉" }, { id: "glucose_certain", text: "樣品一定含葡萄糖" }, { id: "no_protein", text: "樣品完全不含蛋白質" }] },
+  { id: "q04", section: "checkpoint1", concept: "protein_biuret_test", answer: "protein_possible", prompt: "蛋白質檢測資料卡出現紫色反應。哪個判斷較合理？", hint: "比較資料卡的原始顏色與觀察後顏色，再回到題目指定的檢測目標。", misconception: "protein_method_confusion", visual: "biuret", options: [{ id: "protein_possible", text: "樣品可能含蛋白質" }, { id: "water_only", text: "樣品可能只含水" }, { id: "starch_purple", text: "紫色代表澱粉" }, { id: "no_heat", text: "紫色代表本氏液沒有加熱" }] },
+  { id: "q05", section: "checkpoint2", concept: "lipid_test", answer: "lipid_possible", prompt: "在相同紙材、樣品量與觀察時間下，樣品留下持續可見的透明油斑；另一份完成紀錄呈現指定染色線索。這較適合支持什麼？", hint: "先確認透明痕跡是在相同材料與觀察條件下比較，而且能持續存在；不要把任何透明或潮濕痕跡都當成同一證據。", misconception: "lipid_overgeneralization", visual: "lipid", options: [{ id: "lipid_possible", text: "樣品可能含脂質" }, { id: "starch_certain", text: "樣品一定含澱粉" }, { id: "glucose_certain", text: "樣品一定含葡萄糖" }, { id: "no_protein", text: "樣品完全不含蛋白質" }] },
   { id: "q06", section: "checkpoint2", concept: "color_change_evidence", answer: "starch_not_supported", prompt: "某樣品的碘液紀錄沒有出現藍黑色。哪個解讀較合理？", hint: "先問碘液原本檢測哪一個目標，再判斷沒有變色代表哪個範圍的證據不足。", misconception: "no_change_no_nutrients", visual: "iodine", options: [{ id: "starch_not_supported", text: "這次檢測未支持含澱粉，不能直接說沒有任何養分" }, { id: "no_nutrients", text: "樣品完全沒有任何養分" }, { id: "glucose_large", text: "樣品一定含大量葡萄糖" }, { id: "all_test", text: "碘液可檢測所有養分" }] },
   { id: "q07", section: "checkpoint2", concept: "evidence_limit", answer: "starch_protein", prompt: "未知樣品紀錄：碘液藍黑色；本氏液完成加熱後仍藍色；蛋白質檢測紫色；脂質線索不明顯。哪個結論較合理？", hint: "一次看一個檢測目標，再合併支持的證據；不要把一項結果擴大到所有養分。", misconception: "color_all_nutrients", visual: "control", options: [{ id: "starch_protein", text: "目前證據支持可能含澱粉與蛋白質" }, { id: "all_nutrients", text: "目前證據支持含所有養分" }, { id: "starch_means_glucose", text: "只要有澱粉就一定有葡萄糖" }, { id: "none", text: "脂質線索不明顯，所以沒有任何養分" }] },
   { id: "q08", section: "checkpoint2", concept: "starch_iodine_test", answer: "iodine_starch", prompt: "老師要判讀麵粉水是否有澱粉的證據，哪一張檢測資料卡最直接相關？", hint: "題目目標是澱粉，先找和澱粉最直接相關的檢測線索。", misconception: "iodine_benedict_confusion", visual: "iodine", options: [{ id: "iodine_starch", text: "碘液與藍黑色變化的比較資料" }, { id: "benedict_without_context", text: "沒有加熱條件的本氏液資料" }, { id: "paper_only", text: "只看紙張是否有油斑" }, { id: "appearance", text: "只看樣品外觀顏色" }] },
-  { id: "q11", section: "checkpoint3", concept: "control_group", answer: "comparison_basis", prompt: "在養分檢測資料中加入已知樣品或清水作比較，主要目的較接近哪一項？", hint: "對照組的重點是「可以比較」，不是增加儀式感。", misconception: "control_unnecessary", visual: "control", options: [{ id: "comparison_basis", text: "提供比較基準，幫助判斷未知樣品的變化" }, { id: "more_steps", text: "讓紀錄看起來比較多步驟" }, { id: "replace_unknown", text: "取代未知樣品" }, { id: "all_positive", text: "讓所有樣品都變成陽性" }] },
+  { id: "q11", section: "checkpoint3", concept: "control_group", answer: "comparison_basis", prompt: "在養分檢測資料中加入已知樣品或清水作比較，主要目的較接近哪一項？", hint: "先找未知樣品單獨紀錄時還缺少哪一種判斷依據，再看其他資料能補足什麼缺口。", misconception: "control_unnecessary", visual: "control", options: [{ id: "comparison_basis", text: "提供比較基準，幫助判斷未知樣品的變化" }, { id: "more_steps", text: "讓紀錄看起來比較多步驟" }, { id: "replace_unknown", text: "取代未知樣品" }, { id: "all_positive", text: "讓所有樣品都變成陽性" }] },
   { id: "q12", section: "checkpoint3", concept: "control_group", answer: "positive_negative", prompt: "若要判讀碘液的澱粉證據，哪個比較設計較合理？", hint: "想想哪兩種資料能讓你比較「有目標養分」和「沒有目標養分」的差別。", misconception: "control_unnecessary", visual: "control", options: [{ id: "positive_negative", text: "用已知含澱粉樣品和清水作比較" }, { id: "one_unknown", text: "只看未知樣品一次" }, { id: "mix_all", text: "把所有資料混成一組" }, { id: "no_record", text: "不記錄原本顏色" }] },
-  { id: "q13", section: "checkpoint3", concept: "evidence_limit", answer: "target_limit", prompt: "有同學說：『顏色越深，代表這個食物所有養分都越多。』哪個修正較合理？", hint: "先問這個試劑檢測的是哪一個目標，再決定結果能支持到哪個範圍。", misconception: "color_all_nutrients", visual: "control", options: [{ id: "target_limit", text: "顏色深淺要先回到該檢測目標，不能直接代表所有養分" }, { id: "all_protein", text: "顏色越深一定代表蛋白質越多" }, { id: "no_control", text: "只要顏色深就不用比較" }, { id: "same_meaning", text: "所有試劑的顏色意義都一樣" }] },
-  { id: "q14", section: "checkpoint3", concept: "glucose_benedict_test", answer: "heat_required", prompt: "有同學說：『本氏液滴進樣品就能馬上判斷葡萄糖，不需要加熱。』哪個修正較合理？", hint: "注意本氏液判讀常和完成加熱觀察連在一起，判讀前要看條件是否完整。", misconception: "benedict_no_heat", visual: "benedict", options: [{ id: "heat_required", text: "本氏液檢測葡萄糖通常需在安全加熱後觀察顏色變化" }, { id: "iodine_target", text: "本氏液主要檢測澱粉" }, { id: "all_positive", text: "加熱會讓所有樣品一定陽性" }, { id: "all_test", text: "本氏液可以檢測所有養分" }] }
+  { id: "q13", section: "checkpoint3", concept: "evidence_limit", answer: "target_limit", prompt: "有同學說：『顏色越深，代表這個食物所有養分都越多。』哪個修正較合理？", hint: "這份紀錄是定性線索。先確認它只追蹤哪個目標，以及不同資料是否在相同條件下取得。", misconception: "color_all_nutrients", visual: "control", options: [{ id: "target_limit", text: "顏色深淺要先回到該檢測目標，不能直接代表所有養分" }, { id: "all_protein", text: "顏色越深一定代表蛋白質越多" }, { id: "no_control", text: "只要顏色深就不用比較" }, { id: "same_meaning", text: "所有試劑的顏色意義都一樣" }] },
+  { id: "q14", section: "checkpoint3", concept: "glucose_benedict_test", answer: "heat_required", prompt: "有同學說：『本氏液滴進樣品就能馬上判斷葡萄糖，不需要加熱。』哪個修正較合理？", hint: "先檢查完成觀察紀錄是否具備判讀所需條件；條件不完整時，顏色資料能否直接支持結論？", misconception: "benedict_no_heat", visual: "benedict", options: [{ id: "heat_required", text: "本氏液檢測葡萄糖通常需在安全加熱後觀察顏色變化" }, { id: "iodine_target", text: "本氏液主要檢測澱粉" }, { id: "all_positive", text: "加熱會讓所有樣品一定陽性" }, { id: "all_test", text: "本氏液可以檢測所有養分" }] }
 ];
 
 const multiSelectQuestions = {
@@ -93,7 +91,7 @@ const multiSelectQuestions = {
     misconception: "unsafe_heating",
     options: [{ id: "goggles", text: "依老師規範使用護目鏡" }, { id: "away", text: "試管口不朝向自己或同學" }, { id: "hot", text: "避免直接用手碰剛加熱的器材" }, { id: "water_bath", text: "依老師指定的安全方式完成加熱觀察" }, { id: "toward_people", text: "把試管口對準同學方便觀察" }, { id: "smell", text: "邊加熱邊靠近聞氣味" }],
     answers: ["goggles", "away", "hot", "water_bath"],
-    image: assets.benedictSafetyObservationHook
+    evidence: "completed_observation"
   }
 };
 
@@ -103,8 +101,7 @@ const classifyQuestions = {
     hint: "先想每一種檢測方法最常被用來追蹤哪一類養分；不要只看顏色。",
     misconception: "iodine_benedict_confusion",
     options: [{ id: "starch", label: "澱粉" }, { id: "glucose", label: "葡萄糖" }, { id: "protein", label: "蛋白質" }, { id: "lipid", label: "脂質" }],
-    items: [{ id: "iodine", label: "碘液資料卡", answer: "starch" }, { id: "benedict", label: "本氏液完成加熱資料卡", answer: "glucose" }, { id: "biuret", label: "蛋白質檢測資料卡", answer: "protein" }, { id: "lipid_test", label: "蘇丹／油斑資料卡", answer: "lipid" }],
-    image: assets.controlEvidenceBoardHook
+    items: [{ id: "iodine", label: "碘液資料卡", answer: "starch" }, { id: "benedict", label: "本氏液完成加熱資料卡", answer: "glucose" }, { id: "biuret", label: "蛋白質檢測資料卡", answer: "protein" }, { id: "lipid_test", label: "蘇丹／油斑資料卡", answer: "lipid" }]
   }
 };
 
@@ -412,34 +409,77 @@ function assetFigure(src, alt, caption) {
 }
 function renderQuestionImage(question) {
   const map = {
-    iodine: [assets.iodineStarchColorHook, "碘液比較圖卡", "由比較資料判讀澱粉證據，不把結果擴大成所有養分。"],
-    benedict: [assets.benedictSafetyObservationHook, "安全加熱觀察資料卡", "只作完成觀察與安全概念判讀，不提供自行操作指示。"],
-    biuret: [assets.biuretProteinColorHook, "蛋白質顏色比較圖卡", "用紫色或中性樣本的比較線索判斷。"],
-    lipid: [assets.lipidOilSpotHook, "脂質現象比較圖卡", "以指定染色或油斑線索判讀，不能只靠液態外觀。"],
-    control: [assets.controlEvidenceBoardHook, "對照與證據資料板", "陽性、陰性與未知資料需一起比較才有意義。"]
+    q02: [assets.iodineStarchColorHook, "題目現象比較圖", "請配合題幹與完成紀錄判讀；圖卡本身不代表結論。"],
+    q04: [assets.biuretProteinColorHook, "題目顏色比較圖", "比較觀察前後的顏色資料，再判斷證據範圍。"],
+    q05: [assets.lipidOilSpotHook, "題目現象比較圖", "比較相同材料與觀察條件下的完成紀錄。"]
   };
-  const row = map[question.visual];
+  const row = map[question.id];
   return row ? assetFigure(row[0], row[1], row[2]) : "";
+}
+function evidenceTable(caption, headers, rows) {
+  return `<section class="question-evidence" aria-label="${caption}"><strong>${caption}</strong><div class="evidence-table" role="table"><div class="evidence-row evidence-head" role="row">${headers.map((header) => `<span role="columnheader">${header}</span>`).join("")}</div>${rows.map((row) => `<div class="evidence-row" role="row">${row.map((cell) => `<span role="cell">${cell}</span>`).join("")}</div>`).join("")}</div></section>`;
+}
+function completedObservationCard(note) {
+  return `<section class="completed-observation-card" aria-label="老師提供的完成觀察紀錄"><span class="pill">已完成觀察紀錄</span><p>${note}</p><small>只閱讀老師提供的紀錄並判讀證據，不包含可自行照做的操作步驟。</small></section>`;
+}
+function renderQuestionEvidence(qid) {
+  if (["q03", "q14"].includes(qid)) {
+    return completedObservationCard("紀錄包含檢測資料類型、必要安全條件是否完整，以及觀察前後的顏色欄位。");
+  }
+  if (qid === "q06") {
+    return evidenceTable("碘液完成觀察比較", ["資料", "完成觀察"], [
+      ["未知樣品", "未呈藍黑色"],
+      ["已知含澱粉樣品", "呈藍黑色"],
+      ["清水比較", "未呈藍黑色"]
+    ]);
+  }
+  if (qid === "q07") {
+    return evidenceTable("未知樣品四項完成觀察", ["資料卡", "完成觀察"], [
+      ["碘液紀錄", "呈藍黑色"],
+      ["本氏液紀錄", "老師完成必要條件後仍為藍色"],
+      ["蛋白質檢測紀錄", "呈紫色"],
+      ["脂質線索紀錄", "未見明顯線索"]
+    ]);
+  }
+  if (qid === "q08") {
+    return evidenceTable("四張候選資料卡", ["資料卡", "可讀資訊"], [
+      ["甲", "檢測液與觀察前後顏色"],
+      ["乙", "檢測液資料，但必要條件未完整記錄"],
+      ["丙", "紙張觀察紀錄"],
+      ["丁", "樣品原本外觀"]
+    ]);
+  }
+  if (["q11", "q12"].includes(qid)) {
+    return evidenceTable("比較資料配置", ["資料角色", "紀錄狀態"], [
+      ["未知樣品", "待判讀"],
+      ["已知樣品", "完成紀錄"],
+      ["基準樣品", "完成紀錄"]
+    ]);
+  }
+  if (qid === "q13") {
+    return `<section class="question-evidence qualitative-note"><strong>定性證據提醒</strong><p>顏色現象可作為特定檢測目標的線索；若材料、濃度、時間或觀察條件不同，不能只用深淺推算含量，也不能外推到所有養分。</p></section>`;
+  }
+  return "";
 }
 function renderChoiceQuestion(qid) {
   const question = questionById(qid);
-  return `<div class="question-card" data-question-id="${qid}"><h3>${question.prompt}</h3>${renderQuestionImage(question)}<div class="choice-grid">${orderedOptions(question).map((option) => `<button class="choice-button${selectedClass(question, option)}" data-choice="${qid}" data-value="${option.id}">${option.text}</button>`).join("")}</div><p class="selected-answer">${state.answers[qid] ? `已選：${question.options.find((option) => option.id === state.answers[qid])?.text || ""}` : "尚未選擇"}</p>${state.hints[qid] ? `<div class="feedback warn">${question.hint}</div>` : ""}</div>`;
+  return `<div class="question-card" data-question-id="${qid}"><h3>${question.prompt}</h3>${renderQuestionImage(question)}${renderQuestionEvidence(qid)}<div class="choice-grid">${orderedOptions(question).map((option) => `<button class="choice-button${selectedClass(question, option)}" data-choice="${qid}" data-value="${option.id}">${option.text}</button>`).join("")}</div><p class="selected-answer">${state.answers[qid] ? `已選：${question.options.find((option) => option.id === state.answers[qid])?.text || ""}` : "尚未選擇"}</p>${state.hints[qid] ? `<div class="feedback warn">${question.hint}</div>` : ""}</div>`;
 }
 function renderMultiSelect(qid) {
   const config = multiSelectQuestions[qid];
   const selected = state.answers[qid] || [];
   const order = optionOrder(`${qid}_multi`, config.options.map((option) => option.id)).map((id) => config.options.find((option) => option.id === id));
-  return `<div class="question-card multi-select-card" data-question-id="${qid}"><div class="question-mode-banner"><strong>可複選</strong><span>請選出所有符合的選項</span></div><h3>${config.prompt}</h3>${assetFigure(config.image, "安全觀察資料卡", "圖像僅用於安全與證據判讀，不是自行操作指南。")}<div class="choice-grid">${order.map((option) => `<button class="choice-button ${selected.includes(option.id) ? "selected" : ""}" data-multi="${qid}" data-value="${option.id}" aria-pressed="${selected.includes(option.id)}">${option.text}</button>`).join("")}</div><p class="selected-answer">${selected.length ? `已選：${selected.map((id) => config.options.find((option) => option.id === id)?.text).filter(Boolean).join("、")}` : "尚未選擇"}</p>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
+  return `<div class="question-card multi-select-card" data-question-id="${qid}"><div class="question-mode-banner"><strong>可複選</strong><span>請選出所有符合的選項</span></div><h3>${config.prompt}</h3>${completedObservationCard("安全欄位記錄護具、試管口方向、高溫器材與老師指定條件；請只判斷風險原則。")}<div class="choice-grid">${order.map((option) => `<button class="choice-button ${selected.includes(option.id) ? "selected" : ""}" data-multi="${qid}" data-value="${option.id}" aria-pressed="${selected.includes(option.id)}">${option.text}</button>`).join("")}</div><p class="selected-answer">${selected.length ? `已選：${selected.map((id) => config.options.find((option) => option.id === id)?.text).filter(Boolean).join("、")}` : "尚未選擇"}</p>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
 }
 function renderSequenceQuestion() {
   const order = ensureSequence();
-  return `<div class="question-card"><h3>請依老師已提供的完成觀察紀錄卡，拖曳整理資料的判讀順序。</h3><p class="field-help">排序題：可拖曳卡片；手機可使用上移 / 下移按鈕。此題只評估閱讀安全與證據紀錄的概念，不是自行操作流程。</p>${assetFigure(assets.benedictSafetyObservationHook, "安全水浴觀察資料卡", "只作安全與證據判讀，不提供在家實作步驟。")}<div class="sortable-list">${order.map((id, index) => { const step = sequenceSteps.find((item) => item.id === id); return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><strong>${step.label}</strong><div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`; }).join("")}</div>${state.hints.q09 ? `<div class="feedback warn">先閱讀樣品與比較組標示，再判讀加熱安全紀錄；完成觀察的資料才適合和比較組一起解讀。</div>` : ""}${state.checkedWrong.q09 ? `<div class="feedback bad">順序仍可調整。安全條件的紀錄應在顏色證據的判讀之前。</div>` : ""}</div>`;
+  return `<div class="question-card" data-question-id="q09"><h3>閱讀老師已完成的觀察紀錄摘要，拖曳整理資料判讀順序。</h3><p class="field-help">排序題：可拖曳卡片；手機可使用上移 / 下移按鈕。只整理紀錄欄位的閱讀順序，不是實驗操作流程。</p>${completedObservationCard("紀錄已由老師完成，包含樣品身分、資料類型、安全條件、觀察現象與比較資料五類欄位。")}<div class="sortable-list">${order.map((id, index) => { const step = sequenceSteps.find((item) => item.id === id); return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><strong>${step.label}</strong><div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`; }).join("")}</div>${state.hints.q09 ? `<div class="feedback warn">分辨紀錄中的樣品身分、資料類型、安全條件、觀察結果與比較依據，再思考證據判讀前需先確認哪些資訊。</div>` : ""}${state.checkedWrong.q09 ? `<div class="feedback bad">順序仍可調整；請重新整理讀取完成紀錄與比較證據的邏輯。</div>` : ""}</div>`;
 }
 function renderClassifyQuestion(qid) {
   const config = classifyQuestions[qid];
   const items = optionOrder(`${qid}_items`, config.items.map((item) => item.id)).map((id) => config.items.find((item) => item.id === id));
   const options = optionOrder(`${qid}_options`, config.options.map((option) => option.id)).map((id) => config.options.find((option) => option.id === id));
-  return `<div class="question-card" data-question-id="${qid}"><h3>${config.prompt}</h3>${assetFigure(config.image, "檢測目標資料板", "完成每列配對，依檢測目標判讀，不必背誦反應式。")}<p class="field-help">配對／分類題：請完成每一列，選後會直接顯示已選答案。</p><div class="classify-list">${items.map((item) => { const selected = state.answers[qid]?.[item.id] || ""; return `<div class="classify-row"><strong>${item.label}</strong><label>選擇<select data-classify-question="${qid}" data-classify-item="${item.id}"><option value="">請選擇</option>${options.map((option) => `<option value="${option.id}" ${selected === option.id ? "selected" : ""}>${option.label}</option>`).join("")}</select></label><p class="selected-answer">${selected ? `已選：${config.options.find((option) => option.id === selected)?.label || ""}` : "尚未選擇"}</p></div>`; }).join("")}</div>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
+  return `<div class="question-card" data-question-id="${qid}"><h3>${config.prompt}</h3><p class="field-help">配對／分類題：請完成每一列，選後會直接顯示已選答案。依資料卡名稱判斷，不使用不完整的總覽圖。</p><div class="classify-list">${items.map((item) => { const selected = state.answers[qid]?.[item.id] || ""; return `<div class="classify-row"><strong>${item.label}</strong><label>選擇<select data-classify-question="${qid}" data-classify-item="${item.id}"><option value="">請選擇</option>${options.map((option) => `<option value="${option.id}" ${selected === option.id ? "selected" : ""}>${option.label}</option>`).join("")}</select></label><p class="selected-answer">${selected ? `已選：${config.options.find((option) => option.id === selected)?.label || ""}` : "尚未選擇"}</p></div>`; }).join("")}</div>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
 }
 function renderBrief() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務簡報</p><h2>食物證據檢測任務</h2><div class="brief-scene nutrient-test-brief-scene" data-briefing-scene-hook="${assets.briefingSceneHook}"><div class="scene-copy"><div class="student-avatar-slot"><img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}';"></div><h3>未知樣品需要證據，不靠外觀猜測</h3><p>阿澤老師已準備完成的觀察紀錄與比較資料。你要判讀試劑目標、顏色線索、安全條件與對照組能支持什麼。</p></div></div><div class="mission-hud"><div><span>任務區</span><strong>生命補給實驗站</strong></div><div><span>重點</span><strong>檢測證據</strong></div><div><span>原則</span><strong>安全與比較</strong></div></div><div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;

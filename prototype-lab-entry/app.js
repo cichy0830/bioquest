@@ -66,17 +66,18 @@ const titleAvatarImages = TITLE_LEVELS.reduce((images, title) => {
   return images;
 }, {});
 const fallbackTitleAvatarPath = `${TITLE_AVATAR_BASE_PATH}/title-01-trainee_investigator-male.webp`;
+const badgeAsset = (id) => `../shared-assets/badges/lab_intro/badge-lab_intro-${id}.webp`;
 
 const unitBadgeCatalog = [
-  { id: "lab_intro_entry", name: "實驗室入門徽章", condition: "完成實驗室安全啟動任務。", badge_image_path: "assets/badges/lab_intro_entry.webp" },
+  { id: "lab_intro_entry", name: "實驗室入門徽章", condition: "完成實驗室安全啟動任務。" },
   { id: "equipment_function_identifier", name: "器材功能辨識徽章", condition: "器材功能配對關卡達 85% 以上。" },
   { id: "equipment_selection_planner", name: "器材選用徽章", condition: "依實驗目的選用合適器材關卡達 85% 以上。" },
   { id: "lab_safety_judge", name: "安全情境判斷徽章", condition: "實驗室安全情境判斷關卡達 85% 以上。" },
   { id: "operation_sequence_mapper", name: "操作順序徽章", condition: "基本安全處理步驟排序關卡達 85% 以上。" },
-  { id: "lab_intro_flawless", name: "實驗室零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。", badge_image_path: "assets/badges/lab_intro_flawless.webp" },
-  { id: "lab_safety_reflector", name: "安全態度回報徽章", condition: "回報品質達 discussion_question，且具備安全、器材或操作關聯。", badge_image_path: "assets/badges/lab_safety_reflector.webp" },
+  { id: "lab_intro_flawless", name: "實驗室零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。" },
+  { id: "lab_safety_reflector", name: "安全態度回報徽章", condition: "回報品質達 discussion_question，且具備安全、器材或操作關聯。" },
   { id: "retry_growth_lab_intro", name: "再探實驗室進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。" }
-];
+].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id) }));
 
 const storageKey = "bioquest_lab_intro_state_v1";
 const attemptsKey = "bioquest_attempts_v1";
