@@ -178,6 +178,70 @@ p {
   gap: 18px;
 }
 
+.microscope-briefing-layout {
+  gap: 20px;
+}
+
+.microscope-brief-scene {
+  position: relative;
+  min-height: 420px;
+  overflow: hidden;
+  border: 1px solid rgba(29, 111, 132, 0.22);
+  border-radius: 8px;
+  background: linear-gradient(145deg, #d8efed, #f7efd2);
+  box-shadow: var(--shadow);
+}
+
+.microscope-brief-picture,
+.microscope-brief-picture img,
+.microscope-bg-fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.microscope-brief-picture {
+  z-index: 2;
+  display: block;
+}
+
+.microscope-brief-picture img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.microscope-brief-scene.using-fallback .microscope-brief-picture {
+  display: none;
+}
+
+.microscope-bg-fallback {
+  z-index: 1;
+}
+
+.microscope-bg-fallback .microscope-scene {
+  min-height: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.brief-copy-panel {
+  overflow: visible;
+}
+
+.brief-asset-status {
+  margin-top: 12px;
+  padding: 10px 12px;
+  color: var(--muted);
+  border-left: 4px solid var(--amber);
+  background: rgba(255, 247, 223, 0.88);
+}
+
 .panel {
   position: relative;
   overflow: hidden;
@@ -776,6 +840,17 @@ textarea {
   font-weight: 900;
 }
 
+.sequence-item > .sequence-prompt,
+.sequence-item > .hint,
+.sequence-item > select {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.sequence-item > select {
+  width: 100%;
+}
+
 .token-bank,
 .category-grid,
 .choice-grid {
@@ -1074,6 +1149,16 @@ textarea {
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(242, 250, 248, 0.86)),
       linear-gradient(140deg, #dcebe9, #f7f0d7 48%, #cfe9ef);
+  }
+
+  .microscope-brief-scene {
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+  }
+
+  .microscope-brief-picture img {
+    object-fit: cover;
+    object-position: center top;
   }
 
   .owl-frame {

@@ -18,7 +18,7 @@ const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
 const DIRECT_RAW_MAX = 527;
 const REVISION_RAW_MAX = 315;
-const MICROSCOPE_VERSION = "20260709-microscope-interaction-v1";
+const MICROSCOPE_VERSION = "20260711-microscope-brief-checkpoint-v1";
 const titleProgressRules = window.BioQuestTitleProgress;
 const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
 const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
@@ -26,7 +26,8 @@ const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
 const microscopeVisualAssets = {
   mentorPrimary: "assets/mentor-life-world-azhe.webp",
   mentorFallback: "assets/mentor-life-world-azhe.webp",
-  backgroundWide: "",
+  briefingSceneWide: "assets/bg-microscope-use-briefing-azhe-wide.webp",
+  briefingSceneMobile: "assets/bg-microscope-use-briefing-azhe-wide.webp",
   diagramParts: "",
   owlHooks: {
     opening: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
@@ -431,19 +432,50 @@ function layout(content, owlStage = owlStageFor(), imageAlt = "貓頭鷹助理")
 
 function briefLayout(content) {
   return `
-    <div class="wide-layout">
-      <div class="panel brief-visual-panel">
-        <div class="microscope-brief-bg" aria-label="顯微觀察訓練站背景">
-          <div class="microscope-bg-fallback">${renderMicroscopeScene()}</div>
-          ${microscopeVisualAssets.backgroundWide ? `<p class="asset-todo">TODO：待視覺資產補入 ${microscopeVisualAssets.backgroundWide}</p>` : ""}
-        </div>
+    <div class="wide-layout microscope-briefing-layout">
+      <div class="microscope-brief-scene" data-brief-scene aria-label="阿澤老師帶領學生進入顯微觀察訓練站">
+        <div class="microscope-bg-fallback">${renderMicroscopeScene()}</div>
+        <picture class="microscope-brief-picture">
+          <source media="(max-width: 680px)" srcset="${microscopeVisualAssets.briefingSceneMobile}">
+          <img id="microscopeBriefScene" src="${microscopeVisualAssets.briefingSceneWide}" alt="阿澤老師在顯微觀察訓練站引導微觀視野校準任務">
+        </picture>
       </div>
-      <div class="mission-layout">
-        <div class="panel hero-panel">${content}</div>
-        ${owlPanel("opening", "顯微觀察任務貓頭鷹助理")}
+      <div class="panel brief-copy-panel">
+        ${content}
+        <div class="brief-asset-status" data-brief-asset-status hidden>顯微鏡單元主視覺製作中，目前先顯示操作站示意。</div>
       </div>
     </div>
   `;
+}
+
+function attachBriefSceneFallback() {
+  const scene = document.querySelector("[data-brief-scene]");
+  const image = document.querySelector("#microscopeBriefScene");
+  const mobileSource = document.querySelector(".microscope-brief-picture source");
+  const status = document.querySelector("[data-brief-asset-status]");
+  if (!scene || !image) return;
+  const showFallback = () => {
+    scene.classList.add("using-fallback");
+    image.hidden = true;
+    if (status) status.hidden = false;
+  };
+  const recoverScene = () => {
+    if (mobileSource?.isConnected) {
+      mobileSource.remove();
+      image.hidden = false;
+      image.src = microscopeVisualAssets.briefingSceneWide;
+      return;
+    }
+    showFallback();
+  };
+  const verifyScene = () => {
+    window.setTimeout(() => {
+      if (image.isConnected && image.complete && image.naturalWidth === 0) recoverScene();
+    }, 120);
+  };
+  image.addEventListener("error", recoverScene);
+  window.addEventListener("resize", verifyScene, { once: true, passive: true });
+  verifyScene();
 }
 
 function renderMicroscopeScene() {
@@ -523,7 +555,7 @@ function renderBrief() {
   return briefLayout(`
     <p class="eyebrow">任務檔案開啟</p>
     <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
-    ${mentorCard("微觀操作室開放", "今天你要進入顯微觀察訓練站：先認得顯微鏡部位如何合作，再練習從低倍到高倍、安全調焦，最後校準視野移動方向。")}
+    <p class="lead">阿澤老師已開啟微觀操作室。今天你要先認得顯微鏡部位如何合作，再練習從低倍到高倍、安全調焦，最後校準視野移動方向。</p>
     <div class="story-panel highlight">
       <strong>任務核心</strong>
       <p>顯微鏡不是只把東西放大；你需要先找得到標本、調得清楚、判斷亮度與倍率，還要知道玻片移動時視野影像會往相反方向移動。</p>
@@ -592,7 +624,8 @@ function renderMatchQuestion(group, field, items, options, title, hint, hintId, 
       </div>
       <div class="sequence-list">
         ${orderedItems.map((item) => `
-          <label class="sequence-item">${item.label}
+          <label class="sequence-item">
+            <span class="sequence-prompt">${item.label}</span>
             ${matchHintUsed(group, field, item.id) ? `<span class="hint">${item.hint || hint}</span>` : ""}
             <select data-match-group="${group}" data-match-field="${field}" data-id="${item.id}">
               <option value="">選擇</option>
@@ -604,6 +637,21 @@ function renderMatchQuestion(group, field, items, options, title, hint, hintId, 
       <button class="ghost hint-button" data-group="${group}" data-id="${hintId}">提示</button>
     </div>
   `;
+}
+
+function matchHintUsed(group, field, itemId) {
+  const fieldHints = state.answers[`${group}Hints`]?.[field];
+  if (fieldHints === true) return true;
+  return Boolean(fieldHints && typeof fieldHints === "object" && fieldHints[itemId]);
+}
+
+function markMatchHintUsed(group, field, itemId) {
+  const groupHints = state.answers[`${group}Hints`] || (state.answers[`${group}Hints`] = {});
+  if (groupHints[field] === true) return false;
+  if (!groupHints[field] || typeof groupHints[field] !== "object") groupHints[field] = {};
+  if (groupHints[field][itemId]) return false;
+  groupHints[field][itemId] = true;
+  return true;
 }
 
 function getActivePart() {
@@ -795,9 +843,10 @@ function attachCheckpointHandlers() {
       const list = field === "parts" ? partItems : functionItems;
       const item = list.find((entry) => entry.id === select.dataset.id);
       state.answers[group][field][select.dataset.id] = select.value;
-      if (item && select.value !== item.answer) state.answers[`${group}Hints`][field] = true;
+      const shouldRevealHint = Boolean(item && select.value && select.value !== item.answer);
+      const didRevealHint = shouldRevealHint ? markMatchHintUsed(group, field, item.id) : false;
       saveState();
-      if (state.answers[`${group}Hints`][field]) render();
+      if (didRevealHint) render();
     });
   });
   document.querySelectorAll("[data-sequence]").forEach((select) => {
@@ -1434,7 +1483,10 @@ function renderRules() {
 
 function attachCurrentScreen() {
   if (state.screen === "login") attachLogin();
-  if (state.screen === "brief") document.querySelector("#briefNext").addEventListener("click", () => { unlock("scan"); setScreen("scan"); });
+  if (state.screen === "brief") {
+    attachBriefSceneFallback();
+    document.querySelector("#briefNext").addEventListener("click", () => { unlock("scan"); setScreen("scan"); });
+  }
   if (state.screen === "scan") document.querySelector("#scanNext").addEventListener("click", () => { unlock("checkpoint1"); setScreen("checkpoint1"); });
   if (["checkpoint1", "checkpoint2", "checkpoint3", "checkpoint4"].includes(state.screen)) attachCheckpointHandlers();
   if (state.screen === "checkpoint1") document.querySelector("#checkpoint1Next").addEventListener("click", () => advanceIf(validateCheckpoint1(), "checkpoint2"));
