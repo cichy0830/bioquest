@@ -6,7 +6,7 @@ const roster = {
 };
 
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
-const VERSION = "20260711-cell-observation-v1";
+const VERSION = "20260711-cell-observation-p1-v3";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -47,6 +47,12 @@ const assets = {
 };
 
 const badgeAsset = (id) => `../shared-assets/badges/cell_observation/badge-cell_observation-${id}.png`;
+const reflectionRules = {
+  conceptTerms: ["玻片", "蓋玻片", "氣泡", "低倍率", "高倍率", "洋蔥表皮", "口腔皮膜", "葉片下表皮", "保衛細胞", "氣孔", "葉綠體", "染色", "細胞核", "顯微", "動物細胞", "植物細胞", "視野", "細胞壁"],
+  irrelevantTerms: ["老師好帥", "帥", "午餐", "下課", "遊戲", "天氣", "好笑"],
+  lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
+  copiedDirections: ["染色前後差異", "氣泡與細胞構造判讀", "洋蔥表皮沒有明顯葉綠體的原因", "保衛細胞與氣孔功能連結", "低倍率與高倍率切換時機", "口腔皮膜細胞與植物表皮細胞外形差異"]
+};
 const badges = [
   { id: "cell_observation_entry", name: "顯微偵查入門徽章", condition: "完成顯微視野偵查任務。" },
   { id: "slide_preparation_sequencer", name: "玻片流程排序徽章", condition: "玻片製作與減少氣泡干擾題組達 85% 以上。" },
@@ -62,7 +68,7 @@ const badges = [
 
 const sequenceSteps = [
   { id: "water", label: "滴水" },
-  { id: "sample", label: "取薄表皮並攤平" },
+  { id: "sample", label: "將薄表皮展平於水滴中" },
   { id: "cover", label: "斜放蓋玻片" },
   { id: "paper", label: "用濾紙吸去多餘水分" }
 ];
@@ -104,8 +110,8 @@ const questions = [
     section: "checkpoint1",
     concept: "low_high_power_observation",
     answer: "fine_focus",
-    prompt: "已用低倍率找到洋蔥表皮細胞，想看更清楚的細胞核，下一步較合理的是什麼？",
-    hint: "關鍵是已經找到標本，接下來要看細節並避免調焦幅度過大。",
+    prompt: "已在低倍率下將要觀察的洋蔥表皮細胞移到視野中央，想看更清楚的細胞核，下一步較合理的是什麼？",
+    hint: "切換倍率前，先確認想看的細胞是否留在視野中央。",
     misconception: "high_power_first",
     options: [
       { id: "fine_focus", text: "換高倍率並細調焦。" },
@@ -122,6 +128,8 @@ const questions = [
     prompt: "某視野中可見許多排列整齊、像格子般的細胞外框，染色後有較明顯的深色圓形構造。這較符合哪種觀察材料？",
     hint: "觀察線索是排列規則、外框明顯，以及染色後可見較清楚的內部構造。",
     misconception: "observation_without_evidence",
+    image: assets.scopeViews.onion,
+    imageAlt: "未標註的顯微視野圖 A",
     options: [
       { id: "onion", text: "洋蔥表皮細胞" },
       { id: "mouth", text: "口腔皮膜細胞" },
@@ -136,7 +144,15 @@ const questions = [
     answer: "wall",
     prompt: "在洋蔥表皮細胞視野圖中，最適合標記為細胞壁的線索是什麼？",
     hint: "先找讓細胞呈現整齊邊界的線索，不要只看顏色深淺。",
-    misconception: "animal_cell_has_cell_wall",
+    misconception: "plant_cell_wall_identification",
+    image: assets.scopeViews.onion,
+    imageAlt: "未標註的顯微視野圖 B",
+    imageTargets: [
+      { id: "wall", label: "A", left: 47, top: 39 },
+      { id: "nucleus", label: "B", left: 57, top: 52 },
+      { id: "edge", label: "C", left: 12, top: 51 },
+      { id: "dust", label: "D", left: 77, top: 76 }
+    ],
     options: [
       { id: "wall", text: "細胞間清楚的格狀外框" },
       { id: "nucleus", text: "細胞中央深色圓點" },
@@ -152,6 +168,8 @@ const questions = [
     prompt: "某視野中細胞形狀較不規則，沒有明顯格狀外框，染色後可見細胞核。這較符合哪種觀察材料？",
     hint: "觀察線索是沒有整齊格狀外框，且形狀較柔和、不規則。",
     misconception: "animal_cell_has_cell_wall",
+    image: assets.scopeViews.mouth,
+    imageAlt: "未標註的顯微視野圖 C",
     options: [
       { id: "mouth", text: "口腔皮膜細胞" },
       { id: "onion", text: "洋蔥表皮細胞" },
@@ -167,6 +185,8 @@ const questions = [
     prompt: "觀察口腔皮膜細胞時，哪一個說法較合理？",
     hint: "想想口腔皮膜來自身體哪一類生物組織，以及染色常讓哪個構造更容易看見。",
     misconception: "animal_cell_has_cell_wall",
+    image: assets.scopeViews.mouth,
+    imageAlt: "未標註的顯微視野圖 D",
     options: [
       { id: "animal_nucleus", text: "可觀察動物細胞，染色後細胞核較明顯。" },
       { id: "cell_wall", text: "可觀察細胞壁形成的規則格子。" },
@@ -180,8 +200,16 @@ const questions = [
     concept: "leaf_lower_epidermis",
     answer: "stoma",
     prompt: "葉片下表皮視野中，哪一個線索最適合判斷為氣孔？",
-    hint: "先找成對出現的特殊細胞，再觀察中間是否有開口。",
+    hint: "先比較一般表皮細胞與成對特殊細胞周圍的形狀差異。",
     misconception: "all_plant_cells_have_chloroplast_in_view",
+    image: assets.scopeViews.leaf,
+    imageAlt: "未標註的顯微視野圖 E",
+    imageTargets: [
+      { id: "stoma", label: "A", left: 50, top: 36 },
+      { id: "grid", label: "B", left: 72, top: 52 },
+      { id: "vacuole", label: "C", left: 28, top: 67 },
+      { id: "scope_edge", label: "D", left: 9, top: 50 }
+    ],
     options: [
       { id: "stoma", text: "兩個保衛細胞之間的開口" },
       { id: "grid", text: "整片規則格狀外框" },
@@ -197,6 +225,8 @@ const questions = [
     prompt: "在葉片下表皮觀察中，哪種細胞最可能含有葉綠體？",
     hint: "想想哪一種細胞和氣孔開閉有關，視野中常可見綠色小顆粒。",
     misconception: "all_plant_cells_have_chloroplast_in_view",
+    image: assets.scopeViews.leaf,
+    imageAlt: "未標註的顯微視野圖 F",
     options: [
       { id: "guard", text: "保衛細胞" },
       { id: "onion_skin", text: "洋蔥鱗葉表皮細胞" },
@@ -209,9 +239,11 @@ const questions = [
     section: "checkpoint3",
     concept: "staining_purpose",
     answer: "contrast",
-    prompt: "洋蔥表皮或口腔皮膜細胞使用亞甲藍液染色，主要目的較可能是什麼？",
+    prompt: "在本次洋蔥表皮或口腔皮膜的觀察中，使用適當染劑的主要目的較可能是什麼？",
     hint: "染色前有些構造透明不明顯，染色後哪類構造更容易被看見？",
     misconception: "stain_is_decoration",
+    image: assets.stainingComparison,
+    imageAlt: "染色前後的未標註對照圖",
     options: [
       { id: "contrast", text: "增加對比，使細胞核等構造較容易觀察。" },
       { id: "plant", text: "讓細胞變成植物細胞。" },
@@ -227,6 +259,8 @@ const questions = [
     prompt: "有同學說：「染色只是讓標本比較漂亮，和觀察沒有關係。」哪個修正較合理？",
     hint: "回想染色前後，視野中哪類構造的清楚程度可能改變。",
     misconception: "stain_is_decoration",
+    image: assets.stainingComparison,
+    imageAlt: "染色前後的未標註對照圖",
     options: [
       { id: "contrast_fix", text: "染色可提高構造對比，讓某些構造更容易觀察。" },
       { id: "chloroplasts", text: "染色會讓所有細胞都長出葉綠體。" },
@@ -239,9 +273,11 @@ const questions = [
     section: "checkpoint3",
     concept: "field_interpretation",
     answer: "bubble",
-    prompt: "顯微視野中出現一個邊緣很亮、近乎完美圓形、沒有細胞排列線索的黑圈。它最可能需要先被懷疑是什麼？",
+    prompt: "顯微視野中出現一個近圓形、邊緣明亮、沒有細胞排列脈絡的圓環狀影像。它最可能需要先被懷疑是什麼？",
     hint: "先不要只看「圓形」，要觀察是否有細胞內部構造或排列脈絡。",
     misconception: "bubble_as_cell",
+    image: assets.scopeViews.bubble,
+    imageAlt: "未標註的顯微視野干擾圖",
     options: [
       { id: "bubble", text: "氣泡" },
       { id: "nucleus", text: "細胞核" },
@@ -268,7 +304,13 @@ const defaultState = {
   screen: "login",
   student: null,
   attempt_type: "first",
+  attempt_session_id: "",
   remote_completed_attempts: 0,
+  remote_previous_attempt_id: "",
+  remote_previous_accuracy: null,
+  cumulative_badges: [],
+  cumulative_total_exp: 0,
+  completed_unit_count: 0,
   started_at: null,
   completedScreens: ["login", "rules"],
   answers: {
@@ -278,6 +320,7 @@ const defaultState = {
   },
   hints: {},
   checkedWrong: {},
+  interactions: {},
   optionOrders: {},
   activeScope: "onion",
   activeHotspot: "wall",
@@ -306,8 +349,9 @@ function getAttempts() {
 }
 function saveAttempt(attempt) {
   const attempts = getAttempts();
-  attempts.push(attempt);
-  localStorage.setItem(attemptsKey, JSON.stringify(attempts));
+  const withoutSame = attempts.filter((item) => item.attempt_id !== attempt.attempt_id);
+  withoutSame.push(attempt);
+  localStorage.setItem(attemptsKey, JSON.stringify(withoutSame));
 }
 function studentAttempts(studentId) {
   return getAttempts().filter((attempt) => attempt?.student?.student_id === studentId && attempt?.mission?.unit_id === mission.unit_id);
@@ -319,8 +363,32 @@ function previousBestCredited() {
 function previousBestAccuracy() {
   if (!state.student) return null;
   const attempts = studentAttempts(state.student.student_id);
-  if (!attempts.length) return null;
-  return Math.max(...attempts.map((attempt) => Number(attempt.accuracy || 0)));
+  const localBest = attempts.length ? Math.max(...attempts.map((attempt) => Number(attempt.accuracy || 0))) : null;
+  const remoteBest = state.remote_previous_accuracy === null || state.remote_previous_accuracy === "" ? null : Number.isFinite(Number(state.remote_previous_accuracy)) ? Number(state.remote_previous_accuracy) : null;
+  if (localBest === null) return remoteBest;
+  return remoteBest === null ? localBest : Math.max(localBest, remoteBest);
+}
+function parseArray(value) {
+  if (Array.isArray(value)) return value;
+  if (!value) return [];
+  try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
+}
+function latestLocalAttempt() {
+  if (!state.student) return null;
+  return studentAttempts(state.student.student_id)
+    .filter((attempt) => attempt.completion_status === "complete" && attempt.submitted_at)
+    .sort((a, b) => String(b.submitted_at).localeCompare(String(a.submitted_at)))[0] || null;
+}
+function previousAttemptId() { return latestLocalAttempt()?.attempt_id || state.remote_previous_attempt_id || ""; }
+function cumulativeBadgeIds(current = []) {
+  if (!state.student) return [...new Set(current)];
+  const local = studentAttempts(state.student.student_id).flatMap((attempt) => parseArray(attempt.badges));
+  return [...new Set([...(state.cumulative_badges || []), ...local, ...current])];
+}
+function applyBackendProgress(progress = {}) {
+  state.cumulative_badges = parseArray(progress.badges_json || progress.badges || state.cumulative_badges);
+  state.cumulative_total_exp = Number(progress.total_exp ?? progress.total_credited_exp ?? state.cumulative_total_exp ?? 0);
+  state.completed_unit_count = Number(progress.completed_unit_count ?? state.completed_unit_count ?? 0);
 }
 function pendingQueue() {
   try { return JSON.parse(localStorage.getItem(pendingQueueKey)) || []; } catch { return []; }
@@ -428,7 +496,7 @@ function renderLogin() {
   `, assets.owlLogin);
 }
 async function fetchStudentStatus(id) {
-  const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}`;
+  const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}&unit_id=${encodeURIComponent(mission.unit_id)}`;
   const response = await fetch(url);
   if (!response.ok) throw new Error(`backend_${response.status}`);
   return response.json();
@@ -455,6 +523,8 @@ async function login(id) {
   }
   let student = null;
   let completed = 0;
+  let remoteProgress = {};
+  let remoteAttemptStatus = {};
   try {
     const data = await fetchStudentStatus(id);
     student = normalizeBackendStudent(data, id);
@@ -462,7 +532,9 @@ async function login(id) {
       message.innerHTML = `<span class="pill warn">${data?.message || "查無此學號，請重新輸入。"}</span>`;
       return;
     }
-    completed = Number(data.attempt_status?.completed_attempt_count ?? data.completed_attempts ?? 0);
+    remoteProgress = data.progress || data.student_progress || {};
+    remoteAttemptStatus = data.attempt_status || {};
+    completed = Number(remoteAttemptStatus.completed_attempt_count ?? data.completed_attempts ?? 0);
   } catch {
     student = roster[id];
     if (!student) {
@@ -477,6 +549,13 @@ async function login(id) {
   state.remote_completed_attempts = completed;
   state.attempt_type = completed > 0 ? "retry" : "first";
   state.started_at = new Date().toISOString();
+  state.attempt_session_id = `${mission.unit_id}_${student.student_id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  state.remote_previous_attempt_id = remoteAttemptStatus.previous_attempt_id || remoteAttemptStatus.latest_attempt_id || remoteProgress.latest_attempt_id || "";
+  const remoteAccuracy = remoteAttemptStatus.previous_accuracy ?? remoteAttemptStatus.best_accuracy;
+  state.remote_previous_accuracy = remoteAccuracy === null || remoteAccuracy === undefined || remoteAccuracy === "" ? null : Number.isFinite(Number(remoteAccuracy)) ? Number(remoteAccuracy) : null;
+  state.cumulative_badges = parseArray(remoteProgress.badges_json || remoteProgress.badges);
+  state.cumulative_total_exp = Number(remoteProgress.total_exp ?? remoteProgress.total_credited_exp ?? 0);
+  state.completed_unit_count = Number(remoteProgress.completed_unit_count || 0);
   unlock("brief", "rules", "achievements");
   ensureSequence();
   saveState();
@@ -517,9 +596,9 @@ function renderScan() {
       <div class="concept-card"><strong>製片</strong><p>材料要薄且平整，蓋玻片斜放可減少氣泡。</p></div>
       <div class="concept-card"><strong>倍率</strong><p>先低倍找位置，再高倍觀察細節。</p></div>
       <div class="concept-card"><strong>染色</strong><p>染色提高對比，常讓細胞核較容易觀察。</p></div>
-      <div class="concept-card"><strong>視野</strong><p>洋蔥表皮排列規則，口腔皮膜形狀較不規則。</p></div>
-      <div class="concept-card"><strong>葉片</strong><p>保衛細胞成對圍成氣孔，可能看見葉綠體。</p></div>
-      <div class="concept-card"><strong>干擾</strong><p>氣泡常有亮邊圓形，但缺少細胞排列脈絡。</p></div>
+      <div class="concept-card"><strong>視野</strong><p>比較排列、邊界與染色後構造，不先用材料名稱猜答案。</p></div>
+      <div class="concept-card"><strong>圖像證據</strong><p>先看形狀差異與構造彼此的位置，再對照題目敘述。</p></div>
+      <div class="concept-card"><strong>干擾</strong><p>判讀影像時要同時檢查邊界、內部構造與排列脈絡。</p></div>
     </div>
     <div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div>${owlPanel(assets.owlPrep, "顯微觀察任務提醒貓頭鷹")}</div>`;
 }
@@ -531,10 +610,21 @@ function selectedClass(question, option) {
   if (checked && selected && option.id !== question.answer) return " selected wrong";
   return selected ? " selected" : "";
 }
+function renderQuestionImage(question) {
+  if (!question.image) return "";
+  const targets = question.imageTargets || [];
+  return `<figure class="question-visual">
+    <div class="question-image-wrap"><img src="${question.image}" alt="${question.imageAlt || "未標註觀察圖"}">
+      ${targets.map((target) => `<button type="button" class="image-target ${state.answers[question.id] === target.id ? "selected" : ""}" style="left:${target.left}%;top:${target.top}%" data-choice="${question.id}" data-value="${target.id}" aria-label="圖中位置 ${target.label}">${target.label}</button>`).join("")}
+    </div>
+    <figcaption>${targets.length ? "請比較圖中的 A-D 位置，再選擇最符合題意的位置。" : "請只依這張未標註影像的外框、排列與構造線索判讀。"}</figcaption>
+  </figure>`;
+}
 function renderChoiceQuestion(qid) {
   const question = questionById(qid);
   return `<div class="question-card" data-question-id="${qid}">
     <h3>${question.prompt}</h3>
+    ${renderQuestionImage(question)}
     <div class="choice-grid">${orderedOptions(question).map((option) => `<button class="choice-button${selectedClass(question, option)}" data-choice="${qid}" data-value="${option.id}">${option.text}</button>`).join("")}</div>
     <p class="selected-answer">${state.answers[qid] ? `已選：${question.options.find((option) => option.id === state.answers[qid])?.text || ""}` : "尚未選擇"}</p>
     ${state.hints[qid] ? `<div class="feedback warn">${question.hint}</div>` : ""}
@@ -553,7 +643,7 @@ function renderSequenceQuestion() {
         <div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div>
       </div>`;
     }).join("")}</div>
-    ${state.hints.q01 ? `<div class="feedback warn">先建立液體環境，讓材料薄而平整，再處理蓋玻片與多餘水分。</div>` : ""}
+    ${state.hints.q01 ? `<div class="feedback warn">先比較每張卡對水分、材料平整與空氣的影響，再決定相鄰兩步誰應在前。</div>` : ""}
     ${isWrong ? `<div class="feedback bad">流程還需要修正。請依提示調整順序。</div>` : ""}
   </div>`;
 }
@@ -562,32 +652,14 @@ function renderCheckpoint1() {
     <div class="asset-strip"><figure><img src="${assets.slidePreparation}" alt="玻片製作流程圖卡" onerror="this.closest('figure').hidden=true"><figcaption>觀察圖卡：用流程線索安排步驟。</figcaption></figure><figure><img src="${assets.lowHighStrategy}" alt="低高倍率觀察策略對照圖" onerror="this.closest('figure').hidden=true"><figcaption>觀察圖卡：先低倍定位，再高倍看細節。</figcaption></figure></div>
     <div class="question-grid">${renderSequenceQuestion()}${["q02", "q03", "q04"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`;
 }
-function renderScopeTabs() {
-  const tabs = [
-    { id: "onion", label: "洋蔥表皮" },
-    { id: "mouth", label: "口腔皮膜" },
-    { id: "leaf", label: "葉片下表皮" },
-    { id: "bubble", label: "氣泡干擾" }
-  ];
-  return `<div class="scope-tabs">${tabs.map((tab) => `<button data-scope="${tab.id}" class="${state.activeScope === tab.id ? "active" : ""}">${tab.label}</button>`).join("")}</div>`;
-}
-function renderScopeView() {
-  const hotspotClass = state.activeScope === "onion" ? (state.activeHotspot === "nucleus" ? "nucleus" : "wall") : state.activeScope === "leaf" ? "stoma" : "";
-  const activeLabel = { onion: "洋蔥表皮細胞", mouth: "口腔皮膜細胞", leaf: "葉片下表皮", bubble: "氣泡干擾" }[state.activeScope];
-  return `<div class="scope-card" data-asset-hook="cell_observation_scope_image">
-    <div class="scope-view ${state.activeScope}"><img src="${assets.scopeViews[state.activeScope]}" alt="${activeLabel} 顯微觀察圖" onerror="this.style.display='none'">${hotspotClass ? `<span class="hotspot ${hotspotClass}"></span>` : ""}</div>
-    ${renderScopeTabs()}
-    <div class="structure-tabs"><button data-hotspot="wall" class="${state.activeHotspot === "wall" ? "active" : ""}">格狀外框</button><button data-hotspot="nucleus" class="${state.activeHotspot === "nucleus" ? "active" : ""}">細胞核</button><button data-hotspot="stoma" class="${state.activeHotspot === "stoma" ? "active" : ""}">氣孔線索</button></div>
-    <p class="muted">目前檢視：${activeLabel}。可切換視野，再用外框、細胞核或氣孔線索判讀。</p>
-  </div>`;
-}
 function renderCheckpoint2() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>顯微視野判讀</h2>
-    <div class="microscope-layout">${renderScopeView()}<div class="question-grid">${["q05", "q06", "q07", "q08", "q09", "q10"].map(renderChoiceQuestion).join("")}</div></div>
+    <div class="story-panel"><strong>未標註影像</strong><p>每題只顯示該題需要判讀的影像，不提供材料分頁或預先命名的構造熱點。</p></div>
+    <div class="question-grid">${["q05", "q06", "q07", "q08", "q09", "q10"].map(renderChoiceQuestion).join("")}</div>
     <div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`;
 }
 function renderClassifyQuestion() {
-  return `<div class="question-card"><h3>請依觀察線索分類：哪些線索較支持植物細胞視野？哪些較支持動物細胞視野？</h3>
+  return `<div class="question-card"><h3>請依觀察到的線索或取材來源分類：哪些較支持植物細胞視野？哪些較支持動物細胞視野？</h3>
     <div class="classify-list">${classifyItems.map((item) => {
       const selected = state.answers.q14[item.id] || "";
       return `<div class="classify-row" data-classify-id="${item.id}">
@@ -615,19 +687,34 @@ function isCorrect(qid) {
   const question = questionById(qid);
   return state.answers[qid] === question.answer;
 }
+function isAnswered(qid) {
+  if (qid === "q01") return Boolean(state.interactions.q01) && ensureSequence().length === correctSequence.length;
+  if (qid === "q14") return classifyItems.every((item) => Boolean(state.answers.q14[item.id]));
+  return Boolean(state.answers[qid]);
+}
+function allRequiredAnswered() {
+  return [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].every(isAnswered);
+}
 function markHint(qid) {
   if (!state.hints[qid]) state.hints[qid] = true;
   state.checkedWrong[qid] = true;
 }
 function checkSection(section) {
   const qids = sectionMap[section];
+  const unanswered = qids.filter((qid) => !isAnswered(qid));
+  if (unanswered.length) {
+    const message = document.querySelector("#sectionMessage");
+    if (message) message.innerHTML = `<span class="pill warn">請先完成本區 ${unanswered.length} 題必答內容；不要求全對。</span>`;
+    return;
+  }
   const wrong = qids.filter((qid) => !isCorrect(qid));
-  if (wrong.length) {
-    wrong.forEach(markHint);
+  const newlyHinted = wrong.filter((qid) => !state.hints[qid]);
+  if (newlyHinted.length) {
+    newlyHinted.forEach(markHint);
     saveState();
     render();
     const message = document.querySelector("#sectionMessage");
-    if (message) message.innerHTML = `<span class="pill warn">還有 ${wrong.length} 題需要修正。提示已顯示；同一題只提示一次。</span>`;
+    if (message) message.innerHTML = `<span class="pill warn">已顯示 ${newlyHinted.length} 題概念提示；同一題只提示一次。可調整答案，也可保留本次作答再按一次前進。</span>`;
     return;
   }
   const next = section === "checkpoint1" ? "checkpoint2" : section === "checkpoint2" ? "checkpoint3" : "review";
@@ -643,6 +730,7 @@ function moveSequence(id, dir) {
   if (index < 0 || next < 0 || next >= order.length) return;
   [order[index], order[next]] = [order[next], order[index]];
   state.answers.q01_sequence = order;
+  state.interactions.q01 = true;
   saveState();
   render();
 }
@@ -652,6 +740,7 @@ function dropSequence(targetId) {
   const targetIndex = order.indexOf(targetId);
   order.splice(targetIndex, 0, draggedSequenceId);
   state.answers.q01_sequence = order;
+  state.interactions.q01 = true;
   draggedSequenceId = null;
   saveState();
   render();
@@ -659,7 +748,10 @@ function dropSequence(targetId) {
 function attachQuestionEvents() {
   document.querySelectorAll("[data-choice]").forEach((button) => {
     button.addEventListener("click", () => {
-      state.answers[button.dataset.choice] = button.dataset.value;
+      const question = questionById(button.dataset.choice);
+      state.answers[question.id] = button.dataset.value;
+      state.interactions[question.id] = true;
+      if (button.dataset.value !== question.answer) markHint(question.id);
       saveState();
       render();
     });
@@ -667,6 +759,9 @@ function attachQuestionEvents() {
   document.querySelectorAll("[data-classify]").forEach((select) => {
     select.addEventListener("change", () => {
       state.answers.q14[select.dataset.classify] = select.value;
+      state.interactions.q14 = true;
+      const item = classifyItems.find((candidate) => candidate.id === select.dataset.classify);
+      if (select.value && item && select.value !== item.answer) markHint("q14");
       saveState();
       render();
     });
@@ -679,47 +774,12 @@ function attachQuestionEvents() {
     item.addEventListener("dragover", (event) => event.preventDefault());
     item.addEventListener("drop", (event) => { event.preventDefault(); dropSequence(item.dataset.sequenceId); });
   });
-  document.querySelectorAll("[data-scope]").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.activeScope = button.dataset.scope;
-      if (state.activeScope === "leaf") state.activeHotspot = "stoma";
-      if (state.activeScope === "onion") state.activeHotspot = "wall";
-      saveState();
-      render();
-    });
-  });
-  document.querySelectorAll("[data-hotspot]").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.activeHotspot = button.dataset.hotspot;
-      if (state.activeHotspot === "stoma") state.activeScope = "leaf";
-      if (state.activeHotspot === "wall" || state.activeHotspot === "nucleus") state.activeScope = "onion";
-      saveState();
-      render();
-    });
-  });
   const checkButton = document.querySelector("#checkSection");
   if (checkButton) checkButton.addEventListener("click", () => checkSection(checkButton.dataset.section));
 }
 
 function evaluateReflectionQuality(reflection) {
-  const text = `${reflection.confident_concept || ""} ${reflection.uncertain_concept || ""} ${reflection.student_question || ""}`.trim();
-  const question = (reflection.student_question || "").trim();
-  const conceptTerms = ["玻片", "蓋玻片", "氣泡", "低倍率", "高倍率", "洋蔥表皮", "口腔皮膜", "葉片下表皮", "保衛細胞", "氣孔", "葉綠體", "染色", "細胞核", "顯微", "動物細胞", "植物細胞", "視野", "細胞壁"];
-  const invalidTerms = ["老師好帥", "帥", "午餐", "下課", "遊戲", "不知道", "沒有", "不會", "好難", "看不懂"];
-  const copiedDirections = ["染色前後差異", "氣泡與細胞構造判讀", "洋蔥表皮沒有明顯葉綠體的原因", "保衛細胞與氣孔功能連結", "低倍率與高倍率切換時機", "口腔皮膜細胞與植物表皮細胞外形差異"];
-  if (!text) return { reflection_quality: "blank", question_exp: 0, reflection_exp_reason: "空白可提交但不給 EXP。", reflection_review_status: "auto_scored" };
-  if (invalidTerms.some((term) => text.includes(term)) && !conceptTerms.some((term) => text.includes(term))) {
-    return { reflection_quality: "invalid", question_exp: 0, reflection_exp_reason: "內容未連到本單元顯微觀察概念。", reflection_review_status: "auto_scored" };
-  }
-  if (copiedDirections.includes(question)) {
-    return { reflection_quality: "minimal_concept", question_exp: 10, reflection_exp_reason: "只填方向詞，需用自己的話補充才能拿高分。", reflection_review_status: "auto_scored" };
-  }
-  const hasConcept = conceptTerms.some((term) => text.includes(term));
-  const hasQuestionShape = /為什麼|怎麼|如何|差別|不確定|混淆|判斷|線索|原因/.test(text);
-  if (hasConcept && hasQuestionShape && question.length >= 22) return { reflection_quality: "discussion_question", question_exp: 40, reflection_exp_reason: "具體且與顯微觀察概念相關，可帶到課堂討論。", reflection_review_status: "auto_scored" };
-  if (hasConcept && hasQuestionShape) return { reflection_quality: "specific_uncertainty", question_exp: 30, reflection_exp_reason: "有明確概念與不確定處。", reflection_review_status: "auto_scored" };
-  if (hasConcept) return { reflection_quality: "minimal_concept", question_exp: 10, reflection_exp_reason: "有本單元概念詞，但說明仍偏短。", reflection_review_status: "auto_scored" };
-  return { reflection_quality: "needs_review", question_exp: 0, reflection_exp_reason: "內容可能需要教師複核。", reflection_review_status: "pending_review" };
+  return window.BioQuestReflectionQuality.evaluate(reflection, reflectionRules);
 }
 function questionConcept(qid) {
   if (qid === "q01") return "slide_preparation";
@@ -727,7 +787,7 @@ function questionConcept(qid) {
   return questionById(qid)?.concept || "unknown";
 }
 function questionMisconception(qid) {
-  if (qid === "q01") return "bubble_as_cell";
+  if (qid === "q01") return "slide_preparation_sequence";
   if (qid === "q14") return "observation_without_evidence";
   return questionById(qid)?.misconception || "unknown";
 }
@@ -745,8 +805,11 @@ function calculateResult() {
   const accuracy = correct / total;
   const masteryExp = accuracy === 1 && hintUsed === 0 ? 140 : accuracy === 1 ? 80 : accuracy >= 0.9 ? 50 : 0;
   const prevAcc = previousBestAccuracy();
-  const retryExp = state.attempt_type === "retry" && prevAcc !== null && accuracy > prevAcc ? Math.min(60, Math.round((accuracy - prevAcc) * 100)) : 0;
-  const attemptTotalExp = 100 + directExp + revisionExp + reflectionEval.question_exp + masteryExp + retryExp;
+  const completionExp = allRequiredAnswered() ? 100 : 0;
+  const baseExp = Math.min(UNIT_EXP_CAP, completionExp + directExp + revisionExp + reflectionEval.question_exp + masteryExp);
+  const retryCandidate = state.attempt_type === "retry" && prevAcc !== null && accuracy > prevAcc ? Math.min(60, Math.round((accuracy - prevAcc) * 100)) : 0;
+  const retryExp = Math.min(retryCandidate, Math.max(0, UNIT_EXP_CAP - baseExp));
+  const attemptTotalExp = Math.min(UNIT_EXP_CAP, baseExp + retryExp);
   const best = previousBestCredited();
   const unitCreditedExp = Math.min(UNIT_EXP_CAP, Math.max(best, attemptTotalExp));
   const sectionStats = [
@@ -755,22 +818,20 @@ function calculateResult() {
     sectionStat("染色與迷思修正", sectionMap.checkpoint3)
   ];
   const misconceptions = [...new Set(qids.filter((qid) => !isCorrect(qid) || state.hints[qid]).map(questionMisconception))];
-  const earned = [badges[0].id];
+  const earned = completionExp ? [badges[0].id] : [];
   if (sectionStats[0].correct / sectionStats[0].total >= 0.85) earned.push("slide_preparation_sequencer", "low_high_power_strategist");
   if (sectionStats[1].correct / sectionStats[1].total >= 0.85) earned.push("field_sample_identifier", "guard_cell_stoma_spotter");
   if (sectionStats[2].correct / sectionStats[2].total >= 0.85) earned.push("staining_purpose_explainer", "artifact_detector");
   if (accuracy === 1 && hintUsed === 0) earned.push("cell_observation_flawless");
-  if (reflectionEval.reflection_quality === "discussion_question") earned.push("cell_observation_reflection_reporter");
+  if (reflectionEval.reflection_quality === "discussion_question" && reflectionEval.reflection_review_status === "server_recalculated") earned.push("cell_observation_reflection_reporter");
   if (retryExp > 0) earned.push("retry_growth_cell_observation");
   return {
     unit_exp_cap: UNIT_EXP_CAP,
-    completion_exp: 100,
+    completion_exp: completionExp,
     concept_exp: directExp,
     revision_exp: revisionExp,
     question_exp: reflectionEval.question_exp,
-    reflection_quality: reflectionEval.reflection_quality,
-    reflection_exp_reason: reflectionEval.reflection_exp_reason,
-    reflection_review_status: reflectionEval.reflection_review_status,
+    ...reflectionEval,
     mastery_exp: masteryExp,
     retry_exp: retryExp,
     attempt_total_exp: attemptTotalExp,
@@ -788,6 +849,9 @@ function calculateResult() {
     misconceptions,
     concept_mastery_tags_json: conceptMastery(qids),
     badges: [...new Set(earned)],
+    cumulative_badges_candidate: cumulativeBadgeIds(earned),
+    no_hint_perfect: accuracy === 1 && hintUsed === 0,
+    all_required_answered: allRequiredAnswered(),
     teacher_attention_needed: Number(state.answers.reflection.confidence_score || 3) <= 2 || accuracy < 0.6 || reflectionEval.reflection_review_status === "pending_review" || misconceptions.length >= 3
   };
 }
@@ -814,11 +878,13 @@ function conceptMastery(qids) {
 }
 function misconceptionText(tag) {
   const map = {
+    slide_preparation_sequence: "建議再把水滴、材料平整、蓋玻片與多餘液體各自的目的連起來，再用目的檢查前後關係。",
     stain_is_decoration: "建議再閱讀染色目的：染色能提高視野對比，使細胞核等構造更容易觀察。",
     high_power_first: "建議再整理顯微鏡觀察策略：先用低倍率找到細胞，再換高倍率看細節。",
     bubble_as_cell: "建議再練習視野判讀：氣泡常有明顯圓形邊緣，但缺少細胞排列與內部構造線索。",
     all_plant_cells_have_chloroplast_in_view: "建議再比較不同植物細胞觀察材料：洋蔥表皮和葉片下表皮能看到的重點不完全相同。",
     animal_cell_has_cell_wall: "建議再比較口腔皮膜與洋蔥表皮：口腔皮膜細胞沒有細胞壁，形狀較不規則。",
+    plant_cell_wall_identification: "植物表皮細胞的外框可提供細胞壁線索；判讀時要分開看外框與染色後較深色的構造。",
     observation_without_evidence: "建議再用外框、排列、染色、取材來源、特殊構造等線索判斷顯微視野。"
   };
   return map[tag] || "建議再把觀察線索和顯微視野判讀連在一起。";
@@ -830,7 +896,7 @@ function renderReview() {
     <div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div>
     <div class="card-grid">
       <div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理主要概念。</p>"}</div>
-      <div class="story-panel"><strong>建議再閱讀理解</strong>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div>
+      <div class="story-panel"><strong>建議再閱讀理解</strong><p class="muted">這些方向依剛剛仍需要提示或調整的概念整理，幫你回看關鍵線索。</p>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div>
       <div class="story-panel"><strong>課堂提問方向</strong><p>染色前後差異、氣泡與細胞構造判讀、保衛細胞與氣孔、低倍率與高倍率切換時機、口腔皮膜與植物表皮差異。</p></div>
     </div>
     <div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
@@ -850,14 +916,22 @@ function renderReflection() {
 function buildAttempt() {
   const now = new Date().toISOString();
   return {
+    attempt_id: state.attempt_session_id,
     timestamp: now,
     student: state.student,
     mission,
     attempt_type: state.attempt_type,
+    attempt_type_candidate: state.attempt_type,
     attempt_no: Number(state.remote_completed_attempts || 0) + 1,
+    attempt_session_id: state.attempt_session_id,
+    started_from_login: true,
+    previous_attempt_id: previousAttemptId(),
+    retry_validation_status: state.attempt_type === "retry" ? "pending_backend_validation" : "not_retry",
     started_at: state.started_at,
     submitted_at: state.submitted_at || now,
     completion_status: "complete",
+    required_answer_count: [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].length,
+    answered_required_count: [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].filter(isAnswered).length,
     backend_status: state.backend_status,
     ...state.result,
     confidence_score: state.answers.reflection.confidence_score,
@@ -870,7 +944,7 @@ function buildAttempt() {
 }
 function buildBackendPayload(attempt) {
   return {
-    attempt_id: `${mission.unit_id}_${attempt.student.student_id}_${Date.now()}`,
+    attempt_id: attempt.attempt_id,
     student_id: attempt.student.student_id,
     student_name: attempt.student.student_name,
     class_name: attempt.student.class_name,
@@ -878,6 +952,16 @@ function buildBackendPayload(attempt) {
     unit_id: attempt.mission.unit_id,
     unit_title: attempt.mission.unit_title,
     attempt_type: attempt.attempt_type,
+    attempt_type_candidate: attempt.attempt_type_candidate,
+    attempt_no_candidate: attempt.attempt_no,
+    attempt_session_id: attempt.attempt_session_id,
+    started_from_login: attempt.started_from_login,
+    previous_attempt_id: attempt.previous_attempt_id,
+    retry_validation_status: attempt.retry_validation_status,
+    completion_status: attempt.completion_status,
+    required_answer_count: attempt.required_answer_count,
+    answered_required_count: attempt.answered_required_count,
+    all_required_answered: attempt.all_required_answered,
     started_at: attempt.started_at,
     submitted_at: attempt.submitted_at,
     total_questions: attempt.total,
@@ -897,10 +981,23 @@ function buildBackendPayload(attempt) {
     credited_delta: attempt.credited_delta,
     confidence_score: attempt.confidence_score,
     reflection_quality: attempt.reflection_quality,
+    reflection_quality_candidate: attempt.reflection_quality_candidate,
     reflection_exp_reason: attempt.reflection_exp_reason,
     reflection_review_status: attempt.reflection_review_status,
+    reflection_original_text: attempt.reflection_original_text,
+    reflection_normalized_text: attempt.reflection_normalized_text,
+    reflection_similarity_score: attempt.reflection_similarity_score,
+    reflection_similarity_source: attempt.reflection_similarity_source,
+    reflection_copied_direction_flag: attempt.reflection_copied_direction_flag,
+    reflection_irrelevant_flag: attempt.reflection_irrelevant_flag,
+    reflection_low_effort_flag: attempt.reflection_low_effort_flag,
+    reflection_examples_checked: attempt.reflection_examples_checked,
+    reflection_frontend_only: true,
     teacher_attention_needed: attempt.teacher_attention_needed,
     student_question: attempt.student_question,
+    badges_json: JSON.stringify(attempt.badges),
+    existing_badges_json: JSON.stringify(cumulativeBadgeIds()),
+    cumulative_badges_candidate_json: JSON.stringify(attempt.cumulative_badges_candidate),
     slide_preparation_score: scoreForConcept(attempt, "slide_preparation"),
     low_high_power_strategy_score: scoreForConcept(attempt, "low_high_power_observation"),
     field_sample_identification_score: scoreForConcept(attempt, "onion_epidermis", "mouth_epithelial_cell"),
@@ -910,7 +1007,7 @@ function buildBackendPayload(attempt) {
     animal_plant_observation_compare_score: scoreForConcept(attempt, "animal_plant_observation_compare"),
     misconceptions_json: JSON.stringify(attempt.misconceptions),
     raw_answers_json: JSON.stringify(attempt.raw_answers),
-    badge_eval_json: JSON.stringify(attempt.badges),
+    badge_eval_json: JSON.stringify(badges.map((badge) => ({ badge_id: badge.id, earned_candidate: attempt.badges.includes(badge.id), badge_image_path: badge.badge_image_path }))),
     question_logs: [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].map((qid) => ({
       question_id: `${mission.unit_id}_${qid}`,
       skill_tag: questionConcept(qid),
@@ -918,7 +1015,8 @@ function buildBackendPayload(attempt) {
       used_hint: Boolean(state.hints[qid]),
       attempt_answer: JSON.stringify(qid === "q01" ? state.answers.q01_sequence : qid === "q14" ? state.answers.q14 : state.answers[qid]),
       correct_answer: qid === "q01" ? correctSequence.join(" > ") : qid === "q14" ? "依觀察線索分類動植物細胞視野" : questionById(qid).answer,
-      exp_awarded: 0
+      exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept",
+      exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total)
     }))
   };
 }
@@ -942,6 +1040,10 @@ async function submitAttemptToBackend(attempt) {
 function attachReflection() {
   document.querySelector("#submitMission").addEventListener("click", async (event) => {
     if (state.submitted_at) return setScreen("result");
+    if (!allRequiredAnswered()) {
+      window.alert("請先完成所有必答題，再提交完整任務。");
+      return;
+    }
     const ok = window.confirm("提交後會進行結算，本次作答不能再修改；若要再挑戰，請重新登入並從頭完成。");
     if (!ok) return;
     const button = event.currentTarget;
@@ -958,8 +1060,11 @@ function attachReflection() {
     state.submitted_at = new Date().toISOString();
     let attempt = buildAttempt();
     try {
-      await submitAttemptToBackend(attempt);
+      const response = await submitAttemptToBackend(attempt);
       state.backend_status = "submitted";
+      if (response.verified_attempt) state.result = { ...state.result, ...response.verified_attempt };
+      applyBackendProgress(response.student_progress || response.progress || {});
+      attempt = { ...attempt, ...state.result, backend_status: state.backend_status, backend_attempt_id: response.attempt_id || attempt.attempt_id };
     } catch {
       state.backend_status = "pending_local";
       attempt = { ...attempt, backend_status: state.backend_status };
@@ -981,21 +1086,26 @@ function renderResult() {
     <div class="card-grid">
       <div class="story-panel"><strong>EXP 明細</strong><p>完成 ${result.completion_exp}｜直接答對 ${result.concept_exp}｜提示後修正 ${result.revision_exp}｜回報 ${result.question_exp}｜精熟 ${result.mastery_exp}｜再挑戰 ${result.retry_exp}</p></div>
       <div class="story-panel"><strong>本次與認列差異</strong><p>本次取得是這次挑戰的原始表現；本單元認列會保留最高表現並受 500 EXP 上限限制。</p></div>
-      <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p></div>
+      <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">前台候選 ${result.question_exp_candidate || 0} EXP；正式回報 EXP 以後台重算為準。</p></div>
     </div>
     <div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
 }
 function renderAchievements() {
-  const result = state.result || calculateResult();
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>顯微視野徽章牆</h2><div class="badge-grid">${badges.map((badge) => {
-    const lit = result.badges.includes(badge.id);
-    return `<div class="badge-card ${lit ? "lit" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="badge-icon" hidden>${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`;
-  }).join("")}</div><div class="actions"><button class="primary" id="achieveResult">回到結算</button></div></div></div>`;
+  const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : [];
+  const litIds = cumulativeBadgeIds(currentBadges);
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>顯微視野徽章牆</h2>
+    <div class="score-grid"><div class="score-box"><span>累積徽章</span><strong>${litIds.length}</strong></div><div class="score-box"><span>累積 EXP</span><strong>${state.cumulative_total_exp || 0}</strong></div><div class="score-box"><span>已完成單元</span><strong>${state.completed_unit_count || 0}</strong></div></div>
+    <div class="badge-grid">${badges.map((badge) => {
+      const lit = litIds.includes(badge.id);
+      const gold = badge.id === "cell_observation_flawless";
+      return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="badge-icon" hidden>${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`;
+    }).join("")}</div><p class="muted">亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
 }
 function renderRules() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2>
     <div class="card-grid">
       <div class="story-panel"><strong>單元上限</strong><p>本單元最高認列 500 EXP。一次零提示全對是最高路徑。</p></div>
+      <div class="story-panel"><strong>完成條件</strong><p>回答完所有必答題即可提交，不必先全對；需要調整的概念會保留提示與回饋。</p></div>
       <div class="story-panel"><strong>提示後修正</strong><p>每題第一次錯選會出現一次提示；提示後修正仍有 EXP，但低於直接答對。</p></div>
       <div class="story-panel"><strong>再挑戰</strong><p>提交後本次作答鎖定。若要再挑戰，請重新登入並從頭完成整份任務。</p></div>
     </div>
@@ -1013,7 +1123,7 @@ function attachEvents() {
     document.querySelector("#resultAchievements").addEventListener("click", () => setScreen("achievements"));
     document.querySelector("#resultRules").addEventListener("click", () => setScreen("rules"));
   }
-  if (state.screen === "achievements") document.querySelector("#achieveResult").addEventListener("click", () => setScreen("result"));
+  if (state.screen === "achievements") document.querySelector("#achieveResult").addEventListener("click", () => setScreen(state.submitted_at ? "result" : "brief"));
   if (state.screen === "rules") document.querySelector("#rulesBack").addEventListener("click", () => setScreen(state.student ? (state.submitted_at ? "result" : "brief") : "login"));
 }
 function render() {

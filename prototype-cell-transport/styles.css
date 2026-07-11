@@ -21,10 +21,8 @@ body {
   color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
   background:
-    linear-gradient(120deg, rgba(235, 249, 247, 0.9), rgba(237, 242, 248, 0.84)),
-    radial-gradient(circle at 15% 16%, rgba(16, 152, 166, .15), transparent 26%),
-    radial-gradient(circle at 86% 12%, rgba(216, 155, 50, .16), transparent 23%),
-    #edf6f3;
+    linear-gradient(120deg, rgba(235, 249, 247, 0.88), rgba(237, 242, 248, 0.82)),
+    url("assets/bg-cell-transport-ambient-wide.png");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -105,8 +103,8 @@ h1, h2, h3, p { margin-top: 0; }
   border: 1px solid var(--line);
   border-radius: 8px;
   background:
-    linear-gradient(100deg, rgba(9, 61, 74, .93), rgba(14, 108, 122, .68) 48%, rgba(238, 253, 247, .88)),
-    linear-gradient(135deg, #0c3d4c, #65c8c4 54%, #fff2d4);
+    linear-gradient(90deg, rgba(5, 49, 61, .74), rgba(5, 49, 61, .08) 48%, rgba(255,255,255,.04)),
+    url("assets/bg-cell-transport-briefing-azhe-wide.png");
   background-size: cover;
   background-position: center;
 }
@@ -119,10 +117,11 @@ h1, h2, h3, p { margin-top: 0; }
 .scene-copy {
   position: relative;
   z-index: 1;
-  margin-left: auto;
-  width: min(48%, 420px);
+  margin-right: auto;
+  width: min(42%, 420px);
   padding: 28px;
-  color: #12343b;
+  color: #f7ffff;
+  background: linear-gradient(90deg, rgba(5,49,61,.72), rgba(5,49,61,.12));
 }
 .scene-copy .student-avatar-slot {
   display: grid;
@@ -255,6 +254,11 @@ textarea { min-height: 96px; resize: vertical; }
 .choice-button.wrong { border-color: var(--red); background:#ffe8e8; }
 .selected-answer { color: var(--muted); font-size: 14px; font-weight: 800; }
 
+.question-visual { margin: 12px 0; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: #f7faf9; }
+.question-image-wrap { width: min(100%, 680px); margin: 0 auto; aspect-ratio: 16 / 9; }
+.question-image-wrap img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.question-visual figcaption { padding: 10px 12px; color: var(--muted); font-size: 13px; font-weight: 800; }
+
 .sortable-list { display:grid; gap:10px; }
 .sortable-item {
   display:grid;
@@ -333,6 +337,7 @@ textarea { min-height: 96px; resize: vertical; }
 .badge-grid { display:grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap:10px; }
 .badge-card { min-height: 128px; padding:12px; border:1px solid var(--line); border-radius:8px; background:#fff; filter: grayscale(1); opacity:.58; }
 .badge-card.lit { filter:none; opacity:1; border-color:rgba(216,155,50,.6); background:#fff6df; }
+.badge-card.lit.gold { border-color:#d89b32; background:linear-gradient(135deg,#fff9dc,#ffe7a4); box-shadow:0 8px 22px rgba(216,155,50,.22); }
 .badge-icon { display:grid; place-items:center; width:42px; height:42px; margin-bottom:8px; border-radius:50%; background:linear-gradient(135deg,#dff8f6,#fff1c9); color:#12434d; font-weight:900; }
 .badge-image { display:block; width:72px; height:72px; margin:0 auto 8px; object-fit:contain; }
 
@@ -346,7 +351,8 @@ textarea { min-height: 96px; resize: vertical; }
   .mission-layout, .mission-hud, .score-grid, .card-grid, .choice-grid, .token-grid, .microscope-layout, .transport-layout, .cell-change-strip { grid-template-columns: 1fr; }
   .hero-panel { min-height: auto; }
   .brief-scene { min-height: 520px; }
-  .scene-copy { width: 100%; padding: 22px; padding-top: 58%; background: linear-gradient(0deg, rgba(255,255,255,.88), rgba(255,255,255,.08)); }
+  .brief-scene { background-position: 58% center; }
+  .scene-copy { width: 100%; padding: 22px; padding-top: 58%; color: #12343b; background: linear-gradient(0deg, rgba(255,255,255,.94), rgba(255,255,255,.08)); }
   .mentor-card, .classify-row { grid-template-columns: 1fr; }
   .mentor-avatar { min-height: 230px; height: min(62vw, 320px); place-items: center; }
   .owl-frame { min-height: 260px; }
