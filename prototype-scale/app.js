@@ -6,7 +6,7 @@ const roster = {
 };
 
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
-const VERSION = "20260711-scale-badges-v2";
+const VERSION = "20260711-scale-audit-v3";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -64,196 +64,35 @@ const badges = [
 ].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id) }));
 
 const sequenceSteps = [
-  { id: "person", label: "一個人" },
-  { id: "leaf", label: "一片葉" },
-  { id: "ant", label: "一隻螞蟻" },
-  { id: "rice", label: "一粒米" },
-  { id: "cell", label: "一個細胞" }
+  { id: "backpack", label: "背包", reference: "約 45 cm" },
+  { id: "leaf", label: "指定葉片", reference: "約 8 cm" },
+  { id: "ant", label: "指定螞蟻", reference: "約 12 mm" },
+  { id: "rice", label: "指定米粒", reference: "約 6 mm" },
+  { id: "cell", label: "洋蔥表皮細胞", reference: "約 300 μm" }
 ];
-const correctSequence = ["person", "leaf", "ant", "rice", "cell"];
+const correctSequence = ["backpack", "leaf", "ant", "rice", "cell"];
 
 const questions = [
-  {
-    id: "q03",
-    section: "checkpoint1",
-    concept: "organization_hierarchy",
-    answer: "individual",
-    prompt: "下列哪個最符合『個體』的概念？",
-    hint: "判斷它是否已是一個能獨立完成生命現象的完整生物。",
-    misconception: "individual_as_system",
-    image: assets.hierarchyCards,
-    imageAlt: "動物由細胞到個體的組成層次圖卡",
-    imageEvidence: "用圖卡比較完整生物與體內局部構造的差異。",
-    options: [
-      { id: "individual", text: "一株番茄植株" }, { id: "system", text: "一片葉" },
-      { id: "organ", text: "一群表皮細胞" }, { id: "tissue", text: "一個胃" }
-    ]
-  },
-  {
-    id: "q04",
-    section: "checkpoint1",
-    concept: "organization_relation",
-    answer: "composed",
-    prompt: "圖卡依序呈現細胞、組織、器官、器官系統與人體，這組圖卡主要表示什麼？",
-    hint: "看圖卡是否從細胞逐漸整理到完整生物，而不是描述生物彼此互動。",
-    misconception: "levels_are_unrelated",
-    image: assets.hierarchyCards,
-    imageAlt: "動物由細胞到個體的組成層次圖卡",
-    imageEvidence: "沿著圖卡觀察較小層次如何共同形成較高層次。",
-    options: [
-      { id: "composed", text: "生物體由小到大的組成層次" },
-      { id: "unrelated", text: "生態系中的食物鏈" },
-      { id: "same", text: "物質進出細胞的方向" },
-      { id: "reverse", text: "植物的生殖過程" }
-    ]
-  },
-  {
-    id: "q05", section: "checkpoint2", concept: "tissue_definition", answer: "similar_cells",
-    prompt: "哪一個敘述最符合『組織』？", hint: "比較它是單一細胞、完整器官，還是一群共同工作的相似細胞。", misconception: "tissue_as_cell_group_any",
-    image: assets.relationExamples, imageAlt: "組織、器官與器官系統例子圖", imageEvidence: "比較圖中相似細胞群與完整器官的層次差異。",
-    options: [
-      { id: "similar_cells", text: "形態與功能相近的細胞共同形成的層次。" },
-      { id: "one_cell", text: "任何一個單獨細胞。" }, { id: "whole_body", text: "完整的一個生物個體。" },
-      { id: "many_organs", text: "許多器官共同工作的層次。" }
-    ]
-  },
-  {
-    id: "q06", section: "checkpoint2", concept: "organ_identification", answer: "organ",
-    prompt: "心臟由多種組織共同構成並執行輸送血液的功能，心臟屬於哪一層？", hint: "判斷它是否由多種組織構成、具有特定功能。", misconception: "organ_as_tissue",
-    image: assets.relationExamples, imageAlt: "組織、器官與器官系統例子圖", imageEvidence: "圖中完整構造由多種組織共同完成特定功能。",
-    options: [
-      { id: "organ", text: "器官" }, { id: "tissue", text: "組織" },
-      { id: "system", text: "器官系統" }, { id: "cell", text: "細胞" }
-    ]
-  },
-  {
-    id: "q07", section: "checkpoint2", concept: "organ_system", answer: "system",
-    prompt: "口腔、食道、胃與腸等器官共同完成消化與吸收，合稱哪一層？", hint: "多個器官彼此協調、共同完成一組功能時，層次會再提高。", misconception: "system_as_organ",
-    image: assets.relationExamples, imageAlt: "組織、器官與器官系統例子圖", imageEvidence: "追蹤多個器官如何共同執行一組功能。",
-    options: [
-      { id: "system", text: "器官系統" }, { id: "organ", text: "器官" },
-      { id: "tissue", text: "組織" }, { id: "individual", text: "個體" }
-    ]
-  },
-  {
-    id: "q08", section: "checkpoint2", concept: "organ_system", answer: "stomach_organ",
-    prompt: "哪個比較正確？", hint: "分清楚單一構造與多個器官共同工作的集合。", misconception: "organ_system_confusion",
-    image: assets.relationExamples, imageAlt: "組織、器官與器官系統例子圖", imageEvidence: "比較單一胃與整套消化系統的組成範圍。",
-    options: [
-      { id: "stomach_organ", text: "胃是器官；胃與其他消化器官共同構成消化系統。" },
-      { id: "stomach_system", text: "胃本身就是完整的器官系統。" },
-      { id: "same_level", text: "胃與消化系統屬於完全相同層次。" },
-      { id: "system_tissue", text: "消化系統只是一種組織。" }
-    ]
-  },
-  {
-    id: "q09", section: "checkpoint3", concept: "unicellular_individual", answer: "complete_individual",
-    prompt: "草履蟲只有一個細胞，為什麼仍可稱為一個個體？", hint: "判斷這一個細胞是否能完成生物所需的生命現象。", misconception: "unicellular_not_individual",
-    image: assets.unicellularExamples, imageAlt: "單細胞與多細胞生物例子圖", imageEvidence: "比較一個細胞即為完整生物與多個細胞共同形成個體的情況。",
-    options: [
-      { id: "complete_individual", text: "單一細胞就能完成維持生命所需的活動。" },
-      { id: "has_tissues", text: "它有完整的組織與器官系統。" },
-      { id: "too_small", text: "只要體型小就一定是個體。" },
-      { id: "not_individual", text: "一個細胞不可能是個體。" }
-    ]
-  },
-  {
-    id: "q11", section: "checkpoint3", concept: "unicellular_individual", answer: "one_cell_individual",
-    prompt: "同學說：『單細胞生物只有細胞層次，不算個體。』哪個修正合理？", hint: "層次名稱要看它在生物體中的角色，不只數細胞數量。", misconception: "unicellular_not_individual",
-    image: assets.unicellularExamples, imageAlt: "單細胞與多細胞生物例子圖", imageEvidence: "確認單細胞生物的一個細胞同時也是完整個體。",
-    options: [
-      { id: "one_cell_individual", text: "單細胞生物的一個細胞可同時代表細胞層次與完整個體。" },
-      { id: "needs_organs", text: "一定要有器官系統才算個體。" },
-      { id: "not_living", text: "單細胞生物不屬於生物。" },
-      { id: "many_cells", text: "單細胞生物其實由許多細胞構成。" }
-    ]
-  },
-  {
-    id: "q13", section: "checkpoint3", concept: "plant_organ", answer: "organ",
-    prompt: "一片完整的葉由多種組織構成，並能執行光合作用等功能，因此葉屬於哪一層？", hint: "判斷它是否由多種組織共同構成並具有特定功能。", misconception: "plant_part_not_organ",
-    image: assets.plantOrgans, imageAlt: "植物營養器官與生殖器官圖", imageEvidence: "把葉看成由多種組織形成、具有特定功能的完整構造。",
-    options: [
-      { id: "organ", text: "器官" }, { id: "tissue", text: "組織" },
-      { id: "system", text: "器官系統" }, { id: "cell", text: "細胞" }
-    ]
-  },
-  {
-    id: "q14", section: "checkpoint3", concept: "animal_plant_organization", answer: "both_organs",
-    prompt: "有同學說：『只有動物有器官，植物只有細胞和葉綠體。』哪個修正較合理？", hint: "從植物體中能負責特定功能的構造找線索，不要只想到動物身體。", misconception: "plants_have_no_organs",
-    image: assets.animalPlantCompare, imageAlt: "動物與植物組成層次比較圖", imageEvidence: "比較動物與植物都可由細胞、組織與器官形成完整個體。",
-    options: [
-      { id: "both_organs", text: "植物也有器官，例如根、莖、葉、花、果實與種子。" },
-      { id: "plants_no_organs", text: "植物沒有細胞。" },
-      { id: "animals_no_tissue", text: "植物器官一定等於動物器官系統。" },
-      { id: "all_same", text: "葉綠體就是完整植物個體。" }
-    ]
-  }
-];
-
-const classifyQuestions = {
-  q02: {
-    prompt: "請把例子分類到正確的組成層次。每一列都要選擇。",
-    hint: "先判斷是單一細胞、相似細胞群、完整器官、多器官協作，或完整生物。",
-    misconception: "hierarchy_example_confusion",
-    options: [{ id: "cell", label: "細胞" }, { id: "tissue", label: "組織" }, { id: "organ", label: "器官" }, { id: "system", label: "器官系統" }, { id: "individual", label: "個體" }],
-    items: [
-      { id: "muscle_cell", label: "肌肉細胞", answer: "cell" }, { id: "muscle_tissue", label: "肌肉組織", answer: "tissue" },
-      { id: "heart", label: "心臟", answer: "organ" }, { id: "circulatory", label: "循環系統", answer: "system" }, { id: "person", label: "一個人", answer: "individual" }
-    ]
-  },
-  q10: {
-    prompt: "請將生物分類為單細胞或多細胞生物。每一列都要選擇。",
-    hint: "判斷完整個體由一個細胞或許多分工細胞組成。",
-    misconception: "unicellular_multicellular_confusion",
-    options: [{ id: "single", label: "單細胞生物" }, { id: "multi", label: "多細胞生物" }],
-    items: [
-      { id: "paramecium", label: "草履蟲", answer: "single" }, { id: "amoeba", label: "變形蟲", answer: "single" },
-      { id: "yeast", label: "酵母菌", answer: "single" }, { id: "human", label: "人", answer: "multi" },
-      { id: "banyan", label: "榕樹", answer: "multi" }, { id: "butterfly", label: "蝴蝶", answer: "multi" }
-    ]
-  },
-  q12: {
-    prompt: "請將植物器官分類為營養器官或生殖器官。每一列都要選擇。",
-    hint: "比較器官主要負責生長與養分取得，或與繁殖形成新個體有關。",
-    misconception: "plant_organ_classification",
-    options: [{ id: "vegetative", label: "營養器官" }, { id: "reproductive", label: "生殖器官" }],
-    items: [
-      { id: "root", label: "根", answer: "vegetative" }, { id: "stem", label: "莖", answer: "vegetative" }, { id: "leaf", label: "葉", answer: "vegetative" },
-      { id: "flower", label: "花", answer: "reproductive" }, { id: "fruit", label: "果實", answer: "reproductive" }, { id: "seed", label: "種子", answer: "reproductive" }
-    ]
-  }
-};
-
-const sectionMap = {
-  checkpoint1: ["q01", "q02", "q03", "q04"],
-  checkpoint2: ["q05", "q06", "q07", "q08", "q09", "q10"],
-  checkpoint3: ["q11", "q12", "q13", "q14"]
-};
-
-// The shared state machine below is inherited from unit 9. Replace only its
-// unit-data layer so a future unit can use the same runtime without sharing content.
-questions.splice(0, questions.length,
   { id: "q03", section: "checkpoint1", concept: "length_units", answer: "mm_um", prompt: "下列哪個換算正確？", hint: "先想毫米比微米大很多，一毫米可以分成許多微米。", misconception: "unit_conversion_confusion", visual: "unit-grid", options: [{ id: "mm_um", text: "1 mm = 1000 μm" }, { id: "cm_m", text: "1 cm = 1000 m" }, { id: "um_mm", text: "1 μm = 1000 mm" }, { id: "m_cm", text: "1 m = 10 cm" }] },
   { id: "q04", section: "checkpoint1", concept: "length_units", answer: "a_larger", prompt: "甲物體長 2 mm，乙物體長 200 μm。哪個較大？", hint: "先把兩個長度換成同一種單位，再比較。", misconception: "unit_conversion_confusion", visual: "unit-grid", options: [{ id: "a_larger", text: "甲物體較大" }, { id: "b_larger", text: "乙物體較大" }, { id: "same", text: "兩者一樣大" }, { id: "unknown", text: "無法比較，因為單位不同" }] },
   { id: "q06", section: "checkpoint2", concept: "microscopic_scale", answer: "compound", prompt: "想觀察口腔皮膜細胞的外形，哪種工具最合適？", hint: "想想細胞是否屬於肉眼容易看清的大小層次。", misconception: "cell_measured_by_ruler", visual: "tool-station", options: [{ id: "compound", text: "複式顯微鏡" }, { id: "ruler", text: "一般直尺" }, { id: "tape", text: "捲尺" }, { id: "telescope", text: "望遠鏡" }] },
   { id: "q07", section: "checkpoint2", concept: "observation_tools", answer: "fit_purpose", prompt: "有同學說：『倍率越高的工具一定越適合觀察任何東西。』哪個修正較合理？", hint: "先想觀察整個教室、葉片表面和細胞時，是否需要同一種工具。", misconception: "tool_highest_magnification_best", visual: "tool-station", options: [{ id: "fit_purpose", text: "要依物體大小與觀察目的選工具" }, { id: "high_classroom", text: "倍率越高越適合量教室長度" }, { id: "cell_tape", text: "細胞可以用捲尺量" }, { id: "magnifier_cell", text: "放大鏡一定比顯微鏡更能看細胞" }] },
-  { id: "q08", section: "checkpoint2", concept: "microscopic_scale", answer: "microscope_cells", prompt: "圖中有規則排列的小格狀構造，標尺是 100 μm。這張圖最可能屬於哪種觀察情境？", hint: "標尺單位是微米，通常表示正在看非常小的尺度。", misconception: "cell_measured_by_ruler", visual: "micrograph-100", options: [{ id: "microscope_cells", text: "顯微鏡下的細胞視野" }, { id: "classroom", text: "教室平面圖" }, { id: "playground", text: "操場衛星圖" }, { id: "height", text: "身高測量圖" }] },
+  { id: "q08", section: "checkpoint2", concept: "microscopic_scale", answer: "microscope_cells", prompt: "圖中有規則排列的小格狀構造，標尺是 100 μm。這張圖最可能屬於哪種觀察情境？", hint: "把這個單位和教室或身高常用的單位相比，再判斷這是什麼尺度的觀察。", misconception: "cell_measured_by_ruler", visual: "micrograph-100", options: [{ id: "microscope_cells", text: "顯微鏡下的細胞視野" }, { id: "classroom", text: "教室平面圖" }, { id: "playground", text: "操場衛星圖" }, { id: "height", text: "身高測量圖" }] },
   { id: "q09", section: "checkpoint3", concept: "scale_bar_reading", answer: "one_hundred_um", prompt: "顯微影像中，一段標尺代表 50 μm。某細胞長度約等於 2 段標尺，這個細胞實際長度約是多少？", hint: "先看一段標尺代表多少，再看細胞大約跨過幾段。", misconception: "ignore_scale_bar", visual: "scale-bar-50", options: [{ id: "one_hundred_um", text: "約 100 μm" }, { id: "twenty_five_um", text: "約 25 μm" }, { id: "fifty_mm", text: "約 50 mm" }, { id: "two_cm", text: "約 2 cm" }] },
   { id: "q10", section: "checkpoint3", concept: "image_actual_size", answer: "image_only", prompt: "同一個細胞影像在平板上放大顯示後，看起來比原本大很多。哪個判斷較合理？", hint: "想想放大的是影像，還是生物體中的實物本身。", misconception: "magnification_changes_object", visual: "screen-zoom", options: [{ id: "image_only", text: "螢幕上的影像變大，但細胞實際大小沒有改變" }, { id: "cell_grew", text: "細胞實際長大了" }, { id: "unit_m", text: "標尺單位一定變成公尺" }, { id: "naked_eye", text: "顯微鏡讓細胞變成肉眼大小" }] },
-  { id: "q11", section: "checkpoint3", concept: "scale_bar_reading", answer: "use_scale_bar", prompt: "兩張細胞照片在螢幕上看起來一樣大，但甲圖標尺為 20 μm，乙圖標尺為 100 μm。哪個判斷較合理？", hint: "比較顯微圖時，先看標尺代表的實際長度，不是只看螢幕上的圖像。", misconception: "ignore_scale_bar", visual: "compare-bars", options: [{ id: "use_scale_bar", text: "不能只看螢幕大小，需依標尺判斷實際大小" }, { id: "same", text: "兩張圖中的細胞一定一樣大" }, { id: "ignore", text: "標尺可以忽略" }, { id: "smaller", text: "標尺越小代表細胞一定越小" }] },
+  { id: "q11", section: "checkpoint3", concept: "scale_bar_reading", answer: "use_scale_bar", prompt: "兩張細胞照片在螢幕上看起來一樣大，但甲圖標尺為 20 μm，乙圖標尺為 100 μm。哪個判斷較合理？", hint: "先找兩張圖中能連回實際長度的線索，再判斷畫面顯示大小能不能直接比較。", misconception: "ignore_scale_bar", visual: "compare-bars", options: [{ id: "use_scale_bar", text: "不能只看螢幕大小，需依標尺判斷實際大小" }, { id: "same", text: "兩張圖中的細胞一定一樣大" }, { id: "ignore", text: "標尺可以忽略" }, { id: "smaller", text: "標尺越小代表細胞一定越小" }] },
   { id: "q12", section: "checkpoint3", concept: "magnification_reasoning", answer: "two_mm", prompt: "一個物體影像長 20 mm，放大倍率為 10 倍。若只做簡單估算，實物長度約是多少？", hint: "放大 10 倍表示影像長度約是實物的 10 倍。", misconception: "magnification_changes_object", visual: "magnification-data", options: [{ id: "two_mm", text: "2 mm" }, { id: "twenty_mm", text: "20 mm" }, { id: "two_hundred_mm", text: "200 mm" }, { id: "ten_mm", text: "10 mm" }] },
-  { id: "q13", section: "checkpoint3", concept: "image_actual_size", answer: "check_evidence", prompt: "有同學說：『照片裡的細胞看起來比米粒大，所以細胞實際上比米粒大。』哪個修正較合理？", hint: "先分清楚螢幕上的圖像大小和物體本身實際大小。", misconception: "image_size_equals_real_size", visual: "screen-zoom", options: [{ id: "check_evidence", text: "圖像可能被放大，實際大小要看單位、標尺或倍率" }, { id: "looks_big", text: "照片看起來大就一定實物大" }, { id: "microscope_changes", text: "顯微鏡會讓細胞真的變大" }, { id: "rice_um", text: "米粒一定用微米描述" }] },
+  { id: "q13", section: "checkpoint3", concept: "image_actual_size", answer: "check_evidence", prompt: "有同學說：『照片裡的細胞看起來比米粒大，所以細胞實際上比米粒大。』哪個修正較合理？", hint: "這個說法用了哪一種證據？想想照片的顯示尺寸是否足以決定實物尺寸。", misconception: "image_size_equals_real_size", visual: "screen-zoom", options: [{ id: "check_evidence", text: "圖像可能被放大，實際大小要看單位、標尺或倍率" }, { id: "looks_big", text: "照片看起來大就一定實物大" }, { id: "microscope_changes", text: "顯微鏡會讓細胞真的變大" }, { id: "rice_um", text: "米粒一定用微米描述" }] },
   { id: "q14", section: "checkpoint3", concept: "length_units", answer: "unit_relations", prompt: "有同學說：『毫米、公分、微米只是名字不同，大小其實差不多。』哪個修正較合理？", hint: "想想同一段長度若改用更小的單位表示，數字會如何變化。", misconception: "wrong_unit_choice", visual: "unit-grid", options: [{ id: "unit_relations", text: "這些單位代表不同大小層次，1 mm = 1000 μm，1 cm = 10 mm" }, { id: "same", text: "單位名字不同但完全一樣大" }, { id: "um_big", text: "微米比公尺還大" }, { id: "cm_only", text: "只要是生物都用公分描述" }] }
-);
+];
 
-Object.keys(classifyQuestions).forEach((key) => delete classifyQuestions[key]);
-Object.assign(classifyQuestions, {
+const classifyQuestions = {
   q02: {
     prompt: "請將物體和較適合的長度單位配對。每一列都要選擇。",
     hint: "選單位時，想想用哪個單位會讓數字比較容易閱讀。",
     misconception: "wrong_unit_choice",
     options: [{ id: "m", label: "m" }, { id: "cm", label: "cm" }, { id: "mm", label: "mm" }, { id: "um", label: "μm" }],
-    items: [{ id: "classroom", label: "教室長度", answer: "m" }, { id: "height", label: "人的身高", answer: "cm" }, { id: "rice", label: "米粒長度", answer: "mm" }, { id: "cell", label: "細胞大小", answer: "um" }]
+    items: [{ id: "door", label: "教室門高度", answer: "m" }, { id: "tree", label: "樹高", answer: "m" }, { id: "rice", label: "米粒長度", answer: "mm" }, { id: "cell", label: "細胞大小", answer: "um" }]
   },
   q05: {
     prompt: "請將觀察對象配到較合適的工具。每一列都要選擇。",
@@ -262,14 +101,13 @@ Object.assign(classifyQuestions, {
     options: [{ id: "tape", label: "捲尺或皮尺" }, { id: "magnifier", label: "放大鏡" }, { id: "compound", label: "複式顯微鏡" }, { id: "height_rule", label: "身高尺或皮尺" }],
     items: [{ id: "classroom", label: "教室長度", answer: "tape" }, { id: "leaf", label: "葉片表面細節", answer: "magnifier" }, { id: "onion", label: "洋蔥表皮細胞", answer: "compound" }, { id: "height", label: "人的身高", answer: "height_rule" }]
   }
-});
+};
 
-Object.assign(sectionMap, {
+const sectionMap = {
   checkpoint1: ["q01", "q02", "q03", "q04"],
   checkpoint2: ["q05", "q06", "q07", "q08"],
   checkpoint3: ["q09", "q10", "q11", "q12", "q13", "q14"]
-});
-
+};
 const defaultState = {
   screen: "login",
   student: null,
@@ -542,117 +380,6 @@ function attachLogin() {
   });
 }
 
-function renderBrief() {
-  return `<div class="wide-layout">
-    <div class="panel">
-      <p class="eyebrow">任務簡報</p>
-      <h2>生命階層整理任務</h2>
-      <div class="brief-scene" data-briefing-scene-hook="${assets.briefingSceneHook}" data-ambient-background-hook="${assets.ambientBackgroundHook}">
-        <div class="scene-copy">
-          <div class="student-avatar-slot"><img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}';"></div>
-          <h3>生命階層檔案需要重新歸位</h3>
-          <p>細胞、組織、器官、器官系統與完整個體的資料混在一起。請整理層級關係，比較單細胞與多細胞生物，並完成植物器官分類。</p>
-        </div>
-      </div>
-      <div class="mission-hud"><div><span>任務區</span><strong>生命階層檔案站</strong></div><div><span>重點</span><strong>組成層次</strong></div><div><span>排序題</span><strong>拖曳 + 上下移</strong></div></div>
-      <div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div>
-    </div>
-  </div>`;
-}
-function renderScan() {
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的階層線索</h2>
-    <div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>先判斷例子是單一細胞、共同工作的細胞群、完整器官、多個器官協作，還是一個完整生物。</p></div>
-    <div class="card-grid">
-      <div class="concept-card"><strong>細胞與組織</strong><p>相似細胞可共同形成具有特定功能的組織。</p></div>
-      <div class="concept-card"><strong>器官</strong><p>多種組織共同構成、執行特定功能的構造。</p></div>
-      <div class="concept-card"><strong>器官系統</strong><p>多個器官彼此協調，完成一組重要功能。</p></div>
-      <div class="concept-card"><strong>個體</strong><p>能獨立完成生命現象的一個完整生物。</p></div>
-      <div class="concept-card"><strong>單細胞</strong><p>一個細胞同時也是一個完整個體。</p></div>
-      <div class="concept-card"><strong>植物器官</strong><p>根、莖、葉偏向營養功能；花、果實、種子與生殖有關。</p></div>
-    </div>
-    <div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div>${owlPanel(assets.owlPrep, "生命階層任務提醒貓頭鷹")}</div>`;
-}
-
-function selectedClass(question, option) {
-  const selected = state.answers[question.id] === option.id;
-  const checked = state.checkedWrong[question.id];
-  if (checked && selected && option.id === question.answer) return " selected correct";
-  if (checked && selected && option.id !== question.answer) return " selected wrong";
-  return selected ? " selected" : "";
-}
-function renderQuestionImage(question) {
-  if (!question.image) return "";
-  const targets = question.imageTargets || [];
-  return `<figure class="question-visual">
-    <div class="question-image-wrap"><img src="${question.image}" alt="${question.imageAlt || "未標註觀察圖"}">
-      ${targets.map((target) => `<button type="button" class="image-target ${state.answers[question.id] === target.id ? "selected" : ""}" style="left:${target.left}%;top:${target.top}%" data-choice="${question.id}" data-value="${target.id}" aria-label="圖中位置 ${target.label}">${target.label}</button>`).join("")}
-    </div>
-    <figcaption>${question.imageEvidence || (targets.length ? "請比較圖中位置，再選擇最符合題意的答案。" : "請依圖像與題目提供的組成線索判讀。")}</figcaption>
-  </figure>`;
-}
-function renderChoiceQuestion(qid) {
-  const question = questionById(qid);
-  return `<div class="question-card" data-question-id="${qid}">
-    <h3>${question.prompt}</h3>
-    ${renderQuestionImage(question)}
-    <div class="choice-grid">${orderedOptions(question).map((option) => `<button class="choice-button${selectedClass(question, option)}" data-choice="${qid}" data-value="${option.id}">${option.text}</button>`).join("")}</div>
-    <p class="selected-answer">${state.answers[qid] ? `已選：${question.options.find((option) => option.id === state.answers[qid])?.text || ""}` : "尚未選擇"}</p>
-    ${state.hints[qid] ? `<div class="feedback warn">${question.hint}</div>` : ""}
-  </div>`;
-}
-function renderSequenceQuestion() {
-  const order = ensureSequence();
-  const isWrong = state.checkedWrong.q01;
-  return `<div class="question-card"><h3>請從較小到較大的組成層次拖曳排序。</h3>
-    <p class="field-help">手機可使用每張卡片的上移 / 下移按鈕。</p>
-    <div class="sortable-list">${order.map((id, index) => {
-      const step = sequenceSteps.find((item) => item.id === id);
-      return `<div class="sortable-item" draggable="true" data-sequence-id="${id}">
-        <span class="drag-handle" aria-hidden="true"></span>
-        <strong>${step.label}</strong>
-        <div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div>
-      </div>`;
-    }).join("")}</div>
-    ${state.hints.q01 ? `<div class="feedback warn">先比較相鄰兩層：較高層次通常由哪些較低層次共同形成，再逐段調整。</div>` : ""}
-    ${isWrong ? `<div class="feedback bad">層級順序還需要修正。請依組成關係調整。</div>` : ""}
-  </div>`;
-}
-function renderCheckpoint1() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>組成層次與階層關係</h2>
-    <figure class="wide-asset"><img src="${assets.hierarchyCards}" alt="動物組成層次圖卡"><figcaption>先理解層次的組成關係，再完成排序與分類。</figcaption></figure>
-    <div class="question-grid">${renderSequenceQuestion()}${renderClassifyQuestion("q02")}${["q03", "q04"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`;
-}
-function renderCheckpoint2() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>組織、器官與器官系統</h2>
-    <figure class="wide-asset"><img src="${assets.relationExamples}" alt="組織器官器官系統例子"><figcaption>比較單一構造與多個器官協作的範圍。</figcaption></figure>
-    <div class="question-grid">${["q05", "q06", "q07", "q08"].map(renderChoiceQuestion).join("")}</div>
-    <div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`;
-}
-function renderClassifyQuestion(qid) {
-  const config = classifyQuestions[qid];
-  const orderedItems = optionOrder(`${qid}_classify_items`, config.items.map((item) => item.id)).map((id) => config.items.find((item) => item.id === id)).filter(Boolean);
-  const orderedBuckets = optionOrder(`${qid}_classify_options`, config.options.map((option) => option.id)).map((id) => config.options.find((option) => option.id === id)).filter(Boolean);
-  return `<div class="question-card" data-question-id="${qid}"><h3>${config.prompt}</h3><p class="field-help">分類題：請完成每一列。</p>
-    <div class="classify-list">${orderedItems.map((item) => {
-      const selected = state.answers[qid]?.[item.id] || "";
-      return `<div class="classify-row" data-classify-id="${item.id}">
-        <strong>${item.label}</strong>
-        <label>分類
-          <select data-classify-question="${qid}" data-classify-item="${item.id}">
-            <option value="">請選擇</option>
-            ${orderedBuckets.map((option) => `<option value="${option.id}" ${selected === option.id ? "selected" : ""}>${option.label}</option>`).join("")}
-          </select>
-        </label>
-        <p class="selected-answer">${selected ? `已選：${config.options.find((option) => option.id === selected)?.label || ""}` : "尚未選擇"}</p>
-      </div>`;
-    }).join("")}</div>
-    ${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}
-  </div>`;
-}
-function renderCheckpoint3() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>單多細胞與植物器官</h2><div class="asset-strip"><figure><img src="${assets.unicellularExamples}" alt="單細胞與多細胞例子"><figcaption>比較完整個體由一個或許多細胞構成。</figcaption></figure><figure><img src="${assets.plantOrgans}" alt="植物器官分類"><figcaption>比較植物器官的主要功能。</figcaption></figure></div><div class="question-grid">${renderChoiceQuestion("q09")}${renderClassifyQuestion("q10")}${renderChoiceQuestion("q11")}${renderClassifyQuestion("q12")}${["q13", "q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`;
-}
-
 function scaleFallbackVisual(type, assetHook) {
   const common = `class="scale-visual ${type}" data-question-image-hook="${assetHook || ""}" data-asset-status="pending"`;
   if (type === "micrograph-100") return `<figure ${common}><div class="micro-grid"><span class="cell-shape"></span><span class="cell-shape"></span><span class="cell-shape"></span><span class="cell-shape"></span></div><figcaption><span class="scale-line"></span> 100 μm</figcaption></figure>`;
@@ -662,6 +389,13 @@ function scaleFallbackVisual(type, assetHook) {
   if (type === "screen-zoom") return `<figure ${common}><div class="screen-compare"><span class="small-cell"></span><span class="large-cell"></span></div><figcaption>影像顯示尺寸可能改變；請判斷實物大小的證據。</figcaption></figure>`;
   if (type === "tool-station") return `<figure ${common}><div class="tool-silhouettes"><span>尺</span><span>鏡</span><span>顯</span></div><figcaption>先看觀察對象的大小與觀察目的，再選工具。</figcaption></figure>`;
   return `<figure ${common}><div class="unit-ruler"><span>m</span><span>cm</span><span>mm</span><span>μm</span></div><figcaption>先統一單位，再比較實際大小。</figcaption></figure>`;
+}
+function selectedClass(question, option) {
+  const selected = state.answers[question.id] === option.id;
+  const checked = state.checkedWrong[question.id];
+  if (checked && selected && option.id === question.answer) return " selected correct";
+  if (checked && selected && option.id !== question.answer) return " selected wrong";
+  return selected ? " selected" : "";
 }
 function renderQuestionImage(question) {
   const hooks = {
@@ -683,7 +417,15 @@ function renderQuestionImage(question) {
     "magnification-data": "以題目提供的影像長度與倍率做簡單估算。"
   };
   const hook = hooks[question.visual];
-  return question.visual ? `<figure class="question-visual scale-question-image" data-question-image-hook="${hook}" data-asset-status="ready"><img src="${hook}" alt="尺度任務觀察圖"><figcaption>${captions[question.visual]}</figcaption></figure>` : "";
+  if (question.id === "q12") {
+    return `<figure class="question-data-card" aria-label="倍率估算資料"><dl><div><dt>影像長度</dt><dd>20 mm</dd></div><div><dt>放大倍率</dt><dd>10 倍</dd></div></dl><figcaption>以上是本題計算資料，不需從圖片量測。</figcaption></figure>`;
+  }
+  const evidence = {
+    q08: `<div class="scale-evidence-strip" role="group" aria-label="顯微影像標尺資料"><span>圖中標尺代表</span><strong>100 μm</strong></div>`,
+    q09: `<div class="scale-evidence-strip q09-evidence" role="group" aria-label="兩段比例尺，每段五十微米，目標細胞約跨兩段"><div class="scale-segment-row"><span><b></b>50 μm</span><span><b></b>50 μm</span></div><p>目標細胞長度約跨 2 段等長標尺</p></div>`,
+    q11: `<div class="scale-evidence-strip compare-evidence" role="group" aria-label="兩張同尺寸圖像的標尺資料"><div><span>甲圖標尺</span><strong>20 μm</strong></div><div><span>乙圖標尺</span><strong>100 μm</strong></div></div>`
+  }[question.id] || "";
+  return question.visual ? `<figure class="question-visual scale-question-image" data-question-image-hook="${hook}" data-asset-status="ready"><img src="${hook}" alt="尺度任務觀察圖">${evidence}<figcaption>${captions[question.visual]}</figcaption></figure>` : "";
 }
 function renderChoiceQuestion(qid) {
   const question = questionById(qid);
@@ -693,12 +435,12 @@ function renderChoiceQuestion(qid) {
 }
 function renderSequenceQuestion() {
   const order = ensureSequence();
-  return `<div class="question-card"><h3>請依實際大小由大到小拖曳排序。</h3><p class="field-help">可拖曳卡片；手機可使用每張卡片的上移 / 下移按鈕。</p>
-    <figure class="question-visual scale-sort-image" data-question-image-hook="${assets.sortCardsHook}" data-asset-status="ready"><img src="${assets.sortCardsHook}" alt="人、葉片、螞蟻、米粒與細胞的尺度排序圖卡"><figcaption>圖卡只提供觀察線索；請依物體實際大小排序。</figcaption></figure>
+  return `<div class="question-card"><h3>依題卡提供的實際大小，由大到小拖曳排序。</h3><p class="field-help">每張卡都有固定參考值；可拖曳卡片，手機可使用上移 / 下移按鈕。</p>
+    <figure class="question-visual scale-sort-image" data-question-image-hook="${assets.sortCardsHook}" data-asset-status="ready"><img src="${assets.sortCardsHook}" alt="背包、葉片、螞蟻、米粒與細胞的尺度排序圖卡"><figcaption>圖片只協助辨識物件；排序依據是下方 DOM 題卡的固定實際大小。</figcaption></figure>
     <div class="sortable-list">${order.map((id, index) => {
       const step = sequenceSteps.find((item) => item.id === id);
-      return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><strong>${step.label}</strong><div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`;
-    }).join("")}</div>${state.hints.q01 ? `<div class="feedback warn">先想哪些可用公尺或公分描述，哪些是毫米，哪些需要微米；再逐段調整。</div>` : ""}${state.checkedWrong.q01 ? `<div class="feedback bad">排序仍可再調整，請回到物體的實際大小，而非螢幕上的圖像大小。</div>` : ""}</div>`;
+      return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><div><strong>${step.label}</strong><small>${step.reference}</small></div><div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`;
+    }).join("")}</div>${state.hints.q01 ? `<div class="feedback warn">先把不同單位換到同一條大小軸，再比較相鄰兩張卡；不要直接照圖片顯示尺寸排序。</div>` : ""}${state.checkedWrong.q01 ? `<div class="feedback bad">順序仍可調整。請使用每張卡的固定數值與單位逐段比較。</div>` : ""}</div>`;
 }
 function renderClassifyQuestion(qid) {
   const config = classifyQuestions[qid];
@@ -831,13 +573,13 @@ function evaluateReflectionQuality(reflection) {
   return window.BioQuestReflectionQuality.evaluate(reflection, reflectionRules);
 }
 function questionConcept(qid) {
-  if (qid === "q01" || qid === "q02") return "organization_hierarchy";
-  if (qid === "q10" || qid === "q11") return "unicellular_multicellular";
-  if (qid === "q12") return "plant_organ_classification";
+  if (qid === "q01") return "scale_levels";
+  if (qid === "q02") return "unit_choice";
+  if (qid === "q05") return "observation_tools";
   return questionById(qid)?.concept || "unknown";
 }
 function questionMisconception(qid) {
-  if (qid === "q01") return "organization_hierarchy_sequence";
+  if (qid === "q01") return "scale_level_order_confusion";
   if (classifyQuestions[qid]) return classifyQuestions[qid].misconception;
   return questionById(qid)?.misconception || "unknown";
 }
@@ -853,51 +595,44 @@ function calculateResult() {
   const revisionExp = Math.round(REVISION_EXP_POOL * (correctedAfterHint / total));
   const reflectionEval = evaluateReflectionQuality(state.answers.reflection || {});
   const accuracy = correct / total;
-  const masteryExp = accuracy === 1 && hintUsed === 0 ? 140 : accuracy === 1 ? 80 : accuracy >= 0.9 ? 50 : 0;
-  const prevAcc = previousBestAccuracy();
+  // Keep the prescribed zero-hint perfect route at the unit cap even when reflection is blank.
+  const masteryExp = accuracy === 1 && hintUsed === 0 ? 180 : accuracy === 1 ? 80 : accuracy >= 0.9 ? 50 : 0;
+  const previousAccuracy = previousBestAccuracy();
   const completionExp = allRequiredAnswered() ? 100 : 0;
   const baseExp = Math.min(UNIT_EXP_CAP, completionExp + directExp + revisionExp + reflectionEval.question_exp + masteryExp);
-  const retryCandidate = state.attempt_type === "retry" && prevAcc !== null && accuracy > prevAcc ? Math.min(60, Math.round((accuracy - prevAcc) * 100)) : 0;
+  const retryCandidate = state.attempt_type === "retry" && previousAccuracy !== null && accuracy > previousAccuracy ? Math.min(60, Math.round((accuracy - previousAccuracy) * 100)) : 0;
   const retryExp = Math.min(retryCandidate, Math.max(0, UNIT_EXP_CAP - baseExp));
   const attemptTotalExp = Math.min(UNIT_EXP_CAP, baseExp + retryExp);
   const best = previousBestCredited();
   const unitCreditedExp = Math.min(UNIT_EXP_CAP, Math.max(best, attemptTotalExp));
-  const sectionStats = [
-    sectionStat("組成層次與階層關係", sectionMap.checkpoint1),
-    sectionStat("組織、器官與器官系統", sectionMap.checkpoint2),
-    sectionStat("單多細胞與植物器官", sectionMap.checkpoint3)
-  ];
+  const sectionStats = [sectionStat("尺度與單位校準", sectionMap.checkpoint1), sectionStat("觀察工具與微小尺度", sectionMap.checkpoint2), sectionStat("標尺、圖像與實際大小", sectionMap.checkpoint3)];
   const misconceptions = [...new Set(qids.filter((qid) => !isCorrect(qid) || state.hints[qid]).map(questionMisconception))];
-  const earned = completionExp ? [badges[0].id] : [];
-  if (sectionStats[0].correct / sectionStats[0].total >= 0.85) earned.push("organization_hierarchy_sorter");
-  if (["q02", "q04"].every(isCorrect)) earned.push("organization_relation_mapper");
-  if (sectionStats[1].correct / sectionStats[1].total >= 0.85) earned.push("tissue_organ_system_identifier");
-  if (["q09", "q10", "q11"].every(isCorrect)) earned.push("unicellular_multicellular_judge");
-  if (["q12", "q13", "q14"].every(isCorrect)) earned.push("plant_organ_classifier");
-  if (["q01", "q09", "q11", "q12", "q13", "q14"].some((qid) => isCorrect(qid) && state.hints[qid])) earned.push("organization_misconception_reviser");
-  if (accuracy === 1 && hintUsed === 0) earned.push("biological_organization_flawless");
-  if (reflectionEval.reflection_quality === "discussion_question" && reflectionEval.reflection_review_status === "server_recalculated") earned.push("biological_organization_reflection_reporter");
-  if (retryExp > 0) earned.push("retry_growth_biological_organization");
+  const earned = completionExp ? ["scale_entry"] : [];
+  if (isCorrect("q01")) earned.push("scale_order_sorter");
+  if (["q02", "q03", "q04", "q14"].filter(isCorrect).length / 4 >= 0.85) earned.push("unit_match_calibrator");
+  if (["q09", "q11"].filter(isCorrect).length / 2 >= 0.85) earned.push("scale_bar_reader");
+  if (["q05", "q06", "q07", "q08"].filter(isCorrect).length / 4 >= 0.85) earned.push("observation_tool_selector");
+  if (["q10", "q12", "q13"].filter(isCorrect).length / 3 >= 0.85) earned.push("magnification_actual_size_mapper");
+  if (["q01", "q02", "q05", "q08"].filter(isCorrect).length / 4 >= 0.85) earned.push("multi_scale_image_classifier");
+  if (qids.some((qid) => isCorrect(qid) && state.hints[qid])) earned.push("scale_misconception_reviser");
+  if (accuracy === 1 && hintUsed === 0) earned.push("scale_flawless");
+  if (reflectionEval.reflection_quality === "discussion_question" && reflectionEval.reflection_review_status === "server_recalculated") earned.push("scale_reflection_reporter");
+  if (retryExp > 0) earned.push("retry_growth_scale");
   return {
     unit_exp_cap: UNIT_EXP_CAP,
     completion_exp: completionExp,
     concept_exp: directExp,
     revision_exp: revisionExp,
     question_exp: reflectionEval.question_exp,
-    ...reflectionEval,
+    question_exp_candidate: reflectionEval.question_exp_candidate ?? reflectionEval.question_exp,
     mastery_exp: masteryExp,
     retry_exp: retryExp,
     attempt_total_exp: attemptTotalExp,
     unit_credited_exp: unitCreditedExp,
     credited_delta: Math.max(0, unitCreditedExp - best),
-    correct,
-    total,
-    accuracy,
-    hint_used: hintUsed,
-    correct_without_hint: correctWithoutHint,
-    corrected_after_hint: correctedAfterHint,
-    previous_accuracy: prevAcc,
-    accuracy_delta: prevAcc === null ? null : accuracy - prevAcc,
+    correct, total, accuracy, hint_used: hintUsed, correct_without_hint: correctWithoutHint, corrected_after_hint: correctedAfterHint,
+    previous_accuracy: previousAccuracy,
+    accuracy_delta: previousAccuracy === null ? null : accuracy - previousAccuracy,
     section_stats: sectionStats,
     misconceptions,
     concept_mastery_tags_json: conceptMastery(qids),
@@ -905,9 +640,57 @@ function calculateResult() {
     cumulative_badges_candidate: cumulativeBadgeIds(earned),
     no_hint_perfect: accuracy === 1 && hintUsed === 0,
     all_required_answered: allRequiredAnswered(),
-    teacher_attention_needed: Number(state.answers.reflection.confidence_score || 3) <= 2 || accuracy < 0.6 || reflectionEval.reflection_review_status === "pending_review" || misconceptions.length >= 3
+    teacher_attention_needed: Number(state.answers.reflection.confidence_score || 3) <= 2 || accuracy < 0.6 || reflectionEval.reflection_review_status === "pending_review" || misconceptions.length >= 3,
+    ...reflectionEval
   };
 }
+function misconceptionText(tag) {
+  const map = {
+    scale_level_order_confusion: "建議再把各題卡的實際尺度與單位放在同一條大小軸比較，再確認由大到小的關係。",
+    image_size_equals_real_size: "建議再確認圖像大小與實際大小的差異：照片或顯微影像可能被放大，不能只看螢幕大小。",
+    unit_conversion_confusion: "建議再整理長度單位換算：1 m = 100 cm，1 cm = 10 mm，1 mm = 1000 μm。",
+    cell_measured_by_ruler: "建議再連結細胞與微米尺度：細胞通常需要顯微鏡與標尺才能清楚判讀大小。",
+    tool_highest_magnification_best: "建議再練習觀察工具選擇：不同大小與目的需要不同工具，不是倍率越高越好。",
+    ignore_scale_bar: "建議再練習標尺判讀：先看標尺代表的實際長度，再估算物體跨了幾段。",
+    wrong_unit_choice: "建議再選擇合適單位：人體常用 m 或 cm，米粒可用 mm，細胞常用 μm。",
+    magnification_changes_object: "建議再理解放大倍率：放大的是影像，不是讓實物本身長大。"
+  };
+  return map[tag] || "建議先統一單位，再回到標尺、倍率與觀察目的檢查實際大小。";
+}
+function renderReview() {
+  const result = calculateResult();
+  const stable = result.section_stats.filter((item) => item.correct / item.total >= 0.85);
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>尺度校準回饋</h2><div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理尺度判讀的主要線索。</p>"}</div><div class="story-panel"><strong>建議再閱讀理解</strong><p class="muted">這些方向依剛剛需要提示或調整的概念整理。</p>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div><div class="story-panel"><strong>課堂提問方向</strong><p>單位換算、細胞為何常用微米、如何選直尺／放大鏡／顯微鏡、顯微影像標尺、圖像放大與實際大小的差異。</p></div></div><div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
+}
+function renderReflection() {
+  const reflection = state.answers.reflection || {};
+  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2><div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；具體且與單位、觀察工具、標尺或圖像實際大小相關的問題，才可能取得回報 EXP。只複製方向詞、無關玩笑或敷衍句不會取得高 EXP；正式分數由後台重算。</p></div><div class="form-grid"><label>我最能掌握的一項尺度判斷概念是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label><label>我還不確定單位換算、觀察工具、標尺判讀或圖像大小的哪一部分？<textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea></label><label>選一個希望老師課堂解釋的方向，並用自己的話補充<span class="field-help">方向詞可以參考，但不要直接複製。</span><textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label><label>信心分數<span class="field-help">5 分代表我能自己說明本單元重點概念。</span><select id="confidenceScore">${[1,2,3,4,5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label></div><div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div>${owlPanel(assets.owlResult)}</div>`;
+}
+function buildBackendPayload(attempt) {
+  const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
+  return {
+    attempt_id: attempt.attempt_id, student_id: attempt.student.student_id, student_name: attempt.student.student_name, class_name: attempt.student.class_name, seat_no: attempt.student.seat_no,
+    unit_id: mission.unit_id, unit_title: mission.unit_title, attempt_type: attempt.attempt_type, attempt_type_candidate: attempt.attempt_type_candidate, attempt_no_candidate: attempt.attempt_no,
+    attempt_session_id: attempt.attempt_session_id, started_from_login: attempt.started_from_login, previous_attempt_id: attempt.previous_attempt_id, retry_validation_status: attempt.retry_validation_status,
+    completion_status: attempt.completion_status, required_answer_count: attempt.required_answer_count, answered_required_count: attempt.answered_required_count, all_required_answered: attempt.all_required_answered,
+    started_at: attempt.started_at, submitted_at: attempt.submitted_at, total_questions: attempt.total, correct: attempt.correct, accuracy: attempt.accuracy, hints_used: attempt.hint_used, correct_without_hint: attempt.correct_without_hint, corrected_after_hint: attempt.corrected_after_hint,
+    completion_exp: attempt.completion_exp, concept_exp: attempt.concept_exp, revision_exp: attempt.revision_exp, question_exp: attempt.question_exp, mastery_exp: attempt.mastery_exp, retry_exp: attempt.retry_exp, attempt_total_exp: attempt.attempt_total_exp, unit_credited_exp: attempt.unit_credited_exp, credited_delta: attempt.credited_delta,
+    confidence_score: attempt.confidence_score, reflection_quality: attempt.reflection_quality, reflection_quality_candidate: attempt.reflection_quality_candidate, reflection_exp_reason: attempt.reflection_exp_reason, reflection_review_status: attempt.reflection_review_status, reflection_original_text: attempt.reflection_original_text, reflection_normalized_text: attempt.reflection_normalized_text, reflection_similarity_score: attempt.reflection_similarity_score, reflection_similarity_source: attempt.reflection_similarity_source, reflection_copied_direction_flag: attempt.reflection_copied_direction_flag, reflection_irrelevant_flag: attempt.reflection_irrelevant_flag, reflection_low_effort_flag: attempt.reflection_low_effort_flag, reflection_examples_checked: attempt.reflection_examples_checked, reflection_frontend_only: true,
+    teacher_attention_needed: attempt.teacher_attention_needed, student_question: attempt.student_question, badges_json: JSON.stringify(attempt.badges), existing_badges_json: JSON.stringify(cumulativeBadgeIds()), cumulative_badges_candidate_json: JSON.stringify(attempt.cumulative_badges_candidate),
+    scale_order_score: scoreForConcept(attempt, "scale_levels"), unit_match_score: scoreForConcept(attempt, "unit_choice", "length_units"), scale_bar_reading_score: scoreForConcept(attempt, "scale_bar_reading"), observation_tool_score: scoreForConcept(attempt, "observation_tools", "microscopic_scale"), magnification_actual_size_score: scoreForConcept(attempt, "image_actual_size", "magnification_reasoning"), multi_scale_image_classification_score: scoreForConcept(attempt, "scale_levels", "unit_choice", "microscopic_scale"), extension_math_flag: false, misconceptions_json: JSON.stringify(attempt.misconceptions), raw_answers_json: JSON.stringify(attempt.raw_answers),
+    badge_eval_json: JSON.stringify(badges.map((badge) => ({ badge_id: badge.id, earned_candidate: attempt.badges.includes(badge.id), badge_image_path: badge.badge_image_path }))),
+    question_logs: qids.map((qid) => ({ question_id: `${mission.unit_id}_${qid}`, skill_tag: questionConcept(qid), is_correct: isCorrect(qid), used_hint: Boolean(state.hints[qid]), attempt_answer: JSON.stringify(qid === "q01" ? state.answers.q01_sequence : state.answers[qid]), correct_answer: qid === "q01" ? correctSequence.join(" > ") : classifyQuestions[qid] ? JSON.stringify(Object.fromEntries(classifyQuestions[qid].items.map((item) => [item.id, item.answer]))) : questionById(qid).answer, exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept", exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total) }))
+  };
+}
+function renderAchievements() {
+  const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : [];
+  const litIds = cumulativeBadgeIds(currentBadges);
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>尺度校準徽章牆</h2><div class="score-grid"><div class="score-box"><span>累積徽章</span><strong>${litIds.length}</strong></div><div class="score-box"><span>累積 EXP</span><strong>${state.cumulative_total_exp || 0}</strong></div><div class="score-box"><span>已完成單元</span><strong>${state.completed_unit_count || 0}</strong></div></div><div class="badge-grid">${badges.map((badge) => { const lit = litIds.includes(badge.id); const gold = badge.id === "scale_flawless"; return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="badge-icon" hidden>${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`; }).join("")}</div><p class="muted">徽章會合併後台 StudentProgress 與本機完整 Attempts；未取得維持灰階，取得後亮燈，同一徽章只計一次。</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
+}
+function renderRules() {
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元上限</strong><p>本單元最高認列 500 EXP；零提示全對是最高路徑。</p></div><div class="story-panel"><strong>完成條件</strong><p>回答完所有必答題即可提交，不必先全對；需要調整的概念會保留一次提示與回饋。</p></div><div class="story-panel"><strong>提示後修正</strong><p>每題第一次錯選會出現一次概念提示；提示後修正仍有 EXP，但低於直接答對。</p></div><div class="story-panel"><strong>再挑戰</strong><p>提交後本次作答鎖定。若要再挑戰，請重新登入並從頭完成整份任務。</p></div></div><div class="actions"><button class="primary" id="rulesBack">回到任務</button></div></div></div>`;
+}
+
 function sectionStat(title, qids) {
   const correct = qids.filter(isCorrect).length;
   return {
@@ -928,48 +711,6 @@ function conceptMastery(qids) {
     if (state.hints[qid]) map[concept].used_hint = true;
   });
   return map;
-}
-function misconceptionText(tag) {
-  const map = {
-    organization_hierarchy_sequence: "建議再用『較高層次由哪些較低層次共同形成』逐段檢查細胞到個體的順序。",
-    hierarchy_example_confusion: "建議再比較單一細胞、相似細胞群、完整器官、多器官協作與完整生物的差異。",
-    individual_as_system: "個體是能獨立完成生命現象的完整生物；器官系統只是個體內多個器官的協作。",
-    levels_are_unrelated: "組成層次不是互不相關的名稱；較小層次能共同形成較大的層次。",
-    tissue_as_cell_group_any: "組織通常由形態與功能相近的細胞共同形成，不是任意細胞混在一起。",
-    organ_as_tissue: "器官由多種組織共同構成，且能執行特定功能。",
-    system_as_organ: "器官系統由多個器官協調工作，範圍大於單一器官。",
-    organ_system_confusion: "請分開比較單一胃與由多個消化器官共同形成的消化系統。",
-    unicellular_not_individual: "單細胞生物的一個細胞能完成生命現象，因此同時也是完整個體。",
-    unicellular_multicellular_confusion: "分類時要看完整個體由一個細胞或許多分工細胞組成。",
-    plant_organ_classification: "植物的根、莖、葉主要與營養生長有關；花、果實、種子與生殖有關。",
-    plant_part_not_organ: "植物的葉由多種組織構成並具有特定功能，因此可視為器官。",
-    plants_have_no_organs: "植物也具有細胞、組織、器官與完整個體等組成層次。"
-  };
-  return map[tag] || "建議再把例子放回細胞、組織、器官、器官系統與個體的組成關係中檢查。";
-}
-function renderReview() {
-  const result = calculateResult();
-  const stable = result.section_stats.filter((item) => item.correct / item.total >= 0.85);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>任務掃描結果</h2>
-    <div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div>
-    <div class="card-grid">
-      <div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理主要概念。</p>"}</div>
-      <div class="story-panel"><strong>建議再閱讀理解</strong><p class="muted">這些方向依剛剛仍需要提示或調整的概念整理，幫你回看關鍵線索。</p>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div>
-      <div class="story-panel"><strong>課堂提問方向</strong><p>組織與器官的分界、器官與器官系統的關係、單細胞生物為何也是個體、植物營養器官與生殖器官的分類。</p></div>
-    </div>
-    <div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
-}
-function renderReflection() {
-  const reflection = state.answers.reflection || {};
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2>
-    <div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；具體且與組成層次、單多細胞或植物器官相關的問題，才可能取得回報 EXP。前台只做初篩，正式分數由後台重算。</p></div>
-    <div class="form-grid">
-      <label>我最能說明的組成層次關係是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label>
-      <label>我還不確定的階層、單多細胞或植物器官概念是什麼？<textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea></label>
-      <label>選一個希望老師課堂解釋的方向，並用自己的話補充<span class="field-help">方向詞可以參考，但不要直接複製。</span><textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label>
-      <label>信心分數<span class="field-help">5 分代表我能自己說明本單元重點概念。</span><select id="confidenceScore">${[1,2,3,4,5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label>
-    </div>
-    <div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div>${owlPanel(assets.owlResult)}</div>`;
 }
 function buildAttempt() {
   const now = new Date().toISOString();
@@ -998,81 +739,6 @@ function buildAttempt() {
     student_question: state.answers.reflection.student_question,
     raw_answers: state.answers,
     payload_version: VERSION
-  };
-}
-function buildBackendPayload(attempt) {
-  return {
-    attempt_id: attempt.attempt_id,
-    student_id: attempt.student.student_id,
-    student_name: attempt.student.student_name,
-    class_name: attempt.student.class_name,
-    seat_no: attempt.student.seat_no,
-    unit_id: attempt.mission.unit_id,
-    unit_title: attempt.mission.unit_title,
-    attempt_type: attempt.attempt_type,
-    attempt_type_candidate: attempt.attempt_type_candidate,
-    attempt_no_candidate: attempt.attempt_no,
-    attempt_session_id: attempt.attempt_session_id,
-    started_from_login: attempt.started_from_login,
-    previous_attempt_id: attempt.previous_attempt_id,
-    retry_validation_status: attempt.retry_validation_status,
-    completion_status: attempt.completion_status,
-    required_answer_count: attempt.required_answer_count,
-    answered_required_count: attempt.answered_required_count,
-    all_required_answered: attempt.all_required_answered,
-    started_at: attempt.started_at,
-    submitted_at: attempt.submitted_at,
-    total_questions: attempt.total,
-    correct: attempt.correct,
-    accuracy: attempt.accuracy,
-    hints_used: attempt.hint_used,
-    correct_without_hint: attempt.correct_without_hint,
-    corrected_after_hint: attempt.corrected_after_hint,
-    completion_exp: attempt.completion_exp,
-    concept_exp: attempt.concept_exp,
-    revision_exp: attempt.revision_exp,
-    question_exp: attempt.question_exp,
-    mastery_exp: attempt.mastery_exp,
-    retry_exp: attempt.retry_exp,
-    attempt_total_exp: attempt.attempt_total_exp,
-    unit_credited_exp: attempt.unit_credited_exp,
-    credited_delta: attempt.credited_delta,
-    confidence_score: attempt.confidence_score,
-    reflection_quality: attempt.reflection_quality,
-    reflection_quality_candidate: attempt.reflection_quality_candidate,
-    reflection_exp_reason: attempt.reflection_exp_reason,
-    reflection_review_status: attempt.reflection_review_status,
-    reflection_original_text: attempt.reflection_original_text,
-    reflection_normalized_text: attempt.reflection_normalized_text,
-    reflection_similarity_score: attempt.reflection_similarity_score,
-    reflection_similarity_source: attempt.reflection_similarity_source,
-    reflection_copied_direction_flag: attempt.reflection_copied_direction_flag,
-    reflection_irrelevant_flag: attempt.reflection_irrelevant_flag,
-    reflection_low_effort_flag: attempt.reflection_low_effort_flag,
-    reflection_examples_checked: attempt.reflection_examples_checked,
-    reflection_frontend_only: true,
-    teacher_attention_needed: attempt.teacher_attention_needed,
-    student_question: attempt.student_question,
-    badges_json: JSON.stringify(attempt.badges),
-    existing_badges_json: JSON.stringify(cumulativeBadgeIds()),
-    cumulative_badges_candidate_json: JSON.stringify(attempt.cumulative_badges_candidate),
-    organization_hierarchy_score: scoreForConcept(attempt, "organization_hierarchy", "organization_relation"),
-    tissue_organ_system_score: scoreForConcept(attempt, "tissue_definition", "organ_identification", "organ_system"),
-    unicellular_multicellular_score: scoreForConcept(attempt, "unicellular_individual", "unicellular_multicellular"),
-    plant_organ_score: scoreForConcept(attempt, "plant_organ_classification", "plant_organ", "animal_plant_organization"),
-    misconceptions_json: JSON.stringify(attempt.misconceptions),
-    raw_answers_json: JSON.stringify(attempt.raw_answers),
-    badge_eval_json: JSON.stringify(badges.map((badge) => ({ badge_id: badge.id, earned_candidate: attempt.badges.includes(badge.id), badge_image_path: badge.badge_image_path }))),
-    question_logs: [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].map((qid) => ({
-      question_id: `${mission.unit_id}_${qid}`,
-      skill_tag: questionConcept(qid),
-      is_correct: isCorrect(qid),
-      used_hint: Boolean(state.hints[qid]),
-      attempt_answer: JSON.stringify(qid === "q01" ? state.answers.q01_sequence : state.answers[qid]),
-      correct_answer: qid === "q01" ? correctSequence.join(" > ") : classifyQuestions[qid] ? JSON.stringify(Object.fromEntries(classifyQuestions[qid].items.map((item) => [item.id, item.answer]))) : questionById(qid).answer,
-      exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept",
-      exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total)
-    }))
   };
 }
 function scoreForConcept(attempt, ...concepts) {
@@ -1145,146 +811,6 @@ function renderResult() {
     </div>
     <div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
 }
-function renderAchievements() {
-  const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : [];
-  const litIds = cumulativeBadgeIds(currentBadges);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>生命階層徽章牆</h2>
-    <div class="score-grid"><div class="score-box"><span>累積徽章</span><strong>${litIds.length}</strong></div><div class="score-box"><span>累積 EXP</span><strong>${state.cumulative_total_exp || 0}</strong></div><div class="score-box"><span>已完成單元</span><strong>${state.completed_unit_count || 0}</strong></div></div>
-    <div class="badge-grid">${badges.map((badge) => {
-      const lit = litIds.includes(badge.id);
-      const gold = badge.id === "biological_organization_flawless";
-      return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="badge-icon" hidden>${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`;
-    }).join("")}</div><p class="muted">亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
-}
-function renderRules() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2>
-    <div class="card-grid">
-      <div class="story-panel"><strong>單元上限</strong><p>本單元最高認列 500 EXP。一次零提示全對是最高路徑。</p></div>
-      <div class="story-panel"><strong>完成條件</strong><p>回答完所有必答題即可提交，不必先全對；需要調整的概念會保留提示與回饋。</p></div>
-      <div class="story-panel"><strong>提示後修正</strong><p>每題第一次錯選會出現一次提示；提示後修正仍有 EXP，但低於直接答對。</p></div>
-      <div class="story-panel"><strong>再挑戰</strong><p>提交後本次作答鎖定。若要再挑戰，請重新登入並從頭完成整份任務。</p></div>
-    </div>
-    <div class="actions"><button class="primary" id="rulesBack">回到任務</button></div></div></div>`;
-}
-
-function questionConcept(qid) {
-  if (qid === "q01") return "scale_levels";
-  if (qid === "q02") return "unit_choice";
-  if (qid === "q05") return "observation_tools";
-  return questionById(qid)?.concept || "unknown";
-}
-function questionMisconception(qid) {
-  if (qid === "q01") return "image_size_equals_real_size";
-  if (classifyQuestions[qid]) return classifyQuestions[qid].misconception;
-  return questionById(qid)?.misconception || "unknown";
-}
-function calculateResult() {
-  const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
-  const total = qids.length;
-  const correctIds = qids.filter(isCorrect);
-  const correct = correctIds.length;
-  const hintUsed = Object.values(state.hints).filter(Boolean).length;
-  const correctWithoutHint = correctIds.filter((qid) => !state.hints[qid]).length;
-  const correctedAfterHint = correctIds.filter((qid) => state.hints[qid]).length;
-  const directExp = Math.round(DIRECT_EXP_POOL * (correctWithoutHint / total));
-  const revisionExp = Math.round(REVISION_EXP_POOL * (correctedAfterHint / total));
-  const reflectionEval = evaluateReflectionQuality(state.answers.reflection || {});
-  const accuracy = correct / total;
-  // Keep the prescribed zero-hint perfect route at the unit cap even when reflection is blank.
-  const masteryExp = accuracy === 1 && hintUsed === 0 ? 180 : accuracy === 1 ? 80 : accuracy >= 0.9 ? 50 : 0;
-  const previousAccuracy = previousBestAccuracy();
-  const completionExp = allRequiredAnswered() ? 100 : 0;
-  const baseExp = Math.min(UNIT_EXP_CAP, completionExp + directExp + revisionExp + reflectionEval.question_exp + masteryExp);
-  const retryCandidate = state.attempt_type === "retry" && previousAccuracy !== null && accuracy > previousAccuracy ? Math.min(60, Math.round((accuracy - previousAccuracy) * 100)) : 0;
-  const retryExp = Math.min(retryCandidate, Math.max(0, UNIT_EXP_CAP - baseExp));
-  const attemptTotalExp = Math.min(UNIT_EXP_CAP, baseExp + retryExp);
-  const best = previousBestCredited();
-  const unitCreditedExp = Math.min(UNIT_EXP_CAP, Math.max(best, attemptTotalExp));
-  const sectionStats = [sectionStat("尺度與單位校準", sectionMap.checkpoint1), sectionStat("觀察工具與微小尺度", sectionMap.checkpoint2), sectionStat("標尺、圖像與實際大小", sectionMap.checkpoint3)];
-  const misconceptions = [...new Set(qids.filter((qid) => !isCorrect(qid) || state.hints[qid]).map(questionMisconception))];
-  const earned = completionExp ? ["scale_entry"] : [];
-  if (isCorrect("q01")) earned.push("scale_order_sorter");
-  if (["q02", "q03", "q04", "q14"].filter(isCorrect).length / 4 >= 0.85) earned.push("unit_match_calibrator");
-  if (["q09", "q11"].filter(isCorrect).length / 2 >= 0.85) earned.push("scale_bar_reader");
-  if (["q05", "q06", "q07", "q08"].filter(isCorrect).length / 4 >= 0.85) earned.push("observation_tool_selector");
-  if (["q10", "q12", "q13"].filter(isCorrect).length / 3 >= 0.85) earned.push("magnification_actual_size_mapper");
-  if (["q01", "q02", "q05", "q08"].filter(isCorrect).length / 4 >= 0.85) earned.push("multi_scale_image_classifier");
-  if (qids.some((qid) => isCorrect(qid) && state.hints[qid])) earned.push("scale_misconception_reviser");
-  if (accuracy === 1 && hintUsed === 0) earned.push("scale_flawless");
-  if (reflectionEval.reflection_quality === "discussion_question" && reflectionEval.reflection_review_status === "server_recalculated") earned.push("scale_reflection_reporter");
-  if (retryExp > 0) earned.push("retry_growth_scale");
-  return {
-    unit_exp_cap: UNIT_EXP_CAP,
-    completion_exp: completionExp,
-    concept_exp: directExp,
-    revision_exp: revisionExp,
-    question_exp: reflectionEval.question_exp,
-    question_exp_candidate: reflectionEval.question_exp_candidate ?? reflectionEval.question_exp,
-    mastery_exp: masteryExp,
-    retry_exp: retryExp,
-    attempt_total_exp: attemptTotalExp,
-    unit_credited_exp: unitCreditedExp,
-    credited_delta: Math.max(0, unitCreditedExp - best),
-    correct, total, accuracy, hint_used: hintUsed, correct_without_hint: correctWithoutHint, corrected_after_hint: correctedAfterHint,
-    previous_accuracy: previousAccuracy,
-    accuracy_delta: previousAccuracy === null ? null : accuracy - previousAccuracy,
-    section_stats: sectionStats,
-    misconceptions,
-    concept_mastery_tags_json: conceptMastery(qids),
-    badges: [...new Set(earned)],
-    cumulative_badges_candidate: cumulativeBadgeIds(earned),
-    no_hint_perfect: accuracy === 1 && hintUsed === 0,
-    all_required_answered: allRequiredAnswered(),
-    teacher_attention_needed: Number(state.answers.reflection.confidence_score || 3) <= 2 || accuracy < 0.6 || reflectionEval.reflection_review_status === "pending_review" || misconceptions.length >= 3,
-    ...reflectionEval
-  };
-}
-function misconceptionText(tag) {
-  const map = {
-    image_size_equals_real_size: "建議再確認圖像大小與實際大小的差異：照片或顯微影像可能被放大，不能只看螢幕大小。",
-    unit_conversion_confusion: "建議再整理長度單位換算：1 m = 100 cm，1 cm = 10 mm，1 mm = 1000 μm。",
-    cell_measured_by_ruler: "建議再連結細胞與微米尺度：細胞通常需要顯微鏡與標尺才能清楚判讀大小。",
-    tool_highest_magnification_best: "建議再練習觀察工具選擇：不同大小與目的需要不同工具，不是倍率越高越好。",
-    ignore_scale_bar: "建議再練習標尺判讀：先看標尺代表的實際長度，再估算物體跨了幾段。",
-    wrong_unit_choice: "建議再選擇合適單位：人體常用 m 或 cm，米粒可用 mm，細胞常用 μm。",
-    magnification_changes_object: "建議再理解放大倍率：放大的是影像，不是讓實物本身長大。"
-  };
-  return map[tag] || "建議先統一單位，再回到標尺、倍率與觀察目的檢查實際大小。";
-}
-function renderReview() {
-  const result = calculateResult();
-  const stable = result.section_stats.filter((item) => item.correct / item.total >= 0.85);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>尺度校準回饋</h2><div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理尺度判讀的主要線索。</p>"}</div><div class="story-panel"><strong>建議再閱讀理解</strong><p class="muted">這些方向依剛剛需要提示或調整的概念整理。</p>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div><div class="story-panel"><strong>課堂提問方向</strong><p>單位換算、細胞為何常用微米、如何選直尺／放大鏡／顯微鏡、顯微影像標尺、圖像放大與實際大小的差異。</p></div></div><div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
-}
-function renderReflection() {
-  const reflection = state.answers.reflection || {};
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2><div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；具體且與單位、觀察工具、標尺或圖像實際大小相關的問題，才可能取得回報 EXP。只複製方向詞、無關玩笑或敷衍句不會取得高 EXP；正式分數由後台重算。</p></div><div class="form-grid"><label>我最能掌握的一項尺度判斷概念是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label><label>我還不確定單位換算、觀察工具、標尺判讀或圖像大小的哪一部分？<textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea></label><label>選一個希望老師課堂解釋的方向，並用自己的話補充<span class="field-help">方向詞可以參考，但不要直接複製。</span><textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label><label>信心分數<span class="field-help">5 分代表我能自己說明本單元重點概念。</span><select id="confidenceScore">${[1,2,3,4,5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label></div><div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div>${owlPanel(assets.owlResult)}</div>`;
-}
-function buildBackendPayload(attempt) {
-  const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
-  return {
-    attempt_id: attempt.attempt_id, student_id: attempt.student.student_id, student_name: attempt.student.student_name, class_name: attempt.student.class_name, seat_no: attempt.student.seat_no,
-    unit_id: mission.unit_id, unit_title: mission.unit_title, attempt_type: attempt.attempt_type, attempt_type_candidate: attempt.attempt_type_candidate, attempt_no_candidate: attempt.attempt_no,
-    attempt_session_id: attempt.attempt_session_id, started_from_login: attempt.started_from_login, previous_attempt_id: attempt.previous_attempt_id, retry_validation_status: attempt.retry_validation_status,
-    completion_status: attempt.completion_status, required_answer_count: attempt.required_answer_count, answered_required_count: attempt.answered_required_count, all_required_answered: attempt.all_required_answered,
-    started_at: attempt.started_at, submitted_at: attempt.submitted_at, total_questions: attempt.total, correct: attempt.correct, accuracy: attempt.accuracy, hints_used: attempt.hint_used, correct_without_hint: attempt.correct_without_hint, corrected_after_hint: attempt.corrected_after_hint,
-    completion_exp: attempt.completion_exp, concept_exp: attempt.concept_exp, revision_exp: attempt.revision_exp, question_exp: attempt.question_exp, mastery_exp: attempt.mastery_exp, retry_exp: attempt.retry_exp, attempt_total_exp: attempt.attempt_total_exp, unit_credited_exp: attempt.unit_credited_exp, credited_delta: attempt.credited_delta,
-    confidence_score: attempt.confidence_score, reflection_quality: attempt.reflection_quality, reflection_quality_candidate: attempt.reflection_quality_candidate, reflection_exp_reason: attempt.reflection_exp_reason, reflection_review_status: attempt.reflection_review_status, reflection_original_text: attempt.reflection_original_text, reflection_normalized_text: attempt.reflection_normalized_text, reflection_similarity_score: attempt.reflection_similarity_score, reflection_similarity_source: attempt.reflection_similarity_source, reflection_copied_direction_flag: attempt.reflection_copied_direction_flag, reflection_irrelevant_flag: attempt.reflection_irrelevant_flag, reflection_low_effort_flag: attempt.reflection_low_effort_flag, reflection_examples_checked: attempt.reflection_examples_checked, reflection_frontend_only: true,
-    teacher_attention_needed: attempt.teacher_attention_needed, student_question: attempt.student_question, badges_json: JSON.stringify(attempt.badges), existing_badges_json: JSON.stringify(cumulativeBadgeIds()), cumulative_badges_candidate_json: JSON.stringify(attempt.cumulative_badges_candidate),
-    scale_order_score: scoreForConcept(attempt, "scale_levels"), unit_match_score: scoreForConcept(attempt, "unit_choice", "length_units"), scale_bar_reading_score: scoreForConcept(attempt, "scale_bar_reading"), observation_tool_score: scoreForConcept(attempt, "observation_tools", "microscopic_scale"), magnification_actual_size_score: scoreForConcept(attempt, "image_actual_size", "magnification_reasoning"), multi_scale_image_classification_score: scoreForConcept(attempt, "scale_levels", "unit_choice", "microscopic_scale"), extension_math_flag: false, misconceptions_json: JSON.stringify(attempt.misconceptions), raw_answers_json: JSON.stringify(attempt.raw_answers),
-    badge_eval_json: JSON.stringify(badges.map((badge) => ({ badge_id: badge.id, earned_candidate: attempt.badges.includes(badge.id), badge_image_path: badge.badge_image_path }))),
-    question_logs: qids.map((qid) => ({ question_id: `${mission.unit_id}_${qid}`, skill_tag: questionConcept(qid), is_correct: isCorrect(qid), used_hint: Boolean(state.hints[qid]), attempt_answer: JSON.stringify(qid === "q01" ? state.answers.q01_sequence : state.answers[qid]), correct_answer: qid === "q01" ? correctSequence.join(" > ") : classifyQuestions[qid] ? JSON.stringify(Object.fromEntries(classifyQuestions[qid].items.map((item) => [item.id, item.answer]))) : questionById(qid).answer, exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept", exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total) }))
-  };
-}
-function renderAchievements() {
-  const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : [];
-  const litIds = cumulativeBadgeIds(currentBadges);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>尺度校準徽章牆</h2><div class="score-grid"><div class="score-box"><span>累積徽章</span><strong>${litIds.length}</strong></div><div class="score-box"><span>累積 EXP</span><strong>${state.cumulative_total_exp || 0}</strong></div><div class="score-box"><span>已完成單元</span><strong>${state.completed_unit_count || 0}</strong></div></div><div class="badge-grid">${badges.map((badge) => { const lit = litIds.includes(badge.id); const gold = badge.id === "scale_flawless"; return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="badge-icon" hidden>${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`; }).join("")}</div><p class="muted">徽章會合併後台 StudentProgress 與本機完整 Attempts；未取得維持灰階，取得後亮燈，同一徽章只計一次。</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
-}
-function renderRules() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元上限</strong><p>本單元最高認列 500 EXP；零提示全對是最高路徑。</p></div><div class="story-panel"><strong>完成條件</strong><p>回答完所有必答題即可提交，不必先全對；需要調整的概念會保留一次提示與回饋。</p></div><div class="story-panel"><strong>提示後修正</strong><p>每題第一次錯選會出現一次概念提示；提示後修正仍有 EXP，但低於直接答對。</p></div><div class="story-panel"><strong>再挑戰</strong><p>提交後本次作答鎖定。若要再挑戰，請重新登入並從頭完成整份任務。</p></div></div><div class="actions"><button class="primary" id="rulesBack">回到任務</button></div></div></div>`;
-}
-
 function attachEvents() {
   if (state.screen === "login") attachLogin();
   if (state.screen === "brief") document.querySelector("#briefNext").addEventListener("click", () => { unlock("scan"); setScreen("scan"); });
