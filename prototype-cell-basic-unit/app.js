@@ -14,15 +14,15 @@ const mission = {
   mission_area: "微觀生命站"
 };
 const mentorName = "阿澤老師";
-const mentorImages = { primary: "assets/mentor-basic-unit-guide-half.png" };
+const mentorImages = { primary: "assets/mentor-basic-unit-guide-half.webp" };
 const sceneImages = {
-  ambient: "assets/bg-basic-unit-entry-wide.png",
-  briefingAzhe: "assets/bg-basic-unit-briefing-azhe-wide.png"
+  ambient: "assets/bg-basic-unit-entry-wide.webp",
+  briefingAzhe: "assets/bg-basic-unit-briefing-azhe-wide.webp"
 };
 const owlImages = {
-  opening: "assets/owl-basic-unit-micro-guide.png",
-  scan: "assets/owl-basic-unit-cell-scan.png",
-  result: "assets/owl-basic-unit-result.png"
+  opening: "assets/owl-basic-unit-micro-guide.webp",
+  scan: "assets/owl-basic-unit-cell-scan.webp",
+  result: "assets/owl-basic-unit-result.webp"
 };
 
 const UNIT_EXP_CAP = 500;

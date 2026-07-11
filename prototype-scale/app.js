@@ -27,22 +27,22 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
-  owlPrep: "assets/owl-scale-prep-reminder.png",
-  owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.png",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
-  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.png",
-  briefingSceneHook: "assets/bg-scale-briefing-azhe-wide.png",
-  ambientBackgroundHook: "assets/bg-scale-ambient-wide.png",
-  sortCardsHook: "assets/scale-size-level-cards.png",
-  unitCardsHook: "assets/scale-unit-match-cards.png",
-  toolCardsHook: "assets/scale-observation-tool-cards.png",
-  micrographHook: "assets/scale-bar-micrograph.png",
-  imageCompareHook: "assets/scale-image-vs-actual-visual.png"
+  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
+  owlPrep: "assets/owl-scale-prep-reminder.webp",
+  owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.webp",
+  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
+  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
+  briefingSceneHook: "assets/bg-scale-briefing-azhe-wide.webp",
+  ambientBackgroundHook: "assets/bg-scale-ambient-wide.webp",
+  sortCardsHook: "assets/scale-size-level-cards.webp",
+  unitCardsHook: "assets/scale-unit-match-cards.webp",
+  toolCardsHook: "assets/scale-observation-tool-cards.webp",
+  micrographHook: "assets/scale-bar-micrograph.webp",
+  imageCompareHook: "assets/scale-image-vs-actual-visual.webp"
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/scale/badge-scale-${id}.png`;
+const badgeAsset = (id) => `../shared-assets/badges/scale/badge-scale-${id}.webp`;
 const reflectionRules = {
   conceptTerms: ["尺度", "公尺", "公分", "毫米", "微米", "標尺", "比例尺", "放大", "實際大小", "影像", "顯微鏡", "放大鏡", "捲尺", "單位", "倍率", "細胞"],
   irrelevantTerms: ["老師好帥", "帥", "午餐", "下課", "遊戲", "天氣", "好笑"],

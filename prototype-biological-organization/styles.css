@@ -22,7 +22,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
   background:
     linear-gradient(120deg, rgba(235, 249, 247, 0.88), rgba(237, 242, 248, 0.82)),
-    url("assets/bg-biological-organization-ambient-wide.png");
+    url("assets/bg-biological-organization-ambient-wide.webp");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -104,7 +104,7 @@ h1, h2, h3, p { margin-top: 0; }
   border-radius: 8px;
   background:
     linear-gradient(90deg, rgba(5, 49, 61, .74), rgba(5, 49, 61, .08) 48%, rgba(255,255,255,.04)),
-    url("assets/bg-biological-organization-briefing-azhe-wide.png");
+    url("assets/bg-biological-organization-briefing-azhe-wide.webp");
   background-size: cover;
   background-position: center;
 }

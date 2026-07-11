@@ -27,21 +27,21 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
-  owlPrep: "assets/owl-cell-transport-prep-reminder.png",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
-  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.png",
-  briefingSceneHook: "assets/bg-cell-transport-briefing-azhe-wide.png",
-  ambientBackgroundHook: "assets/bg-cell-transport-ambient-wide.png",
-  diffusionImage: "assets/cell-transport-diffusion-particle-sim.png",
-  osmosisImage: "assets/cell-transport-osmosis-semipermeable-scene.png",
-  potatoDataImage: "assets/cell-transport-potato-water-balance-samples.png",
-  animalCellImage: "assets/cell-transport-animal-cell-concentration-set.png",
-  plantCellImage: "assets/cell-transport-plant-cell-concentration-set.png"
+  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
+  owlPrep: "assets/owl-cell-transport-prep-reminder.webp",
+  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
+  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
+  briefingSceneHook: "assets/bg-cell-transport-briefing-azhe-wide.webp",
+  ambientBackgroundHook: "assets/bg-cell-transport-ambient-wide.webp",
+  diffusionImage: "assets/cell-transport-diffusion-particle-sim.webp",
+  osmosisImage: "assets/cell-transport-osmosis-semipermeable-scene.webp",
+  potatoDataImage: "assets/cell-transport-potato-water-balance-samples.webp",
+  animalCellImage: "assets/cell-transport-animal-cell-concentration-set.webp",
+  plantCellImage: "assets/cell-transport-plant-cell-concentration-set.webp"
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/cell_transport/badge-cell_transport-${id}.png`;
+const badgeAsset = (id) => `../shared-assets/badges/cell_transport/badge-cell_transport-${id}.webp`;
 const reflectionRules = {
   conceptTerms: ["擴散", "滲透", "半透膜", "細胞膜", "濃度", "溶質", "水分", "紅血球", "植物細胞", "質壁分離", "馬鈴薯", "皺縮", "膨脹"],
   irrelevantTerms: ["老師好帥", "帥", "午餐", "下課", "遊戲", "天氣", "好笑"],

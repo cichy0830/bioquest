@@ -27,21 +27,21 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
-  owlPrep: "assets/owl-nutrients-energy-prep-reminder.png",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
-  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.png",
-  briefingSceneHook: "assets/bg-nutrients-energy-briefing-azhe-wide.png",
-  ambientBackgroundHook: "assets/bg-nutrients-energy-ambient-wide.png",
-  nutrientFunctionCards: "assets/nutrient-function-cards.png",
-  foodSourceCards: "assets/food-source-cards.png",
-  energySourceCards: "assets/energy-source-cards.png",
-  balancedMealComparison: "assets/balanced-meal-comparison.png",
-  nutritionLabelBoard: "assets/nutrition-label-blank-board.png"
+  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
+  owlPrep: "assets/owl-nutrients-energy-prep-reminder.webp",
+  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
+  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
+  briefingSceneHook: "assets/bg-nutrients-energy-briefing-azhe-wide.webp",
+  ambientBackgroundHook: "assets/bg-nutrients-energy-ambient-wide.webp",
+  nutrientFunctionCards: "assets/nutrient-function-cards.webp",
+  foodSourceCards: "assets/food-source-cards.webp",
+  energySourceCards: "assets/energy-source-cards.webp",
+  balancedMealComparison: "assets/balanced-meal-comparison.webp",
+  nutritionLabelBoard: "assets/nutrition-label-blank-board.webp"
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/nutrients_energy/badge-nutrients_energy-${id}.png`;
+const badgeAsset = (id) => `../shared-assets/badges/nutrients_energy/badge-nutrients_energy-${id}.webp`;
 const reflectionRules = {
   conceptTerms: ["養分", "醣類", "蛋白質", "脂質", "維生素", "礦物質", "水", "能量", "熱量", "食物來源", "均衡飲食", "身體材料", "生理功能", "營養標示", "多樣", "適量"],
   irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "我喜歡炸雞", "青菜不好吃"],

@@ -29,7 +29,7 @@ body {
   background:
     linear-gradient(90deg, rgba(238, 246, 250, 0.42), rgba(238, 246, 250, 0.08) 38%, rgba(238, 246, 250, 0.22)),
     linear-gradient(180deg, rgba(12, 27, 52, 0.08), rgba(255, 255, 255, 0.06)),
-    url("assets/bg-cell-research-base.png"),
+    url("assets/bg-cell-research-base.webp"),
     var(--paper);
   background-attachment: fixed;
   background-position: center;
@@ -225,7 +225,7 @@ p {
   border-radius: 8px;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(244, 249, 252, 0.58)),
-    url("assets/bg-cell-research-base.png");
+    url("assets/bg-cell-research-base.webp");
   background-position: center;
   background-size: cover;
   backdrop-filter: blur(10px);
@@ -248,7 +248,7 @@ p {
   background:
     linear-gradient(90deg, rgba(255, 255, 255, 0.58), rgba(245, 249, 253, 0.34) 50%, rgba(235, 243, 250, 0.08)),
     radial-gradient(circle at 80% 16%, rgba(109, 99, 183, 0.18), transparent 26%),
-    url("assets/bg-cell-research-base.png");
+    url("assets/bg-cell-research-base.webp");
   background-position: center;
   background-size: cover;
 }
@@ -306,7 +306,7 @@ p {
   background:
     linear-gradient(180deg, rgba(238, 245, 251, 0.56), rgba(220, 235, 248, 0.68)),
     radial-gradient(circle at 50% 32%, rgba(109, 99, 183, 0.22), transparent 34%),
-    url("assets/bg-cell-research-base.png");
+    url("assets/bg-cell-research-base.webp");
   background-position: center;
   background-size: cover;
   box-shadow: var(--shadow);
@@ -1221,7 +1221,7 @@ textarea {
   .hero-panel {
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(247, 253, 250, 0.34)),
-      url("assets/bg-cell-research-base.png");
+      url("assets/bg-cell-research-base.webp");
     background-position: center top;
     background-size: cover;
   }

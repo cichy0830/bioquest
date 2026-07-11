@@ -260,6 +260,10 @@ p {
   object-fit: contain;
 }
 
+.microscope-owl-frame > img + .microscope-owl-fallback {
+  display: none;
+}
+
 .mentor-copy span {
   display: block;
   color: var(--teal-dark);

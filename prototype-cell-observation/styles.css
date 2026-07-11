@@ -22,7 +22,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
   background:
     linear-gradient(120deg, rgba(235, 249, 247, 0.86), rgba(237, 242, 248, 0.78)),
-    url("assets/bg-cell-observation-entry-wide.png");
+    url("assets/bg-cell-observation-entry-wide.webp");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -104,7 +104,7 @@ h1, h2, h3, p { margin-top: 0; }
   border-radius: 8px;
   background:
     linear-gradient(90deg, rgba(10, 62, 72, .7), rgba(10, 102, 107, .12) 48%, rgba(255, 246, 221, .72)),
-    url("assets/bg-cell-observation-briefing-azhe-wide.png");
+    url("assets/bg-cell-observation-briefing-azhe-wide.webp");
   background-size: cover;
   background-position: center;
 }

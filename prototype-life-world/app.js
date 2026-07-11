@@ -16,19 +16,19 @@ const mission = {
 
 const mentorName = "阿澤老師";
 const mentorImages = {
-  primary: "assets/mentor-life-world-azhe-v2.png"
+  primary: "assets/mentor-life-world-azhe-v2.webp"
 };
 const owlImages = {
-  prep: "assets/owl-life-world-prep-reminder.png",
-  reflection: "assets/owl-life-feedback.png",
-  result: "assets/owl-life-result.png"
+  prep: "assets/owl-life-world-prep-reminder.webp",
+  reflection: "assets/owl-life-feedback.webp",
+  result: "assets/owl-life-result.webp"
 };
 const feedbackMentorImages = {
-  excellent: { label: "零提示全對", image: "assets/mentor-life-world-feedback-excellent.png" },
-  strong: { label: "概念穩定", image: "assets/mentor-life-world-feedback-strong.png" },
-  stable: { label: "持續整理", image: "assets/mentor-life-world-feedback-stable.png" },
-  needs_review: { label: "需要再釐清", image: "assets/mentor-life-world-feedback-needs-review.png" },
-  retry_ready: { label: "再挑戰準備", image: "assets/mentor-life-world-feedback-retry-ready.png" }
+  excellent: { label: "零提示全對", image: "assets/mentor-life-world-feedback-excellent.webp" },
+  strong: { label: "概念穩定", image: "assets/mentor-life-world-feedback-strong.webp" },
+  stable: { label: "持續整理", image: "assets/mentor-life-world-feedback-stable.webp" },
+  needs_review: { label: "需要再釐清", image: "assets/mentor-life-world-feedback-needs-review.webp" },
+  retry_ready: { label: "再挑戰準備", image: "assets/mentor-life-world-feedback-retry-ready.webp" }
 };
 const TITLE_AVATAR_BASE_PATH = "../shared-assets/title-avatars";
 const titleProgressRules = window.BioQuestTitleProgress;
@@ -52,12 +52,12 @@ const titleIdAliases = {
 };
 const titleAvatarImages = TITLE_LEVELS.reduce((images, title) => {
   images[title.id] = {
-    male: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-male.png`,
-    female: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-female.png`
+    male: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-male.webp`,
+    female: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-female.webp`
   };
   return images;
 }, {});
-const fallbackTitleAvatarPath = `${TITLE_AVATAR_BASE_PATH}/title-01-trainee_investigator-male.png`;
+const fallbackTitleAvatarPath = `${TITLE_AVATAR_BASE_PATH}/title-01-trainee_investigator-male.webp`;
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -65,15 +65,15 @@ const DIRECT_RAW_MAX = 405;
 const REVISION_RAW_MAX = 225;
 
 const unitBadgeCatalog = [
-  { id: "life_world_entry", name: "生命觀測入門徽章", condition: "完成生命訊號偵測任務。", badge_image_path: "assets/badges/life_world_entry.png" },
-  { id: "living_evidence_detector", name: "生命證據偵測徽章", condition: "生物與非生物判斷關卡達 85% 以上。", badge_image_path: "assets/badges/life_world_living_evidence_detector.png" },
-  { id: "life_phenomena_mapper", name: "生命現象配對徽章", condition: "生命現象配對關卡達 85% 以上。", badge_image_path: "assets/badges/life_world_life_phenomena_mapper.png" },
-  { id: "survival_condition_guardian", name: "生存條件守門徽章", condition: "生存條件題組達 85% 以上。", badge_image_path: "assets/badges/life_world_survival_condition_guardian.png" },
-  { id: "biosphere_observer", name: "生物圈觀察徽章", condition: "生物圈與環境關卡達 85% 以上。", badge_image_path: "assets/badges/life_world_biosphere_observer.png" },
-  { id: "life_signal_flawless", name: "生命訊號零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。", badge_image_path: "assets/badges/life_world_life_signal_flawless.png" },
-  { id: "misconception_reviser_life_world", name: "生命迷思修正徽章", condition: "至少 1 題使用提示後修正成功。", badge_image_path: "assets/badges/life_world_misconception_reviser.png" },
-  { id: "retry_growth_life_world", name: "再探生命進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。位階低於零提示全對。", badge_image_path: "assets/badges/life_world_retry_growth.png" },
-  { id: "reflection_reporter_life_world", name: "高品質回報候選徽章", condition: "回報內容能提出具體、可帶到課堂討論的本單元問題。", badge_image_path: "assets/badges/life_world_reflection_reporter.png" }
+  { id: "life_world_entry", name: "生命觀測入門徽章", condition: "完成生命訊號偵測任務。", badge_image_path: "assets/badges/life_world_entry.webp" },
+  { id: "living_evidence_detector", name: "生命證據偵測徽章", condition: "生物與非生物判斷關卡達 85% 以上。", badge_image_path: "assets/badges/life_world_living_evidence_detector.webp" },
+  { id: "life_phenomena_mapper", name: "生命現象配對徽章", condition: "生命現象配對關卡達 85% 以上。", badge_image_path: "assets/badges/life_world_life_phenomena_mapper.webp" },
+  { id: "survival_condition_guardian", name: "生存條件守門徽章", condition: "生存條件題組達 85% 以上。", badge_image_path: "assets/badges/life_world_survival_condition_guardian.webp" },
+  { id: "biosphere_observer", name: "生物圈觀察徽章", condition: "生物圈與環境關卡達 85% 以上。", badge_image_path: "assets/badges/life_world_biosphere_observer.webp" },
+  { id: "life_signal_flawless", name: "生命訊號零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。", badge_image_path: "assets/badges/life_world_life_signal_flawless.webp" },
+  { id: "misconception_reviser_life_world", name: "生命迷思修正徽章", condition: "至少 1 題使用提示後修正成功。", badge_image_path: "assets/badges/life_world_misconception_reviser.webp" },
+  { id: "retry_growth_life_world", name: "再探生命進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。位階低於零提示全對。", badge_image_path: "assets/badges/life_world_retry_growth.webp" },
+  { id: "reflection_reporter_life_world", name: "高品質回報候選徽章", condition: "回報內容能提出具體、可帶到課堂討論的本單元問題。", badge_image_path: "assets/badges/life_world_reflection_reporter.webp" }
 ];
 
 const storageKey = "bioquest_life_world_state_v1";
@@ -296,7 +296,7 @@ function feedbackMentorCard(result) {
   `;
 }
 
-function layout(content, image = "assets/owl-life-opening.png", imageAlt = "貓頭鷹助理") {
+function layout(content, image = "assets/owl-life-opening.webp", imageAlt = "貓頭鷹助理") {
   return `
     <div class="mission-layout">
       <div class="panel hero-panel">${content}</div>
@@ -429,7 +429,7 @@ async function login(id) {
 function renderBrief() {
   const title = currentStudentTitle();
   const titleCharacter = studentTitleCharacterPath(title.id);
-  const briefingBackground = "assets/bg-life-world-briefing-azhe-wide.png";
+  const briefingBackground = "assets/bg-life-world-briefing-azhe-wide.webp";
   return `
     <div class="wide-layout">
       <div class="panel hero-panel brief-scene-card" data-brief-mentor-background-hook="${briefingBackground}" data-student-character-hook="${titleCharacter}">
@@ -1167,8 +1167,9 @@ function getConceptReview() {
 function renderReview() {
   const review = getConceptReview();
   const result = calculateResult();
+  const visualState = globalThis.BioQuestCharacterLayout?.feedbackState(result) || feedbackMentorState(result);
   return `
-    <div class="wide-layout">
+    <div class="wide-layout" data-feedback-state="${visualState}">
       <div class="panel">
         <p class="eyebrow">貓頭鷹助理概念回饋</p>
         <h2>先整理證據，再回報</h2>
@@ -1316,7 +1317,7 @@ function renderResult() {
           <button class="secondary" id="goRules">查看 EXP 規則</button>
         </div>
       </div>
-      <div class="owl-frame"><img src="assets/owl-life-result.png" alt="任務結算貓頭鷹助理"></div>
+      <div class="owl-frame"><img src="assets/owl-life-result.webp" alt="任務結算貓頭鷹助理"></div>
     </div>
   `;
 }

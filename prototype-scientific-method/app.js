@@ -16,17 +16,17 @@ const mission = {
 
 const mentorName = "阿澤老師";
 const mentorImages = {
-  primary: "assets/mentor-method-azhe-v2.png"
+  primary: "assets/mentor-method-azhe-v2.webp"
 };
 const sceneImages = {
-  briefingSceneImage: "assets/bg-scientific-method-briefing-azhe-wide.png",
-  ambientBackgroundImage: "assets/bg-mold-toast-investigation-wide.png"
+  briefingSceneImage: "assets/bg-scientific-method-briefing-azhe-wide.webp",
+  ambientBackgroundImage: "assets/bg-mold-toast-investigation-wide.webp"
 };
 const owlImages = {
-  opening: "assets/owl-method-opening.png",
-  scan: "assets/owl-method-scan.png",
-  feedback: "assets/owl-method-feedback.png",
-  result: "assets/owl-method-result.png"
+  opening: "assets/owl-method-opening.webp",
+  scan: "assets/owl-method-scan.webp",
+  feedback: "assets/owl-method-feedback.webp",
+  result: "assets/owl-method-result.webp"
 };
 const TITLE_AVATAR_BASE_PATH = "../shared-assets/title-avatars";
 const titleProgressRules = window.BioQuestTitleProgress;
@@ -50,12 +50,12 @@ const titleIdAliases = {
 };
 const titleAvatarImages = TITLE_LEVELS.reduce((images, title) => {
   images[title.id] = {
-    male: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-male.png`,
-    female: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-female.png`
+    male: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-male.webp`,
+    female: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-female.webp`
   };
   return images;
 }, {});
-const fallbackTitleAvatarPath = `${TITLE_AVATAR_BASE_PATH}/title-01-trainee_investigator-male.png`;
+const fallbackTitleAvatarPath = `${TITLE_AVATAR_BASE_PATH}/title-01-trainee_investigator-male.webp`;
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -63,13 +63,13 @@ const DIRECT_RAW_MAX = 453;
 const REVISION_RAW_MAX = 270;
 
 const unitBadgeCatalog = [
-  { id: "scientific_method_entry", name: "探究入門徽章", condition: "完成發霉吐司調查任務。" },
+  { id: "scientific_method_entry", name: "探究入門徽章", condition: "完成發霉吐司調查任務。", badge_image_path: "assets/badges/scientific_method_entry.webp" },
   { id: "inquiry_sequence_mapper", name: "探究流程排序徽章", condition: "科學流程與觀察推論關卡達 85% 以上。" },
   { id: "variable_identifier", name: "變因辨識徽章", condition: "操作變因、應變變因、控制變因辨識達 85% 以上。" },
   { id: "control_group_designer", name: "對照設計徽章", condition: "實驗組與對照組判斷達 85% 以上。" },
   { id: "evidence_reasoner", name: "證據推論徽章", condition: "資料判讀與根據證據下結論關卡達 85% 以上。" },
-  { id: "scientific_method_flawless", name: "探究零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。" },
-  { id: "scientific_question_reporter", name: "高品質探究回報徽章", condition: "回報品質達 discussion_question，且未複製系統方向。" },
+  { id: "scientific_method_flawless", name: "探究零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。", badge_image_path: "assets/badges/scientific_method_flawless.webp" },
+  { id: "scientific_question_reporter", name: "高品質探究回報徽章", condition: "回報品質達 discussion_question，且未複製系統方向。", badge_image_path: "assets/badges/scientific_question_reporter.webp" },
   { id: "retry_growth_scientific_method", name: "再探證據進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。" }
 ];
 
@@ -1286,8 +1286,10 @@ function getConceptReview() {
 
 function renderReview() {
   const review = getConceptReview();
+  const result = calculateResult();
+  const visualState = globalThis.BioQuestCharacterLayout?.feedbackState(result) || "stable";
   return `
-    <div class="mission-layout">
+    <div class="mission-layout" data-feedback-state="${visualState}">
       <div class="panel">
         <p class="eyebrow">貓頭鷹助理概念回饋</p>
         <h2>先整理證據，再回報</h2>
@@ -1453,7 +1455,7 @@ function aggregateStudent() {
 
 function renderBadgeCatalog(earnedBadges) {
   const earned = new Set(earnedBadges || []);
-  return `<div class="badge-grid">${unitBadgeCatalog.map((badge) => `<div class="badge ${earned.has(badge.name) ? "earned" : "locked"}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div>`;
+  return `<div class="badge-grid">${unitBadgeCatalog.map((badge) => `<div class="badge ${earned.has(badge.name) ? "earned" : "locked"}" data-badge-id="${badge.id}">${badge.badge_image_path ? `<img src="${badge.badge_image_path}" alt="${badge.name}">` : `<span class="bq-badge-asset-pending">徽章素材待補</span>`}<strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div>`;
 }
 
 function titleForExp(exp) {

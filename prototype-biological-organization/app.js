@@ -27,22 +27,22 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
-  owlPrep: "assets/owl-biological-organization-prep-reminder.png",
-  owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.png",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
-  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.png",
-  briefingSceneHook: "assets/bg-biological-organization-briefing-azhe-wide.png",
-  ambientBackgroundHook: "assets/bg-biological-organization-ambient-wide.png",
-  hierarchyCards: "assets/biological-organization-animal-hierarchy-cards.png",
-  relationExamples: "assets/biological-organization-tissue-organ-system-examples.png",
-  unicellularExamples: "assets/biological-organization-unicellular-multicellular-examples.png",
-  plantOrgans: "assets/biological-organization-plant-organs-set.png",
-  animalPlantCompare: "assets/biological-organization-animal-plant-compare.png"
+  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
+  owlPrep: "assets/owl-biological-organization-prep-reminder.webp",
+  owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.webp",
+  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
+  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
+  briefingSceneHook: "assets/bg-biological-organization-briefing-azhe-wide.webp",
+  ambientBackgroundHook: "assets/bg-biological-organization-ambient-wide.webp",
+  hierarchyCards: "assets/biological-organization-animal-hierarchy-cards.webp",
+  relationExamples: "assets/biological-organization-tissue-organ-system-examples.webp",
+  unicellularExamples: "assets/biological-organization-unicellular-multicellular-examples.webp",
+  plantOrgans: "assets/biological-organization-plant-organs-set.webp",
+  animalPlantCompare: "assets/biological-organization-animal-plant-compare.webp"
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/biological_organization/badge-biological_organization-${id}.png`;
+const badgeAsset = (id) => `../shared-assets/badges/biological_organization/badge-biological_organization-${id}.webp`;
 const reflectionRules = {
   conceptTerms: ["細胞", "組織", "器官", "器官系統", "個體", "單細胞", "多細胞", "營養器官", "生殖器官", "根", "莖", "葉", "花", "果實", "種子"],
   irrelevantTerms: ["老師好帥", "帥", "午餐", "下課", "遊戲", "天氣", "好笑"],

@@ -27,21 +27,21 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
-  owlPrep: "assets/owl-nutrient-test-prep-reminder.png",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
-  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.png",
-  briefingSceneHook: "assets/bg-nutrient-test-briefing-azhe-wide.png",
-  ambientBackgroundHook: "assets/bg-nutrient-test-entry-wide.png",
-  iodineStarchColorHook: "assets/iodine-starch-color-cards.png",
-  biuretProteinColorHook: "assets/biuret-protein-color-cards.png",
-  benedictSafetyObservationHook: "assets/benedict-glucose-safety-water-bath.png",
-  lipidOilSpotHook: "assets/lipid-oil-spot-cards.png",
-  controlEvidenceBoardHook: "assets/control-group-evidence-board.png"
+  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
+  owlPrep: "assets/owl-nutrient-test-prep-reminder.webp",
+  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
+  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
+  briefingSceneHook: "assets/bg-nutrient-test-briefing-azhe-wide.webp",
+  ambientBackgroundHook: "assets/bg-nutrient-test-entry-wide.webp",
+  iodineStarchColorHook: "assets/iodine-starch-color-cards.webp",
+  biuretProteinColorHook: "assets/biuret-protein-color-cards.webp",
+  benedictSafetyObservationHook: "assets/benedict-glucose-safety-water-bath.webp",
+  lipidOilSpotHook: "assets/lipid-oil-spot-cards.webp",
+  controlEvidenceBoardHook: "assets/control-group-evidence-board.webp"
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/nutrient_test/badge-nutrient_test-${id}.png`;
+const badgeAsset = (id) => `../shared-assets/badges/nutrient_test/badge-nutrient_test-${id}.webp`;
 const reflectionRules = {
   conceptTerms: ["養分檢測", "試劑", "碘液", "澱粉", "本氏液", "葡萄糖", "蛋白質", "雙縮脲", "脂質", "蘇丹", "油斑", "加熱", "顏色變化", "藍黑色", "紫色", "紅橘色", "對照組", "試管", "樣品", "未變色", "實驗安全", "資料判讀", "證據"],
   irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "我喜歡炸雞", "減肥", "身材"],

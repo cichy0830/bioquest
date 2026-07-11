@@ -24,18 +24,18 @@ const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
 const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
 
 const microscopeVisualAssets = {
-  mentorPrimary: "assets/mentor-microscope-guide-half.png",
-  mentorFallback: "assets/mentor-life-world-azhe.png",
-  backgroundWide: "assets/bg-microscope-training-station-wide.png",
-  diagramParts: "assets/diagram-microscope-parts-front.png",
+  mentorPrimary: "assets/mentor-life-world-azhe.webp",
+  mentorFallback: "assets/mentor-life-world-azhe.webp",
+  backgroundWide: "",
+  diagramParts: "",
   owlHooks: {
-    opening: "assets/owl-microscope-scan.png",
-    scan: "assets/owl-microscope-scan.png",
-    parts: "assets/owl-microscope-low-power.png",
-    focus: "assets/owl-microscope-high-power.png",
-    field: "assets/owl-microscope-field-shift.png",
-    review: "assets/owl-microscope-field-shift.png",
-    result: "assets/owl-microscope-field-shift.png"
+    opening: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
+    scan: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
+    parts: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.webp",
+    focus: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.webp",
+    field: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
+    review: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
+    result: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp"
   }
 };
 
@@ -400,6 +400,7 @@ function owlPanel(stage = owlStageFor(), imageAlt = "貓頭鷹助理") {
   const asset = microscopeVisualAssets.owlHooks[stage] || microscopeVisualAssets.owlHooks.scan;
   return `
     <div class="owl-frame microscope-owl-frame owl-${stage}">
+      <img src="${asset}" alt="${imageAlt}">
       <div class="microscope-owl-fallback" role="img" aria-label="${imageAlt}">
         <span class="owl-lens"></span>
         <span class="owl-eye left"></span>
@@ -407,14 +408,13 @@ function owlPanel(stage = owlStageFor(), imageAlt = "貓頭鷹助理") {
         <span class="owl-beak"></span>
         <span class="owl-field-tool"></span>
       </div>
-      <p class="asset-todo">TODO：待視覺資產補入 ${asset}</p>
     </div>
   `;
 }
 
 function owlImageFor(stage = "result") {
   return {
-    src: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
+    src: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
     className: `microscope-owl-frame owl-${stage} using-fallback`
   };
 }
@@ -434,7 +434,7 @@ function briefLayout(content) {
       <div class="panel brief-visual-panel">
         <div class="microscope-brief-bg" aria-label="顯微觀察訓練站背景">
           <div class="microscope-bg-fallback">${renderMicroscopeScene()}</div>
-          <p class="asset-todo">TODO：待視覺資產補入 ${microscopeVisualAssets.backgroundWide}</p>
+          ${microscopeVisualAssets.backgroundWide ? `<p class="asset-todo">TODO：待視覺資產補入 ${microscopeVisualAssets.backgroundWide}</p>` : ""}
         </div>
       </div>
       <div class="mission-layout">
@@ -1181,8 +1181,10 @@ function getConceptReview() {
 
 function renderReview() {
   const review = getConceptReview();
+  const result = calculateResult();
+  const visualState = globalThis.BioQuestCharacterLayout?.feedbackState(result) || "stable";
   return `
-    <div class="mission-layout">
+    <div class="mission-layout" data-feedback-state="${visualState}">
       <div class="panel">
         <p class="eyebrow">貓頭鷹助理概念回饋</p>
         <h2>先校準概念，再回報</h2>

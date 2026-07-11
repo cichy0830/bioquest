@@ -183,7 +183,7 @@ navButtons.forEach((button) => {
   });
 });
 
-function layout(content, image = "../AI貓頭鷹-細胞.png", imageAlt = "貓頭鷹助理") {
+function layout(content, image = "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp", imageAlt = "貓頭鷹助理") {
   return `
     <div class="mission-layout">
       <div class="panel hero-panel">${content}</div>
@@ -192,7 +192,7 @@ function layout(content, image = "../AI貓頭鷹-細胞.png", imageAlt = "貓頭
   `;
 }
 
-function mentorCard(title, text, image = "assets/mentor-base.png") {
+function mentorCard(title, text, image = "assets/mentor-base.webp") {
   return `
     <div class="mentor-card">
       <div class="mentor-avatar"><img src="${image}" alt="${mentorName}"></div>
@@ -210,7 +210,7 @@ function renderLogin() {
   return layout(`
     <p class="eyebrow">微觀研究站</p>
     <h2 class="hero-title">細胞工廠的祕密</h2>
-    ${mentorCard("準備出發了嗎？", "我剛當老師時，最想讓學生看見的不是課本上被背起來的名詞，而是生命世界真的很有意思。今天我們先縮小到細胞裡，看看一個小小生命單位，怎麼像工廠一樣分工合作。", "assets/mentor-briefing-owl.png")}
+    ${mentorCard("準備出發了嗎？", "我剛當老師時，最想讓學生看見的不是課本上被背起來的名詞，而是生命世界真的很有意思。今天我們先縮小到細胞裡，看看一個小小生命單位，怎麼像工廠一樣分工合作。", "assets/mentor-briefing-owl.webp")}
     <div class="story-panel">
       <strong>任務登入</strong>
       <p>輸入學號後，系統會顯示你的姓名，請確認是否正確。老師測試流程時可使用 guest。</p>
@@ -232,7 +232,7 @@ function renderLogin() {
       <button class="ghost" id="resetButton">清除本機測試紀錄</button>
     </div>
     <div id="loginMessage" class="status-line"></div>
-  `, "../AI貓頭鷹.png");
+  `, "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp");
 }
 
 function attachLogin() {
@@ -271,7 +271,7 @@ function renderBrief() {
   return layout(`
     <p class="eyebrow">任務檔案開啟</p>
     <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
-    ${mentorCard("研究站的求救訊號", "微觀研究站收到一份細胞掃描資料，但標籤系統發生錯亂。別急著背答案，我們先像真正的研究員一樣，從位置、形狀和功能慢慢判斷：每個構造為什麼在那裡？它又替細胞完成什麼工作？", "assets/mentor-cell-lab.png")}
+    ${mentorCard("研究站的求救訊號", "微觀研究站收到一份細胞掃描資料，但標籤系統發生錯亂。別急著背答案，我們先像真正的研究員一樣，從位置、形狀和功能慢慢判斷：每個構造為什麼在那裡？它又替細胞完成什麼工作？", "assets/mentor-cell-lab.webp")}
     <div class="story-panel highlight">
       <strong>任務核心</strong>
       <p>重新辨識細胞構造，確認每個構造的功能，並找出動物細胞與植物細胞的差異。</p>
@@ -291,7 +291,7 @@ function renderBrief() {
     <div class="actions">
       <button class="primary" id="briefNext">開始貓頭鷹助理預習掃描</button>
     </div>
-  `, "../AI貓頭鷹-細胞.png");
+  `, "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.webp");
 }
 
 function renderScan() {
@@ -316,7 +316,7 @@ function renderScan() {
     <div class="actions">
       <button class="primary" id="scanNext">進入關卡一</button>
     </div>
-  `, "../AI貓頭鷹-提示.png");
+  `, "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp");
 }
 
 const checkpoint1Items = [
@@ -455,7 +455,7 @@ const cellHighlightShapes = {
 };
 
 function renderCellArt(type) {
-  const src = type === "animal" ? "assets/cell-animal-3d.png?v=20260709-orange-mito" : "assets/cell-plant-3d.png";
+  const src = type === "animal" ? "assets/cell-animal-3d.webp?v=20260709-orange-mito" : "assets/cell-plant-3d.webp";
   const alt = type === "animal" ? "動物細胞構造圖" : "植物細胞構造圖";
   return `<img class="cell-image" src="${src}" alt="${alt}">`;
 }
@@ -809,7 +809,7 @@ function renderReflection() {
       <div class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把你的預習狀態回報給老師</h2>
-        ${mentorCard("把你的想法留下來", "如果你願意寫下自己有把握、還不確定，或想在課堂問的問題，我就更知道該怎麼帶大家往下一步走。空白可以提交但沒有回報 EXP；具體且和本單元概念相關的問題或不確定，才會取得回報 EXP。", "assets/mentor-feedback.png")}
+        ${mentorCard("把你的想法留下來", "如果你願意寫下自己有把握、還不確定，或想在課堂問的問題，我就更知道該怎麼帶大家往下一步走。空白可以提交但沒有回報 EXP；具體且和本單元概念相關的問題或不確定，才會取得回報 EXP。", "assets/mentor-feedback.webp")}
         <div class="story-panel">
           <strong>回報 EXP 怎麼判定？</strong>
           <p>只寫「不知道」「好難」或和學科無關的內容不會取得 EXP。寫出細胞核、細胞膜、細胞壁、粒線體、葉綠體、液胞、細胞質等概念，並說明自己混淆或想問的地方，才會得到較高的回報 EXP。</p>
@@ -836,7 +836,7 @@ function renderReflection() {
           <button class="primary" id="submitMission">提交任務</button>
         </div>
       </div>
-      <div class="owl-frame"><img src="../AI貓頭鷹-提示.png" alt="貓頭鷹助理提示"></div>
+      <div class="owl-frame"><img src="../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp" alt="貓頭鷹助理提示"></div>
     </div>
   `;
 }
@@ -914,12 +914,14 @@ function getConceptReview() {
 
 function renderReview() {
   const review = getConceptReview();
+  const result = calculateResult();
+  const visualState = globalThis.BioQuestCharacterLayout?.feedbackState(result) || "stable";
   return `
-    <div class="mission-layout">
+    <div class="mission-layout" data-feedback-state="${visualState}">
       <div class="panel">
         <p class="eyebrow">貓頭鷹助理概念回饋</p>
         <h2>先整理，再回報</h2>
-        ${mentorCard("課堂前提醒", "貓頭鷹助理已經把你的操作整理成概念線索。等等回報時，請不要只寫「不會」，試著寫出你卡在哪裡；這會幫我在課堂上更快帶你們把問題拆開。", "assets/mentor-briefing-owl.png")}
+        ${mentorCard("課堂前提醒", "貓頭鷹助理已經把你的操作整理成概念線索。等等回報時，請不要只寫「不會」，試著寫出你卡在哪裡；這會幫我在課堂上更快帶你們把問題拆開。", "assets/mentor-briefing-owl.webp")}
         <div class="story-panel">
           <strong>回饋怎麼看？</strong>
           <p>這裡不直接公布每一題答對或答錯，而是整理你需要再閱讀理解的概念。你可以把這些提示帶到下一頁，寫成自己的回報。</p>
@@ -946,7 +948,7 @@ function renderReview() {
           <button class="primary" id="reviewNext">填寫任務回報</button>
         </div>
       </div>
-      <div class="owl-frame"><img src="../AI貓頭鷹-提示.png" alt="貓頭鷹助理概念回饋"></div>
+      <div class="owl-frame"><img src="../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp" alt="貓頭鷹助理概念回饋"></div>
     </div>
   `;
 }
@@ -1274,7 +1276,7 @@ function renderResult() {
           <button class="secondary" id="goRules">查看 EXP 規則</button>
         </div>
       </div>
-      <div class="owl-frame"><img src="../prototype-cell-basic-unit/assets/owl-basic-unit-result.png" alt="任務結算貓頭鷹助理"></div>
+      <div class="owl-frame"><img src="../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp" alt="任務結算貓頭鷹助理"></div>
     </div>
   `;
 }

@@ -23,18 +23,18 @@ const REVISION_RAW_MAX = 261;
 const LAB_ENTRY_VERSION = "20260711-unit23-title-avatar-v1";
 
 const labVisualAssets = {
-  briefingSceneImage: "assets/bg-lab-entry-briefing-azhe-wide.png",
-  ambientBackgroundImage: "assets/bg-lab-entry-safety-station-wide.png",
-  mentorPrimary: "assets/mentor-lab-azhe-v2.png",
-  mentorFallback: "assets/mentor-life-world-azhe.png",
-  mentorReplacementHook: "assets/mentor-lab-azhe-v2.png",
+  briefingSceneImage: "assets/bg-lab-entry-briefing-azhe-wide.webp",
+  ambientBackgroundImage: "assets/bg-lab-entry-safety-station-wide.webp",
+  mentorPrimary: "assets/mentor-lab-azhe-v2.webp",
+  mentorFallback: "assets/mentor-life-world-azhe.webp",
+  mentorReplacementHook: "assets/mentor-lab-azhe-v2.webp",
   owlHooks: {
-    opening: "assets/owl-lab-safety-scan.png",
-    scan: "assets/owl-lab-safety-scan.png",
-    equipment: "assets/owl-lab-equipment-check.png",
-    risk: "assets/owl-lab-risk-alert.png",
-    cleanup: "assets/owl-lab-cleanup.png",
-    result: "assets/owl-lab-cleanup.png"
+    opening: "assets/owl-lab-safety-scan.webp",
+    scan: "assets/owl-lab-safety-scan.webp",
+    equipment: "assets/owl-lab-equipment-check.webp",
+    risk: "assets/owl-lab-risk-alert.webp",
+    cleanup: "assets/owl-lab-cleanup.webp",
+    result: "assets/owl-lab-cleanup.webp"
   }
 };
 
@@ -60,21 +60,21 @@ const titleIdAliases = {
 };
 const titleAvatarImages = TITLE_LEVELS.reduce((images, title) => {
   images[title.id] = {
-    male: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-male.png`,
-    female: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-female.png`
+    male: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-male.webp`,
+    female: `${TITLE_AVATAR_BASE_PATH}/title-${title.order}-${title.id}-female.webp`
   };
   return images;
 }, {});
-const fallbackTitleAvatarPath = `${TITLE_AVATAR_BASE_PATH}/title-01-trainee_investigator-male.png`;
+const fallbackTitleAvatarPath = `${TITLE_AVATAR_BASE_PATH}/title-01-trainee_investigator-male.webp`;
 
 const unitBadgeCatalog = [
-  { id: "lab_intro_entry", name: "實驗室入門徽章", condition: "完成實驗室安全啟動任務。" },
+  { id: "lab_intro_entry", name: "實驗室入門徽章", condition: "完成實驗室安全啟動任務。", badge_image_path: "assets/badges/lab_intro_entry.webp" },
   { id: "equipment_function_identifier", name: "器材功能辨識徽章", condition: "器材功能配對關卡達 85% 以上。" },
   { id: "equipment_selection_planner", name: "器材選用徽章", condition: "依實驗目的選用合適器材關卡達 85% 以上。" },
   { id: "lab_safety_judge", name: "安全情境判斷徽章", condition: "實驗室安全情境判斷關卡達 85% 以上。" },
   { id: "operation_sequence_mapper", name: "操作順序徽章", condition: "基本安全處理步驟排序關卡達 85% 以上。" },
-  { id: "lab_intro_flawless", name: "實驗室零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。" },
-  { id: "lab_safety_reflector", name: "安全態度回報徽章", condition: "回報品質達 discussion_question，且具備安全、器材或操作關聯。" },
+  { id: "lab_intro_flawless", name: "實驗室零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。", badge_image_path: "assets/badges/lab_intro_flawless.webp" },
+  { id: "lab_safety_reflector", name: "安全態度回報徽章", condition: "回報品質達 discussion_question，且具備安全、器材或操作關聯。", badge_image_path: "assets/badges/lab_safety_reflector.webp" },
   { id: "retry_growth_lab_intro", name: "再探實驗室進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。" }
 ];
 
@@ -1262,8 +1262,10 @@ function getConceptReview() {
 
 function renderReview() {
   const review = getConceptReview();
+  const result = calculateResult();
+  const visualState = globalThis.BioQuestCharacterLayout?.feedbackState(result) || "stable";
   return `
-    <div class="mission-layout">
+    <div class="mission-layout" data-feedback-state="${visualState}">
       <div class="panel">
         <p class="eyebrow">貓頭鷹助理概念回饋</p>
         <h2>先整理風險，再回報</h2>
@@ -1429,7 +1431,7 @@ function aggregateStudent() {
 
 function renderBadgeCatalog(earnedBadges) {
   const earned = new Set(earnedBadges || []);
-  return `<div class="badge-grid">${unitBadgeCatalog.map((badge) => `<div class="badge ${earned.has(badge.name) ? "earned" : "locked"}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div>`;
+  return `<div class="badge-grid">${unitBadgeCatalog.map((badge) => `<div class="badge ${earned.has(badge.name) ? "earned" : "locked"}" data-badge-id="${badge.id}">${badge.badge_image_path ? `<img src="${badge.badge_image_path}" alt="${badge.name}">` : `<span class="bq-badge-asset-pending">徽章素材待補</span>`}<strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div>`;
 }
 
 function titleForExp(exp) {
