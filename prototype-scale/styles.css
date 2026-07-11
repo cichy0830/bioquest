@@ -106,7 +106,7 @@ h1, h2, h3, p { margin-top: 0; }
   border-radius: 8px;
   background:
     linear-gradient(90deg, rgba(5, 49, 61, .74), rgba(5, 49, 61, .08) 48%, rgba(255,255,255,.04)),
-    url("assets/bg-biological-organization-briefing-azhe-wide.png");
+    url("assets/bg-scale-briefing-azhe-wide.png");
   background-size: cover;
   background-position: center;
 }
@@ -349,7 +349,7 @@ textarea { min-height: 96px; resize: vertical; }
 .badge-icon { display:grid; place-items:center; width:42px; height:42px; margin-bottom:8px; border-radius:50%; background:linear-gradient(135deg,#dff8f6,#fff1c9); color:#12434d; font-weight:900; }
 .badge-image { display:block; width:72px; height:72px; margin:0 auto 8px; object-fit:contain; }
 
-/* Unit 10 uses CSS fallbacks until its visual pack lands. The only scene hook is briefing. */
+/* The mentor scene is restricted to briefing; all other screens use the ambient background. */
 .scale-brief-scene {
   background:
     radial-gradient(circle at 78% 28%, rgba(255, 224, 138, .7) 0 4%, transparent 4.5%),
