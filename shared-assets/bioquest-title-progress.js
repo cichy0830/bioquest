@@ -3,13 +3,13 @@
   const fullBookExpMax = 26000;
   const levels = [
     { id: "trainee_investigator", order: "01", need: 0, title: "見習調查員" },
-    { id: "life_observer", order: "02", need: 1400, title: "生命觀察員" },
-    { id: "ecology_recorder", order: "03", need: 3000, title: "生態記錄員" },
-    { id: "concept_solver", order: "04", need: 5900, title: "概念解謎者" },
-    { id: "micro_explorer", order: "05", need: 8900, title: "微觀探索者" },
-    { id: "systems_investigator", order: "06", need: 12600, title: "系統調查員" },
-    { id: "life_researcher", order: "07", need: 16100, title: "生命研究員" },
-    { id: "bioquest_expert", order: "08", need: 19900, title: "BioQuest 專家" },
+    { id: "life_observer", order: "02", need: 500, title: "生命觀察員" },
+    { id: "ecology_recorder", order: "03", need: 1500, title: "生態記錄員" },
+    { id: "concept_solver", order: "04", need: 3000, title: "概念解謎者" },
+    { id: "micro_explorer", order: "05", need: 5200, title: "微觀探索者" },
+    { id: "systems_investigator", order: "06", need: 8000, title: "系統調查員" },
+    { id: "life_researcher", order: "07", need: 11800, title: "生命研究員" },
+    { id: "bioquest_expert", order: "08", need: 16700, title: "BioQuest 專家" },
     { id: "bioquest_guardian", order: "09", need: 23400, title: "生命祕境守護者" }
   ];
 

@@ -1305,9 +1305,9 @@ function renderBadgeCatalog(earnedBadges) {
 function titleForExp(exp) {
   if (titleProgressRules) return titleProgressRules.getTitleForExp(exp);
   const titles = [
-    { need: 0, title: "見習調查員" }, { need: 1400, title: "生命觀察員" }, { need: 3000, title: "生態記錄員" },
-    { need: 5900, title: "概念解謎者" }, { need: 8900, title: "微觀探索者" }, { need: 12600, title: "系統調查員" },
-    { need: 16100, title: "生命研究員" }, { need: 19900, title: "BioQuest 專家" }, { need: 23400, title: "生命祕境守護者" }
+    { need: 0, title: "見習調查員" }, { need: 500, title: "生命觀察員" }, { need: 1500, title: "生態記錄員" },
+    { need: 3000, title: "概念解謎者" }, { need: 5200, title: "微觀探索者" }, { need: 8000, title: "系統調查員" },
+    { need: 11800, title: "生命研究員" }, { need: 16700, title: "BioQuest 專家" }, { need: 23400, title: "生命祕境守護者" }
   ];
   const currentIndex = titles.reduce((index, item, itemIndex) => exp >= item.need ? itemIndex : index, 0);
   const current = titles[currentIndex];
@@ -1372,7 +1372,7 @@ function renderRules() {
           ["提問 EXP", "提出具體問題可獲得。"],
           ["再挑戰 EXP", "已完成任務後，重新登入並從頭完成整份任務才會列為再挑戰。回到前面修改單題不會新增再挑戰紀錄。"],
           ["精熟 EXP", "完整挑戰後表現達成高正確率可獲得。"],
-          ["稱號規劃", `全冊理論可累積 ${FULL_BOOK_EXP_MAX.toLocaleString()} EXP；稱號進度以 ${TITLE_PROGRESS_CAP.toLocaleString()} EXP 封頂，達門檻後 EXP 仍照常累積。`]
+          ["稱號規劃", `稱號採前段較快、後段逐級增加的非線性門檻；全冊理論可累積 ${FULL_BOOK_EXP_MAX.toLocaleString()} EXP，稱號進度以 ${TITLE_PROGRESS_CAP.toLocaleString()} EXP 封頂，達門檻後 EXP 仍照常累積。`]
         ].map(([title, text]) => `<div class="question-row"><strong>${title}</strong><p>${text}</p></div>`).join("")}
       </div>
     </div>

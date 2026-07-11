@@ -1331,13 +1331,13 @@ function titleForExp(exp) {
   if (titleProgressRules) return titleProgressRules.getTitleForExp(exp);
   const titles = [
     { need: 0, title: "見習調查員" },
-    { need: 1400, title: "生命觀察員" },
-    { need: 3000, title: "生態記錄員" },
-    { need: 5900, title: "概念解謎者" },
-    { need: 8900, title: "微觀探索者" },
-    { need: 12600, title: "系統調查員" },
-    { need: 16100, title: "生命研究員" },
-    { need: 19900, title: "BioQuest 專家" },
+    { need: 500, title: "生命觀察員" },
+    { need: 1500, title: "生態記錄員" },
+    { need: 3000, title: "概念解謎者" },
+    { need: 5200, title: "微觀探索者" },
+    { need: 8000, title: "系統調查員" },
+    { need: 11800, title: "生命研究員" },
+    { need: 16700, title: "BioQuest 專家" },
     { need: 23400, title: "生命祕境守護者" }
   ];
   const currentIndex = titles.reduce((index, item, itemIndex) => exp >= item.need ? itemIndex : index, 0);
@@ -1389,17 +1389,17 @@ function renderRules() {
     ["提示後修正", "提示只提供功能、倍率、視野或安全線索，不直接公布答案；提示後修正仍有 EXP，但同題低於直接答對。"],
     ["回報 EXP", "具體且與顯微鏡部位、操作、視野、倍率或亮度相關的回報最高 40；空白、無關玩笑或直接複製方向詞不給高分。"],
     ["再挑戰進步", "已完成任務後，重新登入並從頭完成才算再挑戰；只有比前一次完整挑戰進步時給進步補分，且本單元認列仍不超過 500。"],
-    ["稱號規劃", `全冊理論可累積 ${FULL_BOOK_EXP_MAX.toLocaleString()} EXP；稱號進度以 ${TITLE_PROGRESS_CAP.toLocaleString()} EXP 封頂。達門檻後稱號固定為生命祕境守護者，後續 EXP 仍照常累積。`]
+    ["稱號規劃", `稱號採前段較快、後段逐級增加的非線性門檻；全冊理論可累積 ${FULL_BOOK_EXP_MAX.toLocaleString()} EXP，稱號進度以 ${TITLE_PROGRESS_CAP.toLocaleString()} EXP 封頂。達門檻後稱號固定為生命祕境守護者，後續 EXP 仍照常累積。`]
   ];
   const titles = [
     ["0", "見習調查員"],
-    ["1,400", "生命觀察員"],
-    ["3,000", "生態記錄員"],
-    ["5,900", "概念解謎者"],
-    ["8,900", "微觀探索者"],
-    ["12,600", "系統調查員"],
-    ["16,100", "生命研究員"],
-    ["19,900", "BioQuest 專家"],
+    ["500", "生命觀察員"],
+    ["1,500", "生態記錄員"],
+    ["3,000", "概念解謎者"],
+    ["5,200", "微觀探索者"],
+    ["8,000", "系統調查員"],
+    ["11,800", "生命研究員"],
+    ["16,700", "BioQuest 專家"],
     ["23,400", "生命祕境守護者"]
   ];
   return `
