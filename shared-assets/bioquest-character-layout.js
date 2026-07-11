@@ -7,6 +7,23 @@
     needs_review: ["建議回看概念", "有幾個概念需要再釐清，請閱讀下方建議，再用自己的話留下問題。"],
     retry_ready: ["整理後再挑戰", "先保留這次找到的線索，重新整理後再登入挑戰，會更容易看見自己的進步。"]
   };
+  const enhancedGenerations = new WeakMap();
+
+  function setText(node, value) {
+    if (node && node.textContent !== value) node.textContent = value;
+  }
+
+  function setHtml(node, value) {
+    if (node && node.innerHTML !== value) node.innerHTML = value;
+  }
+
+  function setAttribute(node, name, value) {
+    if (node && node.getAttribute(name) !== value) node.setAttribute(name, value);
+  }
+
+  function setDataset(node, name, value) {
+    if (node && node.dataset[name] !== value) node.dataset[name] = value;
+  }
 
   function activeScreen() {
     return document.querySelector("[data-nav].active")?.dataset.nav || "";
@@ -70,10 +87,10 @@
 
     const eyebrow = panel.querySelector(".eyebrow");
     const heading = panel.querySelector("h2");
-    if (eyebrow) eyebrow.textContent = "生命祕境 BioQuest";
-    if (heading) heading.textContent = "歡迎進入生命祕境";
+    setText(eyebrow, "生命祕境 BioQuest");
+    setText(heading, "歡迎進入生命祕境");
     const greeting = panel.querySelector(".story-panel");
-    if (greeting) greeting.innerHTML = "<strong>身份確認</strong><p>輸入學號後確認姓名，再開始本次探索任務。老師測試流程時可使用 guest。</p>";
+    setHtml(greeting, "<strong>身份確認</strong><p>輸入學號後確認姓名，再開始本次探索任務。老師測試流程時可使用 guest。</p>");
   }
 
   function createFeedbackMentor(state) {
@@ -89,7 +106,7 @@
     const safeState = FEEDBACK_STATES.includes(state) ? state : "stable";
     const copy = FEEDBACK_COPY[safeState];
     card.classList.add("bq-feedback-mentor");
-    card.dataset.bioquestFeedbackState = safeState;
+    setDataset(card, "bioquestFeedbackState", safeState);
     let visual = card.querySelector(".mentor-avatar, .bq-feedback-mentor__visual");
     if (!visual) {
       visual = document.createElement("div");
@@ -99,9 +116,9 @@
     }
     const image = visual.querySelector("img");
     if (image) {
-      image.src = feedbackImage(safeState);
-      image.alt = `阿澤老師：${copy[0]}`;
-      image.loading = "eager";
+      setAttribute(image, "src", feedbackImage(safeState));
+      setAttribute(image, "alt", `阿澤老師：${copy[0]}`);
+      setAttribute(image, "loading", "eager");
     }
     let copyBox = card.querySelector(".mentor-copy, .bq-feedback-mentor__copy");
     if (!copyBox) {
@@ -113,9 +130,9 @@
     const label = copyBox.querySelector("span");
     const title = copyBox.querySelector("strong");
     const paragraph = copyBox.querySelector("p");
-    if (label) label.textContent = "阿澤老師";
-    if (title) title.textContent = copy[0];
-    if (paragraph) paragraph.textContent = copy[1];
+    setText(label, "阿澤老師");
+    setText(title, copy[0]);
+    setText(paragraph, copy[1]);
   }
 
   function enhanceReview(root) {
@@ -192,37 +209,64 @@
       if (card.querySelector("img, .bq-badge-asset-pending")) return;
       const pending = document.createElement("span");
       pending.className = "bq-badge-asset-pending";
-      pending.textContent = "徽章素材待補";
+      setText(pending, "徽章素材待補");
       card.prepend(pending);
     });
   }
 
-  function enhance() {
+  function enhance(options = {}) {
     const root = document.querySelector("#screen");
     if (!root) return;
     const screenName = activeScreen();
-    root.dataset.bioquestScreen = screenName;
+    const previous = enhancedGenerations.get(root);
+    if (!options.force
+      && previous?.screenName === screenName
+      && previous?.firstElementChild === root.firstElementChild
+      && previous?.childElementCount === root.childElementCount) return false;
+
+    setDataset(root, "bioquestScreen", screenName);
     if (screenName === "login") enhanceLogin(root);
     if (screenName === "review") enhanceReview(root);
     if (screenName === "reflection") enhanceReflection(root);
     if (screenName === "result") enhanceResult(root);
     if (screenName === "achievements") enhanceAchievements(root);
     tagCharacterUse(root, screenName);
+    enhancedGenerations.set(root, {
+      screenName,
+      firstElementChild: root.firstElementChild,
+      childElementCount: root.childElementCount
+    });
+    return true;
   }
 
   function observe() {
     const root = document.querySelector("#screen");
     if (!root) return;
+    const options = { childList: true, subtree: true };
     let scheduled = false;
-    new MutationObserver(() => {
-      if (scheduled) return;
+    let enhancing = false;
+    let observer;
+
+    function runEnhance() {
+      scheduled = false;
+      if (enhancing) return;
+      enhancing = true;
+      observer.disconnect();
+      try {
+        enhance({ force: true });
+      } finally {
+        enhancing = false;
+        if (document.querySelector("#screen") === root) observer.observe(root, options);
+      }
+    }
+
+    observer = new MutationObserver(() => {
+      if (enhancing || scheduled) return;
       scheduled = true;
-      queueMicrotask(() => {
-        scheduled = false;
-        enhance();
-      });
-    }).observe(root, { childList: true, subtree: true });
-    enhance();
+      queueMicrotask(runEnhance);
+    });
+    observer.observe(root, options);
+    runEnhance();
   }
 
   function enableBackendAssetFallback() {
