@@ -19,6 +19,9 @@ const REVISION_EXP_POOL = 180;
 const DIRECT_RAW_MAX = 527;
 const REVISION_RAW_MAX = 315;
 const MICROSCOPE_VERSION = "20260709-microscope-interaction-v1";
+const titleProgressRules = window.BioQuestTitleProgress;
+const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
+const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
 
 const microscopeVisualAssets = {
   mentorPrimary: "assets/mentor-microscope-guide-half.png",
@@ -1325,16 +1328,17 @@ function renderBadgeCatalog(earnedBadges) {
 }
 
 function titleForExp(exp) {
+  if (titleProgressRules) return titleProgressRules.getTitleForExp(exp);
   const titles = [
     { need: 0, title: "見習調查員" },
-    { need: 1500, title: "生命觀察員" },
-    { need: 3500, title: "生態記錄員" },
-    { need: 6500, title: "概念解謎者" },
-    { need: 10000, title: "微觀探索者" },
-    { need: 14000, title: "系統調查員" },
-    { need: 18000, title: "生命研究員" },
-    { need: 22000, title: "BioQuest 專家" },
-    { need: 26000, title: "生命祕境守護者" }
+    { need: 1400, title: "生命觀察員" },
+    { need: 3000, title: "生態記錄員" },
+    { need: 5900, title: "概念解謎者" },
+    { need: 8900, title: "微觀探索者" },
+    { need: 12600, title: "系統調查員" },
+    { need: 16100, title: "生命研究員" },
+    { need: 19900, title: "BioQuest 專家" },
+    { need: 23400, title: "生命祕境守護者" }
   ];
   const currentIndex = titles.reduce((index, item, itemIndex) => exp >= item.need ? itemIndex : index, 0);
   const current = titles[currentIndex];
@@ -1348,7 +1352,7 @@ function renderAchievements() {
   if (!state.student) return renderLogin();
   const aggregate = aggregateStudent();
   const title = titleForExp(aggregate.totalExp);
-  const progress = title.remaining === 0 ? 100 : Math.min(100, Math.round((aggregate.totalExp / title.need) * 100));
+  const progress = titleProgressRules?.progressPercent(aggregate.totalExp) ?? Math.min(100, (aggregate.totalExp / TITLE_PROGRESS_CAP) * 100);
   const unitBadges = [...new Set([...aggregate.badges, ...(state.result?.badges || [])])];
   return `
     <div class="wide-layout">
@@ -1363,7 +1367,7 @@ function renderAchievements() {
         </div>
         <h3>下一稱號：${title.next}${title.remaining ? `｜還差 ${title.remaining} EXP` : ""}</h3>
         <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
-        <p class="muted">稱號依 52 個標準單元、每單元最高認列 500 EXP 規劃；全冊滿分 26,000 EXP，最高稱號為生命祕境守護者。</p>
+        <p class="muted">稱號進度 ${aggregate.totalExp >= TITLE_PROGRESS_CAP ? 100 : Math.floor(progress * 10) / 10}%｜稱號進度以 ${TITLE_PROGRESS_CAP.toLocaleString()} EXP 封頂；全冊理論仍可累積 ${FULL_BOOK_EXP_MAX.toLocaleString()} EXP，達最高稱號後 EXP 繼續累積。</p>
       </div>
       <div class="panel">
         <p class="eyebrow">本單元成就</p>
@@ -1385,18 +1389,18 @@ function renderRules() {
     ["提示後修正", "提示只提供功能、倍率、視野或安全線索，不直接公布答案；提示後修正仍有 EXP，但同題低於直接答對。"],
     ["回報 EXP", "具體且與顯微鏡部位、操作、視野、倍率或亮度相關的回報最高 40；空白、無關玩笑或直接複製方向詞不給高分。"],
     ["再挑戰進步", "已完成任務後，重新登入並從頭完成才算再挑戰；只有比前一次完整挑戰進步時給進步補分，且本單元認列仍不超過 500。"],
-    ["稱號規劃", "全冊暫以 52 個單元、每單元 500 EXP 規劃，滿分 26,000 EXP；最高稱號為生命祕境守護者。"]
+    ["稱號規劃", `全冊理論可累積 ${FULL_BOOK_EXP_MAX.toLocaleString()} EXP；稱號進度以 ${TITLE_PROGRESS_CAP.toLocaleString()} EXP 封頂。達門檻後稱號固定為生命祕境守護者，後續 EXP 仍照常累積。`]
   ];
   const titles = [
     ["0", "見習調查員"],
-    ["1,500", "生命觀察員"],
-    ["3,500", "生態記錄員"],
-    ["6,500", "概念解謎者"],
-    ["10,000", "微觀探索者"],
-    ["14,000", "系統調查員"],
-    ["18,000", "生命研究員"],
-    ["22,000", "BioQuest 專家"],
-    ["26,000", "生命祕境守護者"]
+    ["1,400", "生命觀察員"],
+    ["3,000", "生態記錄員"],
+    ["5,900", "概念解謎者"],
+    ["8,900", "微觀探索者"],
+    ["12,600", "系統調查員"],
+    ["16,100", "生命研究員"],
+    ["19,900", "BioQuest 專家"],
+    ["23,400", "生命祕境守護者"]
   ];
   return `
     <div class="wide-layout">

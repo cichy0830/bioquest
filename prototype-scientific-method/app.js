@@ -29,16 +29,19 @@ const owlImages = {
   result: "assets/owl-method-result.png"
 };
 const TITLE_AVATAR_BASE_PATH = "../shared-assets/title-avatars";
-const TITLE_LEVELS = [
+const titleProgressRules = window.BioQuestTitleProgress;
+const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
+const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
+const TITLE_LEVELS = titleProgressRules?.levels || [
   { id: "trainee_investigator", order: "01", need: 0, title: "見習調查員" },
-  { id: "life_observer", order: "02", need: 1500, title: "生命觀察員" },
-  { id: "ecology_recorder", order: "03", need: 3500, title: "生態記錄員" },
-  { id: "concept_solver", order: "04", need: 6500, title: "概念解謎者" },
-  { id: "micro_explorer", order: "05", need: 10000, title: "微觀探索者" },
-  { id: "systems_investigator", order: "06", need: 14000, title: "系統調查員" },
-  { id: "life_researcher", order: "07", need: 18000, title: "生命研究員" },
-  { id: "bioquest_expert", order: "08", need: 22000, title: "BioQuest 專家" },
-  { id: "bioquest_guardian", order: "09", need: 26000, title: "生命祕境守護者" }
+  { id: "life_observer", order: "02", need: 1400, title: "生命觀察員" },
+  { id: "ecology_recorder", order: "03", need: 3000, title: "生態記錄員" },
+  { id: "concept_solver", order: "04", need: 5900, title: "概念解謎者" },
+  { id: "micro_explorer", order: "05", need: 8900, title: "微觀探索者" },
+  { id: "systems_investigator", order: "06", need: 12600, title: "系統調查員" },
+  { id: "life_researcher", order: "07", need: 16100, title: "生命研究員" },
+  { id: "bioquest_expert", order: "08", need: 19900, title: "BioQuest 專家" },
+  { id: "bioquest_guardian", order: "09", need: 23400, title: "生命祕境守護者" }
 ];
 const titleIdAliases = {
   micro_world_explorer: "micro_explorer",
@@ -1454,6 +1457,7 @@ function renderBadgeCatalog(earnedBadges) {
 }
 
 function titleForExp(exp) {
+  if (titleProgressRules) return titleProgressRules.getTitleForExp(exp);
   const currentIndex = TITLE_LEVELS.reduce((index, item, itemIndex) => exp >= item.need ? itemIndex : index, 0);
   const current = TITLE_LEVELS[currentIndex];
   const next = TITLE_LEVELS[currentIndex + 1];
@@ -1473,6 +1477,8 @@ function titleLevelById(titleId) {
 }
 
 function currentStudentTitle() {
+  const remoteTotal = Number(state.student?.progress?.total_exp ?? state.student?.total_exp ?? NaN);
+  if (Number.isFinite(remoteTotal)) return titleForExp(remoteTotal);
   const explicitId = normalizeTitleId(state.student?.progress?.current_title_id || state.student?.current_title_id);
   if (explicitId && TITLE_LEVELS.some((item) => item.id === explicitId)) {
     const title = titleLevelById(explicitId);
@@ -1485,9 +1491,8 @@ function currentStudentTitle() {
       remaining: 0
     };
   }
-  const remoteTotal = Number(state.student?.progress?.total_exp ?? state.student?.total_exp ?? NaN);
   const localTotal = state.student ? aggregateStudent().totalExp : 0;
-  return titleForExp(Number.isFinite(remoteTotal) ? remoteTotal : localTotal);
+  return titleForExp(localTotal);
 }
 
 function normalizeTitleAvatarPath(path) {
@@ -1532,8 +1537,10 @@ function studentTitleCharacterPath(titleId) {
 function renderAchievements() {
   if (!state.student) return renderLogin();
   const aggregate = aggregateStudent();
-  const title = titleForExp(aggregate.totalExp);
-  const progress = title.remaining === 0 ? 100 : Math.min(100, Math.round((aggregate.totalExp / title.need) * 100));
+  const remoteTotal = Number(state.student?.progress?.total_exp ?? state.student?.total_exp ?? NaN);
+  const totalExp = Number.isFinite(remoteTotal) ? remoteTotal : aggregate.totalExp;
+  const title = titleForExp(totalExp);
+  const progress = titleProgressRules?.progressPercent(totalExp) ?? Math.min(100, (totalExp / TITLE_PROGRESS_CAP) * 100);
   const unitBadges = [...new Set([...aggregate.badges, ...(state.result?.badges || [])])];
   return `
     <div class="wide-layout">
@@ -1542,13 +1549,13 @@ function renderAchievements() {
         <h2>${state.student.student_name}</h2>
         <p class="lead">${state.student.class_name} 班 ${state.student.seat_no} 號｜目前稱號：${title.current}</p>
         <div class="score-grid">
-          <div class="score-box"><span>累積認列 EXP</span><strong>${aggregate.totalExp}</strong></div>
+          <div class="score-box"><span>累積認列 EXP</span><strong>${totalExp}</strong></div>
           <div class="score-box"><span>亮起徽章</span><strong>${aggregate.badges.length}</strong></div>
           <div class="score-box"><span>已認列單元</span><strong>${aggregate.completedUnits}</strong></div>
         </div>
         <h3>下一稱號：${title.next}${title.remaining ? `｜還差 ${title.remaining} EXP` : ""}</h3>
         <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
-        <p class="muted">稱號依 52 個標準單元、每單元最高認列 500 EXP 規劃；全冊滿分 26,000 EXP，最高稱號為生命祕境守護者。</p>
+        <p class="muted">稱號進度 ${totalExp >= TITLE_PROGRESS_CAP ? 100 : Math.floor(progress * 10) / 10}%｜稱號進度以 ${TITLE_PROGRESS_CAP.toLocaleString()} EXP 封頂；全冊理論仍可累積 ${FULL_BOOK_EXP_MAX.toLocaleString()} EXP，達最高稱號後 EXP 繼續累積。</p>
       </div>
       <div class="panel">
         <p class="eyebrow">本單元成就</p>
@@ -1570,18 +1577,18 @@ function renderRules() {
     ["提示後修正", "提示只提供判斷線索，不直接公布答案；提示後修正仍有 EXP，但同題低於直接答對。"],
     ["回報 EXP", "具體且與觀察、推論、假說、變因、對照組、資料或證據相關的回報最高 40；空白、無關玩笑或直接複製方向詞不給高分。"],
     ["再挑戰進步", "已完成任務後，重新登入並從頭完成才算再挑戰；只有比前一次完整挑戰進步時給進步補分，且本單元認列仍不超過 500。"],
-    ["稱號規劃", "全冊暫以 52 個單元、每單元 500 EXP 規劃，滿分 26,000 EXP；最高稱號為生命祕境守護者。"]
+    ["稱號規劃", `全冊理論可累積 ${FULL_BOOK_EXP_MAX.toLocaleString()} EXP；稱號進度以 ${TITLE_PROGRESS_CAP.toLocaleString()} EXP 封頂。達門檻後稱號固定為生命祕境守護者，後續 EXP 仍照常累積。`]
   ];
   const titles = [
     ["0", "見習調查員"],
-    ["1,500", "生命觀察員"],
-    ["3,500", "生態記錄員"],
-    ["6,500", "概念解謎者"],
-    ["10,000", "微觀探索者"],
-    ["14,000", "系統調查員"],
-    ["18,000", "生命研究員"],
-    ["22,000", "BioQuest 專家"],
-    ["26,000", "生命祕境守護者"]
+    ["1,400", "生命觀察員"],
+    ["3,000", "生態記錄員"],
+    ["5,900", "概念解謎者"],
+    ["8,900", "微觀探索者"],
+    ["12,600", "系統調查員"],
+    ["16,100", "生命研究員"],
+    ["19,900", "BioQuest 專家"],
+    ["23,400", "生命祕境守護者"]
   ];
   return `
     <div class="wide-layout">

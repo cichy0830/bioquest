@@ -13,6 +13,9 @@ const mission = {
 };
 
 const mentorName = "阿澤老師";
+const titleProgressRules = window.BioQuestTitleProgress;
+const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
+const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
 
 const unitBadgeCatalog = [
   { id: "micro_intro", name: "微觀入門徽章", condition: "完成本次細胞工廠任務。" },
@@ -1300,18 +1303,23 @@ function renderBadgeCatalog(earnedBadges) {
 }
 
 function titleForExp(exp) {
-  if (exp >= 2500) return { current: "初任的學者", next: "精進的學者", need: 4000 };
-  if (exp >= 1500) return { current: "頂尖的學徒", next: "初任的學者", need: 2500 };
-  if (exp >= 900) return { current: "勤奮的學徒", next: "頂尖的學徒", need: 1500 };
-  if (exp >= 400) return { current: "好學的實習生", next: "勤奮的學徒", need: 900 };
-  return { current: "見習調查員", next: "好學的實習生", need: 400 };
+  if (titleProgressRules) return titleProgressRules.getTitleForExp(exp);
+  const titles = [
+    { need: 0, title: "見習調查員" }, { need: 1400, title: "生命觀察員" }, { need: 3000, title: "生態記錄員" },
+    { need: 5900, title: "概念解謎者" }, { need: 8900, title: "微觀探索者" }, { need: 12600, title: "系統調查員" },
+    { need: 16100, title: "生命研究員" }, { need: 19900, title: "BioQuest 專家" }, { need: 23400, title: "生命祕境守護者" }
+  ];
+  const currentIndex = titles.reduce((index, item, itemIndex) => exp >= item.need ? itemIndex : index, 0);
+  const current = titles[currentIndex];
+  const next = titles[currentIndex + 1];
+  return next ? { current: current.title, next: next.title, need: next.need, remaining: next.need - exp } : { current: current.title, next: "已達目前最高稱號", need: current.need, remaining: 0 };
 }
 
 function renderAchievements() {
   if (!state.student) return renderLogin();
   const aggregate = aggregateStudent();
   const title = titleForExp(aggregate.totalExp);
-  const progress = Math.min(100, Math.round((aggregate.totalExp / title.need) * 100));
+  const progress = titleProgressRules?.progressPercent(aggregate.totalExp) ?? Math.min(100, (aggregate.totalExp / TITLE_PROGRESS_CAP) * 100);
   const currentResultBadges = state.result?.badges || [];
   const unitBadges = [...new Set([...aggregate.badges, ...currentResultBadges])];
   return `
@@ -1325,8 +1333,9 @@ function renderAchievements() {
           <div class="score-box"><span>已取得徽章</span><strong>${aggregate.badges.length}</strong></div>
           <div class="score-box"><span>完成任務</span><strong>${aggregate.attempts.length}</strong></div>
         </div>
-        <h3>下一稱號：${title.next}</h3>
+        <h3>下一稱號：${title.next}${title.remaining ? `｜還差 ${title.remaining} EXP` : ""}</h3>
         <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
+        <p class="muted">稱號進度 ${aggregate.totalExp >= TITLE_PROGRESS_CAP ? 100 : Math.floor(progress * 10) / 10}%｜稱號進度以 ${TITLE_PROGRESS_CAP.toLocaleString()} EXP 封頂；全冊理論仍可累積 ${FULL_BOOK_EXP_MAX.toLocaleString()} EXP，達最高稱號後 EXP 繼續累積。</p>
       </div>
       <div class="panel">
         <p class="eyebrow">本單元成就</p>
@@ -1362,7 +1371,8 @@ function renderRules() {
           ["修正 EXP", "使用提示後成功修正也能獲得。"],
           ["提問 EXP", "提出具體問題可獲得。"],
           ["再挑戰 EXP", "已完成任務後，重新登入並從頭完成整份任務才會列為再挑戰。回到前面修改單題不會新增再挑戰紀錄。"],
-          ["精熟 EXP", "完整挑戰後表現達成高正確率可獲得。"]
+          ["精熟 EXP", "完整挑戰後表現達成高正確率可獲得。"],
+          ["稱號規劃", `全冊理論可累積 ${FULL_BOOK_EXP_MAX.toLocaleString()} EXP；稱號進度以 ${TITLE_PROGRESS_CAP.toLocaleString()} EXP 封頂，達門檻後 EXP 仍照常累積。`]
         ].map(([title, text]) => `<div class="question-row"><strong>${title}</strong><p>${text}</p></div>`).join("")}
       </div>
     </div>
