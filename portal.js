@@ -51,7 +51,7 @@ const units = [
   { title: "生物體的組成層次", unitId: "biological_organization", status: "ready", sequence: 9, summary: "正式順序第九單元。已完成學生端靜態原型，含組成層次排序、例子分類、單多細胞判斷、植物器官與動植物比較。", tags: ["正式原型", "組成層次", "排序", "植物器官", "已可測試"], url: "prototype-biological-organization/?v=20260711-character-layout-v1" },
   { title: "尺度", unitId: "scale", status: "ready", sequence: 10, summary: "正式順序第十單元。已完成學生端靜態原型，含尺度排序、單位配對、觀察工具、標尺判讀、圖像與實際大小。", tags: ["正式原型", "尺度", "比例尺", "觀察工具", "已可測試"], url: "prototype-scale/?v=20260711-achievement-security-v1" },
   { title: "食物中的養分與能量", unitId: "nutrients_energy", status: "ready", sequence: 11, summary: "正式順序第十一單元。已完成學生端靜態原型，含養分功能、主要食物來源、能量判斷、營養資料與均衡飲食。", tags: ["正式原型", "養分", "能量", "均衡飲食", "已可測試"], url: "prototype-nutrients-energy/?v=20260711-achievement-security-v1" },
-  { title: "養分檢測", unitId: "nutrient_test", status: "spec", sequence: 12, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材、檢測方法版本與主控確認後建立原型。", tags: ["規格備料", "試劑", "顏色判讀", "對照組"] },
+  { title: "養分檢測", unitId: "nutrient_test", status: "ready", sequence: 12, summary: "正式順序第十二單元。已完成學生端靜態原型，含檢測結果判讀、試劑與養分配對、對照組、資料證據與安全判斷。", tags: ["正式原型", "養分檢測", "證據判讀", "安全", "已可測試"], url: "prototype-nutrient-test/?v=20260711-nutrient-test-v1" },
   { title: "酵素", unitId: "enzymes", status: "spec", sequence: 13, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材、BadgeRules 與主控確認後建立原型。", tags: ["規格備料", "酵素", "專一性", "資料判讀"] },
   { title: "植物如何製造養分", unitId: "photosynthesis", status: "spec", sequence: 14, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材、BadgeRules 與主控確認後建立原型。", tags: ["規格備料", "光合作用", "葉綠體", "變因判讀"] },
   { title: "人體如何獲得養分", unitId: "human_nutrition", status: "spec", sequence: 15, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材、BadgeRules 與主控確認後建立原型。", tags: ["規格備料", "消化", "吸收", "食物流向"] },
