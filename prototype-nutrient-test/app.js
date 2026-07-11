@@ -64,11 +64,11 @@ const badges = [
 ].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id) }));
 
 const sequenceSteps = [
-  { id: "label", label: "先確認樣品與比較組的標示" },
-  { id: "reagent", label: "依老師提供的紀錄卡確認檢測液已加入" },
-  { id: "safe_heat", label: "確認安全加熱條件與試管口方向" },
-  { id: "observe", label: "在完成觀察後記錄顏色現象" },
-  { id: "compare", label: "最後與比較組一起判讀證據" }
+  { id: "label", label: "樣品與比較組已有清楚標示" },
+  { id: "reagent", label: "紀錄卡已確認檢測液加入狀態" },
+  { id: "safe_heat", label: "安全加熱條件與試管口方向已確認" },
+  { id: "observe", label: "完成觀察後的顏色現象已記錄" },
+  { id: "compare", label: "已與比較組一起判讀證據" }
 ];
 const correctSequence = ["label", "reagent", "safe_heat", "observe", "compare"];
 
@@ -433,7 +433,7 @@ function renderMultiSelect(qid) {
 }
 function renderSequenceQuestion() {
   const order = ensureSequence();
-  return `<div class="question-card"><h3>請依老師已提供的安全觀察紀錄卡，拖曳整理判讀順序。</h3><p class="field-help">排序題：可拖曳卡片；手機可使用上移 / 下移按鈕。此題只評估安全與證據判讀概念，請勿自行操作。</p>${assetFigure(assets.benedictSafetyObservationHook, "安全水浴觀察資料卡", "只作安全與證據判讀，不提供在家實作步驟。")}<div class="sortable-list">${order.map((id, index) => { const step = sequenceSteps.find((item) => item.id === id); return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><strong>${step.label}</strong><div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`; }).join("")}</div>${state.hints.q09 ? `<div class="feedback warn">先讓樣品身分清楚；看到加熱先判斷安全；完成觀察後才和比較組一起判讀。</div>` : ""}${state.checkedWrong.q09 ? `<div class="feedback bad">順序仍可調整。請把安全條件放在顏色判讀之前。</div>` : ""}</div>`;
+  return `<div class="question-card"><h3>請依老師已提供的完成觀察紀錄卡，拖曳整理資料的判讀順序。</h3><p class="field-help">排序題：可拖曳卡片；手機可使用上移 / 下移按鈕。此題只評估閱讀安全與證據紀錄的概念，不是自行操作流程。</p>${assetFigure(assets.benedictSafetyObservationHook, "安全水浴觀察資料卡", "只作安全與證據判讀，不提供在家實作步驟。")}<div class="sortable-list">${order.map((id, index) => { const step = sequenceSteps.find((item) => item.id === id); return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><strong>${step.label}</strong><div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`; }).join("")}</div>${state.hints.q09 ? `<div class="feedback warn">先閱讀樣品與比較組標示，再判讀加熱安全紀錄；完成觀察的資料才適合和比較組一起解讀。</div>` : ""}${state.checkedWrong.q09 ? `<div class="feedback bad">順序仍可調整。安全條件的紀錄應在顏色證據的判讀之前。</div>` : ""}</div>`;
 }
 function renderClassifyQuestion(qid) {
   const config = classifyQuestions[qid];
