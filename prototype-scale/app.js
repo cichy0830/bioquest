@@ -6,7 +6,7 @@ const roster = {
 };
 
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
-const VERSION = "20260711-scale-audit-v3";
+const VERSION = "20260711-scale-security-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -112,7 +112,12 @@ const defaultState = {
   screen: "login",
   student: null,
   attempt_type: "first",
+  attempt_id: "",
   attempt_session_id: "",
+  attempt_session_token: "",
+  question_version: "",
+  session_expires_at: "",
+  session_error: "",
   remote_completed_attempts: 0,
   remote_previous_attempt_id: "",
   remote_previous_accuracy: null,
@@ -201,7 +206,7 @@ function pendingQueue() {
   try { return JSON.parse(localStorage.getItem(pendingQueueKey)) || []; } catch { return []; }
 }
 function savePending(payload) {
-  const queue = pendingQueue();
+  const queue = pendingQueue().filter((item) => item.attempt_id !== payload.attempt_id);
   queue.push(payload);
   localStorage.setItem(pendingQueueKey, JSON.stringify(queue));
 }
@@ -307,6 +312,18 @@ async function fetchStudentStatus(id) {
   if (!response.ok) throw new Error(`backend_${response.status}`);
   return response.json();
 }
+async function postBackendAction(action, payload) {
+  const body = new URLSearchParams();
+  body.set("payload", JSON.stringify(payload));
+  const response = await fetch(`${BACKEND_URL}?action=${encodeURIComponent(action)}`, { method: "POST", body });
+  if (!response.ok) throw new Error(`backend_${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || `backend_${action}_failed`);
+  return data;
+}
+function startAttemptSession(studentId) {
+  return postBackendAction("startAttempt", { student_id: studentId, unit_id: mission.unit_id });
+}
 function normalizeBackendStudent(data, id) {
   if (!data?.ok) return null;
   const source = data.student || data;
@@ -333,6 +350,7 @@ async function login(id) {
   let completed = 0;
   let remoteProgress = {};
   let remoteAttemptStatus = {};
+  let serverSession = null;
   try {
     const data = await fetchStudentStatus(id);
     student = normalizeBackendStudent(data, id);
@@ -343,22 +361,22 @@ async function login(id) {
     remoteProgress = data.progress || data.student_progress || {};
     remoteAttemptStatus = data.attempt_status || {};
     completed = Number(remoteAttemptStatus.completed_attempt_count ?? data.completed_attempts ?? 0);
-  } catch {
-    student = roster[id];
-    if (!student) {
-      message.innerHTML = `<span class="pill warn">後台暫時無法連線，且本機測試名單查無此學號。</span>`;
-      return;
-    }
-    completed = studentAttempts(student.student_id).length;
-    message.innerHTML = `<span class="pill warn">後台暫時無法連線，已使用本機測試名單。</span>`;
+    serverSession = await startAttemptSession(student.student_id);
+  } catch (error) {
+    message.innerHTML = `<span class="pill warn">無法取得安全任務憑證（${error.message}）。請確認後台已重新部署並連線後再登入。</span>`;
+    return;
   }
   state = clone(defaultState);
   state.student = { ...student };
   state.remote_completed_attempts = completed;
-  state.attempt_type = completed > 0 ? "retry" : "first";
-  state.started_at = new Date().toISOString();
-  state.attempt_session_id = `${mission.unit_id}_${student.student_id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  state.remote_previous_attempt_id = remoteAttemptStatus.previous_attempt_id || remoteAttemptStatus.latest_attempt_id || remoteProgress.latest_attempt_id || "";
+  state.attempt_type = serverSession.attempt_type || (completed > 0 ? "retry" : "first");
+  state.started_at = serverSession.issued_at;
+  state.attempt_id = serverSession.attempt_id;
+  state.attempt_session_id = serverSession.attempt_session_id;
+  state.attempt_session_token = serverSession.attempt_session_token;
+  state.question_version = serverSession.question_version;
+  state.session_expires_at = serverSession.expires_at;
+  state.remote_previous_attempt_id = serverSession.previous_attempt_id || remoteAttemptStatus.previous_attempt_id || remoteAttemptStatus.latest_attempt_id || remoteProgress.latest_attempt_id || "";
   const remoteAccuracy = remoteAttemptStatus.previous_accuracy ?? remoteAttemptStatus.best_accuracy;
   state.remote_previous_accuracy = remoteAccuracy === null || remoteAccuracy === undefined || remoteAccuracy === "" ? null : Number.isFinite(Number(remoteAccuracy)) ? Number(remoteAccuracy) : null;
   state.cumulative_badges = parseArray(remoteProgress.badges_json || remoteProgress.badges);
@@ -483,11 +501,28 @@ function isAnswered(qid) {
 function allRequiredAnswered() {
   return [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].every(isAnswered);
 }
-function markHint(qid) {
-  if (!state.hints[qid]) state.hints[qid] = true;
-  state.checkedWrong[qid] = true;
+async function markHint(qid) {
+  if (state.hints[qid]) return true;
+  try {
+    await postBackendAction("hintEvent", {
+      student_id: state.student.student_id,
+      unit_id: mission.unit_id,
+      attempt_id: state.attempt_id,
+      attempt_session_token: state.attempt_session_token,
+      question_id: `${mission.unit_id}_${qid}`
+    });
+    state.hints[qid] = true;
+    state.checkedWrong[qid] = true;
+    state.session_error = "";
+    return true;
+  } catch (error) {
+    state.session_error = error.message;
+    saveState();
+    window.alert("提示紀錄無法寫入，為避免成就誤判，請重新登入後再挑戰。");
+    return false;
+  }
 }
-function checkSection(section) {
+async function checkSection(section) {
   const qids = sectionMap[section];
   const unanswered = qids.filter((qid) => !isAnswered(qid));
   if (unanswered.length) {
@@ -498,7 +533,9 @@ function checkSection(section) {
   const wrong = qids.filter((qid) => !isCorrect(qid));
   const newlyHinted = wrong.filter((qid) => !state.hints[qid]);
   if (newlyHinted.length) {
-    newlyHinted.forEach(markHint);
+    for (const qid of newlyHinted) {
+      if (!await markHint(qid)) return;
+    }
     saveState();
     render();
     const message = document.querySelector("#sectionMessage");
@@ -535,24 +572,24 @@ function dropSequence(targetId) {
 }
 function attachQuestionEvents() {
   document.querySelectorAll("[data-choice]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const question = questionById(button.dataset.choice);
       state.answers[question.id] = button.dataset.value;
       state.interactions[question.id] = true;
-      if (button.dataset.value !== question.answer) markHint(question.id);
+      if (button.dataset.value !== question.answer && !await markHint(question.id)) return;
       saveState();
       render();
     });
   });
   document.querySelectorAll("[data-classify-question]").forEach((select) => {
-    select.addEventListener("change", () => {
+    select.addEventListener("change", async () => {
       const qid = select.dataset.classifyQuestion;
       const itemId = select.dataset.classifyItem;
       state.answers[qid] ||= {};
       state.answers[qid][itemId] = select.value;
       state.interactions[qid] = true;
       const item = classifyQuestions[qid].items.find((candidate) => candidate.id === itemId);
-      if (select.value && item && select.value !== item.answer) markHint(qid);
+      if (select.value && item && select.value !== item.answer && !await markHint(qid)) return;
       saveState();
       render();
     });
@@ -566,7 +603,7 @@ function attachQuestionEvents() {
     item.addEventListener("drop", (event) => { event.preventDefault(); dropSequence(item.dataset.sequenceId); });
   });
   const checkButton = document.querySelector("#checkSection");
-  if (checkButton) checkButton.addEventListener("click", () => checkSection(checkButton.dataset.section));
+  if (checkButton) checkButton.addEventListener("click", async () => checkSection(checkButton.dataset.section));
 }
 
 function evaluateReflectionQuality(reflection) {
@@ -671,7 +708,7 @@ function buildBackendPayload(attempt) {
   return {
     attempt_id: attempt.attempt_id, student_id: attempt.student.student_id, student_name: attempt.student.student_name, class_name: attempt.student.class_name, seat_no: attempt.student.seat_no,
     unit_id: mission.unit_id, unit_title: mission.unit_title, attempt_type: attempt.attempt_type, attempt_type_candidate: attempt.attempt_type_candidate, attempt_no_candidate: attempt.attempt_no,
-    attempt_session_id: attempt.attempt_session_id, started_from_login: attempt.started_from_login, previous_attempt_id: attempt.previous_attempt_id, retry_validation_status: attempt.retry_validation_status,
+    attempt_session_id: attempt.attempt_session_id, attempt_session_token: attempt.attempt_session_token, question_version: attempt.question_version, started_from_login: attempt.started_from_login, previous_attempt_id: attempt.previous_attempt_id, retry_validation_status: attempt.retry_validation_status,
     completion_status: attempt.completion_status, required_answer_count: attempt.required_answer_count, answered_required_count: attempt.answered_required_count, all_required_answered: attempt.all_required_answered,
     started_at: attempt.started_at, submitted_at: attempt.submitted_at, total_questions: attempt.total, correct: attempt.correct, accuracy: attempt.accuracy, hints_used: attempt.hint_used, correct_without_hint: attempt.correct_without_hint, corrected_after_hint: attempt.corrected_after_hint,
     completion_exp: attempt.completion_exp, concept_exp: attempt.concept_exp, revision_exp: attempt.revision_exp, question_exp: attempt.question_exp, mastery_exp: attempt.mastery_exp, retry_exp: attempt.retry_exp, attempt_total_exp: attempt.attempt_total_exp, unit_credited_exp: attempt.unit_credited_exp, credited_delta: attempt.credited_delta,
@@ -715,7 +752,7 @@ function conceptMastery(qids) {
 function buildAttempt() {
   const now = new Date().toISOString();
   return {
-    attempt_id: state.attempt_session_id,
+    attempt_id: state.attempt_id,
     timestamp: now,
     student: state.student,
     mission,
@@ -723,6 +760,8 @@ function buildAttempt() {
     attempt_type_candidate: state.attempt_type,
     attempt_no: Number(state.remote_completed_attempts || 0) + 1,
     attempt_session_id: state.attempt_session_id,
+    attempt_session_token: state.attempt_session_token,
+    question_version: state.question_version,
     started_from_login: true,
     previous_attempt_id: previousAttemptId(),
     retry_validation_status: state.attempt_type === "retry" ? "pending_backend_validation" : "not_retry",
@@ -758,6 +797,12 @@ async function submitAttemptToBackend(attempt) {
   if (!data.ok) throw new Error(data.error || "backend_submit_failed");
   return data;
 }
+function isSessionFailure(error) {
+  return /attempt_session|attempt_id_mismatch|question_version_mismatch|retry_previous_attempt_stale/.test(String(error?.message || error));
+}
+function pendingVerificationResult(result) {
+  return { ...result, verification_status: "pending_network", badges: [], completion_exp: 0, concept_exp: 0, revision_exp: 0, question_exp: 0, mastery_exp: 0, retry_exp: 0, attempt_total_exp: 0, unit_credited_exp: 0, credited_delta: 0, no_hint_perfect: false };
+}
 function attachReflection() {
   document.querySelector("#submitMission").addEventListener("click", async (event) => {
     if (state.submitted_at) return setScreen("result");
@@ -782,13 +827,21 @@ function attachReflection() {
     let attempt = buildAttempt();
     try {
       const response = await submitAttemptToBackend(attempt);
-      state.backend_status = "submitted";
+      state.backend_status = response.verification_status === "server_verified" ? "submitted_verified" : "pending_verification";
       if (response.verified_attempt) state.result = { ...state.result, ...response.verified_attempt };
       applyBackendProgress(response.student_progress || response.progress || {});
       attempt = { ...attempt, ...state.result, backend_status: state.backend_status, backend_attempt_id: response.attempt_id || attempt.attempt_id };
-    } catch {
+    } catch (error) {
+      if (isSessionFailure(error)) {
+        window.alert("任務憑證已失效或本次 session 不再有效，請重新登入並從頭完成。");
+        state = clone(defaultState);
+        saveState();
+        setScreen("login");
+        return;
+      }
       state.backend_status = "pending_local";
-      attempt = { ...attempt, backend_status: state.backend_status };
+      state.result = pendingVerificationResult(state.result);
+      attempt = { ...attempt, ...state.result, backend_status: state.backend_status };
       savePending(buildBackendPayload(attempt));
     }
     saveAttempt(attempt);
@@ -801,7 +854,7 @@ function attachReflection() {
 function renderResult() {
   const result = state.result || calculateResult();
   const notice = state.lockNotice ? `<div class="feedback warn">${state.lockNotice}</div>` : "";
-  const backendNotice = state.backend_status === "pending_local" ? `<div class="feedback warn">後台暫時無法寫入，本次提交已保留在本機待補送佇列。</div>` : `<div class="feedback good">本次任務已提交，作答結果已鎖定。</div>`;
+  const backendNotice = state.backend_status === "pending_local" ? `<div class="feedback warn">後台暫時無法寫入，本機已保留原始作答；在後台驗證完成前不認列 EXP 或徽章。若憑證過期，請重新登入。</div>` : state.backend_status === "submitted_verified" ? `<div class="feedback good">本次任務已由後台驗證並鎖定。</div>` : `<div class="feedback warn">本次資料仍待後台驗證，暫不新增認列 EXP 或徽章。</div>`;
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>提交後本次作答已鎖定</h2>${notice}${backendNotice}
     <div class="score-grid"><div class="score-box"><span>本次取得</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>本單元認列</span><strong>${result.unit_credited_exp} EXP</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
     <div class="card-grid">

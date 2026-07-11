@@ -64,6 +64,13 @@ function formatDate(value) {
   return Number.isNaN(date.getTime()) ? escapeHtml(value) : new Intl.DateTimeFormat("zh-TW", { dateStyle: "medium", timeStyle: "short" }).format(date);
 }
 
+function verificationLabel(row) {
+  const status = String(row?.verification_status || "historical_pre_verification");
+  if (status === "server_verified") return '<span class="pill good">後端已驗證</span>';
+  if (status === "historical_pre_verification") return '<span class="pill">歷史資料</span>';
+  return `<span class="pill warn">${escapeHtml(status)}</span>`;
+}
+
 function isOfficialStudent(row) {
   const studentId = String(row?.student_id || "").trim().toLowerCase();
   const className = String(row?.class_name || "").trim();
@@ -137,7 +144,10 @@ function populateStudentFilter() {
 }
 
 function completedAttempts() {
-  return state.data.attempts.filter((row) => row.submitted_at && String(row.completion_status || "complete") === "complete");
+  return state.data.attempts.filter((row) => {
+    const verification = String(row.verification_status || "historical_pre_verification");
+    return row.submitted_at && String(row.completion_status || "complete") === "complete" && ["server_verified", "historical_pre_verification"].includes(verification);
+  });
 }
 
 function selectedAttempts() {
@@ -221,6 +231,8 @@ function renderUnitView() {
   const averageRevised = average(latest, (row) => numberValue(row.corrected_after_hint));
   const averageConfidence = average(latest, (row) => Number(row.confidence_score));
   const attentionCount = rows.filter((row) => row.attention).length;
+  const officialIds = new Set(rows.map((row) => String(row.student.student_id)));
+  const pendingCount = state.data.attempts.filter((row) => officialIds.has(String(row.student_id)) && (!unitFilter.value || String(row.unit_id) === unitFilter.value) && !["server_verified", "historical_pre_verification"].includes(String(row.verification_status || "historical_pre_verification"))).length;
   const unitName = unitFilter.selectedOptions[0]?.textContent || unitFilter.value || "尚無單元";
 
   viewRoot.innerHTML = `
@@ -233,6 +245,7 @@ function renderUnitView() {
       ${metric("提示後修正", formatDecimal(averageRevised), "平均題數")}
       ${metric("平均信心", formatDecimal(averageConfidence), "1-5 分")}
       ${metric("需關注", attentionCount, "低信心或後台標記")}
+      ${metric("待驗證提交", pendingCount, "不納入完成率、EXP 或徽章")}
     </section>
     <section class="panel">
       <h2>學生表現</h2>
@@ -289,11 +302,11 @@ function renderStudentView() {
     viewRoot.innerHTML = emptyState("沒有學生資料", "請先選擇具有名冊資料的班級與學生。");
     return;
   }
-  const attempts = completedAttempts().filter((row) => String(row.student_id) === String(student.student_id)).sort((a, b) => String(b.submitted_at || "").localeCompare(String(a.submitted_at || "")));
+  const attempts = state.data.attempts.filter((row) => String(row.student_id) === String(student.student_id) && row.submitted_at).sort((a, b) => String(b.submitted_at || "").localeCompare(String(a.submitted_at || "")));
   const progress = progressForStudent(student.student_id) || fallbackProgress(student.student_id);
   const reviews = state.data.teacherReviews.filter((row) => String(row.student_id) === String(student.student_id));
   viewRoot.innerHTML = `<section class="grid two-col"><article class="panel"><h2>${escapeHtml(student.seat_no || "-")} ${escapeHtml(student.student_name || student.student_id)} 個人歷程</h2>
-    ${attempts.length ? `<div class="table-wrap"><table><thead><tr><th>時間</th><th>單元</th><th>挑戰</th><th>正確率</th><th>提示</th><th>提示後修正</th><th>認列 EXP</th><th>回報品質</th></tr></thead><tbody>${attempts.map((row) => `<tr><td>${formatDate(row.submitted_at)}</td><td>${escapeHtml(row.unit_title || row.unit_id)}</td><td>${escapeHtml(row.attempt_no || row.attempt_type || "-")}</td><td>${formatPercent(row.accuracy)}</td><td>${numberValue(row.hints_used)}</td><td>${numberValue(row.corrected_after_hint)}</td><td>${numberValue(row.unit_credited_exp)}</td><td>${escapeHtml(row.reflection_quality || "-")}</td></tr>`).join("")}</tbody></table></div>` : '<p class="muted">尚無完整 Attempts 紀錄。</p>'}
+    ${attempts.length ? `<div class="table-wrap"><table><thead><tr><th>時間</th><th>單元</th><th>驗證</th><th>挑戰</th><th>正確率</th><th>提示</th><th>提示後修正</th><th>認列 EXP</th><th>回報品質</th></tr></thead><tbody>${attempts.map((row) => `<tr><td>${formatDate(row.submitted_at)}</td><td>${escapeHtml(row.unit_title || row.unit_id)}</td><td>${verificationLabel(row)}</td><td>${escapeHtml(row.attempt_no || row.attempt_type || "-")}</td><td>${formatPercent(row.accuracy)}</td><td>${numberValue(row.hints_used)}</td><td>${numberValue(row.corrected_after_hint)}</td><td>${numberValue(row.unit_credited_exp)}</td><td>${escapeHtml(row.reflection_quality || "-")}</td></tr>`).join("")}</tbody></table></div>` : '<p class="muted">尚無 Attempts 紀錄。</p>'}
   </article><aside class="grid"><article class="panel"><h2>進度摘要</h2><div class="summary-list"><p><span>累積 EXP</span><strong>${numberValue(progress.total_exp)}</strong></p><p><span>完成單元</span><strong>${numberValue(progress.completed_unit_count)}</strong></p><p><span>目前稱號</span><strong>${escapeHtml(progress.current_title || progress.current_title_id || "-")}</strong></p><p><span>距下一稱號</span><strong>${numberValue(progress.next_title_need_exp)}</strong></p></div></article><article class="panel"><h2>待複核與最近提問</h2>${reviews.length ? reviews.map((row) => `<div class="question-card"><p><span class="pill warn">${escapeHtml(row.issue_type || "待複核")}</span></p><p>${escapeHtml(row.student_question || "未留下問題")}</p></div>`).join("") : '<p class="muted">目前沒有待處理紀錄。</p>'}</article></aside></section>`;
 }
 
