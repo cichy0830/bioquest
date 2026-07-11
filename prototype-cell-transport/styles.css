@@ -21,8 +21,10 @@ body {
   color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
   background:
-    linear-gradient(120deg, rgba(235, 249, 247, 0.86), rgba(237, 242, 248, 0.78)),
-    url("assets/bg-cell-observation-entry-wide.png");
+    linear-gradient(120deg, rgba(235, 249, 247, 0.9), rgba(237, 242, 248, 0.84)),
+    radial-gradient(circle at 15% 16%, rgba(16, 152, 166, .15), transparent 26%),
+    radial-gradient(circle at 86% 12%, rgba(216, 155, 50, .16), transparent 23%),
+    #edf6f3;
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -103,8 +105,8 @@ h1, h2, h3, p { margin-top: 0; }
   border: 1px solid var(--line);
   border-radius: 8px;
   background:
-    linear-gradient(90deg, rgba(10, 62, 72, .7), rgba(10, 102, 107, .12) 48%, rgba(255, 246, 221, .72)),
-    url("assets/bg-cell-observation-briefing-azhe-wide.png");
+    linear-gradient(100deg, rgba(9, 61, 74, .93), rgba(14, 108, 122, .68) 48%, rgba(238, 253, 247, .88)),
+    linear-gradient(135deg, #0c3d4c, #65c8c4 54%, #fff2d4);
   background-size: cover;
   background-position: center;
 }
@@ -133,6 +135,36 @@ h1, h2, h3, p { margin-top: 0; }
   background: rgba(255,255,255,.76);
 }
 .scene-copy .student-avatar-slot img { width: 94%; height: 94%; object-fit: contain; }
+
+.transport-scene-art { position:absolute; inset:0 auto 0 0; width:55%; overflow:hidden; pointer-events:none; }
+.membrane-line { position:absolute; left:52%; top:10%; width:12px; height:80%; border:2px dashed rgba(238,252,246,.78); border-radius:999px; background:rgba(12,71,82,.45); }
+.particle, .water { position:absolute; width:24px; aspect-ratio:1; border-radius:50%; }
+.particle { background:#ffd46e; box-shadow:0 0 0 6px rgba(255,212,110,.18); }
+.water { background:#caeff6; box-shadow:0 0 0 5px rgba(202,239,246,.18); }
+.p1 { left:16%; top:28%; }.p2 { left:31%; top:50%; }.p3 { left:20%; top:68%; }.w1 { left:68%; top:34%; }.w2 { left:78%; top:54%; }
+
+.transport-layout { display:grid; grid-template-columns:minmax(250px,.8fr) minmax(0,1fr); gap:16px; align-items:start; }
+.transport-simulator { padding:14px; border:1px solid var(--line); border-radius:8px; background:rgba(255,255,255,.76); }
+.sim-label { color:var(--teal-dark); font-weight:900; }
+.sim-view { position:relative; min-height:300px; overflow:hidden; border:12px solid #1e5260; border-radius:8px; background:#eaf7f3; box-shadow:inset 0 0 40px rgba(7,67,77,.13); }
+.sim-membrane { position:absolute; left:50%; top:8%; width:10px; height:84%; border-radius:999px; background:repeating-linear-gradient(180deg,#f6f4d0 0 9px,#356a72 9px 15px); }
+.sim-particle, .sim-water { position:absolute; border-radius:50%; }
+.sim-particle { width:24px; height:24px; background:#e68a61; box-shadow:0 0 0 5px rgba(230,138,97,.18); }
+.sim-water { width:18px; height:18px; background:#56b9d3; box-shadow:0 0 0 4px rgba(86,185,211,.18); }
+.sim-particle.a { left:14%; top:25%; }.sim-particle.b { left:25%; top:48%; }.sim-particle.c { left:35%; top:68%; }.sim-water.one { right:16%; top:26%; }.sim-water.two { right:27%; top:50%; }.sim-water.three { right:18%; top:72%; }
+.sim-view.diffusion .sim-membrane, .sim-view.animal .sim-membrane, .sim-view.plant .sim-membrane { opacity:.18; }
+.sim-view.diffusion .sim-particle { background:#e68a61; }.sim-view.diffusion .sim-water { opacity:.2; }
+.sim-view.osmosis .sim-particle { left:auto; right:22%; }.sim-view.osmosis .sim-particle.a { top:28%; }.sim-view.osmosis .sim-particle.b { top:52%; }.sim-view.osmosis .sim-particle.c { top:70%; }
+.sim-view.animal .sim-cell { position:absolute; inset:22% 25%; border:12px solid #d96f72; border-radius:50%; background:radial-gradient(circle, #f8c6c4 0 38%, #df8688 39% 42%, #f5d0cf 43%); }
+.sim-view.animal .sim-core, .sim-view.plant .sim-core { display:none; }
+.sim-view.animal .sim-particle, .sim-view.animal .sim-water { opacity:.25; }
+.sim-view.plant .sim-cell { position:absolute; inset:16% 18%; border:14px solid #55955d; background:linear-gradient(135deg,#d9f2c8,#f1fbde); }
+.sim-view.plant .sim-core { position:absolute; inset:31% 34%; border:5px solid #7ea867; background:#b9d88b; }
+.sim-view.plant .sim-particle, .sim-view.plant .sim-water { opacity:.22; }
+.cell-change-strip { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0 0 16px; }
+.change-card { min-height:124px; padding:14px; border:1px solid var(--line); border-radius:8px; background:#fff; }
+.change-card strong, .change-card span { display:block; }.change-card span { margin-top:8px; color:var(--muted); line-height:1.55; }
+.change-card.animal { border-color:rgba(211,104,110,.42); background:linear-gradient(135deg,#fff5f4,#fee4e1); }.change-card.plant { border-color:rgba(84,146,91,.42); background:linear-gradient(135deg,#f1fae9,#ddf0d5); }.change-card.data { border-color:rgba(91,112,185,.35); background:linear-gradient(135deg,#f1f3ff,#e3e9fb); }
 
 .asset-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0 0 16px; }
 .asset-strip figure, .wide-asset { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.86); }
@@ -311,7 +343,7 @@ textarea { min-height: 96px; resize: vertical; }
   .step-item { flex: 0 0 auto; width: auto; min-width: 64px; min-height: 40px; padding: 8px 10px; }
   .student-mini { display: none; }
   .main-stage { padding: 14px; }
-  .mission-layout, .mission-hud, .score-grid, .card-grid, .choice-grid, .token-grid, .microscope-layout { grid-template-columns: 1fr; }
+  .mission-layout, .mission-hud, .score-grid, .card-grid, .choice-grid, .token-grid, .microscope-layout, .transport-layout, .cell-change-strip { grid-template-columns: 1fr; }
   .hero-panel { min-height: auto; }
   .brief-scene { min-height: 520px; }
   .scene-copy { width: 100%; padding: 22px; padding-top: 58%; background: linear-gradient(0deg, rgba(255,255,255,.88), rgba(255,255,255,.08)); }

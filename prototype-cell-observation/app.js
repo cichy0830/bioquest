@@ -28,14 +28,25 @@ const mission = {
 
 const assets = {
   mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
-  owlPrep: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
+  owlPrep: "assets/owl-cell-observation-prep-reminder.png",
   owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.png",
   owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.png",
   briefingSceneHook: "assets/bg-cell-observation-briefing-azhe-wide.png",
-  ambientBackgroundHook: "assets/bg-cell-observation-ambient-wide.png"
+  ambientBackgroundHook: "assets/bg-cell-observation-entry-wide.png",
+  slidePreparation: "assets/cell-observation-slide-preparation-cards.png",
+  lowHighStrategy: "assets/cell-observation-low-high-power-strategy.png",
+  stainingComparison: "assets/cell-observation-staining-before-after.png",
+  scopeViews: {
+    onion: "assets/cell-observation-onion-epidermis-view.png",
+    mouth: "assets/cell-observation-mouth-epithelial-view.png",
+    leaf: "assets/cell-observation-leaf-lower-epidermis-view.png",
+    bubble: "assets/cell-observation-bubble-artifact-view.png"
+  }
 };
 
+const badgeAsset = (id) => `../shared-assets/badges/cell_observation/badge-cell_observation-${id}.png`;
 const badges = [
   { id: "cell_observation_entry", name: "顯微偵查入門徽章", condition: "完成顯微視野偵查任務。" },
   { id: "slide_preparation_sequencer", name: "玻片流程排序徽章", condition: "玻片製作與減少氣泡干擾題組達 85% 以上。" },
@@ -47,7 +58,7 @@ const badges = [
   { id: "cell_observation_flawless", name: "顯微視野零提示全對徽章", condition: "全部答對且全程未使用提示。" },
   { id: "cell_observation_reflection_reporter", name: "高品質觀察回報徽章", condition: "回報品質達 discussion_question。" },
   { id: "retry_growth_cell_observation", name: "再探顯微視野進步徽章", condition: "再挑戰完整完成且正確率進步。" }
-];
+].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id) }));
 
 const sequenceSteps = [
   { id: "water", label: "滴水" },
@@ -414,7 +425,7 @@ function renderLogin() {
     <div class="form-grid"><label>學號<input id="studentIdInput" value="${value}" placeholder="例如 S70101 或 guest" autocomplete="off"></label></div>
     <div class="actions"><button class="primary" id="loginButton">登入任務</button><button class="secondary" id="guestButton">老師測試 guest</button><button class="ghost" id="resetButton">清除本機測試紀錄</button></div>
     <div id="loginMessage" class="status-line"></div>
-  `, assets.owlPrep);
+  `, assets.owlLogin);
 }
 async function fetchStudentStatus(id) {
   const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}`;
@@ -501,7 +512,7 @@ function renderBrief() {
 }
 function renderScan() {
   return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的觀察線索</h2>
-    <div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>先用線索判讀，不要只背材料名稱。題目中所有顯微圖片目前使用 CSS/HTML fallback，正式素材可直接接到 asset hook。</p></div>
+    <div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>先用線索判讀，不要只背材料名稱。觀察時會用到製片、倍率、染色與樣本特徵。</p></div>
     <div class="card-grid">
       <div class="concept-card"><strong>製片</strong><p>材料要薄且平整，蓋玻片斜放可減少氣泡。</p></div>
       <div class="concept-card"><strong>倍率</strong><p>先低倍找位置，再高倍觀察細節。</p></div>
@@ -510,7 +521,7 @@ function renderScan() {
       <div class="concept-card"><strong>葉片</strong><p>保衛細胞成對圍成氣孔，可能看見葉綠體。</p></div>
       <div class="concept-card"><strong>干擾</strong><p>氣泡常有亮邊圓形，但缺少細胞排列脈絡。</p></div>
     </div>
-    <div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div>${owlPanel(assets.owlScan)}</div>`;
+    <div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div>${owlPanel(assets.owlPrep, "顯微觀察任務提醒貓頭鷹")}</div>`;
 }
 
 function selectedClass(question, option) {
@@ -547,7 +558,9 @@ function renderSequenceQuestion() {
   </div>`;
 }
 function renderCheckpoint1() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>玻片製作與低高倍策略</h2><div class="question-grid">${renderSequenceQuestion()}${["q02", "q03", "q04"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>玻片製作與低高倍策略</h2>
+    <div class="asset-strip"><figure><img src="${assets.slidePreparation}" alt="玻片製作流程圖卡" onerror="this.closest('figure').hidden=true"><figcaption>觀察圖卡：用流程線索安排步驟。</figcaption></figure><figure><img src="${assets.lowHighStrategy}" alt="低高倍率觀察策略對照圖" onerror="this.closest('figure').hidden=true"><figcaption>觀察圖卡：先低倍定位，再高倍看細節。</figcaption></figure></div>
+    <div class="question-grid">${renderSequenceQuestion()}${["q02", "q03", "q04"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`;
 }
 function renderScopeTabs() {
   const tabs = [
@@ -560,11 +573,12 @@ function renderScopeTabs() {
 }
 function renderScopeView() {
   const hotspotClass = state.activeScope === "onion" ? (state.activeHotspot === "nucleus" ? "nucleus" : "wall") : state.activeScope === "leaf" ? "stoma" : "";
-  return `<div class="scope-card" data-asset-hook="cell_observation_scope_fallback">
-    <div class="scope-view ${state.activeScope}">${hotspotClass ? `<span class="hotspot ${hotspotClass}"></span>` : ""}</div>
+  const activeLabel = { onion: "洋蔥表皮細胞", mouth: "口腔皮膜細胞", leaf: "葉片下表皮", bubble: "氣泡干擾" }[state.activeScope];
+  return `<div class="scope-card" data-asset-hook="cell_observation_scope_image">
+    <div class="scope-view ${state.activeScope}"><img src="${assets.scopeViews[state.activeScope]}" alt="${activeLabel} 顯微觀察圖" onerror="this.style.display='none'">${hotspotClass ? `<span class="hotspot ${hotspotClass}"></span>` : ""}</div>
     ${renderScopeTabs()}
     <div class="structure-tabs"><button data-hotspot="wall" class="${state.activeHotspot === "wall" ? "active" : ""}">格狀外框</button><button data-hotspot="nucleus" class="${state.activeHotspot === "nucleus" ? "active" : ""}">細胞核</button><button data-hotspot="stoma" class="${state.activeHotspot === "stoma" ? "active" : ""}">氣孔線索</button></div>
-    <p class="muted">正式顯微視野圖尚未落地時，這裡以 CSS/HTML 視野示意與高亮 hook 先支援測試。</p>
+    <p class="muted">目前檢視：${activeLabel}。可切換視野，再用外框、細胞核或氣孔線索判讀。</p>
   </div>`;
 }
 function renderCheckpoint2() {
@@ -592,7 +606,7 @@ function renderClassifyQuestion() {
   </div>`;
 }
 function renderCheckpoint3() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>染色、干擾與動植物線索</h2><div class="question-grid">${["q11", "q12", "q13"].map(renderChoiceQuestion).join("")}${renderClassifyQuestion()}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>染色、干擾與動植物線索</h2><figure class="wide-asset"><img src="${assets.stainingComparison}" alt="染色前後觀察對照圖" onerror="this.closest('figure').hidden=true"><figcaption>觀察圖卡：染色會讓構造對比更清楚，不是裝飾。</figcaption></figure><div class="question-grid">${["q11", "q12", "q13"].map(renderChoiceQuestion).join("")}${renderClassifyQuestion()}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`;
 }
 
 function isCorrect(qid) {
@@ -975,7 +989,7 @@ function renderAchievements() {
   const result = state.result || calculateResult();
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>顯微視野徽章牆</h2><div class="badge-grid">${badges.map((badge) => {
     const lit = result.badges.includes(badge.id);
-    return `<div class="badge-card ${lit ? "lit" : ""}" data-badge-id="${badge.id}" data-badge-image-path="shared-assets/badges/cell_observation/badge-cell_observation-${badge.id}.png"><div class="badge-icon">${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`;
+    return `<div class="badge-card ${lit ? "lit" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="badge-icon" hidden>${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`;
   }).join("")}</div><div class="actions"><button class="primary" id="achieveResult">回到結算</button></div></div></div>`;
 }
 function renderRules() {

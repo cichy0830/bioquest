@@ -46,8 +46,8 @@ const units = [
     url: "prototype-cell-basic-unit/?v=20260710-cell-basic-unit-brief-hook-v1"
   },
   { title: "細胞的構造", unitId: "cell_structure", status: "ready", sequence: 6, summary: "已有模板驗證原型，具細胞圖、構造高亮、配對、比較、EXP 明細與徽章。", tags: ["模板驗證", "細胞構造", "已可測試"], url: "prototype-cell-structure/?v=20260709-attempt-lock-v1", note: "模板驗證單元" },
-  { title: "細胞的觀察", unitId: "cell_observation", status: "ready", sequence: 7, summary: "正式順序第七單元。已完成學生端靜態原型，含玻片製作、低高倍策略、顯微視野判讀、染色目的與迷思修正。", tags: ["正式原型", "顯微觀察", "已可測試"], url: "prototype-cell-observation/?v=20260711-cell-observation-v1" },
-  { title: "物質進出細胞的方式", unitId: "cell_transport", status: "spec", sequence: 8, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材與主控確認後建立原型。", tags: ["規格備料", "擴散", "滲透", "半透膜"] },
+  { title: "細胞的觀察", unitId: "cell_observation", status: "ready", sequence: 7, summary: "正式順序第七單元。已完成學生端靜態原型，含玻片製作、低高倍策略、顯微視野判讀、染色目的與迷思修正。", tags: ["正式原型", "顯微觀察", "已可測試"], url: "prototype-cell-observation/?v=20260711-cell-observation-assets-v2" },
+  { title: "物質進出細胞的方式", unitId: "cell_transport", status: "ready", sequence: 8, summary: "正式順序第八單元。已完成學生端靜態原型，含擴散與滲透、半透膜、濃度方向、資料判讀與動植物細胞變化。", tags: ["正式原型", "擴散", "滲透", "已可測試"], url: "prototype-cell-transport/?v=20260711-cell-transport-v1" },
   { title: "生物體的組成層次", unitId: "biological_organization", status: "spec", sequence: 9, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材與主控確認後建立原型。", tags: ["規格備料", "層次", "排序", "植物器官"] },
   { title: "尺度", unitId: "scale", status: "spec", sequence: 10, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材與主控確認後建立原型。", tags: ["規格備料", "尺度", "比例尺", "觀察工具"] },
   { title: "食物中的養分與能量", unitId: "nutrients_energy", status: "spec", sequence: 11, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材與主控確認後建立原型。", tags: ["規格備料", "養分", "能量", "均衡飲食"] },
