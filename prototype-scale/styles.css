@@ -365,6 +365,7 @@ textarea { min-height: 96px; resize: vertical; }
 .scale-prep-owl img + .owl-fallback { position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); }
 .scale-visual { margin: 12px 0; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: linear-gradient(135deg, #f8fcfa, #e8f5f1); }
 .scale-sort-image img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #eff7f3; }
+.scale-question-image img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #eff7f3; }
 .scale-visual > div { min-height: 150px; }
 .scale-visual figcaption { padding: 10px 12px; color: var(--muted); font-size: 13px; font-weight: 800; }
 .unit-ruler { display: grid; grid-template-columns: repeat(4, 1fr); align-items: end; gap: 8px; padding: 26px; background: repeating-linear-gradient(90deg, transparent 0 23px, rgba(19,93,100,.18) 23px 25px); }

@@ -673,7 +673,17 @@ function renderQuestionImage(question) {
     "screen-zoom": assets.imageCompareHook,
     "magnification-data": assets.imageCompareHook
   };
-  return question.visual ? scaleFallbackVisual(question.visual, hooks[question.visual]) : "";
+  const captions = {
+    "unit-grid": "圖卡只提供觀察線索；請依題目選擇適合的單位。",
+    "tool-station": "先看觀察對象的大小與目的，再判斷適合的工具。",
+    "micrograph-100": "觀察圖中的尺度線索，再判斷它代表的觀察情境。",
+    "scale-bar-50": "以題目提供的標尺資料判讀，不只看圖像顯示大小。",
+    "compare-bars": "比較顯微圖時，要把標尺與倍率資料一起納入判斷。",
+    "screen-zoom": "圖像顯示可以被放大；請分開判斷圖像與實物。",
+    "magnification-data": "以題目提供的影像長度與倍率做簡單估算。"
+  };
+  const hook = hooks[question.visual];
+  return question.visual ? `<figure class="question-visual scale-question-image" data-question-image-hook="${hook}" data-asset-status="ready"><img src="${hook}" alt="尺度任務觀察圖"><figcaption>${captions[question.visual]}</figcaption></figure>` : "";
 }
 function renderChoiceQuestion(qid) {
   const question = questionById(qid);
@@ -695,7 +705,8 @@ function renderClassifyQuestion(qid) {
   const orderedItems = optionOrder(`${qid}_classify_items`, config.items.map((item) => item.id)).map((id) => config.items.find((item) => item.id === id)).filter(Boolean);
   const orderedBuckets = optionOrder(`${qid}_classify_options`, config.options.map((option) => option.id)).map((id) => config.options.find((option) => option.id === id)).filter(Boolean);
   const hook = qid === "q02" ? assets.unitCardsHook : assets.toolCardsHook;
-  return `<div class="question-card" data-question-id="${qid}" data-question-image-hook="${hook}"><h3>${config.prompt}</h3><p class="field-help">分類題：請完成每一列，選後會直接顯示已選答案。</p><div class="classify-list">${orderedItems.map((item) => {
+  const visualCaption = qid === "q02" ? "物件大小不同，適合用的單位也不同。" : "工具選擇要配合觀察對象的尺度與目的。";
+  return `<div class="question-card" data-question-id="${qid}" data-question-image-hook="${hook}"><h3>${config.prompt}</h3><figure class="question-visual scale-question-image" data-asset-status="ready"><img src="${hook}" alt="尺度任務分類圖卡"><figcaption>${visualCaption}</figcaption></figure><p class="field-help">分類題：請完成每一列，選後會直接顯示已選答案。</p><div class="classify-list">${orderedItems.map((item) => {
     const selected = state.answers[qid]?.[item.id] || "";
     return `<div class="classify-row" data-classify-id="${item.id}"><strong>${item.label}</strong><label>選擇<select data-classify-question="${qid}" data-classify-item="${item.id}"><option value="">請選擇</option>${orderedBuckets.map((option) => `<option value="${option.id}" ${selected === option.id ? "selected" : ""}>${option.label}</option>`).join("")}</select></label><p class="selected-answer">${selected ? `已選：${config.options.find((option) => option.id === selected)?.label || ""}` : "尚未選擇"}</p></div>`;
   }).join("")}</div>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
