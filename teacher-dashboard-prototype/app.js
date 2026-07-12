@@ -1,5 +1,6 @@
 const DASHBOARD_API_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
-const DASHBOARD_SCHEMA = "teacher_dashboard_v2";
+const DASHBOARD_SCHEMA = "teacher_dashboard_v3";
+const analytics = window.BioQuestTeacherAnalytics;
 
 const state = {
   currentView: "unit",
@@ -87,6 +88,9 @@ function normalizeDashboard(payload) {
   });
   return {
     generatedAt: payload.generated_at || "",
+    dataSource: payload.data_source || "",
+    sourceCounts: payload.source_counts || {},
+    canonicalUnitIds: Array.isArray(payload.canonical_unit_ids) ? payload.canonical_unit_ids.map(String) : [],
     students: payload.students.filter(isOfficialStudent),
     attempts: payload.attempts.filter((row) => String(row.student_id || "").toLowerCase() !== "guest"),
     questionLogs: payload.question_logs,
@@ -145,14 +149,28 @@ function populateStudentFilter() {
 
 function completedAttempts() {
   return state.data.attempts.filter((row) => {
-    const verification = String(row.verification_status || "historical_pre_verification");
-    return row.submitted_at && String(row.completion_status || "complete") === "complete" && ["server_verified", "historical_pre_verification"].includes(verification);
+    const verification = String(row.verification_status || "");
+    return row.submitted_at && String(row.completion_status || "complete") === "complete" && verification === "server_verified";
   });
 }
 
 function selectedAttempts() {
   const officialIds = new Set(studentsForClass().map((row) => String(row.student_id)));
   return completedAttempts().filter((row) => officialIds.has(String(row.student_id)) && (!unitFilter.value || String(row.unit_id) === unitFilter.value));
+}
+
+function latestSelectedAttempts() {
+  const latestByStudent = new Map();
+  selectedAttempts().forEach((attempt) => {
+    const key = String(attempt.student_id);
+    const previous = latestByStudent.get(key);
+    if (!previous || String(attempt.submitted_at || "") > String(previous.submitted_at || "")) latestByStudent.set(key, attempt);
+  });
+  return [...latestByStudent.values()];
+}
+
+function selectedLatestAttemptIds() {
+  return latestSelectedAttempts().map((attempt) => String(attempt.attempt_id));
 }
 
 function latestAttempt(rows) {
@@ -214,6 +232,30 @@ function selectedReviews() {
   return state.data.teacherReviews.filter((row) => officialIds.has(String(row.student_id)) && (!unitFilter.value || String(row.unit_id) === unitFilter.value));
 }
 
+function sourceAuditPanel() {
+  const counts = state.data.sourceCounts || {};
+  const latestIds = new Set(selectedLatestAttemptIds());
+  const answerLogs = state.data.questionLogs.filter((log) => latestIds.has(String(log.attempt_id)) && (log.answer_json || log.attempt_answer));
+  const verified = latestSelectedAttempts().filter((attempt) => String(attempt.verification_status) === "server_verified").length;
+  const selectedUnitReady = !unitFilter.value || state.data.canonicalUnitIds.includes(String(unitFilter.value));
+  const warning = latestIds.size && !answerLogs.length
+    ? '<p class="data-alert">目前部署沒有回傳逐題答案，選答率不會以推測或假資料代替。請重新部署教師儀表板 v3。</p>'
+    : "";
+  return `<article class="panel source-audit">
+    <div><p class="eyebrow">資料真實性</p><h2>Google Sheet 即時資料鏈路</h2></div>
+    <div class="audit-grid">
+      <p><span>來源</span><strong>${escapeHtml(state.data.dataSource === "google_sheet" ? "Google Sheet / Apps Script" : state.data.dataSource || "未標記")}</strong></p>
+      <p><span>資料產生時間</span><strong>${formatDate(state.data.generatedAt)}</strong></p>
+      <p><span>API Attempts</span><strong>${numberValue(counts.attempts, state.data.attempts.length)}</strong></p>
+      <p><span>API QuestionLogs</span><strong>${numberValue(counts.question_logs, state.data.questionLogs.length)}</strong></p>
+      <p><span>本篩選最新作答</span><strong>${latestIds.size}</strong></p>
+      <p><span>後端正式驗證</span><strong>${verified}</strong></p>
+      <p><span>所選單元正解註冊</span><strong>${selectedUnitReady ? "已完成" : "尚未完成"}</strong></p>
+    </div>
+    <p class="muted">完成率、正確率與診斷預設只取每位學生在所選單元的最新有效完整挑戰；guest、歷史未驗證與待驗證提交不納入。</p>${selectedUnitReady ? "" : '<p class="data-alert">所選單元尚未加入後端正解註冊，因此目前提交只能保存為待驗證，不會納入正式正確率與迷思統計。</p>'}${warning}
+  </article>`;
+}
+
 function renderUnitView() {
   const rows = studentUnitRows();
   if (!rows.length) {
@@ -232,10 +274,11 @@ function renderUnitView() {
   const averageConfidence = average(latest, (row) => Number(row.confidence_score));
   const attentionCount = rows.filter((row) => row.attention).length;
   const officialIds = new Set(rows.map((row) => String(row.student.student_id)));
-  const pendingCount = state.data.attempts.filter((row) => officialIds.has(String(row.student_id)) && (!unitFilter.value || String(row.unit_id) === unitFilter.value) && !["server_verified", "historical_pre_verification"].includes(String(row.verification_status || "historical_pre_verification"))).length;
+  const pendingCount = state.data.attempts.filter((row) => officialIds.has(String(row.student_id)) && (!unitFilter.value || String(row.unit_id) === unitFilter.value) && String(row.verification_status || "") !== "server_verified").length;
   const unitName = unitFilter.selectedOptions[0]?.textContent || unitFilter.value || "尚無單元";
 
   viewRoot.innerHTML = `
+    ${sourceAuditPanel()}
     <section class="grid summary-grid">
       ${metric("名冊數", rows.length, classFilter.value || "未選班級")}
       ${metric("已完成", completed.length, `未完成 ${rows.length - completed.length} 人`)}
@@ -263,6 +306,80 @@ function renderUnitView() {
         ${reviews.map((review) => `<div class="question-card review-card"><p><strong>${escapeHtml(review.student_name || review.student_id)}</strong> <span class="pill warn">${escapeHtml(review.issue_type || "待複核")}</span> <span class="pill">${escapeHtml(review.priority || "normal")}</span></p><p>${escapeHtml(review.student_question || "未留下問題")}</p></div>`).join("")}
         ${!questionRows.length && !reviews.length ? '<p class="muted">目前沒有低信心、待複核或具體提問紀錄。</p>' : ""}
       </div>
+    </section>`;
+}
+
+function questionLabel(questionId) {
+  const match = String(questionId || "").match(/_(q\d+)$/i);
+  return match ? match[1].toUpperCase() : String(questionId || "未標記題目");
+}
+
+function diagnosticLevel(level) {
+  if (level === "A") return { label: "優先課堂澄清", className: "danger" };
+  if (level === "B") return { label: "講述時補辨識線索", className: "warn" };
+  if (level === "N") return { label: "資料量不足", className: "" };
+  return { label: "持續觀察", className: "good" };
+}
+
+function renderQuestionView() {
+  const attempts = latestSelectedAttempts();
+  if (!attempts.length) {
+    viewRoot.innerHTML = sourceAuditPanel() + emptyState("尚無可分析的完整作答", "請先確認所選班級與單元已有後端驗證的完整提交。");
+    return;
+  }
+  const attemptIds = attempts.map((row) => String(row.attempt_id));
+  const questions = analytics.buildQuestionAnalytics(state.data.questionLogs, attemptIds);
+  const diagnostics = analytics.buildConceptDiagnostics(state.data.questionLogs, attemptIds);
+  const hasAnswers = questions.some((question) => question.answerRecorded > 0);
+  viewRoot.innerHTML = `${sourceAuditPanel()}
+    <section class="panel">
+      <p class="eyebrow">課前診斷</p><h2>概念迷思與教學策略提醒</h2>
+      <p class="muted">提示使用代表學生曾需要鷹架；最終完成不代表一開始完全沒有困難。這些資料用於調整講述，不代表學生的固定能力。</p>
+      <div class="diagnostic-grid">${diagnostics.length ? diagnostics.map((item) => {
+        const level = diagnosticLevel(item.level);
+        return `<article class="diagnostic-card level-${item.level.toLowerCase()}"><div class="card-heading"><h3>${escapeHtml(item.title)}</h3><span class="pill ${level.className}">${level.label}</span></div><p><strong>${item.affected}</strong> / ${item.sample} 位曾使用提示或仍需整理 ${item.level === "N" ? "" : `(${formatPercent(item.rate)})`}</p><p>${escapeHtml(item.strategy)}</p><p class="muted">來源：${item.questionIds.map((id) => escapeHtml(questionLabel(id))).join("、") || "未標記題目"}${item.misconceptions.length ? `；迷思 ${item.misconceptions.map(([tag, count]) => `${escapeHtml(analytics.humanizeToken(tag))} ${count}`).join("、")}` : ""}</p></article>`;
+      }).join("") : '<p class="muted">目前沒有足夠的逐題紀錄可建立概念診斷。</p>'}</div>
+    </section>
+    <section class="panel">
+      <p class="eyebrow">逐題統計</p><h2>各題正確率、提示率與各選項選答率</h2>
+      <p class="muted">複選題會分別計算每個被勾選選項，因此選項百分比總和可能超過 100%。配對題以「題目項目 → 學生選擇」呈現。</p>
+      ${!hasAnswers ? '<p class="data-alert">目前 QuestionLogs 沒有 v3 的 answer_json／attempt_answer；為避免誤導，本頁不製造模擬選答率。請更新 Apps Script 並重新部署。</p>' : ""}
+      <div class="question-analysis-list">${questions.length ? questions.map((question) => {
+        const guidance = analytics.guidanceFor(question.skillTag);
+        return `<article class="question-analysis"><div class="card-heading"><div><span class="question-number">${escapeHtml(questionLabel(question.questionId))}</span><h3>${escapeHtml(guidance.title)}</h3></div><div class="rate-pills"><span class="pill ${question.correctRate < .6 ? "danger" : "good"}">正確 ${formatPercent(question.correctRate)}</span><span class="pill ${question.hintRate >= .3 ? "warn" : ""}">提示 ${formatPercent(question.hintRate)}</span><span class="pill">${question.responses} 人</span></div></div>
+          ${question.options.length ? `<div class="option-bars">${question.options.map((option) => `<div class="option-row"><div class="option-label"><span>${escapeHtml(option.label)}</span><strong>${option.count} 人・${formatPercent(option.rate)}</strong></div><div class="bar-track" aria-label="${escapeHtml(option.label)} ${formatPercent(option.rate)}"><span style="width:${Math.min(100, Math.round(option.rate * 100))}%"></span></div></div>`).join("")}</div>` : '<p class="muted">這一題尚未取得可用的學生選項資料。</p>'}
+        </article>`;
+      }).join("") : '<p class="muted">目前沒有對應到最新完整挑戰的 QuestionLogs。</p>'}</div>
+    </section>`;
+}
+
+function feedbackCard(title, rows, field, emptyText) {
+  return `<article class="panel"><div class="card-heading"><h2>${escapeHtml(title)}</h2><span class="pill">${rows.length} 筆</span></div>${rows.length ? `<div class="feedback-list">${rows.map((row) => `<div class="feedback-entry"><strong>${escapeHtml(row.seatNo ? `${row.seatNo} ${row.studentName}` : row.studentName)}</strong><p>${escapeHtml(row[field] || "未填寫")}</p></div>`).join("")}</div>` : `<p class="muted">${escapeHtml(emptyText)}</p>`}</article>`;
+}
+
+function renderFeedbackView() {
+  const attempts = latestSelectedAttempts();
+  const reviews = selectedReviews();
+  const feedback = analytics.buildFeedbackSummary(attempts, reviews);
+  const diagnostics = analytics.buildConceptDiagnostics(state.data.questionLogs, attempts.map((row) => String(row.attempt_id)));
+  const priorities = diagnostics.filter((item) => item.level === "A" || item.level === "B");
+  viewRoot.innerHTML = `${sourceAuditPanel()}
+    <section class="grid summary-grid">
+      ${metric("具體提問", feedback.questions.length, "希望老師課堂解釋")}
+      ${metric("不確定概念", feedback.uncertain.length, "學生自陳")}
+      ${metric("低信心", feedback.lowConfidence.length, "信心 1-2 分")}
+      ${metric("待教師複核", feedback.pendingReviews.length, "後台品質或驗證標記")}
+    </section>
+    <section class="panel"><p class="eyebrow">備課摘要</p><h2>需要老師講解的內容整理</h2><p class="muted">以下依學生最新作答中需要提示、尚未穩定的概念，以及學生自己填寫的不確定內容整理。建議先處理班級共同線索，再回應具體提問。</p>
+      ${priorities.length ? `<div class="strategy-list">${priorities.map((item) => `<div class="strategy-row"><div><span class="pill ${item.level === "A" ? "danger" : "warn"}">${diagnosticLevel(item.level).label}</span><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.strategy)}</p></div><strong>${item.affected}/${item.sample} 人</strong></div>`).join("")}</div>` : '<p class="muted">目前沒有達到全班優先澄清門檻的概念；可先查看學生具體提問。</p>'}
+    </section>
+    <section class="grid two-col">
+      ${feedbackCard("學生希望老師講解", feedback.questions, "question", "目前沒有學生留下具體提問。")}
+      ${feedbackCard("學生自陳不確定", feedback.uncertain, "uncertain", "目前沒有學生填寫不確定概念。")}
+    </section>
+    <section class="grid two-col">
+      ${feedbackCard("學生自陳有把握", feedback.confident, "confident", "目前沒有學生填寫有把握的概念。")}
+      <article class="panel"><div class="card-heading"><h2>待教師複核</h2><span class="pill warn">${feedback.pendingReviews.length} 筆</span></div>${feedback.pendingReviews.length ? `<div class="feedback-list">${feedback.pendingReviews.map((row) => `<div class="feedback-entry"><strong>${escapeHtml(row.studentName)}</strong><p><span class="pill warn">${escapeHtml(row.issueType)}</span> ${escapeHtml(row.question || "未留下文字")}</p></div>`).join("")}</div>` : '<p class="muted">目前沒有待複核資料。</p>'}</article>
     </section>`;
 }
 
@@ -322,6 +439,8 @@ function render() {
   studentFilterLabel.hidden = state.currentView !== "student";
   renderWarnings();
   if (state.currentView === "unit") renderUnitView();
+  if (state.currentView === "questions") renderQuestionView();
+  if (state.currentView === "feedback") renderFeedbackView();
   if (state.currentView === "class") renderClassView();
   if (state.currentView === "student") renderStudentView();
 }
@@ -329,7 +448,7 @@ function render() {
 function errorMessage(error) {
   const code = String(error?.message || error || "");
   if (code === "teacher_dashboard_unauthorized") return "存取碼不正確，或 Apps Script 尚未設定 TEACHER_DASHBOARD_KEY。";
-  if (code === "dashboard_deployment_outdated") return "Apps Script 尚未重新部署教師儀表板 v2；目前不載入舊版或不完整資料。";
+  if (code === "dashboard_deployment_outdated") return "Apps Script 尚未重新部署教師儀表板 v3；目前不載入舊版或不完整資料。";
   if (code.startsWith("dashboard_field_missing:")) return `API 缺少必要欄位 ${code.split(":")[1]}，請重新部署 Apps Script。`;
   if (code.startsWith("dashboard_http_")) return "教師 API 連線失敗，請確認 Apps Script 部署權限與網址。";
   return "無法載入實際資料。請確認網路、Apps Script 部署與存取碼設定。";
