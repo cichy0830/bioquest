@@ -1,4 +1,4 @@
-const DASHBOARD_API_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
+const DASHBOARD_API_URL = "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
 const DASHBOARD_SCHEMA = "teacher_dashboard_v3";
 const analytics = window.BioQuestTeacherAnalytics;
 
