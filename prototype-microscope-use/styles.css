@@ -805,9 +805,9 @@ textarea {
   height: var(--h);
   padding: 0;
   transform: translate(-50%, -50%);
-  border: 2px solid rgba(255, 183, 67, 0.88);
-  background: rgba(255, 221, 133, 0.18);
-  box-shadow: 0 0 0 4px rgba(255, 183, 67, 0.14);
+  border: 2px solid transparent;
+  background: transparent;
+  box-shadow: none;
 }
 
 .part-hotspot.circle {
@@ -825,8 +825,7 @@ textarea {
 }
 
 .part-hotspot.viewed {
-  outline: 2px solid rgba(16, 152, 166, 0.72);
-  outline-offset: 2px;
+  outline: 0;
 }
 
 .part-labels {

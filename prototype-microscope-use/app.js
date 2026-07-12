@@ -18,7 +18,7 @@ const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
 const DIRECT_RAW_MAX = 527;
 const REVISION_RAW_MAX = 315;
-const MICROSCOPE_VERSION = "20260712-microscope-parts-v2";
+const MICROSCOPE_VERSION = "20260712-microscope-parts-v3";
 const titleProgressRules = window.BioQuestTitleProgress;
 const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
 const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
@@ -65,7 +65,7 @@ const defaultState = {
   started_at: null,
   completedScreens: ["login", "rules"],
   activeToken: null,
-  activePart: "eyepiece",
+  activePart: null,
   fieldSlider: 0,
   answers: {
     checkpoint1: { parts: {}, functions: {} },
@@ -326,6 +326,7 @@ function setScreen(next) {
     return;
   }
   if (next !== "result") state.lockNotice = "";
+  if (next === "checkpoint1" && state.screen !== "checkpoint1") state.activePart = null;
   state.screen = next;
   if (!state.completedScreens.includes(next)) state.completedScreens.push(next);
   saveState();
@@ -652,7 +653,7 @@ function markMatchHintUsed(group, field, itemId) {
 }
 
 function getActivePart() {
-  return partItems.find((item) => item.id === state.activePart) || partItems[0];
+  return partItems.find((item) => item.id === state.activePart) || null;
 }
 
 function renderMicroscopePartsExplorer() {
@@ -685,7 +686,7 @@ function renderMicroscopePartsExplorer() {
           </div>
           ${partItems.map((part) => `
             <button
-              class="part-hotspot ${active.id === part.id ? "active" : ""} ${viewed[part.id] ? "viewed" : ""} ${part.shape}"
+              class="part-hotspot ${active?.id === part.id ? "active" : ""} ${viewed[part.id] ? "viewed" : ""} ${part.shape}"
               style="--x:${part.x}%;--y:${part.y}%;--w:${part.w}%;--h:${part.h}%;"
               data-part-id="${part.id}"
               aria-label="查看${part.label}"
@@ -693,17 +694,51 @@ function renderMicroscopePartsExplorer() {
           `).join("")}
         </div>
         <div class="part-labels">
-          ${partItems.map((part) => `<button class="part-chip ${active.id === part.id ? "active" : ""}" data-part-id="${part.id}">${part.label}</button>`).join("")}
+          ${partItems.map((part) => `<button class="part-chip ${active?.id === part.id ? "active" : ""}" data-part-id="${part.id}">${part.label}</button>`).join("")}
         </div>
         <div class="part-info">
-          <strong>${active.label}</strong>
-          <p>${active.function}</p>
-          <span>${active.answer}</span>
+          ${active ? `
+            <strong>${active.label}</strong>
+            <p>${active.function}</p>
+            <span>${active.answer}</span>
+          ` : `
+            <strong>尚未選擇構造</strong>
+            <p>請點選圖片中的部位或下方標籤，查看位置與功能。</p>
+          `}
         </div>
       </div>
       <button class="ghost hint-button" data-group="checkpoint1" data-id="parts">提示</button>
     </div>
   `;
+}
+
+function getSequenceOrder() {
+  const saved = state.answers.checkpoint2.sequence || {};
+  const hasCompleteOrder = sequenceSteps.every((step) => Number(saved[step.id]) > 0);
+  if (hasCompleteOrder) {
+    return sequenceSteps
+      .map((step) => step.id)
+      .sort((left, right) => Number(saved[left]) - Number(saved[right]));
+  }
+  const order = optionOrder("sequenceSteps", sequenceSteps.map((step) => step.id));
+  state.answers.checkpoint2.sequence = Object.fromEntries(order.map((id, index) => [id, index + 1]));
+  saveState();
+  return order;
+}
+
+function setSequenceOrder(order) {
+  state.answers.checkpoint2.sequence = Object.fromEntries(order.map((id, index) => [id, index + 1]));
+  saveState();
+  render();
+}
+
+function moveSequenceStep(stepId, direction) {
+  const order = getSequenceOrder();
+  const fromIndex = order.indexOf(stepId);
+  const toIndex = direction === "up" ? fromIndex - 1 : fromIndex + 1;
+  if (fromIndex < 0 || toIndex < 0 || toIndex >= order.length) return;
+  [order[fromIndex], order[toIndex]] = [order[toIndex], order[fromIndex]];
+  setSequenceOrder(order);
 }
 
 function renderSequenceQuestion() {
@@ -871,13 +906,20 @@ function attachCheckpointHandlers() {
       if (didRevealHint) render();
     });
   });
-  document.querySelectorAll("[data-sequence]").forEach((select) => {
-    select.addEventListener("change", () => {
-      const step = sequenceSteps.find((item) => item.id === select.dataset.sequence);
-      state.answers.checkpoint2.sequence[select.dataset.sequence] = Number(select.value);
-      if (Number(select.value) !== step.order) state.answers.checkpoint2Hints.sequence = true;
-      saveState();
-      if (state.answers.checkpoint2Hints.sequence) render();
+  document.querySelectorAll("[data-sequence-move]").forEach((button) => {
+    button.addEventListener("click", () => moveSequenceStep(button.dataset.sequenceId, button.dataset.sequenceMove));
+  });
+  let draggedSequenceId = null;
+  document.querySelectorAll("[data-sequence-id].sortable-item").forEach((item) => {
+    item.addEventListener("dragstart", () => { draggedSequenceId = item.dataset.sequenceId; });
+    item.addEventListener("dragover", (event) => event.preventDefault());
+    item.addEventListener("drop", (event) => {
+      event.preventDefault();
+      const targetId = item.dataset.sequenceId;
+      if (!draggedSequenceId || draggedSequenceId === targetId) return;
+      const order = getSequenceOrder().filter((id) => id !== draggedSequenceId);
+      order.splice(order.indexOf(targetId), 0, draggedSequenceId);
+      setSequenceOrder(order);
     });
   });
   document.querySelectorAll("[data-choice-group]").forEach((button) => {
