@@ -155,7 +155,8 @@ function completedAttempts() {
 function historicalCompleteAttempts() {
   return state.data.attempts.filter((row) => {
     const verification = String(row.verification_status || "");
-    return row.submitted_at && String(row.completion_status || "complete") === "complete" && ["server_verified", "historical_pre_verification"].includes(verification);
+    const completion = String(row.completion_status || "complete");
+    return row.submitted_at && !["pending_verification", "incomplete", "rejected", "rejected_retry_evidence"].includes(completion) && ["server_verified", "historical_pre_verification"].includes(verification);
   });
 }
 
@@ -407,6 +408,26 @@ function fallbackProgress(studentId) {
   };
 }
 
+function classProgressForStudent(studentId) {
+  const stored = progressForStudent(studentId);
+  const attempts = historicalCompleteAttempts().filter((row) => String(row.student_id) === String(studentId));
+  const bestByUnit = new Map();
+  attempts.forEach((attempt) => {
+    const unitId = String(attempt.unit_id || "");
+    if (!unitId) return;
+    const previous = bestByUnit.get(unitId);
+    if (!previous || numberValue(attempt.unit_credited_exp) > numberValue(previous.unit_credited_exp)) bestByUnit.set(unitId, attempt);
+  });
+  if (!bestByUnit.size) return stored || fallbackProgress(studentId);
+  const derived = {
+    total_exp: [...bestByUnit.values()].reduce((sum, row) => sum + numberValue(row.unit_credited_exp), 0),
+    completed_unit_count: bestByUnit.size,
+    latest_submitted_at: attempts.map((row) => row.submitted_at).sort().pop() || ""
+  };
+  if (!stored || numberValue(stored.completed_unit_count) === 0) return { ...derived, ...(stored || {}) , total_exp: derived.total_exp, completed_unit_count: derived.completed_unit_count, latest_submitted_at: derived.latest_submitted_at };
+  return stored;
+}
+
 function renderClassView() {
   const rows = studentsForClass();
   if (!rows.length) {
@@ -414,7 +435,7 @@ function renderClassView() {
     return;
   }
   viewRoot.innerHTML = `<section class="panel"><h2>${escapeHtml(classFilter.value)} 班級累積進度</h2><div class="table-wrap"><table><thead><tr><th>座號</th><th>姓名</th><th>完成單元</th><th>累積 EXP</th><th>目前稱號</th><th>需關注紀錄</th><th>最近活動</th></tr></thead><tbody>${rows.map((student) => {
-    const progress = progressForStudent(student.student_id) || fallbackProgress(student.student_id);
+    const progress = classProgressForStudent(student.student_id);
     const attention = completedAttempts().filter((attempt) => String(attempt.student_id) === String(student.student_id) && booleanValue(attempt.teacher_attention_needed)).length;
     return `<tr><td>${escapeHtml(student.seat_no || "-")}</td><td>${escapeHtml(student.student_name || student.student_id)}</td><td>${numberValue(progress.completed_unit_count)}</td><td>${numberValue(progress.total_exp)}</td><td>${escapeHtml(progress.current_title || progress.current_title_id || "-")}</td><td>${attention}</td><td>${formatDate(progress.latest_submitted_at || progress.last_activity_at)}</td></tr>`;
   }).join("")}</tbody></table></div></section>`;
