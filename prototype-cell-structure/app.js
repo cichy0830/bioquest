@@ -20,7 +20,7 @@ const badgeAsset = (id) => `../shared-assets/badges/cell_structure/badge-cell_st
 const cellStructureOwlAssets = {
   prep: "assets/owl-cell-structure-prep-scan.webp",
   report: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
-  result: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp"
+  result: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png"
 };
 
 const unitBadgeCatalog = [
@@ -61,6 +61,8 @@ const defaultState = {
   optionOrders: {},
   result: null,
   submitted_at: null,
+  activeDiagramType: "plant",
+  activeStructure: "",
   lockNotice: ""
 };
 
@@ -201,7 +203,7 @@ function layout(content, image = "", imageAlt = "貓頭鷹助理") {
   `;
 }
 
-function mentorCard(title, text, image = "assets/mentor-base.webp") {
+function mentorCard(title, text, image = "assets/mentor-base.png") {
   return `
     <div class="mentor-card">
       <div class="mentor-avatar"><img src="${image}" alt="${mentorName}"></div>
@@ -214,12 +216,49 @@ function mentorCard(title, text, image = "assets/mentor-base.webp") {
   `;
 }
 
+function titleAvatarGender() {
+  const student = state.student || {};
+  const variant = String(student.title_avatar_variant || student.profile_gender || "male").toLowerCase();
+  return ["f", "female", "girl", "女"].includes(variant) ? "female" : "male";
+}
+
+function titleAvatarPath() {
+  const student = state.student || {};
+  if (student.title_avatar_path) {
+    const directPath = String(student.title_avatar_path).trim();
+    if (directPath.startsWith("shared-assets/")) return `../${directPath}`;
+    return directPath;
+  }
+  const levels = titleProgressRules?.levels || [
+    { id: "trainee_investigator", order: "01", need: 0, title: "見習調查員" }
+  ];
+  const aggregate = state.student ? aggregateStudent() : { totalExp: 0 };
+  const titleId = student.current_title_id || titleProgressRules?.getTitleForExp(aggregate.totalExp)?.id || "trainee_investigator";
+  const level = levels.find((item) => item.id === titleId) || levels[0];
+  return `../shared-assets/title-avatars/title-${level.order}-${level.id}-${titleAvatarGender()}.png`;
+}
+
+function renderTitleAvatarCard(context = "brief") {
+  const title = titleForExp(state.student ? aggregateStudent().totalExp : 0);
+  const fallbackAvatar = `../shared-assets/title-avatars/title-01-trainee_investigator-${titleAvatarGender()}.png`;
+  return `
+    <aside class="title-avatar-card ${context}" data-title-avatar-path="${titleAvatarPath()}">
+      <div class="title-avatar-visual"><img src="${titleAvatarPath()}" alt="${title.current}稱號角色" loading="eager" onerror="this.onerror=null;this.src='${fallbackAvatar}'"></div>
+      <div>
+        <span>學生稱號角色</span>
+        <strong>${title.current}</strong>
+        <p>${context === "brief" ? "以目前稱號進入本單元任務。" : `累積 ${state.student ? aggregateStudent().totalExp : 0} EXP`}</p>
+      </div>
+    </aside>
+  `;
+}
+
 function renderLogin() {
   const value = state.student?.student_id && state.student.student_id !== "guest" ? state.student.student_id : "";
   return layout(`
     <p class="eyebrow">微觀研究站</p>
     <h2 class="hero-title">細胞工廠的祕密</h2>
-    ${mentorCard("準備出發了嗎？", "我剛當老師時，最想讓學生看見的不是課本上被背起來的名詞，而是生命世界真的很有意思。今天我們先縮小到細胞裡，看看一個小小生命單位，怎麼像工廠一樣分工合作。", "assets/mentor-briefing-owl.webp")}
+    ${mentorCard("準備出發了嗎？", "我剛當老師時，最想讓學生看見的不是課本上被背起來的名詞，而是生命世界真的很有意思。今天我們先縮小到細胞裡，看看一個小小生命單位，怎麼像工廠一樣分工合作。", "assets/mentor-briefing-owl.png")}
     <div class="story-panel">
       <strong>任務登入</strong>
       <p>輸入學號後，系統會顯示你的姓名，請確認是否正確。老師測試流程時可使用 guest。</p>
@@ -280,7 +319,10 @@ function renderBrief() {
   return layout(`
     <p class="eyebrow">任務檔案開啟</p>
     <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
-    ${mentorCard("研究站的求救訊號", "微觀研究站收到一份細胞掃描資料，但標籤系統發生錯亂。別急著背答案，我們先像真正的研究員一樣，從位置、形狀和功能慢慢判斷：每個構造為什麼在那裡？它又替細胞完成什麼工作？", "assets/mentor-cell-lab.webp")}
+    <div class="brief-character-grid">
+      ${mentorCard("研究站的求救訊號", "微觀研究站收到一份細胞掃描資料，但標籤系統發生錯亂。別急著背答案，我們先像真正的研究員一樣，從位置、形狀和功能慢慢判斷：每個構造為什麼在那裡？它又替細胞完成什麼工作？", "assets/mentor-cell-lab.png")}
+      ${renderTitleAvatarCard("brief")}
+    </div>
     <div class="story-panel highlight">
       <strong>任務核心</strong>
       <p>重新辨識細胞構造，確認每個構造的功能，並找出動物細胞與植物細胞的差異。</p>
@@ -307,9 +349,12 @@ function renderScan() {
   return layout(`
     <p class="eyebrow">貓頭鷹助理預習掃描</p>
     <h2 class="hero-title">任務前知識盤點</h2>
-    <div class="story-panel">
-      <strong>貓頭鷹助理的出發提醒</strong>
-      <p>等等進入細胞工廠時，你會看到許多看起來很像、功能卻不同的構造。先別急著衝關，請先確認自己帶好了五個觀察工具：看得出主要構造、說得出功能、分得出動植物細胞差異，也願意在想錯時停下來修正。提示不是扣分陷阱，而是幫你把想法調整回正確方向的工具。</p>
+    <div class="prep-owl-hero">
+      <div class="prep-owl-visual"><img src="${cellStructureOwlAssets.prep}" alt="胞器掃描準備貓頭鷹助理"></div>
+      <div class="story-panel">
+        <strong>貓頭鷹助理的出發提醒</strong>
+        <p>等等進入細胞工廠時，你會看到許多看起來很像、功能卻不同的構造。先別急著衝關，請先確認自己帶好了五個觀察工具：看得出主要構造、說得出功能、分得出動植物細胞差異，也願意在想錯時停下來修正。提示不是扣分陷阱，而是幫你把想法調整回正確方向的工具。</p>
+      </div>
     </div>
     <div class="progress-steps" aria-label="任務進度">
       <span class="active">登入</span>
@@ -325,7 +370,7 @@ function renderScan() {
     <div class="actions">
       <button class="primary" id="scanNext">進入關卡一</button>
     </div>
-  `, cellStructureOwlAssets.prep, "胞器掃描準備貓頭鷹助理");
+  `);
 }
 
 const checkpoint1Items = [
@@ -464,7 +509,7 @@ const cellHighlightShapes = {
 };
 
 function renderCellArt(type) {
-  const src = type === "animal" ? "assets/cell-animal-3d.webp?v=20260709-orange-mito" : "assets/cell-plant-3d.webp";
+  const src = type === "animal" ? "assets/cell-animal-3d.png?v=20260709-orange-mito" : "assets/cell-plant-3d.png";
   const alt = type === "animal" ? "動物細胞構造圖" : "植物細胞構造圖";
   return `<img class="cell-image" src="${src}" alt="${alt}">`;
 }
@@ -501,8 +546,8 @@ function renderCellHighlightOverlay(type, selectedId) {
 function renderStructureExplorer() {
   const type = state.activeDiagramType || "plant";
   const diagram = cellDiagrams[type];
-  const selectedId = state.activeStructure || diagram.structures[0].id;
-  const selected = structureGuide[selectedId];
+  const selectedId = state.activeStructure || "";
+  const selected = selectedId ? structureGuide[selectedId] : null;
   return `
     <div class="structure-explorer">
       <div>
@@ -515,18 +560,19 @@ function renderStructureExplorer() {
           ${renderCellArt(type)}
           ${renderCellHighlightOverlay(type, selectedId)}
           ${diagram.structures.map((item) => `
-            <button class="cell-hotspot ${selectedId === item.id ? "active" : ""}" style="left:${item.x}%;top:${item.y}%;" data-structure="${item.id}">
-              ${structureGuide[item.id].label}
-            </button>
+            <button class="cell-hotspot part-hotspot ${selectedId === item.id ? "active" : ""}" style="left:${item.x}%;top:${item.y}%;" data-structure="${item.id}" aria-label="選取${structureGuide[item.id].label}"></button>
           `).join("")}
         </div>
         <p class="cell-note">${diagram.note}</p>
       </div>
-      <div class="structure-card">
+      <div class="structure-card part-info">
         <span>目前辨識</span>
-        <strong>${selected.label}</strong>
-        <p>${selected.clue}</p>
-        <div class="hint">${selected.functionText}</div>
+        <strong>${selected ? selected.label : "尚未選取構造"}</strong>
+        <p>${selected ? selected.clue : "請點選圖中的構造位置，或使用下方構造標籤開始探索。"}</p>
+        ${selected ? `<div class="hint">${selected.functionText}</div>` : ""}
+        <div class="part-labels structure-chips" aria-label="細胞構造標籤">
+          ${diagram.structures.map((item) => `<button class="part-chip structure-chip ${selectedId === item.id ? "active" : ""}" data-structure-chip="${item.id}">${structureGuide[item.id].label}</button>`).join("")}
+        </div>
       </div>
     </div>
   `;
@@ -587,14 +633,14 @@ function attachSelectHandlers() {
   document.querySelectorAll(".cell-tab").forEach((button) => {
     button.addEventListener("click", () => {
       state.activeDiagramType = button.dataset.cellType;
-      state.activeStructure = cellDiagrams[state.activeDiagramType].structures[0].id;
+      state.activeStructure = "";
       saveState();
       render();
     });
   });
-  document.querySelectorAll(".cell-hotspot").forEach((button) => {
+  document.querySelectorAll(".cell-hotspot, [data-structure-chip]").forEach((button) => {
     button.addEventListener("click", () => {
-      state.activeStructure = button.dataset.structure;
+      state.activeStructure = button.dataset.structure || button.dataset.structureChip;
       saveState();
       render();
     });
@@ -814,11 +860,17 @@ function attachChoiceHandlers() {
 function renderReflection() {
   const reflection = state.answers.reflection;
   return `
-    <div class="mission-layout">
+    <div class="wide-layout reflection-layout">
       <div class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把你的預習狀態回報給老師</h2>
-        ${mentorCard("把你的想法留下來", "如果你願意寫下自己有把握、還不確定，或想在課堂問的問題，我就更知道該怎麼帶大家往下一步走。空白可以提交但沒有回報 EXP；具體且和本單元概念相關的問題或不確定，才會取得回報 EXP。", "assets/mentor-feedback.webp")}
+        <div class="bq-report-assistant report-owl-hero">
+          <div class="report-owl-visual"><img src="${cellStructureOwlAssets.report}" alt="任務回報貓頭鷹助理"></div>
+          <div class="story-panel">
+            <strong>貓頭鷹助理提醒</strong>
+            <p>空白可以提交但沒有回報 EXP；具體且和本單元概念相關的問題或不確定，才會取得回報 EXP。請寫給老師課堂上可以說明或追問的部分。</p>
+          </div>
+        </div>
         <div class="story-panel">
           <strong>回報 EXP 怎麼判定？</strong>
           <p>只寫「不知道」「好難」或和學科無關的內容不會取得 EXP。寫出細胞核、細胞膜、細胞壁、粒線體、葉綠體、液胞、細胞質等概念，並說明自己混淆或想問的地方，才會得到較高的回報 EXP。</p>
@@ -845,7 +897,6 @@ function renderReflection() {
           <button class="primary" id="submitMission">提交任務</button>
         </div>
       </div>
-      <div class="owl-frame"><img src="${cellStructureOwlAssets.report}" alt="任務回報貓頭鷹助理"></div>
     </div>
   `;
 }
@@ -930,7 +981,7 @@ function renderReview() {
       <div class="panel">
         <p class="eyebrow">貓頭鷹助理概念回饋</p>
         <h2>先整理，再回報</h2>
-        ${mentorCard("課堂前提醒", "貓頭鷹助理已經把你的操作整理成概念線索。等等回報時，請不要只寫「不會」，試著寫出你卡在哪裡；這會幫我在課堂上更快帶你們把問題拆開。", "assets/mentor-briefing-owl.webp")}
+        ${mentorCard("課堂前提醒", "我已經把你的操作整理成概念線索。等等回報時，請不要只寫「不會」，試著寫出你卡在哪裡；這會幫我在課堂上更快帶你們把問題拆開。", `../shared-assets/mentor-feedback/mentor-feedback-${visualState}.webp`)}
         <div class="story-panel">
           <strong>回饋怎麼看？</strong>
           <p>這裡不直接公布每一題答對或答錯，而是整理你需要再閱讀理解的概念。你可以把這些提示帶到下一頁，寫成自己的回報。</p>
@@ -967,6 +1018,8 @@ function attachReflection() {
       setScreen("result");
       return;
     }
+    const confirmed = window.confirm("提交後會進行結算，本次作答將鎖定，不能再修改；若要再挑戰，請重新登入並從頭完成。");
+    if (!confirmed) return;
     state.answers.reflection = {
       confident_concept: document.querySelector("#confidentConcept").value.trim(),
       uncertain_concept: document.querySelector("#uncertainConcept").value.trim(),
@@ -1347,6 +1400,7 @@ function renderAchievements() {
         <p class="eyebrow">累積成就</p>
         <h2>${state.student.student_name}</h2>
         <p class="lead">${state.student.class_name} 班 ${state.student.seat_no} 號｜目前稱號：${title.current}</p>
+        ${renderTitleAvatarCard("achievements")}
         <div class="score-grid">
           <div class="score-box"><span>累積 EXP</span><strong>${aggregate.totalExp}</strong></div>
           <div class="score-box"><span>已取得徽章</span><strong>${aggregate.badges.length}</strong></div>

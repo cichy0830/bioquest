@@ -26,10 +26,10 @@ body {
   color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
   background:
-    linear-gradient(120deg, rgba(248, 244, 230, 0.50), rgba(225, 244, 240, 0.42)),
+    linear-gradient(120deg, rgba(248, 244, 230, 0.34), rgba(225, 244, 240, 0.28)),
     radial-gradient(circle at 16% 18%, rgba(16, 152, 166, 0.17), transparent 26%),
     radial-gradient(circle at 82% 20%, rgba(216, 155, 50, 0.18), transparent 24%),
-    url("assets/bg-mold-toast-investigation-wide.webp"),
+    url("assets/bg-mold-toast-investigation-wide.png"),
     linear-gradient(135deg, #e6d8ba 0%, #f7f2df 45%, #cfe7e9 100%);
   background-position: center;
   background-size: cover;
