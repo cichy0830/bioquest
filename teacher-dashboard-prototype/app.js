@@ -152,6 +152,13 @@ function completedAttempts() {
   });
 }
 
+function historicalCompleteAttempts() {
+  return state.data.attempts.filter((row) => {
+    const verification = String(row.verification_status || "");
+    return row.submitted_at && String(row.completion_status || "complete") === "complete" && ["server_verified", "historical_pre_verification"].includes(verification);
+  });
+}
+
 function selectedAttempts() {
   const officialIds = new Set(studentsForClass().map((row) => String(row.student_id)));
   return completedAttempts().filter((row) => officialIds.has(String(row.student_id)) && (!unitFilter.value || String(row.unit_id) === unitFilter.value));
@@ -383,11 +390,13 @@ function renderFeedbackView() {
 
 function progressForStudent(studentId) {
   const rows = state.data.studentProgress.filter((row) => String(row.student_id) === String(studentId));
-  return [...rows].sort((a, b) => numberValue(b.total_exp) - numberValue(a.total_exp) || String(b.latest_submitted_at || b.last_activity_at || "").localeCompare(String(a.latest_submitted_at || a.last_activity_at || "")))[0] || null;
+  const stored = [...rows].sort((a, b) => numberValue(b.total_exp) - numberValue(a.total_exp) || String(b.latest_submitted_at || b.last_activity_at || "").localeCompare(String(a.latest_submitted_at || a.last_activity_at || "")))[0] || null;
+  if (!stored || numberValue(stored.total_exp) > 0 || numberValue(stored.completed_unit_count) > 0) return stored;
+  return historicalCompleteAttempts().some((row) => String(row.student_id) === String(studentId)) ? null : stored;
 }
 
 function fallbackProgress(studentId) {
-  const attempts = completedAttempts().filter((row) => String(row.student_id) === String(studentId));
+  const attempts = historicalCompleteAttempts().filter((row) => String(row.student_id) === String(studentId));
   const best = new Map();
   attempts.forEach((row) => best.set(String(row.unit_id), Math.max(best.get(String(row.unit_id)) || 0, numberValue(row.unit_credited_exp))));
   return {
