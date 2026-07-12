@@ -18,7 +18,7 @@ const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
 const DIRECT_RAW_MAX = 527;
 const REVISION_RAW_MAX = 315;
-const MICROSCOPE_VERSION = "20260711-microscope-brief-checkpoint-v2";
+const MICROSCOPE_VERSION = "20260712-microscope-parts-v2";
 const titleProgressRules = window.BioQuestTitleProgress;
 const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
 const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
@@ -26,9 +26,9 @@ const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
 const microscopeVisualAssets = {
   mentorPrimary: "assets/mentor-life-world-azhe.webp",
   mentorFallback: "assets/mentor-life-world-azhe.webp",
-  briefingSceneWide: "assets/bg-microscope-use-briefing-azhe-wide.webp?v=20260711-microscope-brief-checkpoint-v2",
-  briefingSceneMobile: "assets/bg-microscope-use-briefing-azhe-mobile.webp?v=20260711-microscope-brief-checkpoint-v2",
-  diagramParts: "assets/microscope-parts-interactive.webp",
+  briefingSceneWide: `assets/bg-microscope-use-briefing-azhe-wide.webp?v=${MICROSCOPE_VERSION}`,
+  briefingSceneMobile: `assets/bg-microscope-use-briefing-azhe-mobile.webp?v=${MICROSCOPE_VERSION}`,
+  diagramParts: `assets/microscope-parts-interactive.webp?v=${MICROSCOPE_VERSION}`,
   owlHooks: {
     opening: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
     scan: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
@@ -848,6 +848,16 @@ function renderCheckpoint4() {
 }
 
 function attachCheckpointHandlers() {
+  document.querySelectorAll("[data-part-id]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const partId = button.dataset.partId;
+      if (!partItems.some((part) => part.id === partId)) return;
+      state.activePart = partId;
+      state.answers.checkpoint1.parts[partId] = true;
+      saveState();
+      render();
+    });
+  });
   document.querySelectorAll("[data-match-group]").forEach((select) => {
     select.addEventListener("change", () => {
       const group = select.dataset.matchGroup;
