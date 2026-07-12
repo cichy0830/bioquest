@@ -11,15 +11,15 @@ const mission = {
   mission_area: "微觀生命站"
 };
 const mentorName = "阿澤老師";
-const mentorImages = { primary: "assets/mentor-basic-unit-guide-half.webp" };
+const mentorImages = { primary: "assets/mentor-basic-unit-guide-half.png" };
 const sceneImages = {
-  ambient: "assets/bg-basic-unit-entry-wide.webp",
-  briefingAzhe: "assets/bg-basic-unit-briefing-azhe-wide.webp"
+  ambient: "assets/bg-basic-unit-entry-wide.png",
+  briefingAzhe: "assets/bg-basic-unit-briefing-azhe-wide.png"
 };
 const owlImages = {
-  opening: "assets/owl-basic-unit-micro-guide.webp",
+  opening: "assets/owl-basic-unit-micro-guide.png",
   prep: "assets/owl-basic-unit-prep-reminder-v2.webp",
-  result: "assets/owl-basic-unit-result.webp"
+  result: "assets/owl-basic-unit-result.png"
 };
 const titleProgressRules = window.BioQuestTitleProgress;
 const titleLevels = titleProgressRules?.levels || [
@@ -65,6 +65,14 @@ const defaultState = {
   attempt_type: "first",
   remote_completed_attempts: 0,
   started_at: null,
+  attempt_id: "",
+  attempt_session_token: "",
+  question_version: "",
+  session_expires_at: "",
+  remote_previous_attempt_id: "",
+  remote_previous_accuracy: null,
+  pending_hint_ids: [],
+  failed_hint_ids: [],
   completedScreens: ["login", "rules"],
   activeToken: null,
   answers: {
@@ -297,6 +305,55 @@ async function fetchStudentStatus(id) {
     throw new Error("backend_invalid_json");
   }
 }
+async function postBackendAction(action, payload) {
+  const body = new URLSearchParams();
+  body.set("payload", JSON.stringify(payload));
+  const response = await fetch(`${BACKEND_URL}?action=${encodeURIComponent(action)}`, { method: "POST", body });
+  if (!response.ok) throw new Error(`backend_${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || `backend_${action}_failed`);
+  return data;
+}
+function startAttemptSession(studentId) {
+  return postBackendAction("startAttempt", { student_id: studentId, unit_id: mission.unit_id });
+}
+function isServerVerifiedSession(session) {
+  return Boolean(session?.attempt_id && session?.attempt_session_token && session?.question_version === BASIC_UNIT_VERSION && session?.verification_mode === "server_verified");
+}
+function queueHintEvent(questionId) {
+  if (!state.pending_hint_ids.includes(questionId)) state.pending_hint_ids.push(questionId);
+  state.failed_hint_ids = state.failed_hint_ids.filter((id) => id !== questionId);
+  saveState();
+}
+async function flushHintEvents(questionIds = state.pending_hint_ids) {
+  if (!state.student || state.student.is_guest) return true;
+  if (!state.attempt_session_token) return false;
+  const ids = [...new Set(questionIds)];
+  const failed = [];
+  for (const questionId of ids) {
+    try {
+      await postBackendAction("hintEvent", {
+        student_id: state.student.student_id,
+        unit_id: mission.unit_id,
+        attempt_id: state.attempt_id,
+        attempt_session_token: state.attempt_session_token,
+        question_id: questionId,
+        question_version: state.question_version
+      });
+      state.pending_hint_ids = state.pending_hint_ids.filter((id) => id !== questionId);
+    } catch (error) {
+      failed.push(questionId);
+    }
+  }
+  state.failed_hint_ids = failed;
+  saveState();
+  return failed.length === 0;
+}
+function recordHintEvent(questionId) {
+  if (!state.student || state.student.is_guest) return Promise.resolve(true);
+  queueHintEvent(questionId);
+  return flushHintEvents([questionId]);
+}
 function normalizeBackendStudent(data, id) {
   if (!data?.ok || !data.student) return null;
   const source = data.student;
@@ -331,6 +388,8 @@ async function login(id) {
   clearPendingLoginIdentity();
   let student = null;
   let completed = 0;
+  let serverSession = null;
+  let remotePreviousAccuracy = null;
   try {
     const data = await fetchStudentStatus(id);
     if (!data?.ok) {
@@ -343,9 +402,15 @@ async function login(id) {
       return;
     }
     completed = Number(data.attempt_status?.completed_attempt_count ?? data.completed_attempts ?? 0);
+    serverSession = await startAttemptSession(student.student_id);
+    if (!isServerVerifiedSession(serverSession)) throw new Error("backend_registry_not_ready");
+    serverSession.previous_attempt_id = serverSession.previous_attempt_id || data.attempt_status?.previous_attempt_id || data.attempt_status?.latest_attempt_id || "";
+    const remoteAccuracy = data.attempt_status?.previous_accuracy ?? data.attempt_status?.best_accuracy;
+    remotePreviousAccuracy = remoteAccuracy === null || remoteAccuracy === undefined || remoteAccuracy === "" ? null : Number(remoteAccuracy);
   } catch (error) {
     if (id !== "guest") {
-      message.innerHTML = `<span class="pill warn">後台目前無法連線，尚未登入。請檢查網路後按「登入任務」重試。</span>`;
+      const notReady = String(error?.message || error).includes("backend_registry_not_ready");
+      message.innerHTML = `<span class="pill warn">${notReady ? "後台版本尚未更新，請通知老師。" : "後台目前無法連線，尚未登入。請檢查網路後按「登入任務」重試。"}</span>`;
       return;
     }
     student = roster.guest;
@@ -357,6 +422,18 @@ async function login(id) {
   state.remote_completed_attempts = completed;
   state.attempt_type = completed > 0 ? "retry" : "first";
   state.started_at = new Date().toISOString();
+  if (serverSession) {
+    state.attempt_id = serverSession.attempt_id;
+    state.attempt_session_token = serverSession.attempt_session_token;
+    state.question_version = serverSession.question_version;
+    state.session_expires_at = serverSession.expires_at;
+    state.remote_previous_attempt_id = serverSession.previous_attempt_id || "";
+    state.remote_previous_accuracy = remotePreviousAccuracy;
+  }
+  if (student.is_guest) {
+    state.attempt_id = `guest-${Date.now()}`;
+    state.question_version = BASIC_UNIT_VERSION;
+  }
   state.optionOrders = {};
   unlock("brief", "rules", "achievements");
   saveState();
@@ -412,7 +489,10 @@ function questionById(id) { return unitQuestions.find((item) => item.id === id);
 function recordChoice(questionId, optionId) {
   const q = questionById(questionId);
   state.answers[q.section][questionId] = optionId;
-  if (optionId !== q.answer && !state.answers[`${q.section}Hints`][questionId]) state.answers[`${q.section}Hints`][questionId] = true;
+  if (optionId !== q.answer && !state.answers[`${q.section}Hints`][questionId]) {
+    state.answers[`${q.section}Hints`][questionId] = true;
+    recordHintEvent(questionId);
+  }
   saveState();
   render();
 }
@@ -445,7 +525,10 @@ function confirmMulti() {
   const correct = multiCellItems.filter((item) => item.answer).map((item) => item.id).sort().join("|");
   const isCorrect = [...selected].sort().join("|") === correct;
   state.answers.checkpoint1.multiConfirmed = true;
-  if (!isCorrect && !state.answers.checkpoint1Hints.multi) state.answers.checkpoint1Hints.multi = true;
+  if (!isCorrect && !state.answers.checkpoint1Hints.multi) {
+    state.answers.checkpoint1Hints.multi = true;
+    recordHintEvent("q03");
+  }
   saveState();
   render();
   return isCorrect;
@@ -462,7 +545,10 @@ function setCategory(category) {
   if (!state.activeToken) return;
   const item = classifyItems.find((entry) => entry.id === state.activeToken);
   state.answers.checkpoint2[item.id] = category;
-  if (category !== item.answer && !state.answers.checkpoint2Hints.classify) state.answers.checkpoint2Hints.classify = true;
+  if (category !== item.answer && !state.answers.checkpoint2Hints.classify) {
+    state.answers.checkpoint2Hints.classify = true;
+    recordHintEvent("q04");
+  }
   state.activeToken = null;
   saveState();
   render();
@@ -480,7 +566,10 @@ function renderMatchQuestion() {
 function setMatch(id, value) {
   state.answers.checkpoint3[id] = value;
   const item = matchItems.find((entry) => entry.id === id);
-  if (value && value !== item.answer && !state.answers.checkpoint3Hints.match) state.answers.checkpoint3Hints.match = true;
+  if (value && value !== item.answer && !state.answers.checkpoint3Hints.match) {
+    state.answers.checkpoint3Hints.match = true;
+    recordHintEvent("q08");
+  }
   saveState();
   render();
 }
@@ -667,9 +756,61 @@ function buildAttempt() {
     payload_version: BASIC_UNIT_VERSION
   };
 }
-function buildBackendPayload(attempt) {
+function canonicalRawAnswers() {
+  const classify = {};
+  classifyItems.forEach((item) => { classify[item.id] = state.answers.checkpoint2[item.id] || ""; });
+  const shapeMatch = {};
+  matchItems.forEach((item) => { shapeMatch[item.id] = state.answers.checkpoint3[item.id] || ""; });
+  const sequence = getSequenceOrder();
   return {
-    attempt_id: `${mission.unit_id}_${attempt.student.student_id}_${Date.now()}`,
+    q01: state.answers.checkpoint1.q01 || "",
+    q02: state.answers.checkpoint1.q02 || "",
+    q03: [...(state.answers.checkpoint1.multi || [])],
+    q04: classify,
+    q06: state.answers.checkpoint2.q06 || "",
+    q07: state.answers.checkpoint2.q07 || "",
+    q08: shapeMatch,
+    q09: state.answers.checkpoint3.q09 || "",
+    q10: state.answers.checkpoint3.q10 || "",
+    q12: state.answers.checkpoint4.q12 || "",
+    q13: sequence,
+    q13_sequence: sequence,
+    q14: state.answers.checkpoint4.q14 || ""
+  };
+}
+function canonicalHintMap() {
+  return {
+    q01: Boolean(state.answers.checkpoint1Hints.q01),
+    q02: Boolean(state.answers.checkpoint1Hints.q02),
+    q03: Boolean(state.answers.checkpoint1Hints.multi),
+    q04: Boolean(state.answers.checkpoint2Hints.classify),
+    q06: Boolean(state.answers.checkpoint2Hints.q06),
+    q07: Boolean(state.answers.checkpoint2Hints.q07),
+    q08: Boolean(state.answers.checkpoint3Hints.match),
+    q09: Boolean(state.answers.checkpoint3Hints.q09),
+    q10: Boolean(state.answers.checkpoint3Hints.q10),
+    q12: Boolean(state.answers.checkpoint4Hints.q12),
+    q13: Boolean(state.answers.checkpoint4Hints.sequence),
+    q14: Boolean(state.answers.checkpoint4Hints.q14)
+  };
+}
+function canonicalQuestionLogs(rawAnswers = canonicalRawAnswers()) {
+  const hints = canonicalHintMap();
+  return ["q01", "q02", "q03", "q04", "q06", "q07", "q08", "q09", "q10", "q12", "q13", "q14"].map((qid) => ({
+    question_id: `${mission.unit_id}_${qid}`,
+    question_version: state.question_version || BASIC_UNIT_VERSION,
+    attempt_answer: JSON.stringify(rawAnswers[qid]),
+    used_hint: Boolean(hints[qid]),
+    hint_used: Boolean(hints[qid])
+  }));
+}
+function buildBackendPayload(attempt) {
+  const rawAnswers = canonicalRawAnswers();
+  return {
+    attempt_id: state.attempt_id || `${mission.unit_id}_${attempt.student.student_id}_${Date.now()}`,
+    attempt_session_token: state.attempt_session_token || "",
+    previous_attempt_id: state.remote_previous_attempt_id || "",
+    question_version: state.question_version || BASIC_UNIT_VERSION,
     student_id: attempt.student.student_id,
     student_name: attempt.student.student_name,
     class_name: attempt.student.class_name,
@@ -698,15 +839,9 @@ function buildBackendPayload(attempt) {
     reflection_quality: attempt.reflection_quality,
     teacher_attention_needed: attempt.teacher_attention_needed,
     student_question: attempt.student_question,
-    question_logs: (attempt.section_stats || []).map((section, index) => ({
-      question_id: `${attempt.mission.unit_id}_section_${index + 1}`,
-      skill_tag: section.title,
-      is_correct: section.correct === section.total,
-      used_hint: section.corrected_after_hint > 0,
-      attempt_answer: `答對 ${section.correct}/${section.total}`,
-      correct_answer: "詳見單元題組",
-      exp_awarded: section.exp
-    }))
+    raw_answers: rawAnswers,
+    raw_answers_json: JSON.stringify(rawAnswers),
+    question_logs: canonicalQuestionLogs(rawAnswers)
   };
 }
 async function submitAttemptToBackend(attempt) {
@@ -727,6 +862,49 @@ function applyBackendStudentProgress(data) {
     if (progress[field] !== undefined && progress[field] !== null) state.student[field] = progress[field];
   });
   return true;
+}
+function parseBadgeIds(value) {
+  if (Array.isArray(value)) return value;
+  try {
+    const parsed = JSON.parse(value || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+function applyVerifiedAttempt(localAttempt, backendResponse) {
+  const verified = backendResponse?.verified_attempt || backendResponse?.attempt || null;
+  if (!verified || verified.verification_status !== "server_verified") return localAttempt;
+  const badgeIds = parseBadgeIds(verified.badges || verified.badges_json);
+  const totalQuestions = Number(verified.total_questions || localAttempt.total || 0);
+  const correct = Number(verified.correct || 0);
+  const accuracy = Number(verified.accuracy ?? (totalQuestions ? correct / totalQuestions : 0));
+  return {
+    ...localAttempt,
+    verification_status: verified.verification_status,
+    hint_verification_status: verified.hint_verification_status,
+    total: totalQuestions,
+    total_questions: totalQuestions,
+    correct,
+    accuracy,
+    correct_without_hint: Number(verified.correct_without_hint || 0),
+    corrected_after_hint: Number(verified.corrected_after_hint || 0),
+    hint_used: Number(verified.hints_used || verified.hint_used || 0),
+    completion_exp: Number(verified.completion_exp || 0),
+    concept_exp: Number(verified.concept_exp || 0),
+    revision_exp: Number(verified.revision_exp || 0),
+    question_exp: Number(verified.question_exp || 0),
+    mastery_exp: Number(verified.mastery_exp || 0),
+    retry_exp: Number(verified.retry_exp || 0),
+    attempt_total_exp: Number(verified.attempt_total_exp || 0),
+    unit_credited_exp: Number(verified.unit_credited_exp || 0),
+    credited_delta: Number(verified.credited_delta || 0),
+    badges: badgeIds,
+    question_logs: verified.question_logs || localAttempt.question_logs || [],
+    reflection_quality: verified.reflection_quality || localAttempt.reflection_quality,
+    reflection_exp_reason: verified.reflection_exp_reason || localAttempt.reflection_exp_reason,
+    teacher_attention_needed: Boolean(verified.teacher_attention_needed)
+  };
 }
 
 function misconceptionText(tag) {
@@ -766,9 +944,16 @@ function attachReflection() {
     state.submitted_at = new Date().toISOString();
     const attempt = buildAttempt();
     try {
-      const backendResponse = await submitAttemptToBackend(attempt);
-      applyBackendStudentProgress(backendResponse);
-      saveAttempt(attempt);
+      let finalAttempt = attempt;
+      if (!state.student?.is_guest) {
+        const hintsSynced = await flushHintEvents();
+        if (!hintsSynced) throw new Error("hint_event_sync_failed");
+        const backendResponse = await submitAttemptToBackend(attempt);
+        applyBackendStudentProgress(backendResponse);
+        finalAttempt = applyVerifiedAttempt(attempt, backendResponse);
+        state.result = finalAttempt;
+      }
+      saveAttempt(finalAttempt);
       state.remote_completed_attempts = Number(state.remote_completed_attempts || 0) + 1;
       unlock("result", "achievements");
       saveState();
@@ -810,11 +995,11 @@ function titleAvatarPath(titleId) {
   const variant = String(state.student?.progress?.title_avatar_variant || state.student?.title_avatar_variant || state.student?.profile_gender || "male").toLowerCase();
   const gender = ["f", "female", "girl", "女"].includes(variant) ? "female" : "male";
   const level = titleLevels.find((item) => item.id === titleId) || titleLevels[0];
-  return `../shared-assets/title-avatars/title-${level.order}-${level.id}-${gender}.webp`;
+  return `../shared-assets/title-avatars/title-${level.order}-${level.id}-${gender}.png`;
 }
 function renderResultBadges(result) {
   const earned = new Set(result.badges || []);
-  return `<section class="result-badges"><h3>本單元徽章</h3><div class="badge-grid">${badges.map((badge) => `<div class="badge-card ${earned.has(badge.name) ? "lit earned-now" : ""}" data-badge-id="${badge.id}"><img src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div></section>`;
+  return `<section class="result-badges"><h3>本單元徽章</h3><div class="badge-grid">${badges.map((badge) => `<div class="badge-card ${earned.has(badge.id) || earned.has(badge.name) ? "lit earned-now" : ""}" data-badge-id="${badge.id}"><img src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div></section>`;
 }
 function renderResult() {
   const result = state.result || calculateResult();
@@ -826,7 +1011,7 @@ function renderAchievements() {
   const { totalExp, title } = titleAndProgress();
   const acquired = acquiredBadgeNames();
   const earnedNow = new Set(result.badges || []);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">累積成就</p><h2>${state.student?.student_name || "學習者"}</h2><div class="student-title-card" data-current-title-id="${title.id}" data-title-avatar-path="${titleAvatarPath(title.id)}"><div class="student-title-avatar"><img src="${titleAvatarPath(title.id)}" alt="${title.current}稱號角色"></div><div><span>目前稱號</span><strong>${title.current}</strong><p>累積 ${totalExp} EXP</p><p>${title.remaining ? `下一稱號：${title.next}，還差 ${title.remaining} EXP` : "已達最高稱號，EXP 仍會繼續累積。"}</p></div></div><div class="progress-bar"><div class="progress-fill" style="width:${title.title_progress_percent}%"></div></div><p class="muted">稱號進度 ${Math.min(100, Math.round(title.title_progress_percent * 10) / 10)}%</p></div><div class="panel"><p class="eyebrow">成就收藏</p><h2>本單元成就</h2><div class="badge-grid">${badges.map((badge) => `<div class="badge-card ${acquired.has(badge.name) ? "lit" : ""} ${earnedNow.has(badge.name) ? "earned-now" : ""}" data-badge-id="${badge.id}"><img src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div><div class="actions"><button class="secondary" id="achieveResult">返回結算</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">累積成就</p><h2>${state.student?.student_name || "學習者"}</h2><div class="student-title-card" data-current-title-id="${title.id}" data-title-avatar-path="${titleAvatarPath(title.id)}"><div class="student-title-avatar"><img src="${titleAvatarPath(title.id)}" alt="${title.current}稱號角色"></div><div><span>目前稱號</span><strong>${title.current}</strong><p>累積 ${totalExp} EXP</p><p>${title.remaining ? `下一稱號：${title.next}，還差 ${title.remaining} EXP` : "已達最高稱號，EXP 仍會繼續累積。"}</p></div></div><div class="progress-bar"><div class="progress-fill" style="width:${title.title_progress_percent}%"></div></div><p class="muted">稱號進度 ${Math.min(100, Math.round(title.title_progress_percent * 10) / 10)}%</p></div><div class="panel"><p class="eyebrow">成就收藏</p><h2>本單元成就</h2><div class="badge-grid">${badges.map((badge) => `<div class="badge-card ${acquired.has(badge.id) || acquired.has(badge.name) ? "lit" : ""} ${earnedNow.has(badge.id) || earnedNow.has(badge.name) ? "earned-now" : ""}" data-badge-id="${badge.id}"><img src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div><div class="actions"><button class="secondary" id="achieveResult">返回結算</button></div></div></div>`;
 }
 function renderRules() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元封頂</strong><p>本單元認列 EXP 上限為 500。第一次零提示全對是最高路徑。</p></div><div class="story-panel"><strong>提示後修正</strong><p>提示會給判斷線索，不直接公布答案。提示後答對仍有修正 EXP，但低於未提示答對。</p></div><div class="story-panel"><strong>提交鎖定</strong><p>提交任務後本次作答結果鎖定。再挑戰必須重新登入並從頭完成整份任務。</p></div></div><div class="actions"><button class="secondary" id="rulesBack">返回目前任務</button></div></div></div>`;
@@ -863,7 +1048,10 @@ function attachEvents() {
   }
   if (state.screen === "checkpoint4") {
     attachCommonChoiceHandlers();
-    if (getSequenceOrder().join("|") !== "organism|tissue|cell") state.answers.checkpoint4Hints.sequence = true;
+    if (getSequenceOrder().join("|") !== "organism|tissue|cell" && !state.answers.checkpoint4Hints.sequence) {
+      state.answers.checkpoint4Hints.sequence = true;
+      recordHintEvent("q13");
+    }
     document.querySelector("#checkpoint4Next").addEventListener("click", () => { state.result = calculateResult(); saveState(); unlock("review"); setScreen("review"); });
   }
   if (state.screen === "review") document.querySelector("#reviewNext").addEventListener("click", () => { unlock("reflection"); setScreen("reflection"); });
