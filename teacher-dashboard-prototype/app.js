@@ -101,10 +101,8 @@ function normalizeDashboard(payload) {
 }
 
 async function fetchDashboard(key) {
-  const body = new URLSearchParams();
-  body.set("action", "getTeacherDashboard");
-  body.set("teacher_key", key);
-  const response = await fetch(DASHBOARD_API_URL, { method: "POST", body });
+  const query = new URLSearchParams({ action: "getTeacherDashboard", teacher_key: key });
+  const response = await fetch(`${DASHBOARD_API_URL}?${query.toString()}`, { method: "GET", credentials: "omit" });
   if (!response.ok) throw new Error(`dashboard_http_${response.status}`);
   return normalizeDashboard(await response.json());
 }
