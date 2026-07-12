@@ -6,7 +6,7 @@ const roster = {
 };
 
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
-const BASIC_UNIT_VERSION = "20260712-basic-unit-ui-p1-v1";
+const BASIC_UNIT_VERSION = "20260712-basic-unit-progress-v2";
 const mission = {
   unit_id: "cell_basic_unit",
   unit_title: "生物體的基本單位",
@@ -767,7 +767,7 @@ function titleAndProgress() {
   const explicitLevel = titleLevels.find((level) => level.id === explicitId);
   const remoteTotal = Number(state.student?.progress?.total_exp ?? state.student?.total_exp ?? NaN);
   const localTotal = state.student ? localTotalExp(state.student.student_id) : 0;
-  const totalExp = Number.isFinite(remoteTotal) ? remoteTotal : Math.max(localTotal, explicitLevel?.need || 0);
+  const totalExp = Math.max(Number.isFinite(remoteTotal) ? remoteTotal : 0, localTotal, explicitLevel?.need || 0);
   const fallbackIndex = titleLevels.reduce((index, level, itemIndex) => totalExp >= level.need ? itemIndex : index, 0);
   const fallbackCurrent = titleLevels[fallbackIndex];
   const fallbackNext = titleLevels[fallbackIndex + 1];
