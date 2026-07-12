@@ -6,7 +6,7 @@ const roster = {
 };
 
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
-const BASIC_UNIT_VERSION = "20260710-cell-basic-unit-brief-hook-v1";
+const BASIC_UNIT_VERSION = "20260712-basic-unit-prep-hero-v1";
 const mission = {
   unit_id: "cell_basic_unit",
   unit_title: "生物體的基本單位",
@@ -21,7 +21,7 @@ const sceneImages = {
 };
 const owlImages = {
   opening: "assets/owl-basic-unit-micro-guide.webp",
-  scan: "assets/owl-basic-unit-cell-scan.webp",
+  prep: "assets/owl-basic-unit-prep-reminder-v2.webp",
   result: "assets/owl-basic-unit-result.webp"
 };
 
@@ -343,13 +343,22 @@ function renderBrief() {
 }
 function renderScan() {
   const concepts = ["細胞是構造與功能基本單位", "生物體由細胞組成", "有些生物只由一個細胞構成", "不同細胞形狀常和功能有關", "顯微鏡影像可作為細胞證據"];
-  return layout(`
-    <p class="eyebrow">任務準備</p>
-    <h2 class="hero-title">進關卡前先整理概念</h2>
-    <div class="story-panel"><strong>微觀掃描提醒</strong><p>本單元不考完整胞器功能。請先掌握細胞作為基本單位、單多細胞差異、形狀功能關聯與觀察證據。</p></div>
-    <div class="card-grid">${concepts.map((text) => `<div class="concept-card"><strong>${text}</strong></div>`).join("")}</div>
-    <div class="actions"><button class="primary" id="scanNext">進入生命積木掃描</button></div>
-  `, owlImages.scan);
+  return `
+    <div class="wide-layout prep-layout">
+      <section class="panel hero-panel prep-panel">
+        <p class="eyebrow">任務準備</p>
+        <h2 class="hero-title">進關卡前先整理概念</h2>
+        <div class="prep-hero" data-prep-hero>
+          <figure class="prep-owl-visual">
+            <img src="${owlImages.prep}" alt="貓頭鷹助理拿著細胞觀察片，提醒進入微觀掃描前的重要概念">
+          </figure>
+          <div class="prep-reminder"><strong>微觀掃描提醒</strong><p>本單元不考完整胞器功能。請先掌握細胞作為基本單位、單多細胞差異、形狀功能關聯與觀察證據。</p></div>
+        </div>
+        <div class="card-grid prep-concept-grid">${concepts.map((text) => `<div class="concept-card"><strong>${text}</strong></div>`).join("")}</div>
+        <div class="actions"><button class="primary" id="scanNext">進入生命積木掃描</button></div>
+      </section>
+    </div>
+  `;
 }
 
 function questionById(id) { return unitQuestions.find((item) => item.id === id); }
