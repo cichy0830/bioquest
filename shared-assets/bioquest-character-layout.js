@@ -67,7 +67,7 @@
 
   function feedbackImage(state) {
     const directory = bodyPath("feedbackMentorBase", "../shared-assets/mentor-feedback").replace(/\/$/, "");
-    return `${directory}/mentor-feedback-${state}.webp`;
+    return `${directory}/mentor-feedback-${state}.webp?v=20260712-expression-v2`;
   }
 
   function enhanceLogin(root) {
