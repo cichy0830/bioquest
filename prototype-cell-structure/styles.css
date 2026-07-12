@@ -829,6 +829,28 @@ textarea {
   outline-offset: 3px;
 }
 
+.structure-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.structure-chip {
+  min-height: 40px;
+  padding: 8px 10px;
+  color: var(--teal-dark);
+  border: 1px solid rgba(11, 95, 118, 0.24);
+  border-radius: 8px;
+  background: #fff;
+  font-weight: 850;
+}
+
+.structure-chip.active {
+  color: #fff;
+  background: var(--teal-dark);
+}
+
 .cell-note {
   margin: 10px 0 0;
   color: var(--muted);
@@ -1235,7 +1257,11 @@ textarea {
   .score-grid,
   .badge-grid,
   .mission-hud,
-  .structure-explorer {
+  .structure-explorer,
+  .brief-character-grid,
+  .title-avatar-card,
+  .prep-owl-hero,
+  .report-owl-hero {
     grid-template-columns: 1fr;
   }
 
@@ -1268,6 +1294,20 @@ textarea {
 
   .owl-frame img {
     max-height: 300px;
+  }
+
+  .title-avatar-visual {
+    height: 240px;
+  }
+
+  .prep-owl-visual,
+  .report-owl-visual {
+    min-height: 190px;
+  }
+
+  .prep-owl-visual img,
+  .report-owl-visual img {
+    max-height: 230px;
   }
 
   .hero-title {
@@ -1368,6 +1408,11 @@ textarea {
 
   .cell-hotspot {
     width: 14%;
+    min-height: 0;
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+    box-shadow: none;
   }
 
   .structure-card strong {

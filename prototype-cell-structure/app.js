@@ -240,13 +240,14 @@ function titleAvatarPath() {
 
 function renderTitleAvatarCard(context = "brief") {
   const title = titleForExp(state.student ? aggregateStudent().totalExp : 0);
+  const displayTitle = state.student?.current_title || title.current;
   const fallbackAvatar = `../shared-assets/title-avatars/title-01-trainee_investigator-${titleAvatarGender()}.png`;
   return `
     <aside class="title-avatar-card ${context}" data-title-avatar-path="${titleAvatarPath()}">
-      <div class="title-avatar-visual"><img src="${titleAvatarPath()}" alt="${title.current}稱號角色" loading="eager" onerror="this.onerror=null;this.src='${fallbackAvatar}'"></div>
+      <div class="title-avatar-visual"><img src="${titleAvatarPath()}" alt="${displayTitle}稱號角色" loading="eager" onerror="this.onerror=null;this.src='${fallbackAvatar}'"></div>
       <div>
         <span>學生稱號角色</span>
-        <strong>${title.current}</strong>
+        <strong>${displayTitle}</strong>
         <p>${context === "brief" ? "以目前稱號進入本單元任務。" : `累積 ${state.student ? aggregateStudent().totalExp : 0} EXP`}</p>
       </div>
     </aside>

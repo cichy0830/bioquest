@@ -3,7 +3,7 @@
   --bq-character-report-size: clamp(170px, 22vw, 240px);
   --bq-character-result-size: clamp(240px, 30vw, 340px);
   --bq-character-inline-size: clamp(72px, 10vw, 120px);
-  --bq-feedback-mentor-size: clamp(320px, 42vw, 500px);
+  --bq-feedback-mentor-size: clamp(220px, 32vw, 420px);
   --bq-badge-size: clamp(72px, 8vw, 96px);
 }
 
@@ -53,7 +53,7 @@
   place-items: center !important;
   width: 100% !important;
   height: var(--bq-feedback-mentor-size) !important;
-  min-height: 320px !important;
+  min-height: 220px !important;
   padding: 8px !important;
   overflow: hidden !important;
   background: transparent !important;
