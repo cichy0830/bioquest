@@ -1,12 +1,9 @@
 const roster = {
-  S70101: { student_id: "S70101", class_name: "701", seat_no: "01", student_name: "林安安" },
-  S70102: { student_id: "S70102", class_name: "701", seat_no: "02", student_name: "陳柏宇" },
-  S70103: { student_id: "S70103", class_name: "701", seat_no: "03", student_name: "許若晴" },
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
-const BASIC_UNIT_VERSION = "20260712-basic-unit-progress-v2";
+const BASIC_UNIT_VERSION = "20260712-basic-unit-sheet-login-v4";
 const mission = {
   unit_id: "cell_basic_unit",
   unit_title: "生物體的基本單位",
@@ -291,14 +288,19 @@ function renderLogin() {
   `);
 }
 async function fetchStudentStatus(id) {
-  const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}`;
-  const response = await fetch(url);
+  const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}&unit_id=${encodeURIComponent(mission.unit_id)}&_=${Date.now()}`;
+  const response = await fetch(url, { cache: "no-store" });
   if (!response.ok) throw new Error(`backend_${response.status}`);
-  return response.json();
+  try {
+    return await response.json();
+  } catch {
+    throw new Error("backend_invalid_json");
+  }
 }
 function normalizeBackendStudent(data, id) {
-  if (!data?.ok) return null;
-  const source = data.student || data;
+  if (!data?.ok || !data.student) return null;
+  const source = data.student;
+  if (String(source.student_id || "") !== String(id)) return null;
   const progress = data.progress || data.student_progress || source.progress || {};
   return {
     student_id: source.student_id || id,
@@ -315,30 +317,40 @@ function normalizeBackendStudent(data, id) {
     is_guest: id === "guest" || Boolean(source.is_guest)
   };
 }
+function clearPendingLoginIdentity() {
+  state = structuredClone(defaultState);
+  saveState();
+  renderStudentMini();
+}
 async function login(id) {
   const message = document.querySelector("#loginMessage");
   if (!id) {
     message.innerHTML = `<span class="pill warn">請輸入學號。</span>`;
     return;
   }
+  clearPendingLoginIdentity();
   let student = null;
   let completed = 0;
   try {
     const data = await fetchStudentStatus(id);
+    if (!data?.ok) {
+      message.innerHTML = `<span class="pill warn">${data?.error === "student_not_found" ? "查無此學號，請確認後重試。" : "後台未能完成身分查詢，請稍後重試。"}</span>`;
+      return;
+    }
     student = normalizeBackendStudent(data, id);
     if (!student) {
-      message.innerHTML = `<span class="pill warn">${data?.message || "查無此學號，請重新輸入。"}</span>`;
+      message.innerHTML = `<span class="pill warn">後台回傳的學生資料不完整或學號不符，尚未登入。請重試或通知老師。</span>`;
       return;
     }
     completed = Number(data.attempt_status?.completed_attempt_count ?? data.completed_attempts ?? 0);
-  } catch {
-    student = roster[id];
-    if (!student) {
-      message.innerHTML = `<span class="pill warn">後台暫時無法連線，且本機測試名單查無此學號。</span>`;
+  } catch (error) {
+    if (id !== "guest") {
+      message.innerHTML = `<span class="pill warn">後台目前無法連線，尚未登入。請檢查網路後按「登入任務」重試。</span>`;
       return;
     }
+    student = roster.guest;
     completed = studentAttempts(student.student_id).length;
-    message.innerHTML = `<span class="pill warn">後台暫時無法連線，已使用本機測試名單。</span>`;
+    message.innerHTML = `<span class="pill warn">後台暫時無法連線；guest 已切換為本機測試模式，不列入正式統計。</span>`;
   }
   state = structuredClone(defaultState);
   state.student = { ...student };
@@ -707,6 +719,16 @@ async function submitAttemptToBackend(attempt) {
   return data;
 }
 
+function applyBackendStudentProgress(data) {
+  const progress = data?.student_progress || data?.progress;
+  if (!progress || typeof progress !== "object" || !state.student) return false;
+  state.student.progress = { ...(state.student.progress || {}), ...progress };
+  ["total_exp", "current_title_id", "current_title", "profile_gender", "title_avatar_variant", "title_avatar_path"].forEach((field) => {
+    if (progress[field] !== undefined && progress[field] !== null) state.student[field] = progress[field];
+  });
+  return true;
+}
+
 function misconceptionText(tag) {
   const map = {
     q01: "建議再理解細胞不只是小顆粒，而是構造與功能基本單位。",
@@ -744,7 +766,8 @@ function attachReflection() {
     state.submitted_at = new Date().toISOString();
     const attempt = buildAttempt();
     try {
-      await submitAttemptToBackend(attempt);
+      const backendResponse = await submitAttemptToBackend(attempt);
+      applyBackendStudentProgress(backendResponse);
       saveAttempt(attempt);
       state.remote_completed_attempts = Number(state.remote_completed_attempts || 0) + 1;
       unlock("result", "achievements");
