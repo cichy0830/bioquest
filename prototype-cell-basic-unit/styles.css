@@ -120,13 +120,33 @@ textarea { min-height: 96px; resize: vertical; }
 .category-title { margin-bottom:10px; color:var(--teal-dark); font-weight:900; }
 .match-field { display:grid; grid-template-columns: minmax(120px,.8fr) minmax(160px,1fr); gap:12px; align-items:center; }
 .selected-answer { grid-column: 1 / -1; color: var(--muted); font-size: 14px; font-weight: 800; }
+.multi-confirm-row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:12px; }
 .sortable-list { display:grid; gap:10px; }
 .sortable-item { display:grid; grid-template-columns: 34px minmax(0,1fr) auto; gap:10px; align-items:center; padding:12px; border:1px solid var(--line); border-radius:8px; background:#fff; }
 .drag-handle { width:22px; height:22px; border-radius:6px; background: repeating-linear-gradient(0deg, rgba(16,152,166,.7), rgba(16,152,166,.7) 2px, transparent 2px, transparent 6px); }
 .sequence-move-buttons { display:flex; gap:6px; }
 .badge-grid { display:grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap:10px; }
-.badge-card { min-height: 116px; padding:12px; border:1px solid var(--line); border-radius:8px; background:#fff; filter: grayscale(1); opacity:.58; }
+.badge-card { display:grid; align-content:start; justify-items:center; gap:9px; min-height:116px; padding:12px; border:1px solid var(--line); border-radius:8px; background:#fff; filter:grayscale(1); opacity:.58; text-align:center; }
+.badge-card > img { display:block; width:84px; height:84px; max-width:100%; object-fit:contain; margin:0 auto; }
+.badge-card strong { display:block; }
+.badge-card p { margin:0; color:var(--muted); line-height:1.45; }
 .badge-card.lit { filter:none; opacity:1; border-color:rgba(216,155,50,.6); background:#fff6df; }
+.badge-card.earned-now { box-shadow:0 0 0 2px rgba(216,155,50,.28); }
+.exp-ledger { margin:20px 0; }
+.exp-ledger-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.exp-ledger-item { display:grid; gap:4px; padding:12px; border:1px solid var(--line); border-radius:8px; background:rgba(255,255,255,.8); }
+.exp-ledger-item span { color:var(--muted); font-size:13px; font-weight:800; }
+.exp-ledger-item strong { color:var(--teal-dark); }
+.exp-ledger-item.total { border-color:rgba(216,155,50,.55); background:#fff3d4; }
+.result-badges { margin-top:22px; }
+.student-title-card { display:grid; grid-template-columns:minmax(150px,220px) minmax(0,1fr); gap:18px; align-items:center; margin:16px 0; padding:16px; border:1px solid var(--line); border-radius:8px; background:linear-gradient(135deg,rgba(226,248,247,.92),rgba(255,244,214,.84)); }
+.student-title-avatar { display:grid; place-items:center; min-height:230px; }
+.student-title-avatar img { display:block; width:100%; height:230px; object-fit:contain; object-position:center bottom; }
+.student-title-card span { color:var(--muted); font-size:13px; font-weight:900; }
+.student-title-card strong { display:block; margin:4px 0 8px; color:var(--teal-dark); font-size:26px; }
+.student-title-card p { margin:4px 0; color:var(--muted); line-height:1.55; }
+.progress-bar { height:12px; overflow:hidden; border-radius:999px; background:#dce8e4; }
+.progress-fill { height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--teal),var(--amber)); }
 .status-line { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
 .brief-background-figure { margin:18px 0; overflow:hidden; border:1px solid var(--line); border-radius:8px; background:rgba(246,251,249,.78); }
 .brief-background-figure img { display:block; width:100%; aspect-ratio:16/9; object-fit:cover; object-position:center; }
@@ -153,5 +173,9 @@ textarea { min-height: 96px; resize: vertical; }
   .sequence-move-buttons { grid-column:1 / -1; }
   .sequence-move-buttons button { flex:1; }
   .badge-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .exp-ledger-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .student-title-card { grid-template-columns:1fr; text-align:center; }
+  .student-title-avatar { min-height:210px; }
+  .student-title-avatar img { height:min(62vw,280px); }
   .actions { display:grid; grid-template-columns:1fr; }
 }

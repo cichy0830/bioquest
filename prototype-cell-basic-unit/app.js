@@ -6,7 +6,7 @@ const roster = {
 };
 
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
-const BASIC_UNIT_VERSION = "20260712-basic-unit-prep-hero-v1";
+const BASIC_UNIT_VERSION = "20260712-basic-unit-ui-p1-v1";
 const mission = {
   unit_id: "cell_basic_unit",
   unit_title: "生物體的基本單位",
@@ -24,6 +24,18 @@ const owlImages = {
   prep: "assets/owl-basic-unit-prep-reminder-v2.webp",
   result: "assets/owl-basic-unit-result.webp"
 };
+const titleProgressRules = window.BioQuestTitleProgress;
+const titleLevels = titleProgressRules?.levels || [
+  { id: "trainee_investigator", order: "01", need: 0, title: "見習調查員" },
+  { id: "life_observer", order: "02", need: 500, title: "生命觀察員" },
+  { id: "ecology_recorder", order: "03", need: 1500, title: "生態記錄員" },
+  { id: "concept_solver", order: "04", need: 3000, title: "概念解謎者" },
+  { id: "micro_explorer", order: "05", need: 5200, title: "微觀探索者" },
+  { id: "systems_investigator", order: "06", need: 8000, title: "系統調查員" },
+  { id: "life_researcher", order: "07", need: 11800, title: "生命研究員" },
+  { id: "bioquest_expert", order: "08", need: 16700, title: "BioQuest 專家" },
+  { id: "bioquest_guardian", order: "09", need: 23400, title: "生命祕境守護者" }
+];
 
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -85,10 +97,10 @@ const unitQuestions = [
     { id: "photo_only", text: "細胞只會出現在顯微鏡照片中。" }
   ], hint: "想想最小且仍和生命活動有關的基本單位。" },
   { id: "q02", section: "checkpoint1", answer: "plant_cells", prompt: "顯微鏡下看到洋蔥表皮由一格一格的小單位排列，這最能支持哪個想法？", options: [
-    { id: "plant_cells", text: "植物體由細胞組成。" },
-    { id: "scratch", text: "洋蔥表皮只是玻璃上的刮痕。" },
-    { id: "nonliving_only", text: "顯微鏡只能看非生物。" },
-    { id: "all_move", text: "所有細胞都會自己移動。" }
+    { id: "plant_cells", text: "這些小格可能是洋蔥表皮細胞，支持植物體由細胞組成。" },
+    { id: "pattern_only", text: "這些小格只是放大後的規則花紋，不能當作細胞的證據。" },
+    { id: "movement_required", text: "只有會自行移動的小單位才算細胞，所以這些小格不是細胞。" },
+    { id: "surface_not_body", text: "只有整株洋蔥才和生命有關，表皮的小單位不屬於生物體。" }
   ], hint: "把樣本來源和看到的小單位連起來想。" },
   { id: "q06", section: "checkpoint2", answer: "single_life", prompt: "草履蟲是一個細胞構成的生物，仍能攝食、移動與繁殖。這最能說明什麼？", options: [
     { id: "single_life", text: "單一細胞也可能完成生命活動。" },
@@ -115,10 +127,10 @@ const unitQuestions = [
     { id: "swim", text: "用來拍打游動。" }
   ], hint: "先看血液中移動、交換物質的任務。" },
   { id: "q12", section: "checkpoint4", answer: "cheek_cells", prompt: "觀察口腔皮膜玻片時，看到許多分散的小片狀單位。最合理的判斷方向是什麼？", options: [
-    { id: "cheek_cells", text: "這些小片狀單位可能是口腔皮膜細胞。" },
-    { id: "scratch", text: "這些一定是玻片刮痕。" },
-    { id: "not_body", text: "口腔皮膜不是生物體的一部分。" },
-    { id: "no_evidence", text: "顯微鏡影像不能提供任何證據。" }
+    { id: "cheek_cells", text: "這些小片狀單位可能是口腔皮膜細胞，能作為人體由細胞組成的觀察證據。" },
+    { id: "ordered_only", text: "細胞一定要整齊排列，分散的小片狀單位不可能是細胞。" },
+    { id: "movement_required", text: "只有會自行移動的小單位才算細胞，靜止的小片只能是雜質。" },
+    { id: "magnification_only", text: "顯微鏡只把樣本放大，看到小片狀單位不能支持人體由細胞組成。" }
   ], hint: "顯微觀察要連結樣本來源與看到的基本單位。" },
   { id: "q14", section: "checkpoint4", answer: "cell_function", prompt: "「細胞只是身體裡的小顆粒，真正的生命活動只發生在整個身體。」哪個修正較合理？", options: [
     { id: "cell_function", text: "細胞本身也能進行基本生命活動，是構造與功能基本單位。" },
@@ -182,6 +194,21 @@ function saveAttempt(attempt) {
 }
 function studentAttempts(studentId) {
   return getAttempts().filter((item) => item.student?.student_id === studentId && item.mission?.unit_id === mission.unit_id && item.completion_status === "complete");
+}
+function localTotalExp(studentId) {
+  const bestByUnit = new Map();
+  getAttempts().filter((item) => item.student?.student_id === studentId && item.completion_status === "complete").forEach((item) => {
+    const unitId = item.mission?.unit_id || item.unit_id || "unknown";
+    const credited = Number(item.unit_credited_exp ?? item.total_exp ?? 0);
+    bestByUnit.set(unitId, Math.max(bestByUnit.get(unitId) || 0, credited));
+  });
+  return [...bestByUnit.values()].reduce((sum, value) => sum + value, 0);
+}
+function acquiredBadgeNames() {
+  return new Set([
+    ...studentAttempts(state.student?.student_id).flatMap((attempt) => attempt.badges || []),
+    ...(state.result?.badges || [])
+  ]);
 }
 function shuffledCopy(items) {
   const copy = [...items];
@@ -272,11 +299,19 @@ async function fetchStudentStatus(id) {
 function normalizeBackendStudent(data, id) {
   if (!data?.ok) return null;
   const source = data.student || data;
+  const progress = data.progress || data.student_progress || source.progress || {};
   return {
     student_id: source.student_id || id,
     class_name: source.class_name || source.class || "未設定",
     seat_no: source.seat_no || source.seat || "00",
     student_name: source.student_name || source.name || "未設定",
+    progress,
+    profile_gender: progress.profile_gender || source.profile_gender || source.gender || "",
+    current_title_id: progress.current_title_id || source.current_title_id || "",
+    current_title: progress.current_title || source.current_title || "",
+    title_avatar_variant: progress.title_avatar_variant || source.title_avatar_variant || "",
+    title_avatar_path: progress.title_avatar_path || source.title_avatar_path || "",
+    total_exp: progress.total_exp ?? source.total_exp,
     is_guest: id === "guest" || Boolean(source.is_guest)
   };
 }
@@ -381,17 +416,27 @@ function renderChoiceQuestion(questionId) {
 }
 function renderMultiSelect() {
   const selected = state.answers.checkpoint1.multi || [];
+  const confirmed = Boolean(state.answers.checkpoint1.multiConfirmed);
   const showHint = Boolean(state.answers.checkpoint1Hints.multi);
-  return `<article class="question-card"><p class="eyebrow">可複選</p><h3>下列哪些生物體由細胞組成？請選出所有符合的選項。</h3><div class="choice-grid">${orderedById("multiCellItems", multiCellItems).map((item) => `<button class="choice-button ${selected.includes(item.id) ? "selected" : ""}" data-multi="${item.id}">${item.label}</button>`).join("")}</div>${showHint ? `<div class="feedback warn">提示：先判斷哪些是生物，再想生物體是否由細胞構成。</div>` : ""}</article>`;
+  return `<article class="question-card"><p class="eyebrow">可複選</p><h3>下列哪些生物體由細胞組成？請選出所有符合的選項。</h3><div class="choice-grid">${orderedById("multiCellItems", multiCellItems).map((item) => `<button class="choice-button ${selected.includes(item.id) ? "selected" : ""}" data-multi="${item.id}">${item.label}</button>`).join("")}</div><div class="multi-confirm-row"><button class="secondary" id="confirmMulti" type="button">確認這組答案</button><span class="selected-answer">${confirmed ? "已確認這組答案" : selected.length ? `已選 ${selected.length} 項，尚未確認` : "尚未選擇"}</span></div>${showHint ? `<div class="feedback warn">提示：先判斷哪些是生物，再想生物體是否由細胞構成。</div>` : ""}</article>`;
 }
 function toggleMulti(id) {
   const selected = new Set(state.answers.checkpoint1.multi || []);
   selected.has(id) ? selected.delete(id) : selected.add(id);
   state.answers.checkpoint1.multi = [...selected];
-  const correct = multiCellItems.filter((item) => item.answer).map((item) => item.id).sort().join("|");
-  if ([...selected].sort().join("|") !== correct && !state.answers.checkpoint1Hints.multi) state.answers.checkpoint1Hints.multi = true;
+  state.answers.checkpoint1.multiConfirmed = false;
   saveState();
   render();
+}
+function confirmMulti() {
+  const selected = new Set(state.answers.checkpoint1.multi || []);
+  const correct = multiCellItems.filter((item) => item.answer).map((item) => item.id).sort().join("|");
+  const isCorrect = [...selected].sort().join("|") === correct;
+  state.answers.checkpoint1.multiConfirmed = true;
+  if (!isCorrect && !state.answers.checkpoint1Hints.multi) state.answers.checkpoint1Hints.multi = true;
+  saveState();
+  render();
+  return isCorrect;
 }
 function renderCheckpoint1() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡一</p><h2>生命積木掃描</h2><p class="lead">用顯微鏡觀察證據與基本單位概念判斷。</p><div class="question-grid">${renderChoiceQuestion("q01")}${renderMultiSelect()}${renderChoiceQuestion("q02")}</div><div class="actions"><button class="primary" id="checkpoint1Next">進入單細胞與多細胞分類</button></div></div></div>`;
@@ -474,7 +519,8 @@ function scoreMulti() {
   const selected = new Set(state.answers.checkpoint1.multi || []);
   const correctIds = multiCellItems.filter((item) => item.answer).map((item) => item.id);
   const wrong = multiCellItems.filter((item) => selected.has(item.id) !== item.answer);
-  return { correct: wrong.length === 0 && selected.size === correctIds.length, hint: Boolean(state.answers.checkpoint1Hints.multi), misconception: wrong.length ? "only_animals_plants_have_cells" : null };
+  const confirmed = Boolean(state.answers.checkpoint1.multiConfirmed);
+  return { correct: confirmed && wrong.length === 0 && selected.size === correctIds.length, hint: Boolean(state.answers.checkpoint1Hints.multi), misconception: !confirmed || wrong.length ? "only_animals_plants_have_cells" : null };
 }
 function scoreClassify() {
   const wrong = classifyItems.filter((item) => state.answers.checkpoint2[item.id] !== item.answer);
@@ -679,7 +725,7 @@ function renderReview() {
 }
 function renderReflection() {
   const reflection = state.answers.reflection || {};
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2><div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；具體且與細胞基本單位、單多細胞、形狀功能或顯微證據相關的問題，可取得回報 EXP。</p></div><div class="form-grid"><label>我最能掌握的概念是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label><label>我還不確定哪一部分？<textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea></label><label>選一個想帶到課堂討論的方向，並用自己的話補充<span class="field-help">不要直接複製方向詞。</span><textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label><label>信心分數<select id="confidenceScore">${[1,2,3,4,5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label></div><div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div><div class="owl-frame"><img src="${owlImages.result}" alt="貓頭鷹助理"></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2><div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；具體且與細胞基本單位、單多細胞、形狀功能或顯微證據相關的問題，可取得回報 EXP。</p></div><div class="form-grid"><label>我最能掌握的概念是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label><label>我還不確定哪一部分？<textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea></label><label>選一個想帶到課堂討論的方向，並用自己的話補充<span class="field-help">不要直接複製方向詞。</span><textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label><label>信心分數<select id="confidenceScore">${[1,2,3,4,5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label></div><div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div></div>`;
 }
 function attachReflection() {
   document.querySelector("#submitMission").addEventListener("click", async (event) => {
@@ -716,13 +762,48 @@ function attachReflection() {
     }
   });
 }
+function titleAndProgress() {
+  const explicitId = state.student?.progress?.current_title_id || state.student?.current_title_id || "";
+  const explicitLevel = titleLevels.find((level) => level.id === explicitId);
+  const remoteTotal = Number(state.student?.progress?.total_exp ?? state.student?.total_exp ?? NaN);
+  const localTotal = state.student ? localTotalExp(state.student.student_id) : 0;
+  const totalExp = Number.isFinite(remoteTotal) ? remoteTotal : Math.max(localTotal, explicitLevel?.need || 0);
+  const fallbackIndex = titleLevels.reduce((index, level, itemIndex) => totalExp >= level.need ? itemIndex : index, 0);
+  const fallbackCurrent = titleLevels[fallbackIndex];
+  const fallbackNext = titleLevels[fallbackIndex + 1];
+  const title = titleProgressRules?.getTitleForExp(totalExp) || {
+    id: fallbackCurrent.id,
+    current: fallbackCurrent.title,
+    next: fallbackNext?.title || "已達目前最高稱號",
+    remaining: fallbackNext ? Math.max(0, fallbackNext.need - totalExp) : 0,
+    title_progress_percent: Math.min(100, totalExp / 23400 * 100)
+  };
+  if (state.student?.progress?.current_title || state.student?.current_title) title.current = state.student.progress?.current_title || state.student.current_title;
+  return { totalExp, title };
+}
+function titleAvatarPath(titleId) {
+  const direct = state.student?.progress?.title_avatar_path || state.student?.title_avatar_path || "";
+  if (direct) return direct.startsWith("shared-assets/") ? `../${direct}` : direct;
+  const variant = String(state.student?.progress?.title_avatar_variant || state.student?.title_avatar_variant || state.student?.profile_gender || "male").toLowerCase();
+  const gender = ["f", "female", "girl", "女"].includes(variant) ? "female" : "male";
+  const level = titleLevels.find((item) => item.id === titleId) || titleLevels[0];
+  return `../shared-assets/title-avatars/title-${level.order}-${level.id}-${gender}.webp`;
+}
+function renderResultBadges(result) {
+  const earned = new Set(result.badges || []);
+  return `<section class="result-badges"><h3>本次取得徽章</h3><div class="badge-grid">${badges.map((badge) => `<div class="badge-card ${earned.has(badge.name) ? "lit earned-now" : ""}" data-badge-id="${badge.id}"><img src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p>${earned.has(badge.name) ? "本次取得" : badge.condition}</p></div>`).join("")}</div></section>`;
+}
 function renderResult() {
   const result = state.result || calculateResult();
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>生命積木辨識完成</h2>${state.lockNotice ? `<div class="feedback warn">${state.lockNotice}</div>` : ""}<div class="feedback good">提交後本次作答已鎖定；若要再挑戰，請重新登入並從頭完成。</div><div class="score-grid"><div class="score-box"><span>本次取得 EXP</span><strong>${result.attempt_total_exp}</strong></div><div class="score-box"><span>本單元認列 EXP</span><strong>${result.unit_credited_exp}/${UNIT_EXP_CAP}</strong></div><div class="score-box"><span>正確率</span><strong>${Math.round(result.accuracy * 100)}%</strong></div></div><div class="card-grid"><div class="story-panel"><strong>EXP 明細</strong><p>完成 ${result.completion_exp}｜直接答對 ${result.concept_exp}｜提示後修正 ${result.revision_exp}｜回報 ${result.question_exp}｜精熟 ${result.mastery_exp}｜再挑戰 ${result.retry_exp}</p></div><div class="story-panel"><strong>回報品質</strong><p>${result.reflection_exp_reason}</p></div></div><div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
+  const ledger = [["直接答對", result.concept_exp], ["提示後修正", result.revision_exp], ["完成任務", result.completion_exp], ["任務回報", result.question_exp], ["精熟加成", result.mastery_exp], ["再挑戰進步", result.retry_exp], ["本次總計", result.attempt_total_exp]];
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>生命積木辨識完成</h2>${state.lockNotice ? `<div class="feedback warn">${state.lockNotice}</div>` : ""}<div class="feedback good">提交後本次作答已鎖定；若要再挑戰，請重新登入並從頭完成。</div><div class="score-grid"><div class="score-box"><span>本次取得 EXP</span><strong>${result.attempt_total_exp}</strong></div><div class="score-box"><span>本單元認列 EXP</span><strong>${result.unit_credited_exp}/${UNIT_EXP_CAP}</strong></div><div class="score-box"><span>正確率</span><strong>${Math.round(result.accuracy * 100)}%</strong></div></div><section class="exp-ledger"><h3>EXP 明細</h3><div class="exp-ledger-grid">${ledger.map(([label, value], index) => `<div class="exp-ledger-item ${index === ledger.length - 1 ? "total" : ""}"><span>${label}</span><strong>${value} EXP</strong></div>`).join("")}</div></section><div class="story-panel"><strong>回報品質</strong><p>${result.reflection_exp_reason}</p></div>${renderResultBadges(result)}<div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
 }
 function renderAchievements() {
   const result = state.result || calculateResult();
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就收藏</p><h2>本單元成就</h2><div class="badge-grid">${badges.map((badge) => `<div class="badge-card ${result.badges.includes(badge.name) ? "lit" : ""}" data-badge-id="${badge.id}"><img src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div><div class="actions"><button class="secondary" id="achieveResult">返回結算</button></div></div></div>`;
+  const { totalExp, title } = titleAndProgress();
+  const acquired = acquiredBadgeNames();
+  const earnedNow = new Set(result.badges || []);
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">累積成就</p><h2>${state.student?.student_name || "學習者"}</h2><div class="student-title-card" data-current-title-id="${title.id}" data-title-avatar-path="${titleAvatarPath(title.id)}"><div class="student-title-avatar"><img src="${titleAvatarPath(title.id)}" alt="${title.current}稱號角色"></div><div><span>目前稱號</span><strong>${title.current}</strong><p>累積 ${totalExp} EXP</p><p>${title.remaining ? `下一稱號：${title.next}，還差 ${title.remaining} EXP` : "已達最高稱號，EXP 仍會繼續累積。"}</p></div></div><div class="progress-bar"><div class="progress-fill" style="width:${title.title_progress_percent}%"></div></div><p class="muted">稱號進度 ${Math.min(100, Math.round(title.title_progress_percent * 10) / 10)}%</p></div><div class="panel"><p class="eyebrow">成就收藏</p><h2>本單元成就</h2><div class="badge-grid">${badges.map((badge) => `<div class="badge-card ${acquired.has(badge.name) ? "lit" : ""} ${earnedNow.has(badge.name) ? "earned-now" : ""}" data-badge-id="${badge.id}"><img src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p>${earnedNow.has(badge.name) ? "本次取得" : badge.condition}</p></div>`).join("")}</div><div class="actions"><button class="secondary" id="achieveResult">返回結算</button></div></div></div>`;
 }
 function renderRules() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元封頂</strong><p>本單元認列 EXP 上限為 500。第一次零提示全對是最高路徑。</p></div><div class="story-panel"><strong>提示後修正</strong><p>提示會給判斷線索，不直接公布答案。提示後答對仍有修正 EXP，但低於未提示答對。</p></div><div class="story-panel"><strong>提交鎖定</strong><p>提交任務後本次作答結果鎖定。再挑戰必須重新登入並從頭完成整份任務。</p></div></div><div class="actions"><button class="secondary" id="rulesBack">返回目前任務</button></div></div></div>`;
@@ -730,6 +811,7 @@ function renderRules() {
 function attachCommonChoiceHandlers() {
   document.querySelectorAll("[data-choice]").forEach((button) => button.addEventListener("click", () => recordChoice(button.dataset.choice, button.dataset.option)));
   document.querySelectorAll("[data-multi]").forEach((button) => button.addEventListener("click", () => toggleMulti(button.dataset.multi)));
+  document.querySelector("#confirmMulti")?.addEventListener("click", confirmMulti);
   document.querySelectorAll("[data-token]").forEach((button) => button.addEventListener("click", () => { state.activeToken = button.dataset.token; saveState(); render(); }));
   document.querySelectorAll("[data-category]").forEach((button) => button.addEventListener("click", () => setCategory(button.dataset.category)));
   document.querySelectorAll("[data-match]").forEach((select) => select.addEventListener("change", () => setMatch(select.dataset.match, select.value)));
