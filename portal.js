@@ -53,7 +53,7 @@ const units = [
   { title: "食物中的養分與能量", unitId: "nutrients_energy", status: "ready", sequence: 11, summary: "正式順序第十一單元。已完成學生端靜態原型，含養分功能、主要食物來源、能量判斷、營養資料與均衡飲食。", tags: ["正式原型", "養分", "能量", "均衡飲食", "已可測試"], url: "prototype-nutrients-energy/?v=20260712-cell-structure-consistency-v1" },
   { title: "養分檢測", unitId: "nutrient_test", status: "ready", sequence: 12, summary: "正式順序第十二單元。已完成學生端靜態原型，含檢測結果判讀、試劑與養分配對、對照組、資料證據與安全判斷。", tags: ["正式原型", "養分檢測", "證據判讀", "安全", "已可測試"], url: "prototype-nutrient-test/?v=20260712-cell-structure-consistency-v1" },
   { title: "酵素", unitId: "enzymes", status: "ready", sequence: 13, summary: "正式順序第十三單元。已完成學生端靜態原型，含酵素作用、專一性、可重複作用、溫度與酸鹼值資料判讀及消化情境。", tags: ["正式原型", "酵素", "專一性", "資料判讀", "已可測試"], url: "prototype-enzymes/?v=20260712-cell-structure-consistency-v1" },
-  { title: "植物如何製造養分", unitId: "photosynthesis", status: "spec", sequence: 14, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材、BadgeRules 與主控確認後建立原型。", tags: ["規格備料", "光合作用", "葉綠體", "變因判讀"] },
+  { title: "植物如何製造養分", unitId: "photosynthesis", status: "ready", sequence: 14, summary: "正式順序第十四單元。已完成學生端靜態原型，含原料/能量/產物分類、葉片構造、澱粉與氣泡證據、變因判讀及光合作用/呼吸作用迷思修正。", tags: ["正式原型", "光合作用", "葉綠體", "變因判讀", "已可測試"], url: "prototype-photosynthesis/?v=20260712-photosynthesis-v1" },
   { title: "人體如何獲得養分", unitId: "human_nutrition", status: "spec", sequence: 15, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材、BadgeRules 與主控確認後建立原型。", tags: ["規格備料", "消化", "吸收", "食物流向"] },
   { title: "植物的運輸構造", unitId: "plant_transport_structures", status: "planned", sequence: 16, summary: "根、莖、葉與維管束相關構造。", tags: ["植物", "運輸"] },
   { title: "植物體內物質的運輸", unitId: "plant_transport", status: "planned", sequence: 17, summary: "水分、礦物質、養分在植物體內的運輸。", tags: ["導管", "篩管"] },
