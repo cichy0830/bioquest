@@ -33,6 +33,15 @@
     return document.body?.dataset?.[name] || fallback;
   }
 
+  function enhanceBrandMark() {
+    const mark = document.querySelector(".brand-mark");
+    if (!mark) return;
+    mark.classList.add("bq-brand-mark");
+    if (mark.querySelector("img")) return;
+    const source = bodyPath("brandIconSrc", "../shared-assets/branding/bioquest-app-icon.webp?v=20260712-brand-icon-v1");
+    mark.innerHTML = `<img src="${source}" alt="生命祕境 BioQuest 圖示">`;
+  }
+
   function feedbackState(result = {}) {
     const accuracy = Number(result.accuracy ?? (Number(result.correct || 0) / Math.max(1, Number(result.total || 0))));
     const hints = Number(result.hint_used ?? result.hints_used ?? 0);
@@ -240,6 +249,7 @@
   }
 
   function observe() {
+    enhanceBrandMark();
     const root = document.querySelector("#screen");
     if (!root) return;
     const options = { childList: true, subtree: true };
