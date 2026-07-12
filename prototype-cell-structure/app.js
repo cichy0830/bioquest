@@ -20,7 +20,7 @@ const badgeAsset = (id) => `../shared-assets/badges/cell_structure/badge-cell_st
 const cellStructureOwlAssets = {
   prep: "assets/owl-cell-structure-prep-scan.webp",
   report: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
-  result: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png"
+  result: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp"
 };
 
 const unitBadgeCatalog = [
@@ -63,6 +63,7 @@ const defaultState = {
   submitted_at: null,
   activeDiagramType: "plant",
   activeStructure: "",
+  structureTargetResults: {},
   lockNotice: ""
 };
 
@@ -203,7 +204,7 @@ function layout(content, image = "", imageAlt = "貓頭鷹助理") {
   `;
 }
 
-function mentorCard(title, text, image = "assets/mentor-base.png") {
+function mentorCard(title, text, image = "assets/mentor-base.webp") {
   return `
     <div class="mentor-card">
       <div class="mentor-avatar"><img src="${image}" alt="${mentorName}"></div>
@@ -235,13 +236,13 @@ function titleAvatarPath() {
   const aggregate = state.student ? aggregateStudent() : { totalExp: 0 };
   const titleId = student.current_title_id || titleProgressRules?.getTitleForExp(aggregate.totalExp)?.id || "trainee_investigator";
   const level = levels.find((item) => item.id === titleId) || levels[0];
-  return `../shared-assets/title-avatars/title-${level.order}-${level.id}-${titleAvatarGender()}.png`;
+  return `../shared-assets/title-avatars/title-${level.order}-${level.id}-${titleAvatarGender()}.webp`;
 }
 
 function renderTitleAvatarCard(context = "brief") {
   const title = titleForExp(state.student ? aggregateStudent().totalExp : 0);
   const displayTitle = state.student?.current_title || title.current;
-  const fallbackAvatar = `../shared-assets/title-avatars/title-01-trainee_investigator-${titleAvatarGender()}.png`;
+  const fallbackAvatar = `../shared-assets/title-avatars/title-01-trainee_investigator-${titleAvatarGender()}.webp`;
   return `
     <aside class="title-avatar-card ${context}" data-title-avatar-path="${titleAvatarPath()}">
       <div class="title-avatar-visual"><img src="${titleAvatarPath()}" alt="${displayTitle}稱號角色" loading="eager" onerror="this.onerror=null;this.src='${fallbackAvatar}'"></div>
@@ -259,7 +260,7 @@ function renderLogin() {
   return layout(`
     <p class="eyebrow">微觀研究站</p>
     <h2 class="hero-title">細胞工廠的祕密</h2>
-    ${mentorCard("準備出發了嗎？", "我剛當老師時，最想讓學生看見的不是課本上被背起來的名詞，而是生命世界真的很有意思。今天我們先縮小到細胞裡，看看一個小小生命單位，怎麼像工廠一樣分工合作。", "assets/mentor-briefing-owl.png")}
+    ${mentorCard("準備出發了嗎？", "我剛當老師時，最想讓學生看見的不是課本上被背起來的名詞，而是生命世界真的很有意思。今天我們先縮小到細胞裡，看看一個小小生命單位，怎麼像工廠一樣分工合作。", "assets/mentor-briefing-owl.webp")}
     <div class="story-panel">
       <strong>任務登入</strong>
       <p>輸入學號後，系統會顯示你的姓名，請確認是否正確。老師測試流程時可使用 guest。</p>
@@ -321,7 +322,7 @@ function renderBrief() {
     <p class="eyebrow">任務檔案開啟</p>
     <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
     <div class="brief-character-grid">
-      ${mentorCard("研究站的求救訊號", "微觀研究站收到一份細胞掃描資料，但標籤系統發生錯亂。別急著背答案，我們先像真正的研究員一樣，從位置、形狀和功能慢慢判斷：每個構造為什麼在那裡？它又替細胞完成什麼工作？", "assets/mentor-cell-lab.png")}
+      ${mentorCard("研究站的求救訊號", "微觀研究站收到一份細胞掃描資料，但標籤系統發生錯亂。別急著背答案，我們先像真正的研究員一樣，從位置、形狀和功能慢慢判斷：每個構造為什麼在那裡？它又替細胞完成什麼工作？", "assets/mentor-cell-lab.webp")}
       ${renderTitleAvatarCard("brief")}
     </div>
     <div class="story-panel highlight">
@@ -510,7 +511,7 @@ const cellHighlightShapes = {
 };
 
 function renderCellArt(type) {
-  const src = type === "animal" ? "assets/cell-animal-3d.png?v=20260709-orange-mito" : "assets/cell-plant-3d.png";
+  const src = type === "animal" ? "assets/cell-animal-3d.webp?v=20260709-orange-mito" : "assets/cell-plant-3d.webp";
   const alt = type === "animal" ? "動物細胞構造圖" : "植物細胞構造圖";
   return `<img class="cell-image" src="${src}" alt="${alt}">`;
 }
@@ -549,6 +550,9 @@ function renderStructureExplorer() {
   const diagram = cellDiagrams[type];
   const selectedId = state.activeStructure || "";
   const selected = selectedId ? structureGuide[selectedId] : null;
+  const target = currentStructureTarget();
+  const remaining = remainingStructureTargets();
+  const targetInDiagram = Boolean(target && diagram.structures.some((item) => item.id === target.id));
   return `
     <div class="structure-explorer">
       <div>
@@ -567,16 +571,50 @@ function renderStructureExplorer() {
         <p class="cell-note">${diagram.note}</p>
       </div>
       <div class="structure-card part-info">
-        <span>目前辨識</span>
+        <span>目前 target</span>
+        <strong>${target ? target.prompt : "所有構造已完成"}</strong>
+        <p>${target ? `${targetInDiagram ? "請點選圖中構造或下方標籤。" : "請先切換到有此構造的細胞圖。"}尚有 ${remaining} 個構造未辨識。` : "已完成全部構造辨識。"}</p>
+        ${target && state.answers.checkpoint1Hints[target.id] ? `<div class="hint">${target.hint}</div>` : ""}
+        <span>目前選取</span>
         <strong>${selected ? selected.label : "尚未選取構造"}</strong>
-        <p>${selected ? selected.clue : "請點選圖中的構造位置，或使用下方構造標籤開始探索。"}</p>
+        <p>${selected ? selected.clue : "切換動物／植物細胞時，預設不會先選取任何構造。"}</p>
         ${selected ? `<div class="hint">${selected.functionText}</div>` : ""}
         <div class="part-labels structure-chips" aria-label="細胞構造標籤">
-          ${diagram.structures.map((item) => `<button class="part-chip structure-chip ${selectedId === item.id ? "active" : ""}" data-structure-chip="${item.id}">${structureGuide[item.id].label}</button>`).join("")}
+          ${diagram.structures.map((item) => `<button class="part-chip structure-chip ${selectedId === item.id ? "active" : ""} ${state.answers.checkpoint1[item.id] === structureGuide[item.id].label ? "locked" : ""}" data-structure-chip="${item.id}">${structureGuide[item.id].label}</button>`).join("")}
         </div>
       </div>
     </div>
   `;
+}
+
+function currentStructureTarget() {
+  return checkpoint1Items.find((item) => state.answers.checkpoint1[item.id] !== item.answer) || null;
+}
+
+function remainingStructureTargets() {
+  return checkpoint1Items.filter((item) => state.answers.checkpoint1[item.id] !== item.answer).length;
+}
+
+function selectStructureTarget(structureId) {
+  const target = currentStructureTarget();
+  if (!target) return;
+  if (structureId === target.id) {
+    state.activeStructure = structureId;
+    state.answers.checkpoint1[target.id] = target.answer;
+    state.structureTargetResults[target.id] = {
+      correct: true,
+      hint_used: Boolean(state.answers.checkpoint1Hints[target.id])
+    };
+    saveState();
+    render();
+    return;
+  }
+  if (!state.answers.checkpoint1Hints[target.id]) {
+    state.answers.checkpoint1Hints[target.id] = true;
+  }
+  state.activeStructure = structureId;
+  saveState();
+  render();
 }
 
 function renderCheckpoint1() {
@@ -605,6 +643,7 @@ function selectRow(group, item) {
         <option value="">選擇構造</option>
         ${options.map((option) => `<option value="${option}" ${current === option ? "selected" : ""}>${option}</option>`).join("")}
       </select>
+      <span class="selected-answer">${current ? `已選：${current}` : "尚未選擇構造"}</span>
       <button class="ghost hint-button" data-group="${group}" data-id="${item.id}">提示</button>
     </div>
   `;
@@ -641,9 +680,7 @@ function attachSelectHandlers() {
   });
   document.querySelectorAll(".cell-hotspot, [data-structure-chip]").forEach((button) => {
     button.addEventListener("click", () => {
-      state.activeStructure = button.dataset.structure || button.dataset.structureChip;
-      saveState();
-      render();
+      selectStructureTarget(button.dataset.structure || button.dataset.structureChip);
     });
   });
   document.querySelectorAll("select[data-group]").forEach((select) => {
@@ -655,6 +692,16 @@ function attachSelectHandlers() {
       if (item && select.value && select.value !== item.answer) {
         state.answers[`${select.dataset.group}Hints`][select.dataset.id] = true;
       }
+      if (select.dataset.group === "checkpoint1" && item && select.value === item.answer) {
+        state.structureTargetResults[item.id] = {
+          correct: true,
+          hint_used: Boolean(state.answers.checkpoint1Hints[item.id])
+        };
+        state.activeStructure = item.id;
+      }
+      const row = select.closest(".question-row");
+      const selectedLine = row?.querySelector(".selected-answer");
+      if (selectedLine) selectedLine.textContent = select.value ? `已選：${select.value}` : "尚未選擇構造";
       saveState();
       if (item && select.value && select.value !== item.answer) render();
     });
@@ -1455,8 +1502,11 @@ function renderRules() {
 
 function nextWithValidation(group, items, nextScreen) {
   const missing = items.filter((item) => !state.answers[group][item.id]);
-  if (missing.length) {
-    document.querySelector("#checkpointFeedback").textContent = "還有題目尚未完成。";
+  const remaining = group === "checkpoint1" ? remainingStructureTargets() : 0;
+  if (missing.length || remaining) {
+    document.querySelector("#checkpointFeedback").textContent = remaining
+      ? `尚有 ${remaining} 個構造未辨識，完成所有 target 後才能進下一關。`
+      : "還有題目尚未完成。";
     return;
   }
   unlock(nextScreen);

@@ -215,8 +215,9 @@ p {
   display: block;
   max-width: 100%;
   max-height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
+  background: linear-gradient(145deg, #d8efed, #f7efd2);
 }
 
 .microscope-brief-scene.using-fallback .microscope-brief-picture {
@@ -854,6 +855,12 @@ textarea {
   background: var(--teal-dark);
 }
 
+.part-chip.locked {
+  color: var(--teal-dark);
+  border-color: rgba(40, 129, 101, 0.34);
+  background: rgba(197, 232, 207, 0.72);
+}
+
 .part-info {
   padding: 12px;
   border: 1px solid var(--line);
@@ -1005,7 +1012,7 @@ textarea {
 
 .sequence-item {
   display: grid;
-  grid-template-columns: 34px 1fr;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
   min-height: 50px;
@@ -1031,12 +1038,22 @@ textarea {
 .sequence-item > .sequence-prompt,
 .sequence-item > .hint,
 .sequence-item > select {
-  grid-column: 2;
   min-width: 0;
 }
 
 .sequence-item > select {
   width: 100%;
+}
+
+.sequence-item > .hint,
+.sequence-item > .selected-answer {
+  grid-column: 2 / -1;
+}
+
+.sequence-item > .sequence-prompt,
+.sequence-item strong {
+  writing-mode: horizontal-tb;
+  white-space: normal;
 }
 
 .token-bank,

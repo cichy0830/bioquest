@@ -62,6 +62,22 @@
   display: none !important;
 }
 
+.checkbox-list label {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  line-height: 1.5;
+}
+
+.checkbox-list input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  justify-self: center;
+  flex: 0 0 auto;
+}
+
 .bq-feedback-mentor {
   display: grid !important;
   grid-template-columns: minmax(280px, 42%) minmax(0, 1fr) !important;

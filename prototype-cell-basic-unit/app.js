@@ -11,15 +11,15 @@ const mission = {
   mission_area: "微觀生命站"
 };
 const mentorName = "阿澤老師";
-const mentorImages = { primary: "assets/mentor-basic-unit-guide-half.png" };
+const mentorImages = { primary: "assets/mentor-basic-unit-guide-half.webp" };
 const sceneImages = {
-  ambient: "assets/bg-basic-unit-entry-wide.png",
-  briefingAzhe: "assets/bg-basic-unit-briefing-azhe-wide.png"
+  ambient: "assets/bg-basic-unit-entry-wide.webp",
+  briefingAzhe: "assets/bg-basic-unit-briefing-azhe-wide.webp"
 };
 const owlImages = {
-  opening: "assets/owl-basic-unit-micro-guide.png",
+  opening: "assets/owl-basic-unit-micro-guide.webp",
   prep: "assets/owl-basic-unit-prep-reminder-v2.webp",
-  result: "assets/owl-basic-unit-result.png"
+  result: "assets/owl-basic-unit-result.webp"
 };
 const titleProgressRules = window.BioQuestTitleProgress;
 const titleLevels = titleProgressRules?.levels || [
@@ -995,7 +995,7 @@ function titleAvatarPath(titleId) {
   const variant = String(state.student?.progress?.title_avatar_variant || state.student?.title_avatar_variant || state.student?.profile_gender || "male").toLowerCase();
   const gender = ["f", "female", "girl", "女"].includes(variant) ? "female" : "male";
   const level = titleLevels.find((item) => item.id === titleId) || titleLevels[0];
-  return `../shared-assets/title-avatars/title-${level.order}-${level.id}-${gender}.png`;
+  return `../shared-assets/title-avatars/title-${level.order}-${level.id}-${gender}.webp`;
 }
 function renderResultBadges(result) {
   const earned = new Set(result.badges || []);

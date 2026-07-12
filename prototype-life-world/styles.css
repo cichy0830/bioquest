@@ -29,7 +29,7 @@ body {
     linear-gradient(120deg, rgba(238, 248, 246, 0.46), rgba(230, 246, 242, 0.34)),
     radial-gradient(circle at 18% 22%, rgba(24, 143, 158, 0.14), transparent 26%),
     radial-gradient(circle at 84% 18%, rgba(216, 155, 50, 0.18), transparent 24%),
-    url("assets/bg-life-entry-wide.png"),
+    url("assets/bg-life-entry-wide.webp"),
     var(--paper);
   background-attachment: fixed;
   background-position: center;
@@ -187,7 +187,7 @@ p {
   padding: 22px;
   border: 1px solid rgba(68, 132, 99, 0.20);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.74);
   backdrop-filter: blur(8px);
   box-shadow: var(--shadow);
 }
@@ -195,7 +195,7 @@ p {
 .hero-panel {
   min-height: 540px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(236, 249, 246, 0.78));
+    linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(236, 249, 246, 0.62));
 }
 
 .hero-title {

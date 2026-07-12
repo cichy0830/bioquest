@@ -579,20 +579,27 @@ function renderBrief() {
 
 function renderScan() {
   const tools = ["先看目的：量、盛、反應、滴加、夾取、觀察", "遇到未知藥品先停下並詢問", "加熱要注意開口方向與防燙", "破裂玻璃不可徒手處理", "紀錄要保留真實結果與異常"];
-  return layout(`
-    <p class="eyebrow">任務準備</p>
-    <h2 class="hero-title">進關卡前先整理安全線索</h2>
-    <div class="story-panel">
-      <strong>安全訓練提醒</strong>
-      <p>提示會給用途或風險線索，不會直接公布器材或安全答案。請先判斷任務目的，再檢查火源、高溫、玻璃、藥品、未知物質與廢液風險。</p>
+  return `
+    <div class="stack">
+      <div class="panel hero-panel">
+        <p class="eyebrow">任務準備</p>
+        <h2 class="hero-title">進關卡前先整理安全線索</h2>
+        <div class="prep-owl-hero">
+          <div class="prep-owl-visual"><img src="${owlImages.scan}" alt="實驗室安全掃描貓頭鷹助理"></div>
+          <div class="story-panel">
+            <strong>安全訓練提醒</strong>
+            <p>提示會給用途或風險線索，不會直接公布器材或安全答案。請先判斷任務目的，再檢查火源、高溫、玻璃、藥品、未知物質與廢液風險。</p>
+          </div>
+        </div>
+        <div class="card-grid">
+          ${tools.map((tool) => `<div class="method-card"><span class="method-icon"></span><strong>${tool}</strong></div>`).join("")}
+        </div>
+        <div class="actions">
+          <button class="primary" id="scanNext">進入器材準備台</button>
+        </div>
+      </div>
     </div>
-    <div class="card-grid">
-      ${tools.map((tool) => `<div class="method-card"><span class="method-icon"></span><strong>${tool}</strong></div>`).join("")}
-    </div>
-    <div class="actions">
-      <button class="primary" id="scanNext">進入器材準備台</button>
-    </div>
-  `, "scan", "實驗室安全掃描貓頭鷹助理");
+  `;
 }
 
 function checkpointShell(title, description, rows, nextId) {
@@ -751,6 +758,10 @@ function attachCheckpointHandlers() {
       state.answers.checkpoint1.apparatus[id] = select.value;
       const item = apparatusItems.find((entry) => entry.id === id);
       if (item && select.value !== item.answer) state.answers.checkpoint1Hints.apparatus = true;
+      const row = select.closest(".sequence-item");
+      row?.classList.toggle("has-selection", Boolean(select.value));
+      const selectedLine = row?.querySelector(".selected-answer");
+      if (selectedLine) selectedLine.textContent = select.value ? `已選：${select.value}` : "尚未選擇用途";
       saveState();
       if (state.answers.checkpoint1Hints.apparatus) render();
     });
@@ -1284,7 +1295,6 @@ function renderReview() {
           <button class="primary" id="reviewNext">填寫任務回報</button>
         </div>
       </div>
-      ${owlPanel("risk", "實驗室風險整理貓頭鷹助理")}
     </div>
   `;
 }
@@ -1296,7 +1306,6 @@ function renderReflection() {
       <div class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把你的預習狀態回報給老師</h2>
-        ${mentorCard("留下自己的安全提醒", "空白可以提交但沒有回報 EXP；具體且和本單元概念相關的問題或不確定，才會取得回報 EXP。")}
         <div class="story-panel">
           <strong>回報 EXP 怎麼判定？</strong>
           <p>請寫出實驗室、安全、器材、量筒、燒杯、試管、滴管、鑷子、玻璃器材、加熱、藥品、廢液、操作順序或實驗紀錄等概念，並補充自己的疑問或提醒。</p>

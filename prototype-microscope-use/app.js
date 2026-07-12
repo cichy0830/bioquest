@@ -1,7 +1,6 @@
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
+
 const roster = {
-  S70101: { student_id: "S70101", class_name: "701", seat_no: "01", student_name: "林安安" },
-  S70102: { student_id: "S70102", class_name: "701", seat_no: "02", student_name: "陳柏宇" },
-  S70103: { student_id: "S70103", class_name: "701", seat_no: "03", student_name: "許若晴" },
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
@@ -66,6 +65,8 @@ const defaultState = {
   completedScreens: ["login", "rules"],
   activeToken: null,
   activePart: null,
+  partTargetIndex: 0,
+  partTargetResults: {},
   fieldSlider: 0,
   answers: {
     checkpoint1: { parts: {}, functions: {} },
@@ -495,32 +496,35 @@ function renderMicroscopeScene() {
 
 function renderLogin() {
   const value = state.student?.student_id && state.student.student_id !== "guest" ? state.student.student_id : "";
-  return layout(`
-    <p class="eyebrow">生命祕境 BioQuest</p>
-    <h2 class="hero-title">歡迎回到任務入口</h2>
-    ${mentorCard("先確認身分", "準備好後輸入學號，我會在下一頁說明這次的顯微鏡任務情境。")}
-    <div class="story-panel">
-      <strong>任務登入</strong>
-      <p>輸入學號後，系統會顯示姓名，請確認是否正確。老師測試流程時可使用 guest。</p>
+  return `
+    <div class="stack">
+      <div class="panel hero-panel">
+        <p class="eyebrow">生命祕境 BioQuest</p>
+        <h2 class="hero-title">任務登入</h2>
+        <div class="story-panel">
+          <strong>請先確認身分</strong>
+          <p>輸入學號後，系統會以 Google Sheet 名單顯示姓名。老師測試流程時可使用 guest。</p>
+        </div>
+        <div class="mission-hud">
+          <div><span>任務代號</span><strong>microscope_use</strong></div>
+          <div><span>預估時間</span><strong>10-15 分鐘</strong></div>
+          <div><span>名單來源</span><strong>Google Sheet</strong></div>
+        </div>
+        <div class="form-grid">
+          <label>
+            學號
+            <input id="studentIdInput" value="${value}" placeholder="例如 S70102 或 guest" autocomplete="off">
+          </label>
+        </div>
+        <div class="actions">
+          <button class="primary" id="loginButton">登入任務</button>
+          <button class="secondary" id="guestButton">老師測試 guest</button>
+          <button class="ghost" id="resetButton">清除本機測試紀錄</button>
+        </div>
+        <div id="loginMessage" class="status-line"></div>
+      </div>
     </div>
-    <div class="mission-hud">
-      <div><span>任務代號</span><strong>microscope_use</strong></div>
-      <div><span>預估時間</span><strong>10-15 分鐘</strong></div>
-      <div><span>任務類型</span><strong>預習檢核</strong></div>
-    </div>
-    <div class="form-grid">
-      <label>
-        學號
-        <input id="studentIdInput" value="${value}" placeholder="例如 S70101 或 guest" autocomplete="off">
-      </label>
-    </div>
-    <div class="actions">
-      <button class="primary" id="loginButton">登入任務</button>
-      <button class="secondary" id="guestButton">老師測試 guest</button>
-      <button class="ghost" id="resetButton">清除本機測試紀錄</button>
-    </div>
-    <div id="loginMessage" class="status-line"></div>
-  `, "opening", "任務入口貓頭鷹助理");
+  `;
 }
 
 function attachLogin() {
@@ -534,17 +538,63 @@ function attachLogin() {
   });
 }
 
-function login(id) {
-  const student = roster[id];
+async function fetchStudentStatus(id) {
+  const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}&unit_id=${encodeURIComponent(mission.unit_id)}&_=${Date.now()}`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error(`backend_${response.status}`);
+  return response.json();
+}
+
+function normalizeBackendStudent(data, id) {
+  if (!data?.ok || !data.student) return null;
+  const source = data.student;
+  if (String(source.student_id || "") !== String(id)) return null;
+  const progress = data.progress || data.student_progress || source.progress || {};
+  return {
+    student_id: source.student_id || id,
+    class_name: source.class_name || source.class || "未設定",
+    seat_no: source.seat_no || source.seat || "00",
+    student_name: source.student_name || source.name || "未設定",
+    progress,
+    profile_gender: progress.profile_gender || source.profile_gender || source.gender || "",
+    current_title_id: progress.current_title_id || source.current_title_id || "",
+    current_title: progress.current_title || source.current_title || "",
+    title_avatar_variant: progress.title_avatar_variant || source.title_avatar_variant || "",
+    title_avatar_path: progress.title_avatar_path || source.title_avatar_path || "",
+    total_exp: progress.total_exp ?? source.total_exp,
+    is_guest: Boolean(source.is_guest)
+  };
+}
+
+async function login(id) {
   const message = document.querySelector("#loginMessage");
-  if (!student) {
-    message.innerHTML = `<span class="pill warn">查無此學號，請重新輸入。</span>`;
+  if (!id) {
+    message.innerHTML = `<span class="pill warn">請輸入學號。</span>`;
     return;
+  }
+  let student = null;
+  let completedAttempts = 0;
+  if (id === "guest") {
+    student = roster.guest;
+    completedAttempts = studentAttempts(student.student_id).length;
+  } else {
+    try {
+      const data = await fetchStudentStatus(id);
+      student = normalizeBackendStudent(data, id);
+      if (!student) {
+        message.innerHTML = `<span class="pill warn">${data?.error === "student_not_found" ? "查無此學號，請確認後重試。" : "後台回傳的學生資料不完整，尚未登入。"}</span>`;
+        return;
+      }
+      completedAttempts = Number(data.attempt_status?.completed_attempt_count ?? data.completed_attempts ?? 0);
+    } catch (error) {
+      message.innerHTML = `<span class="pill warn">後台目前無法連線，尚未登入。請檢查網路後重試，或通知老師。</span>`;
+      return;
+    }
   }
   const attempts = studentAttempts(student.student_id);
   state = structuredClone(defaultState);
   state.student = { ...student, is_guest: Boolean(student.is_guest) };
-  state.attempt_type = attempts.length > 0 ? "retry" : "first";
+  state.attempt_type = (completedAttempts || attempts.length) > 0 ? "retry" : "first";
   state.started_at = new Date().toISOString();
   state.optionOrders = {};
   unlock("brief", "rules", "achievements");
@@ -629,6 +679,7 @@ function renderMatchQuestion(group, field, items, options, title, hint, hintId, 
               <option value="">選擇</option>
               ${optionOrder(`${field}Options`, options).map((option) => `<option value="${option}" ${selected[item.id] === option ? "selected" : ""}>${option}</option>`).join("")}
             </select>
+            <span class="selected-answer">${selected[item.id] ? `已選：${selected[item.id]}` : "尚未選擇"}</span>
           </label>
         `).join("")}
       </div>
@@ -656,15 +707,51 @@ function getActivePart() {
   return partItems.find((item) => item.id === state.activePart) || null;
 }
 
+function currentPartTarget() {
+  const index = Math.min(Number(state.partTargetIndex || 0), partItems.length - 1);
+  return partItems[index] || null;
+}
+
+function remainingPartTargets() {
+  return partItems.filter((part) => state.answers.checkpoint1.parts[part.id] !== part.answer).length;
+}
+
+function selectPartTarget(partId) {
+  const target = currentPartTarget();
+  if (!target || state.answers.checkpoint1.parts[target.id] === target.answer) return;
+  if (partId === target.id) {
+    state.activePart = target.id;
+    state.answers.checkpoint1.parts[target.id] = target.answer;
+    state.partTargetResults[target.id] = {
+      correct: true,
+      hint_used: Boolean(state.answers.checkpoint1Hints.parts?.[target.id])
+    };
+    const nextIndex = Math.min((Number(state.partTargetIndex || 0) + 1), partItems.length);
+    state.partTargetIndex = nextIndex;
+    const nextTarget = partItems[nextIndex] || target;
+    state.activePart = nextTarget.id;
+    saveState();
+    render();
+    return;
+  }
+  markMatchHintUsed("checkpoint1", "parts", target.id);
+  state.activePart = target.id;
+  saveState();
+  render();
+}
+
 function renderMicroscopePartsExplorer() {
   const active = getActivePart();
   const viewed = state.answers.checkpoint1.parts || {};
+  const target = currentPartTarget();
+  const remaining = remainingPartTargets();
   return `
     <div class="question-row microscope-parts-question">
       <div>
         <span class="multi-badge">可點選</span>
-        <strong>點選顯微鏡構造，觀察圖中對應位置與功能。</strong>
-        <p class="multi-instruction">這一題先建立構造位置感；下方配對題改用使用情境，不重複問構造名稱。</p>
+        <strong>依序找出指定部位，正確後才會切換下一個目標。</strong>
+        <p class="multi-instruction">${target ? `目前目標：${target.function}` : "所有部位已完成。"}${remaining ? ` 尚有 ${remaining} 個部位未辨識。` : " 已完成全部部位辨識。"}</p>
+        ${target && matchHintUsed("checkpoint1", "parts", target.id) ? `<div class="hint">${target.hint || `找出「${target.answer}」對應的部位。`}</div>` : ""}
       </div>
       <div class="microscope-explorer">
         <div class="microscope-diagram" aria-label="顯微鏡構造互動圖">
@@ -686,7 +773,7 @@ function renderMicroscopePartsExplorer() {
           </div>
           ${partItems.map((part) => `
             <button
-              class="part-hotspot ${active?.id === part.id ? "active" : ""} ${viewed[part.id] ? "viewed" : ""} ${part.shape}"
+              class="part-hotspot ${target?.id === part.id || active?.id === part.id ? "active" : ""} ${viewed[part.id] === part.answer ? "viewed" : ""} ${part.shape}"
               style="--x:${part.x}%;--y:${part.y}%;--w:${part.w}%;--h:${part.h}%;"
               data-part-id="${part.id}"
               aria-label="查看${part.label}"
@@ -694,7 +781,7 @@ function renderMicroscopePartsExplorer() {
           `).join("")}
         </div>
         <div class="part-labels">
-          ${partItems.map((part) => `<button class="part-chip ${active?.id === part.id ? "active" : ""}" data-part-id="${part.id}">${part.label}</button>`).join("")}
+          ${partItems.map((part) => `<button class="part-chip ${target?.id === part.id || active?.id === part.id ? "active" : ""} ${viewed[part.id] === part.answer ? "locked" : ""}" data-part-id="${part.id}">${part.label}</button>`).join("")}
         </div>
         <div class="part-info">
           ${active ? `
@@ -812,8 +899,10 @@ function renderChoiceQuestion(group, item) {
 
 function renderFieldDemo() {
   const slider = Number(state.fieldSlider || 0);
-  const slideShift = slider;
-  const imageShift = -slider;
+  const slideShift = slider * 64;
+  const imageShift = -slider * 64;
+  const slideLabel = slider < 0 ? "向左" : slider > 0 ? "向右" : "置中";
+  const imageLabel = slider < 0 ? "向右" : slider > 0 ? "向左" : "置中";
   return `
     <div class="data-grid">
       <div class="data-panel">
@@ -827,19 +916,19 @@ function renderFieldDemo() {
             <span class="field-sample" style="transform: translate(${imageShift}px, -50%);"></span>
           </div>
           <label class="field-slider-label">移動玻片
-            <input type="range" min="-70" max="70" step="10" value="${slider}" id="fieldShiftSlider">
+            <input type="range" min="-1" max="1" step="1" value="${slider}" id="fieldShiftSlider">
           </label>
           <div class="direction-readout">
-            <span>玻片：${slider < 0 ? "向左" : slider > 0 ? "向右" : "置中"}</span>
-            <span>視野影像：${slider < 0 ? "向右" : slider > 0 ? "向左" : "置中"}</span>
+            <span>玻片：${slideLabel}</span>
+            <span>視野影像：${imageLabel}</span>
           </div>
         </div>
       </div>
       <div class="data-panel">
         <h3>低倍 / 高倍比較</h3>
         <div class="power-compare">
-          <div><span class="wide-field"></span><p>低倍：範圍較大、較亮</p></div>
-          <div><span class="narrow-field"></span><p>高倍：細節較大、範圍較小</p></div>
+          <div><span class="wide-field"></span><p>低倍洋蔥表皮：視野較亮、範圍較廣，可看到較多較小的細胞。</p></div>
+          <div><span class="narrow-field"></span><p>高倍洋蔥表皮：視野較暗、範圍較窄，可看到較少但較大的細胞。</p></div>
         </div>
       </div>
     </div>
@@ -887,10 +976,7 @@ function attachCheckpointHandlers() {
     button.addEventListener("click", () => {
       const partId = button.dataset.partId;
       if (!partItems.some((part) => part.id === partId)) return;
-      state.activePart = partId;
-      state.answers.checkpoint1.parts[partId] = true;
-      saveState();
-      render();
+      selectPartTarget(partId);
     });
   });
   document.querySelectorAll("[data-match-group]").forEach((select) => {
@@ -902,6 +988,10 @@ function attachCheckpointHandlers() {
       state.answers[group][field][select.dataset.id] = select.value;
       const shouldRevealHint = Boolean(item && select.value && select.value !== item.answer);
       const didRevealHint = shouldRevealHint ? markMatchHintUsed(group, field, item.id) : false;
+      const row = select.closest(".sequence-item");
+      row?.classList.toggle("has-selection", Boolean(select.value));
+      const selectedLine = row?.querySelector(".selected-answer");
+      if (selectedLine) selectedLine.textContent = select.value ? `已選：${select.value}` : "尚未選擇";
       saveState();
       if (didRevealHint) render();
     });
@@ -942,11 +1032,25 @@ function attachCheckpointHandlers() {
       saveState();
     });
   });
+  const fieldSlider = document.querySelector("#fieldShiftSlider");
+  if (fieldSlider) {
+    fieldSlider.addEventListener("input", () => {
+      state.fieldSlider = Number(fieldSlider.value);
+      saveState();
+      render();
+    });
+  }
   document.querySelectorAll(".hint-button").forEach((button) => {
     button.addEventListener("click", () => {
       const group = button.dataset.group;
       const id = button.dataset.id;
-      state.answers[`${group}Hints`][id] = true;
+      if (group === "checkpoint1" && id === "parts") {
+        const target = currentPartTarget();
+        if (target) markMatchHintUsed("checkpoint1", "parts", target.id);
+        state.activePart = target?.id || state.activePart;
+      } else {
+        state.answers[`${group}Hints`][id] = true;
+      }
       saveState();
       render();
     });
@@ -977,7 +1081,10 @@ function validateCheckpoint3() {
 
 function advanceIf(ok, next) {
   if (!ok) {
-    document.querySelector("#checkpointFeedback").textContent = "還有題目尚未完成。";
+    const remaining = state.screen === "checkpoint1" ? remainingPartTargets() : 0;
+    document.querySelector("#checkpointFeedback").textContent = remaining
+      ? `尚有 ${remaining} 個部位未辨識，完成所有 target 後才能進下一關。`
+      : "還有題目尚未完成。";
     return;
   }
   unlock(next);
@@ -1316,7 +1423,6 @@ function renderReview() {
           <button class="primary" id="reviewNext">填寫任務回報</button>
         </div>
       </div>
-      <div class="owl-frame ${owlImageFor("review").className}"><img src="${owlImageFor("review").src}" alt="貓頭鷹助理概念回饋"></div>
     </div>
   `;
 }
@@ -1328,7 +1434,6 @@ function renderReflection() {
       <div class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把你的預習狀態回報給老師</h2>
-        ${mentorCard("留下自己的視野問題", "空白可以提交但沒有回報 EXP；具體且和本單元概念相關的問題或不確定，才會取得回報 EXP。")}
         <div class="story-panel">
           <strong>回報 EXP 怎麼判定？</strong>
           <p>請寫出顯微鏡、目鏡、物鏡、低倍、高倍、粗調節輪、細調節輪、玻片、視野、倍率、亮度、光圈、光源、影像方向或收納等概念，並補充自己的疑問。</p>
@@ -1355,7 +1460,6 @@ function renderReflection() {
           <button class="primary" id="submitMission">提交任務</button>
         </div>
       </div>
-      <div class="owl-frame ${owlImageFor("review").className}"><img src="${owlImageFor("review").src}" alt="貓頭鷹助理提示"></div>
     </div>
   `;
 }

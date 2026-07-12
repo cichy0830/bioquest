@@ -615,20 +615,27 @@ function renderBrief() {
 
 function renderScan() {
   const tools = ["先記錄觀察，再提出推論", "把問題轉成可驗證", "假說不是已確定答案", "變因要分清楚角色", "用資料支持或修正結論"];
-  return layout(`
-    <p class="eyebrow">任務準備</p>
-    <h2 class="hero-title">進關卡前先整理證據工具</h2>
-    <div class="story-panel">
-      <strong>調查站掃描提醒</strong>
-      <p>科學探究不是猜一次就結束。請從觀察現象開始，提出可驗證問題，設計公平比較，再依資料判斷假說是否被支持。</p>
+  return `
+    <div class="stack">
+      <div class="panel hero-panel">
+        <p class="eyebrow">任務準備</p>
+        <h2 class="hero-title">進關卡前先整理證據工具</h2>
+        <div class="prep-owl-hero">
+          <div class="prep-owl-visual"><img src="${owlImages.scan}" alt="科學方法準備貓頭鷹助理"></div>
+          <div class="story-panel">
+            <strong>調查站掃描提醒</strong>
+            <p>科學探究不是猜一次就結束。請從觀察現象開始，提出可驗證問題，設計公平比較，再依資料判斷假說是否被支持。</p>
+          </div>
+        </div>
+        <div class="card-grid">
+          ${tools.map((tool) => `<div class="method-card"><span class="method-icon"></span><strong>${tool}</strong></div>`).join("")}
+        </div>
+        <div class="actions">
+          <button class="primary" id="scanNext">進入科學流程排序</button>
+        </div>
+      </div>
     </div>
-    <div class="card-grid">
-      ${tools.map((tool) => `<div class="method-card"><span class="method-icon"></span><strong>${tool}</strong></div>`).join("")}
-    </div>
-    <div class="actions">
-      <button class="primary" id="scanNext">進入科學流程排序</button>
-    </div>
-  `, owlImages.scan);
+  `;
 }
 
 function checkpointShell(title, description, rows, nextId) {
@@ -1308,7 +1315,6 @@ function renderReview() {
           <button class="primary" id="reviewNext">填寫任務回報</button>
         </div>
       </div>
-      <div class="owl-frame"><img src="${owlImages.feedback}" alt="貓頭鷹助理概念回饋"></div>
     </div>
   `;
 }
@@ -1320,7 +1326,6 @@ function renderReflection() {
       <div class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把你的預習狀態回報給老師</h2>
-        ${mentorCard("留下自己的判斷線索", "空白可以提交但沒有回報 EXP；具體且和本單元概念相關的問題或不確定，才會取得回報 EXP。")}
         <div class="story-panel">
           <strong>回報 EXP 怎麼判定？</strong>
           <p>只寫「不知道」「好難」或直接複製提問方向不會取得高分。請寫出觀察、推論、假說、操作變因、控制變因、應變變因、實驗組、對照組、資料、證據或重複驗證等概念，並補充自己的疑問。</p>
@@ -1347,7 +1352,6 @@ function renderReflection() {
           <button class="primary" id="submitMission">提交任務</button>
         </div>
       </div>
-      <div class="owl-frame"><img src="${owlImages.feedback}" alt="貓頭鷹助理提示"></div>
     </div>
   `;
 }
