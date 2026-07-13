@@ -13,8 +13,7 @@ const mission = {
 
 const mentorName = "阿澤老師";
 const cellStructureSceneImages = {
-  background: "assets/bg-cell-research-base.webp",
-  mentor: "assets/mentor-cell-lab.webp"
+  briefing: "assets/bg-cell-structure-briefing-azhe-wide.webp"
 };
 const titleProgressRules = window.BioQuestTitleProgress;
 const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
@@ -260,11 +259,8 @@ function renderTitleAvatarCard(context = "brief") {
 
 function renderBriefSceneFigure() {
   return `
-    <figure class="brief-background-figure brief-scene-figure cell-structure-brief-scene" data-brief-background="${cellStructureSceneImages.background}" data-brief-mentor="${cellStructureSceneImages.mentor}">
-      <div class="brief-scene-layered" role="img" aria-label="阿澤老師站在細胞工廠掃描站中，引導細胞構造任務">
-        <img class="brief-scene-bg" src="${cellStructureSceneImages.background}" alt="" loading="eager" aria-hidden="true">
-        <img class="brief-scene-mentor" src="${cellStructureSceneImages.mentor}" alt="阿澤老師在細胞工廠掃描站引導細胞構造任務" loading="eager">
-      </div>
+    <figure class="brief-background-figure brief-scene-figure cell-structure-brief-scene" data-briefing-scene-hook="${cellStructureSceneImages.briefing}">
+      <img src="${cellStructureSceneImages.briefing}" alt="阿澤老師在細胞工廠掃描站引導細胞構造任務" loading="eager">
       <figcaption>細胞工廠掃描站：依位置、形狀與功能，修復構造標記。</figcaption>
     </figure>
   `;

@@ -397,35 +397,13 @@ p {
   box-shadow: 0 14px 30px rgba(22, 42, 48, 0.10);
 }
 
-.brief-scene-layered {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  background:
-    linear-gradient(135deg, rgba(238, 246, 250, 0.20), rgba(255, 255, 255, 0.12)),
-    #eaf4f6;
-}
-
-.brief-scene-bg {
-  position: absolute;
-  inset: 0;
+.brief-scene-figure img {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-.brief-scene-mentor {
-  position: absolute;
-  right: clamp(14px, 7vw, 86px);
-  bottom: 0;
-  display: block;
-  width: clamp(190px, 30%, 360px);
-  height: 88%;
+  aspect-ratio: 16 / 9;
   object-fit: contain;
-  object-position: center bottom;
-  filter: drop-shadow(0 16px 24px rgba(18, 31, 54, 0.22));
+  object-position: center;
+  background: rgba(238, 246, 250, 0.28);
 }
 
 .brief-scene-figure figcaption {
@@ -1319,24 +1297,10 @@ textarea {
     grid-template-columns: 1fr;
   }
 
-  .brief-scene-figure picture {
+  .brief-scene-figure img {
     aspect-ratio: 4 / 5;
-  }
-
-  .brief-scene-layered {
-    aspect-ratio: 4 / 5;
-  }
-
-  .brief-scene-bg {
-    object-fit: cover;
+    object-fit: contain;
     object-position: center;
-  }
-
-  .brief-scene-mentor {
-    right: 50%;
-    transform: translateX(50%);
-    width: min(58vw, 230px);
-    height: 78%;
   }
 
   .question-row {
