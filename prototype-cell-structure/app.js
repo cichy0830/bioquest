@@ -12,6 +12,10 @@ const mission = {
 };
 
 const mentorName = "阿澤老師";
+const cellStructureSceneImages = {
+  background: "assets/bg-cell-research-base.webp",
+  mentor: "assets/mentor-cell-lab.webp"
+};
 const titleProgressRules = window.BioQuestTitleProgress;
 const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
 const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
@@ -254,6 +258,18 @@ function renderTitleAvatarCard(context = "brief") {
   `;
 }
 
+function renderBriefSceneFigure() {
+  return `
+    <figure class="brief-background-figure brief-scene-figure cell-structure-brief-scene" data-brief-background="${cellStructureSceneImages.background}" data-brief-mentor="${cellStructureSceneImages.mentor}">
+      <div class="brief-scene-layered" role="img" aria-label="阿澤老師站在細胞工廠掃描站中，引導細胞構造任務">
+        <img class="brief-scene-bg" src="${cellStructureSceneImages.background}" alt="" loading="eager" aria-hidden="true">
+        <img class="brief-scene-mentor" src="${cellStructureSceneImages.mentor}" alt="阿澤老師在細胞工廠掃描站引導細胞構造任務" loading="eager">
+      </div>
+      <figcaption>細胞工廠掃描站：依位置、形狀與功能，修復構造標記。</figcaption>
+    </figure>
+  `;
+}
+
 function renderLogin() {
   const value = state.student?.student_id && state.student.student_id !== "guest" ? state.student.student_id : "";
   return layout(`
@@ -361,14 +377,17 @@ async function login(id) {
 }
 
 function renderBrief() {
-  return layout(`
+  return `
+    <div class="wide-layout">
+      <div class="panel hero-panel brief-scene-card">
     <p class="eyebrow">任務檔案開啟</p>
     <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
-    <div class="brief-character-grid">
-      ${mentorCard("研究站的求救訊號", "微觀研究站收到一份細胞掃描資料，但標籤系統發生錯亂。別急著背答案，我們先像真正的研究員一樣，從位置、形狀和功能慢慢判斷：每個構造為什麼在那裡？它又替細胞完成什麼工作？", "assets/mentor-cell-lab.webp")}
-      ${renderTitleAvatarCard("brief")}
-    </div>
+    ${renderBriefSceneFigure()}
     <div class="story-panel highlight">
+      <strong>研究站的求救訊號</strong>
+      <p>微觀研究站收到一份細胞掃描資料，但標籤系統發生錯亂。別急著背答案，我們先像真正的研究員一樣，從位置、形狀和功能慢慢判斷：每個構造為什麼在那裡？它又替細胞完成什麼工作？</p>
+    </div>
+    <div class="story-panel">
       <strong>任務核心</strong>
       <p>重新辨識細胞構造，確認每個構造的功能，並找出動物細胞與植物細胞的差異。</p>
     </div>
@@ -385,9 +404,11 @@ function renderBrief() {
       ${state.student.is_guest ? `<span class="pill warn">guest 測試</span>` : ""}
     </div>
     <div class="actions">
-      <button class="primary" id="briefNext">開始貓頭鷹助理預習掃描</button>
+      <button class="primary" id="briefNext">開始任務準備</button>
     </div>
-  `);
+      </div>
+    </div>
+  `;
 }
 
 function renderScan() {
