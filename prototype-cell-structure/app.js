@@ -436,13 +436,13 @@ function renderScan() {
 }
 
 const checkpoint1Items = [
-  { id: "nucleus", prompt: "通常較明顯，含有遺傳物質，像細胞控制中心。", answer: "細胞核", hint: "這個構造會控制細胞代謝作用。" },
-  { id: "cytoplasm", prompt: "內含各種胞器，是許多代謝作用進行的場所。", answer: "細胞質", hint: "它不是空白填充物。" },
-  { id: "mitochondria", prompt: "利用養分進行呼吸作用，產生細胞所需能量。", answer: "粒線體", hint: "想想細胞活動需要能量。" },
-  { id: "vacuole", prompt: "可儲存水分、養分或廢物。", answer: "液胞", hint: "植物細胞常有較明顯的大型液胞。" },
-  { id: "membrane", prompt: "區隔細胞內外環境，控制物質進出。", answer: "細胞膜", hint: "關鍵是控制物質進出。" },
-  { id: "wall", prompt: "植物細胞外側較堅固的支架，保護並維持形狀。", answer: "細胞壁", hint: "它位在細胞膜外側，像支架。" },
-  { id: "chloroplast", prompt: "和光合作用有關，可製造葡萄糖。", answer: "葉綠體", hint: "它通常出現在能行光合作用的綠色植物細胞。" }
+  { id: "nucleus", prompt: "請辨識圖中正在發光、較大的圓形構造。", answer: "細胞核", hint: "先找細胞內較明顯、接近圓形的區域。" },
+  { id: "cytoplasm", prompt: "請辨識圖中正在發光、分布在細胞內部的大片區域。", answer: "細胞質", hint: "看高亮是不是位在細胞內側，並包圍多個小構造。" },
+  { id: "mitochondria", prompt: "請辨識圖中正在發光、常呈小橢圓且內部有皺褶的構造。", answer: "粒線體", hint: "尋找多個小橢圓形，內部常有彎曲紋理。" },
+  { id: "vacuole", prompt: "請辨識圖中正在發光、像透明囊泡或大型空腔的構造。", answer: "液胞", hint: "植物細胞中常較大；動物細胞中可能較小。" },
+  { id: "membrane", prompt: "請辨識圖中正在發光、貼近細胞外緣的薄界線。", answer: "細胞膜", hint: "留意外框附近較薄的一層，植物細胞中可在較厚外框內側找。" },
+  { id: "wall", prompt: "請辨識圖中正在發光、植物細胞最外側較厚的外框。", answer: "細胞壁", hint: "若目前看不到這個構造，請切換到植物細胞圖。" },
+  { id: "chloroplast", prompt: "請辨識圖中正在發光、植物細胞中的綠色橢圓顆粒。", answer: "葉綠體", hint: "若目前看不到這個構造，請切換到植物細胞圖，找綠色橢圓形。" }
 ];
 
 const structureOptions = ["細胞核", "細胞質", "粒線體", "液胞", "細胞膜", "細胞壁", "葉綠體"];
@@ -606,13 +606,14 @@ function renderCellHighlightOverlay(type, selectedId) {
 }
 
 function renderStructureExplorer() {
-  const type = state.activeDiagramType || "plant";
+  const target = currentStructureTarget();
+  const preferredType = target ? preferredDiagramType(target.id, state.activeDiagramType || "plant") : (state.activeDiagramType || "plant");
+  const type = preferredType;
   const diagram = cellDiagrams[type];
   const selectedId = state.activeStructure || "";
   const selected = selectedId ? structureGuide[selectedId] : null;
-  const target = currentStructureTarget();
   const remaining = remainingStructureTargets();
-  const targetInDiagram = Boolean(target && diagram.structures.some((item) => item.id === target.id));
+  const targetId = target?.id || "";
   return `
     <div class="structure-explorer">
       <div>
@@ -623,9 +624,9 @@ function renderStructureExplorer() {
         </div>
         <div class="cell-board ${type}">
           ${renderCellArt(type)}
-          ${renderCellHighlightOverlay(type, selectedId)}
+          ${renderCellHighlightOverlay(type, targetId)}
           ${diagram.structures.map((item) => `
-            <button class="cell-hotspot part-hotspot ${selectedId === item.id ? "active" : ""}" style="left:${item.x}%;top:${item.y}%;" data-structure="${item.id}" aria-label="選取${structureGuide[item.id].label}"></button>
+            <button class="cell-hotspot part-hotspot ${targetId === item.id ? "active" : ""}" style="left:${item.x}%;top:${item.y}%;" data-structure="${item.id}" aria-label="選取${structureGuide[item.id].label}"></button>
           `).join("")}
         </div>
         <p class="cell-note">${diagram.note}</p>
@@ -633,18 +634,22 @@ function renderStructureExplorer() {
       <div class="structure-card part-info">
         <span>目前 target</span>
         <strong>${target ? target.prompt : "所有構造已完成"}</strong>
-        <p>${target ? `${targetInDiagram ? "請點選圖中構造或下方標籤。" : "請先切換到有此構造的細胞圖。"}尚有 ${remaining} 個構造未辨識。` : "已完成全部構造辨識。"}</p>
+        <p>${target ? `請點選下方名稱標籤。尚有 ${remaining} 個構造未辨識。` : "已完成全部構造辨識。"}</p>
         ${target && state.answers.checkpoint1Hints[target.id] ? `<div class="hint">${target.hint}</div>` : ""}
         <span>目前選取</span>
         <strong>${selected ? selected.label : "尚未選取構造"}</strong>
-        <p>${selected ? selected.clue : "切換動物／植物細胞時，預設不會先選取任何構造。"}</p>
-        ${selected ? `<div class="hint">${selected.functionText}</div>` : ""}
+        <p>${selected ? "已收到你的選擇，系統會依目前發光構造判定。" : "請從下方標籤選擇正在發光的構造名稱。"}</p>
         <div class="part-labels structure-chips" aria-label="細胞構造標籤">
-          ${diagram.structures.map((item) => `<button class="part-chip structure-chip ${selectedId === item.id ? "active" : ""} ${state.answers.checkpoint1[item.id] === structureGuide[item.id].label ? "locked" : ""}" data-structure-chip="${item.id}">${structureGuide[item.id].label}</button>`).join("")}
+          ${checkpoint1Items.map((item) => `<button class="part-chip structure-chip ${selectedId === item.id ? "active" : ""} ${state.answers.checkpoint1[item.id] === item.answer ? "locked" : ""}" data-structure-chip="${item.id}">${item.answer}</button>`).join("")}
         </div>
       </div>
     </div>
   `;
+}
+
+function preferredDiagramType(structureId, fallback = "plant") {
+  if (cellDiagrams[fallback]?.structures.some((item) => item.id === structureId)) return fallback;
+  return Object.entries(cellDiagrams).find(([, diagram]) => diagram.structures.some((item) => item.id === structureId))?.[0] || fallback;
 }
 
 function currentStructureTarget() {
@@ -665,6 +670,9 @@ function selectStructureTarget(structureId) {
       correct: true,
       hint_used: Boolean(state.answers.checkpoint1Hints[target.id])
     };
+    const nextTarget = checkpoint1Items.find((item) => item.id !== target.id && state.answers.checkpoint1[item.id] !== item.answer);
+    if (nextTarget) state.activeDiagramType = preferredDiagramType(nextTarget.id, state.activeDiagramType || "plant");
+    else state.activeDiagramType = preferredDiagramType(target.id, state.activeDiagramType || "plant");
     saveState();
     render();
     return;
@@ -682,11 +690,10 @@ function renderCheckpoint1() {
     ${renderStructureExplorer()}
     <div class="section-divider">
       <strong>檢核任務</strong>
-      <span>看完構造圖後，根據線索選出正確的細胞構造。</span>
+      <span>只辨識目前正在發光的構造名稱；功能判斷會在關卡二檢核。</span>
     </div>
-    ${checkpoint1Items.map((item) => selectRow("checkpoint1", item)).join("")}
   `;
-  return checkpointShell("關卡一：細胞掃描標記", "先觀察動物細胞與植物細胞構造圖，再根據線索完成辨識。", rows, "checkpoint1Next");
+  return checkpointShell("關卡一：細胞掃描標記", "觀察正在發光的構造，點選下方名稱標籤完成辨識。", rows, "checkpoint1Next");
 }
 
 function selectRow(group, item) {

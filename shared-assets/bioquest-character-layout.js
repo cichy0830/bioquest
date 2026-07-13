@@ -79,6 +79,32 @@
     return `${directory}/mentor-feedback-${state}.webp?v=20260712-expression-v2`;
   }
 
+  function unitPositionText() {
+    const sequence = document.body?.dataset?.unitSequence || "";
+    const title = document.body?.dataset?.unitTitle || "";
+    if (!sequence || !title) return "";
+    return `第 ${sequence} 站｜${title}`;
+  }
+
+  function enhanceUnitPosition(root) {
+    const label = unitPositionText();
+    if (!label) return;
+    const panel = root.querySelector(".panel");
+    if (!panel) return;
+    let node = panel.querySelector(":scope > .bq-unit-position");
+    if (!node) {
+      node = document.createElement("p");
+      node.className = "bq-unit-position";
+      const cover = panel.querySelector(":scope > .bq-login-cover");
+      const heading = panel.querySelector(":scope > .hero-title, :scope > h2");
+      if (cover) cover.insertAdjacentElement("afterend", node);
+      else if (heading) heading.insertAdjacentElement("beforebegin", node);
+      else panel.prepend(node);
+    }
+    setText(node, label);
+    setAttribute(node, "aria-label", `課程定位：${label}`);
+  }
+
   function enhanceLogin(root) {
     const panel = root.querySelector(".panel");
     if (!panel) return;
@@ -234,6 +260,7 @@
       && previous?.childElementCount === root.childElementCount) return false;
 
     setDataset(root, "bioquestScreen", screenName);
+    enhanceUnitPosition(root);
     if (screenName === "login") enhanceLogin(root);
     if (screenName === "review") enhanceReview(root);
     if (screenName === "reflection") enhanceReflection(root);

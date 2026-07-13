@@ -118,6 +118,23 @@ body[data-unit-id] #screen :where(input, textarea, select, th, td) {
   object-position: center;
 }
 
+.bq-unit-position {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  margin: 0 0 10px;
+  padding: 7px 12px;
+  border: 1px solid rgba(34, 91, 95, 0.22);
+  border-radius: 999px;
+  color: #174c58;
+  background: rgba(231, 248, 248, 0.88);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .bq-login-panel .mission-hud {
   display: none !important;
 }
@@ -360,6 +377,17 @@ body[data-unit-id] #screen :where(input, textarea, select, th, td) {
 
   .bq-login-cover {
     aspect-ratio: 4 / 5;
+  }
+
+  .bq-unit-position {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    text-align: center;
   }
 
   body[data-unit-id] #screen > .panel,
