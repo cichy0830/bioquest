@@ -54,7 +54,7 @@ const units = [
   { title: "養分檢測", unitId: "nutrient_test", status: "ready", sequence: 12, summary: "正式順序第十二單元。已完成學生端靜態原型，含檢測結果判讀、試劑與養分配對、對照組、資料證據與安全判斷。", tags: ["正式原型", "養分檢測", "證據判讀", "安全", "已可測試"], url: "prototype-nutrient-test/?v=20260713-login-busy-v1" },
   { title: "酵素", unitId: "enzymes", status: "ready", sequence: 13, summary: "正式順序第十三單元。已完成學生端靜態原型，含酵素作用、專一性、可重複作用、溫度與酸鹼值資料判讀及消化情境。", tags: ["正式原型", "酵素", "專一性", "資料判讀", "已可測試"], url: "prototype-enzymes/?v=20260713-login-busy-v1" },
   { title: "植物如何製造養分", unitId: "photosynthesis", status: "ready", sequence: 14, summary: "正式順序第十四單元。已完成學生端靜態原型，含原料/能量/產物分類、葉片構造、澱粉與氣泡證據、變因判讀及光合作用/呼吸作用迷思修正。", tags: ["正式原型", "光合作用", "葉綠體", "變因判讀", "已可測試"], url: "prototype-photosynthesis/?v=20260713-login-busy-v1" },
-  { title: "人體如何獲得養分", unitId: "human_nutrition", status: "spec", sequence: 15, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材、BadgeRules 與主控確認後建立原型。", tags: ["規格備料", "消化", "吸收", "食物流向"] },
+  { title: "人體如何獲得養分", unitId: "human_nutrition", status: "ready", sequence: 15, summary: "正式順序第十五單元。已完成學生端靜態原型，含消化道與消化腺、食物流向、消化吸收、酵素與膽汁、小腸吸收與血液運送。", tags: ["正式原型", "消化", "吸收", "食物流向", "已可測試"], url: "prototype-human-nutrition/?v=20260714-human-nutrition-v1" },
   { title: "植物的運輸構造", unitId: "plant_transport_structures", status: "planned", sequence: 16, summary: "根、莖、葉與維管束相關構造。", tags: ["植物", "運輸"] },
   { title: "植物體內物質的運輸", unitId: "plant_transport", status: "planned", sequence: 17, summary: "水分、礦物質、養分在植物體內的運輸。", tags: ["導管", "篩管"] },
   { title: "人體心血管系統的組成", unitId: "cardiovascular_components", status: "planned", sequence: 18, summary: "心臟、血管、血液組成與功能。", tags: ["心血管", "血液"] },
