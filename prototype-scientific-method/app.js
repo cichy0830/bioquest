@@ -520,7 +520,9 @@ async function login(id) {
     message.innerHTML = `<span class="pill warn">請先輸入學號。</span>`;
     return;
   }
-  message.innerHTML = `<span class="pill">正在查詢後台名單...</span>`;
+  window.BioQuestLoginUX?.begin({ guest: id === "guest" });
+  await window.BioQuestLoginUX?.paint();
+  message.innerHTML = `<span class="pill">正在連接 BioQuest 學習後台，請稍候……</span>`;
   let student = null;
   let attemptType = "first";
   let completedAttempts = 0;

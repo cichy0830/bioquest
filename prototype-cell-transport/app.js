@@ -356,6 +356,8 @@ function normalizeBackendStudent(data, id) {
 async function login(id) {
   const message = document.querySelector("#loginMessage");
   if (!id) { message.innerHTML = "<span class=\"pill warn\">請輸入學號。</span>"; return; }
+  window.BioQuestLoginUX?.begin({ guest: id === "guest" });
+  await window.BioQuestLoginUX?.paint();
   let student; let completed = 0; let remoteProgress = {}; let remoteAttemptStatus = {};
   try {
     const data = await fetchStudentStatus(id);

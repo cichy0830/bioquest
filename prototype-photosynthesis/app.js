@@ -333,13 +333,15 @@ async function handleLogin(useGuest) {
     if (message) message.textContent = "請輸入學號，或使用 guest 測試。";
     return;
   }
+  window.BioQuestLoginUX?.begin({ guest: useGuest || studentId === "guest" });
+  await window.BioQuestLoginUX?.paint();
   if (useGuest || studentId === "guest") {
     beginLocalAttempt(roster.guest);
     renderApp();
     return;
   }
   try {
-    if (message) message.textContent = "正在連線 Google Sheet 後台確認學生資料...";
+    if (message) message.textContent = "正在連接 BioQuest 學習後台，請稍候……";
     const loginData = await requestBackend({ action: "getStudentAndAttemptStatus", student_id: studentId, unit_id: mission.unit_id });
     const student = normalizeBackendStudent(loginData, studentId);
     const startData = await requestBackend({

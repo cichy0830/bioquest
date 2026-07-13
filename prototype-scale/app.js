@@ -343,6 +343,8 @@ async function login(id) {
     message.innerHTML = `<span class="pill warn">請輸入學號。</span>`;
     return;
   }
+  window.BioQuestLoginUX?.begin({ guest: id === "guest" });
+  await window.BioQuestLoginUX?.paint();
   let student = null;
   let completed = 0;
   let remoteProgress = {};

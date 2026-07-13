@@ -33,6 +33,84 @@
     return document.body?.dataset?.[name] || fallback;
   }
 
+  const loginBusyState = {
+    active: false,
+    controls: [],
+    observer: null,
+    busyText: ""
+  };
+
+  function loginControls() {
+    const root = document.querySelector("#screen") || document;
+    return [
+      root.querySelector("#loginButton, #loginBtn"),
+      root.querySelector("#guestButton, #guestBtn"),
+      root.querySelector("#resetButton"),
+      root.querySelector("#studentIdInput, #studentId")
+    ].filter(Boolean);
+  }
+
+  function loginStatusNode() {
+    const root = document.querySelector("#screen") || document;
+    return root.querySelector("#loginMessage");
+  }
+
+  function restoreLoginBusy() {
+    if (loginBusyState.observer) {
+      loginBusyState.observer.disconnect();
+      loginBusyState.observer = null;
+    }
+    loginBusyState.controls.forEach((control) => {
+      control.disabled = control.dataset.bqLoginWasDisabled === "true";
+      if (control.dataset.bqLoginText) control.textContent = control.dataset.bqLoginText;
+      control.removeAttribute("aria-busy");
+      delete control.dataset.bqLoginWasDisabled;
+      delete control.dataset.bqLoginText;
+    });
+    loginBusyState.controls = [];
+    loginBusyState.active = false;
+    loginBusyState.busyText = "";
+  }
+
+  function beginLoginBusy(options = {}) {
+    if (loginBusyState.active) return null;
+    const status = loginStatusNode();
+    const guest = Boolean(options.guest);
+    const busyText = options.message || (guest
+      ? "正在建立老師測試模式，請稍候……"
+      : "正在連接 BioQuest 學習後台，請稍候……");
+    const buttonText = options.buttonText || (guest ? "建立中……" : "連線中……");
+
+    if (status) {
+      status.setAttribute("role", "status");
+      status.setAttribute("aria-live", "polite");
+      status.innerHTML = `<span class="pill">${busyText}</span>`;
+      loginBusyState.observer = new MutationObserver(() => {
+        const currentText = status.textContent || "";
+        if (loginBusyState.active && currentText && !currentText.includes(loginBusyState.busyText)) restoreLoginBusy();
+      });
+      loginBusyState.observer.observe(status, { childList: true, subtree: true, characterData: true });
+    }
+
+    loginBusyState.controls = loginControls();
+    loginBusyState.controls.forEach((control) => {
+      control.dataset.bqLoginWasDisabled = String(control.disabled);
+      if (control.tagName === "BUTTON") {
+        control.dataset.bqLoginText = control.textContent;
+        control.textContent = control.matches("#loginButton, #loginBtn") ? buttonText : control.textContent;
+      }
+      control.disabled = true;
+      control.setAttribute("aria-busy", "true");
+    });
+    loginBusyState.active = true;
+    loginBusyState.busyText = busyText;
+    return { busyText };
+  }
+
+  function waitForLoginPaint() {
+    return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  }
+
   function enhanceBrandMark() {
     const mark = document.querySelector(".brand-mark");
     if (!mark) return;
@@ -318,6 +396,11 @@
   }
 
   global.BioQuestCharacterLayout = Object.freeze({ enhance, feedbackState });
+  global.BioQuestLoginUX = Object.freeze({
+    begin: beginLoginBusy,
+    end: restoreLoginBusy,
+    paint: waitForLoginPaint
+  });
   enableBackendAssetFallback();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", observe, { once: true });
   else observe();

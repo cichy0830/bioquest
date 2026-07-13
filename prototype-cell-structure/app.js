@@ -339,6 +339,8 @@ async function login(id) {
     message.innerHTML = `<span class="pill warn">查無此學號，請重新輸入。</span>`;
     return;
   }
+  window.BioQuestLoginUX?.begin({ guest: id === "guest" });
+  await window.BioQuestLoginUX?.paint();
   let student;
   let completedAttempts = 0;
   if (id === "guest") {
