@@ -1,11 +1,8 @@
 const roster = {
-  S70101: { student_id: "S70101", class_name: "701", seat_no: "01", student_name: "林安安", profile_gender: "female" },
-  S70102: { student_id: "S70102", class_name: "701", seat_no: "02", student_name: "陳柏宇", profile_gender: "male" },
-  S70103: { student_id: "S70103", class_name: "701", seat_no: "03", student_name: "許若晴", profile_gender: "female" },
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", profile_gender: "neutral", is_guest: true }
 };
 
-const BACKEND_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
+const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
 
 const mission = {
   unit_id: "scientific_method",
@@ -511,7 +508,7 @@ function attachLogin() {
 }
 
 async function fetchStudentStatus(id) {
-  const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}`;
+  const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}&unit_id=${encodeURIComponent(mission.unit_id)}&_=${Date.now()}`;
   const response = await fetch(url, { method: "GET", cache: "no-store" });
   if (!response.ok) throw new Error(`backend_${response.status}`);
   return response.json();
@@ -547,14 +544,14 @@ async function login(id) {
     attemptType = remote.attempt_type || "first";
     completedAttempts = Number(remote.completed_attempts || 0);
   } catch (error) {
-    student = roster[id];
-    if (!student) {
-      message.innerHTML = `<span class="pill warn">目前無法連線後台，且本機測試名單查無此學號。</span>`;
+    if (id !== "guest") {
+      message.innerHTML = `<span class="pill warn">後台目前無法連線，尚未登入。請檢查網路後重試或通知老師。</span>`;
       return;
     }
+    student = roster.guest;
     completedAttempts = studentAttempts(student.student_id).length;
     attemptType = completedAttempts > 0 ? "retry" : "first";
-    message.innerHTML = `<span class="pill warn">後台暫時無法連線，先使用本機測試模式。</span>`;
+    message.innerHTML = `<span class="pill warn">guest 已切換為本機測試模式，不列入正式統計。</span>`;
   }
   if (!student) {
     message.innerHTML = `<span class="pill warn">查無此學號，請重新輸入。</span>`;

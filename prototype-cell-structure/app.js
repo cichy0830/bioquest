@@ -1,9 +1,8 @@
 const roster = {
-  S70101: { student_id: "S70101", class_name: "701", seat_no: "01", student_name: "林安安" },
-  S70102: { student_id: "S70102", class_name: "701", seat_no: "02", student_name: "陳柏宇" },
-  S70103: { student_id: "S70103", class_name: "701", seat_no: "03", student_name: "許若晴" },
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
+
+const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
 
 const mission = {
   mission_area: "微觀研究站",
@@ -296,17 +295,61 @@ function attachLogin() {
   });
 }
 
-function login(id) {
-  const student = roster[id];
+async function fetchStudentStatus(id) {
+  const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}&unit_id=${encodeURIComponent(mission.unit_id)}&_=${Date.now()}`;
+  const response = await fetch(url, { cache: "no-store" });
+  if (!response.ok) throw new Error(`backend_${response.status}`);
+  return response.json();
+}
+
+function normalizeBackendStudent(data, id) {
+  if (!data?.ok || !data.student || String(data.student.student_id || "") !== String(id)) return null;
+  const source = data.student;
+  const progress = data.progress || data.student_progress || source.progress || {};
+  return {
+    student_id: source.student_id,
+    class_name: source.class_name || source.class || "未設定",
+    seat_no: source.seat_no || source.seat || "00",
+    student_name: source.student_name || source.name || "未設定",
+    profile_gender: progress.profile_gender || source.profile_gender || source.gender || "",
+    current_title_id: progress.current_title_id || source.current_title_id || "",
+    current_title: progress.current_title || source.current_title || "",
+    title_avatar_path: progress.title_avatar_path || source.title_avatar_path || "",
+    total_exp: progress.total_exp ?? source.total_exp,
+    progress,
+    is_guest: false
+  };
+}
+
+async function login(id) {
   const message = document.querySelector("#loginMessage");
-  if (!student) {
+  if (!id) {
     message.innerHTML = `<span class="pill warn">查無此學號，請重新輸入。</span>`;
     return;
+  }
+  let student;
+  let completedAttempts = 0;
+  if (id === "guest") {
+    student = roster.guest;
+    completedAttempts = studentAttempts(student.student_id).length;
+  } else {
+    try {
+      const data = await fetchStudentStatus(id);
+      student = normalizeBackendStudent(data, id);
+      if (!student) {
+        message.innerHTML = `<span class="pill warn">查無此學號或後台資料不完整，尚未登入。</span>`;
+        return;
+      }
+      completedAttempts = Number(data.attempt_status?.completed_attempt_count ?? data.completed_attempts ?? 0);
+    } catch {
+      message.innerHTML = `<span class="pill warn">後台目前無法連線，尚未登入。請檢查網路後重試或通知老師。</span>`;
+      return;
+    }
   }
   const attempts = studentAttempts(student.student_id);
   state = structuredClone(defaultState);
   state.student = { ...student, is_guest: Boolean(student.is_guest) };
-  state.attempt_type = attempts.length > 0 ? "retry" : "first";
+  state.attempt_type = (completedAttempts || attempts.length) > 0 ? "retry" : "first";
   state.started_at = new Date().toISOString();
   state.optionOrders = {
     structureOptions: shuffledCopy(structureOptions),

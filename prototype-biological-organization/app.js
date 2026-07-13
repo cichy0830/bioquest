@@ -1,11 +1,8 @@
 const roster = {
-  S70101: { student_id: "S70101", class_name: "701", seat_no: "01", student_name: "林安安" },
-  S70102: { student_id: "S70102", class_name: "701", seat_no: "02", student_name: "陳柏宇" },
-  S70103: { student_id: "S70103", class_name: "701", seat_no: "03", student_name: "許若晴" },
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const BACKEND_URL = "https://script.google.com/macros/s/AKfycbws7n-pzOGA7ZaQe044cAA4JElgjVsDTMokXf9ZifKZoGQHRyNSFpuxVppkC8PzZFATqQ/exec";
+const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
 const VERSION = "20260711-biological-organization-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -426,7 +423,7 @@ function renderLogin() {
 }
 async function fetchStudentStatus(id) {
   const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}&unit_id=${encodeURIComponent(mission.unit_id)}`;
-  const response = await fetch(url);
+  const response = await fetch(`${url}&_=${Date.now()}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`backend_${response.status}`);
   return response.json();
 }
@@ -465,13 +462,13 @@ async function login(id) {
     remoteAttemptStatus = data.attempt_status || {};
     completed = Number(remoteAttemptStatus.completed_attempt_count ?? data.completed_attempts ?? 0);
   } catch {
-    student = roster[id];
-    if (!student) {
-      message.innerHTML = `<span class="pill warn">後台暫時無法連線，且本機測試名單查無此學號。</span>`;
+    if (id !== "guest") {
+      message.innerHTML = `<span class="pill warn">後台目前無法連線，尚未登入。請檢查網路後重試或通知老師。</span>`;
       return;
     }
+    student = roster.guest;
     completed = studentAttempts(student.student_id).length;
-    message.innerHTML = `<span class="pill warn">後台暫時無法連線，已使用本機測試名單。</span>`;
+    message.innerHTML = `<span class="pill warn">guest 已切換為本機測試模式，不列入正式統計。</span>`;
   }
   state = clone(defaultState);
   state.student = { ...student };
