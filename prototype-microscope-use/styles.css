@@ -688,6 +688,40 @@ textarea {
   gap: 12px;
 }
 
+.power-card {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  min-width: 0;
+  margin: 0;
+}
+
+.power-image {
+  display: block;
+  width: min(100%, 220px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(16, 152, 166, 0.28);
+  border-radius: 50%;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 12px 24px rgba(16, 45, 58, 0.10);
+}
+
+.power-fallback {
+  display: none;
+}
+
+.power-card.image-failed .power-fallback {
+  display: block;
+}
+
+.power-card figcaption {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+  text-align: center;
+}
+
 .microscope-parts-question {
   grid-template-columns: minmax(220px, 0.7fr) minmax(320px, 1.3fr) auto;
   align-items: start;

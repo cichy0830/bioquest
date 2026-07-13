@@ -17,7 +17,7 @@ const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
 const DIRECT_RAW_MAX = 527;
 const REVISION_RAW_MAX = 315;
-const MICROSCOPE_VERSION = "20260712-microscope-parts-v3";
+const MICROSCOPE_VERSION = "20260713-microscope-onion-v1";
 const titleProgressRules = window.BioQuestTitleProgress;
 const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
 const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
@@ -28,6 +28,8 @@ const microscopeVisualAssets = {
   briefingSceneWide: `assets/bg-microscope-use-briefing-azhe-wide.webp?v=${MICROSCOPE_VERSION}`,
   briefingSceneMobile: `assets/bg-microscope-use-briefing-azhe-mobile.webp?v=${MICROSCOPE_VERSION}`,
   diagramParts: `assets/microscope-parts-interactive.webp?v=${MICROSCOPE_VERSION}`,
+  onionLowPower: `assets/img-microscope-onion-low-power.webp?v=${MICROSCOPE_VERSION}`,
+  onionHighPower: `assets/img-microscope-onion-high-power.webp?v=${MICROSCOPE_VERSION}`,
   owlHooks: {
     opening: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
     scan: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
@@ -927,8 +929,16 @@ function renderFieldDemo() {
       <div class="data-panel">
         <h3>低倍 / 高倍比較</h3>
         <div class="power-compare">
-          <div><span class="wide-field"></span><p>低倍洋蔥表皮：視野較亮、範圍較廣，可看到較多較小的細胞。</p></div>
-          <div><span class="narrow-field"></span><p>高倍洋蔥表皮：視野較暗、範圍較窄，可看到較少但較大的細胞。</p></div>
+          <figure class="power-card">
+            <img class="power-image" src="${microscopeVisualAssets.onionLowPower}" alt="低倍複式顯微鏡下的洋蔥表皮，視野較亮、範圍較廣、細胞較多且較小" onerror="this.hidden=true;this.parentElement.classList.add('image-failed');">
+            <span class="wide-field power-fallback" aria-hidden="true"></span>
+            <figcaption>低倍洋蔥表皮：視野較亮、範圍較廣，可看到較多較小的細胞。</figcaption>
+          </figure>
+          <figure class="power-card">
+            <img class="power-image" src="${microscopeVisualAssets.onionHighPower}" alt="高倍複式顯微鏡下的洋蔥表皮，視野較暗、範圍較窄、細胞較少但較大" onerror="this.hidden=true;this.parentElement.classList.add('image-failed');">
+            <span class="narrow-field power-fallback" aria-hidden="true"></span>
+            <figcaption>高倍洋蔥表皮：視野較暗、範圍較窄，可看到較少但較大的細胞。</figcaption>
+          </figure>
         </div>
       </div>
     </div>
