@@ -5,6 +5,70 @@
   --bq-character-inline-size: clamp(72px, 10vw, 120px);
   --bq-feedback-mentor-size: clamp(220px, 32vw, 420px);
   --bq-badge-size: clamp(72px, 8vw, 96px);
+  --bq-content-surface: rgba(250, 253, 252, 0.76);
+  --bq-content-surface-mobile: rgba(250, 253, 252, 0.82);
+  --bq-content-surface-strong: rgba(255, 255, 255, 0.92);
+  --bq-content-surface-soft: rgba(247, 251, 250, 0.86);
+  --bq-content-surface-border: rgba(34, 91, 95, 0.22);
+  --bq-content-surface-shadow: 0 20px 46px rgba(15, 48, 56, 0.14);
+}
+
+/*
+ * The body owns each unit's ambient scene. Top-level content surfaces stay
+ * translucent so the scene remains identifiable; interactive cards retain a
+ * stronger surface for readable text and controls.
+ */
+body[data-unit-id] #screen > .panel,
+body[data-unit-id] #screen > .wide-layout > .panel,
+body[data-unit-id] #screen > .stack > .panel,
+body[data-unit-id] #screen > .mission-layout > .panel {
+  background: var(--bq-content-surface) !important;
+  border-color: var(--bq-content-surface-border) !important;
+  box-shadow: var(--bq-content-surface-shadow) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.08);
+  backdrop-filter: blur(12px) saturate(1.08);
+  opacity: 1;
+}
+
+body[data-unit-id] #screen :where(
+  .story-panel,
+  .question-card,
+  .question-row,
+  .multi-question,
+  .concept-card,
+  .score-box,
+  .result-row,
+  .exp-row,
+  .feedback,
+  .match-field,
+  .token-card,
+  .category-box,
+  .badge,
+  .badge-card,
+  .rule-card,
+  .result-table
+) {
+  background-color: var(--bq-content-surface-strong) !important;
+  border-color: var(--bq-content-surface-border) !important;
+  opacity: 1;
+}
+
+body[data-unit-id] #screen :where(
+  .prep-hero,
+  .prep-owl-hero,
+  .bq-report-assistant,
+  .bq-result-hero,
+  .mentor-card
+) {
+  background-color: var(--bq-content-surface-soft) !important;
+  border-color: var(--bq-content-surface-border) !important;
+  opacity: 1;
+}
+
+body[data-unit-id] #screen :where(input, textarea, select, th, td) {
+  color: #142732;
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  opacity: 1;
 }
 
 .bq-login-panel {
@@ -296,6 +360,32 @@
 
   .bq-login-cover {
     aspect-ratio: 4 / 5;
+  }
+
+  body[data-unit-id] #screen > .panel,
+  body[data-unit-id] #screen > .wide-layout > .panel,
+  body[data-unit-id] #screen > .stack > .panel,
+  body[data-unit-id] #screen > .mission-layout > .panel {
+    background: var(--bq-content-surface-mobile) !important;
+    -webkit-backdrop-filter: blur(9px) saturate(1.06);
+    backdrop-filter: blur(9px) saturate(1.06);
+  }
+
+  body[data-unit-id],
+  body[data-unit-id] .app-shell,
+  body[data-unit-id] .side-panel,
+  body[data-unit-id] .main-stage,
+  body[data-unit-id] #screen,
+  body[data-unit-id] .step-list {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  body[data-unit-id] .app-shell,
+  body[data-unit-id] .side-panel,
+  body[data-unit-id] .main-stage,
+  body[data-unit-id] #screen {
+    width: 100%;
   }
 
   .bq-feedback-mentor {

@@ -7,7 +7,7 @@ const units = [
     summary: "正式順序第一單元。已完成學生端靜態原型，含生命現象、生物/非生物、環境條件、EXP 與徽章。",
     tags: ["正式原型", "生命現象", "已可測試"],
     aliases: ["多采多姿的生命世界"],
-    url: "prototype-life-world/?v=20260713-backend-endpoint-v1"
+    url: "prototype-life-world/?v=20260713-content-surface-v1"
   },
   {
     title: "探究自然的科學方法",
@@ -16,7 +16,7 @@ const units = [
     sequence: 2,
     summary: "正式順序第二單元。已完成學生端靜態原型，含流程排序、變因分類、資料判讀與結論修正。",
     tags: ["正式原型", "科學方法", "已可測試"],
-    url: "prototype-scientific-method/?v=20260713-backend-endpoint-v1"
+    url: "prototype-scientific-method/?v=20260713-content-surface-v1"
   },
   {
     title: "進入實驗室",
@@ -25,7 +25,7 @@ const units = [
     sequence: 3,
     summary: "正式順序第三單元。已完成學生端靜態原型，含器材功能、器材選用、安全情境、操作順序與實驗紀錄。",
     tags: ["正式原型", "實驗安全", "已可測試"],
-    url: "prototype-lab-entry/?v=20260713-backend-endpoint-v1"
+    url: "prototype-lab-entry/?v=20260713-content-surface-v1"
   },
   {
     title: "顯微鏡的使用",
@@ -34,7 +34,7 @@ const units = [
     sequence: 4,
     summary: "正式順序第四單元。已完成學生端靜態原型，含部位功能、低倍到高倍操作、倍率視野與搬運收納安全。",
     tags: ["正式原型", "顯微鏡", "已可測試"],
-    url: "prototype-microscope-use/?v=20260713-backend-endpoint-v1"
+    url: "prototype-microscope-use/?v=20260713-content-surface-v1"
   },
   {
     title: "生物體的基本單位",
@@ -43,17 +43,17 @@ const units = [
     sequence: 5,
     summary: "正式順序第五單元。已完成學生端靜態原型，含細胞基本單位、單細胞/多細胞、形狀功能與顯微證據判讀。",
     tags: ["正式原型", "細胞", "已可測試"],
-    url: "prototype-cell-basic-unit/?v=20260713-backend-endpoint-v1"
+    url: "prototype-cell-basic-unit/?v=20260713-content-surface-v1"
   },
-  { title: "細胞的構造", unitId: "cell_structure", status: "ready", sequence: 6, summary: "已有模板驗證原型，具細胞圖、構造高亮、配對、比較、EXP 明細與徽章。", tags: ["模板驗證", "細胞構造", "已可測試"], url: "prototype-cell-structure/?v=20260713-backend-endpoint-v1", note: "模板驗證單元" },
-  { title: "細胞的觀察", unitId: "cell_observation", status: "ready", sequence: 7, summary: "正式順序第七單元。已完成學生端靜態原型，含玻片製作、低高倍策略、顯微視野判讀、染色目的與迷思修正。", tags: ["正式原型", "顯微觀察", "已可測試"], url: "prototype-cell-observation/?v=20260713-backend-endpoint-v1" },
-  { title: "物質進出細胞的方式", unitId: "cell_transport", status: "ready", sequence: 8, summary: "正式順序第八單元。已完成學生端靜態原型，含擴散與滲透、半透膜、濃度方向、資料判讀與動植物細胞變化。", tags: ["正式原型", "擴散", "滲透", "已可測試"], url: "prototype-cell-transport/?v=20260713-backend-endpoint-v1" },
-  { title: "生物體的組成層次", unitId: "biological_organization", status: "ready", sequence: 9, summary: "正式順序第九單元。已完成學生端靜態原型，含組成層次排序、例子分類、單多細胞判斷、植物器官與動植物比較。", tags: ["正式原型", "組成層次", "排序", "植物器官", "已可測試"], url: "prototype-biological-organization/?v=20260713-backend-endpoint-v1" },
-  { title: "尺度", unitId: "scale", status: "ready", sequence: 10, summary: "正式順序第十單元。已完成學生端靜態原型，含尺度排序、單位配對、觀察工具、標尺判讀、圖像與實際大小。", tags: ["正式原型", "尺度", "比例尺", "觀察工具", "已可測試"], url: "prototype-scale/?v=20260713-backend-endpoint-v1" },
-  { title: "食物中的養分與能量", unitId: "nutrients_energy", status: "ready", sequence: 11, summary: "正式順序第十一單元。已完成學生端靜態原型，含養分功能、主要食物來源、能量判斷、營養資料與均衡飲食。", tags: ["正式原型", "養分", "能量", "均衡飲食", "已可測試"], url: "prototype-nutrients-energy/?v=20260713-backend-endpoint-v1" },
-  { title: "養分檢測", unitId: "nutrient_test", status: "ready", sequence: 12, summary: "正式順序第十二單元。已完成學生端靜態原型，含檢測結果判讀、試劑與養分配對、對照組、資料證據與安全判斷。", tags: ["正式原型", "養分檢測", "證據判讀", "安全", "已可測試"], url: "prototype-nutrient-test/?v=20260713-backend-endpoint-v1" },
-  { title: "酵素", unitId: "enzymes", status: "ready", sequence: 13, summary: "正式順序第十三單元。已完成學生端靜態原型，含酵素作用、專一性、可重複作用、溫度與酸鹼值資料判讀及消化情境。", tags: ["正式原型", "酵素", "專一性", "資料判讀", "已可測試"], url: "prototype-enzymes/?v=20260713-backend-endpoint-v1" },
-  { title: "植物如何製造養分", unitId: "photosynthesis", status: "ready", sequence: 14, summary: "正式順序第十四單元。已完成學生端靜態原型，含原料/能量/產物分類、葉片構造、澱粉與氣泡證據、變因判讀及光合作用/呼吸作用迷思修正。", tags: ["正式原型", "光合作用", "葉綠體", "變因判讀", "已可測試"], url: "prototype-photosynthesis/?v=20260713-backend-endpoint-v1" },
+  { title: "細胞的構造", unitId: "cell_structure", status: "ready", sequence: 6, summary: "已有模板驗證原型，具細胞圖、構造高亮、配對、比較、EXP 明細與徽章。", tags: ["模板驗證", "細胞構造", "已可測試"], url: "prototype-cell-structure/?v=20260713-content-surface-v1", note: "模板驗證單元" },
+  { title: "細胞的觀察", unitId: "cell_observation", status: "ready", sequence: 7, summary: "正式順序第七單元。已完成學生端靜態原型，含玻片製作、低高倍策略、顯微視野判讀、染色目的與迷思修正。", tags: ["正式原型", "顯微觀察", "已可測試"], url: "prototype-cell-observation/?v=20260713-content-surface-v1" },
+  { title: "物質進出細胞的方式", unitId: "cell_transport", status: "ready", sequence: 8, summary: "正式順序第八單元。已完成學生端靜態原型，含擴散與滲透、半透膜、濃度方向、資料判讀與動植物細胞變化。", tags: ["正式原型", "擴散", "滲透", "已可測試"], url: "prototype-cell-transport/?v=20260713-content-surface-v1" },
+  { title: "生物體的組成層次", unitId: "biological_organization", status: "ready", sequence: 9, summary: "正式順序第九單元。已完成學生端靜態原型，含組成層次排序、例子分類、單多細胞判斷、植物器官與動植物比較。", tags: ["正式原型", "組成層次", "排序", "植物器官", "已可測試"], url: "prototype-biological-organization/?v=20260713-content-surface-v1" },
+  { title: "尺度", unitId: "scale", status: "ready", sequence: 10, summary: "正式順序第十單元。已完成學生端靜態原型，含尺度排序、單位配對、觀察工具、標尺判讀、圖像與實際大小。", tags: ["正式原型", "尺度", "比例尺", "觀察工具", "已可測試"], url: "prototype-scale/?v=20260713-content-surface-v1" },
+  { title: "食物中的養分與能量", unitId: "nutrients_energy", status: "ready", sequence: 11, summary: "正式順序第十一單元。已完成學生端靜態原型，含養分功能、主要食物來源、能量判斷、營養資料與均衡飲食。", tags: ["正式原型", "養分", "能量", "均衡飲食", "已可測試"], url: "prototype-nutrients-energy/?v=20260713-content-surface-v1" },
+  { title: "養分檢測", unitId: "nutrient_test", status: "ready", sequence: 12, summary: "正式順序第十二單元。已完成學生端靜態原型，含檢測結果判讀、試劑與養分配對、對照組、資料證據與安全判斷。", tags: ["正式原型", "養分檢測", "證據判讀", "安全", "已可測試"], url: "prototype-nutrient-test/?v=20260713-content-surface-v1" },
+  { title: "酵素", unitId: "enzymes", status: "ready", sequence: 13, summary: "正式順序第十三單元。已完成學生端靜態原型，含酵素作用、專一性、可重複作用、溫度與酸鹼值資料判讀及消化情境。", tags: ["正式原型", "酵素", "專一性", "資料判讀", "已可測試"], url: "prototype-enzymes/?v=20260713-content-surface-v1" },
+  { title: "植物如何製造養分", unitId: "photosynthesis", status: "ready", sequence: 14, summary: "正式順序第十四單元。已完成學生端靜態原型，含原料/能量/產物分類、葉片構造、澱粉與氣泡證據、變因判讀及光合作用/呼吸作用迷思修正。", tags: ["正式原型", "光合作用", "葉綠體", "變因判讀", "已可測試"], url: "prototype-photosynthesis/?v=20260713-content-surface-v1" },
   { title: "人體如何獲得養分", unitId: "human_nutrition", status: "spec", sequence: 15, summary: "已有學科與成就規格，尚未製作正式學生端網頁；需等待視覺素材、BadgeRules 與主控確認後建立原型。", tags: ["規格備料", "消化", "吸收", "食物流向"] },
   { title: "植物的運輸構造", unitId: "plant_transport_structures", status: "planned", sequence: 16, summary: "根、莖、葉與維管束相關構造。", tags: ["植物", "運輸"] },
   { title: "植物體內物質的運輸", unitId: "plant_transport", status: "planned", sequence: 17, summary: "水分、礦物質、養分在植物體內的運輸。", tags: ["導管", "篩管"] },
