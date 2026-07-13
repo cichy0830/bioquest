@@ -1297,12 +1297,6 @@ textarea {
     grid-template-columns: 1fr;
   }
 
-  .brief-scene-figure img {
-    aspect-ratio: 4 / 5;
-    object-fit: contain;
-    object-position: center;
-  }
-
   .question-row {
     grid-template-columns: 1fr;
   }
