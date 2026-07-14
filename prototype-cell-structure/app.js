@@ -447,9 +447,15 @@ const checkpoint1Items = [
   { id: "vacuole", answer: "液胞", hint: "留意植物細胞中央占較大範圍、像空腔且保留原色的區域。" }
 ];
 
-const CHECKPOINT1_DIRECT_EXP = 140 / checkpoint1Items.length;
-const CHECKPOINT1_REVISION_EXP = 70 / checkpoint1Items.length;
+const CHECKPOINT1_CONCEPT_EXP = 140;
+const CHECKPOINT1_REVISION_EXP = 70;
 const CELL_SCAN_PHASE_TARGETS = { animal: 2, plant: 2 };
+const CHECKPOINT1_TARGET_LOG_IDS = {
+  nucleus: "nucleus",
+  mitochondria: "mitochondrion",
+  chloroplast: "chloroplast",
+  vacuole: "large_vacuole"
+};
 
 const structureOptions = ["細胞核", "細胞質", "粒線體", "液胞", "細胞膜", "細胞壁", "葉綠體"];
 
@@ -673,12 +679,17 @@ function remainingStructureTargets() {
 function selectStructureTarget(structureId) {
   const target = currentStructureTarget();
   if (!target) return;
+  const targetResult = state.structureTargetResults[target.id] || { attempt_count: 0 };
+  targetResult.attempt_count += 1;
   if (structureId === target.id) {
     const previousType = diagramTypeForTarget(target.id);
     state.answers.checkpoint1[target.id] = target.answer;
     state.structureTargetResults[target.id] = {
       correct: true,
-      hint_used: Boolean(state.answers.checkpoint1Hints[target.id])
+      hint_used: Boolean(state.answers.checkpoint1Hints[target.id]),
+      corrected_after_hint: Boolean(state.answers.checkpoint1Hints[target.id]),
+      attempt_count: targetResult.attempt_count,
+      final_completed: true
     };
     const nextTarget = currentStructureTarget();
     const nextType = nextTarget ? diagramTypeForTarget(nextTarget.id) : previousType;
@@ -694,6 +705,13 @@ function selectStructureTarget(structureId) {
   if (!state.answers.checkpoint1Hints[target.id]) {
     state.answers.checkpoint1Hints[target.id] = true;
   }
+  state.structureTargetResults[target.id] = {
+    ...targetResult,
+    correct: false,
+    hint_used: true,
+    corrected_after_hint: false,
+    final_completed: false
+  };
   state.activeStructure = structureId;
   saveState();
   render();
@@ -1196,6 +1214,18 @@ function scoreMap(items, answerGroup, hintGroup, points, revisionPoints) {
   return { concept, revision, correct, correctWithoutHint, correctedAfterHint, hintUsed, total: items.length, misconceptions };
 }
 
+function calculateCheckpoint1Score() {
+  const evidence = scoreMap(checkpoint1Items, "checkpoint1", "checkpoint1Hints", 0, 0);
+  const complete = evidence.correct === checkpoint1Items.length;
+  return {
+    ...evidence,
+    concept: complete && evidence.hintUsed === 0 ? CHECKPOINT1_CONCEPT_EXP : 0,
+    revision: complete && evidence.hintUsed > 0 ? CHECKPOINT1_REVISION_EXP : 0,
+    checkpoint_completion_status: complete ? "complete" : "incomplete",
+    checkpoint_exp_type: !complete ? "none" : evidence.hintUsed > 0 ? "revision" : "concept"
+  };
+}
+
 function calculateCompare() {
   let correct = 0;
   const misconceptions = [];
@@ -1334,7 +1364,7 @@ function evaluateReflectionQuality(reflection = {}) {
 }
 
 function calculateResult() {
-  const s1 = scoreMap(checkpoint1Items, "checkpoint1", "checkpoint1Hints", CHECKPOINT1_DIRECT_EXP, CHECKPOINT1_REVISION_EXP);
+  const s1 = calculateCheckpoint1Score();
   const s2 = scoreMap(checkpoint2Items, "checkpoint2", "checkpoint2Hints", 20, 10);
   const s3 = calculateCompare();
   const s4 = scoreMap(misconceptionQuestions, "checkpoint4", "checkpoint4Hints", 30, 15);
@@ -1403,25 +1433,34 @@ function buildCheckpoint1QuestionLogs() {
     const answer = state.answers.checkpoint1[item.id] || "";
     const hintUsed = Boolean(state.answers.checkpoint1Hints[item.id]);
     const isCorrect = answer === item.answer;
+    const targetResult = state.structureTargetResults[item.id] || {};
+    const targetLogId = CHECKPOINT1_TARGET_LOG_IDS[item.id];
     return {
-      question_id: `${mission.unit_id}_scan_${item.id}`,
+      question_id: `${mission.unit_id}_scan_${targetLogId}`,
       checkpoint_id: "checkpoint1",
       question_type: "visual_target_choice",
+      target_id: targetLogId,
       target_index: index + 1,
       target_count: checkpoint1Items.length,
+      required_target_count: checkpoint1Items.length,
       diagram_type: diagramTypeForTarget(item.id),
       attempt_answer: answer,
       correct_answer: item.answer,
       is_correct: isCorrect,
       hint_used: hintUsed,
-      exp_type: !isCorrect ? "none" : hintUsed ? "revision" : "concept",
-      exp_awarded: !isCorrect ? 0 : hintUsed ? CHECKPOINT1_REVISION_EXP : CHECKPOINT1_DIRECT_EXP
+      attempt_count: Number(targetResult.attempt_count || (answer ? 1 : 0)),
+      corrected_after_hint: Boolean(isCorrect && hintUsed),
+      final_completed: isCorrect,
+      exp_type: "evidence_only",
+      exp_awarded: 0
     };
   });
 }
 
 function buildAttempt() {
   const now = new Date().toISOString();
+  const completedTargetCount = checkpoint1Items.length - remainingStructureTargets();
+  const checkpoint1Result = state.result?.section_stats?.find((item) => item.title === "細胞構造辨識");
   return {
     timestamp: now,
     student: state.student,
@@ -1430,7 +1469,7 @@ function buildAttempt() {
     attempt_no: studentAttempts(state.student.student_id).length + 1,
     started_at: state.started_at,
     submitted_at: state.submitted_at || now,
-    completion_status: "complete",
+    completion_status: completedTargetCount === checkpoint1Items.length ? "complete" : "incomplete",
     ...state.result,
     confidence_score: state.answers.reflection.confidence_score,
     confident_concept: state.answers.reflection.confident_concept,
@@ -1439,7 +1478,13 @@ function buildAttempt() {
     reflection_quality: state.result.reflection_quality,
     reflection_exp_reason: state.result.reflection_exp_reason,
     reflection_review_status: state.result.reflection_review_status,
-    checkpoint1_target_count: checkpoint1Items.length,
+    cell_structure_required_target_ids_json: Object.values(CHECKPOINT1_TARGET_LOG_IDS),
+    cell_structure_required_target_count: checkpoint1Items.length,
+    cell_structure_completed_target_count: completedTargetCount,
+    cell_structure_missing_target_count: checkpoint1Items.length - completedTargetCount,
+    cell_structure_checkpoint_completion_status: completedTargetCount === checkpoint1Items.length ? "complete" : "incomplete",
+    cell_structure_checkpoint_exp_awarded: checkpoint1Result?.exp || 0,
+    cell_structure_checkpoint_exp_type: checkpoint1Result?.exp === CHECKPOINT1_CONCEPT_EXP ? "concept" : checkpoint1Result?.exp === CHECKPOINT1_REVISION_EXP ? "revision" : "none",
     question_logs: buildCheckpoint1QuestionLogs(),
     raw_answers: state.answers
   };
