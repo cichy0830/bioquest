@@ -441,14 +441,15 @@ function renderScan() {
 }
 
 const checkpoint1Items = [
-  { id: "membrane", answer: "細胞膜", hint: "留意動物細胞最外緣正在發光的薄界線。" },
-  { id: "cytoplasm", answer: "細胞質", hint: "留意細胞內側、包圍多個小構造的大片發光區域。" },
-  { id: "nucleus", answer: "細胞核", hint: "先找細胞內較明顯、接近圓形的發光區域。" },
-  { id: "mitochondria", answer: "粒線體", hint: "尋找同時亮起的多個小橢圓形，內部常有彎曲紋理。" },
-  { id: "wall", answer: "細胞壁", hint: "留意植物細胞最外側較厚、正在發光的外框。" },
-  { id: "chloroplast", answer: "葉綠體", hint: "在植物細胞圖中尋找同時亮起的綠色橢圓形。" },
-  { id: "vacuole", answer: "液胞", hint: "留意植物細胞中央占較大範圍、像空腔的發光區域。" }
+  { id: "nucleus", answer: "細胞核", hint: "先找細胞內較明顯、接近圓形且保留原色的區域。" },
+  { id: "mitochondria", answer: "粒線體", hint: "尋找同時保留原色的多個小橢圓形，內部常有彎曲紋理。" },
+  { id: "chloroplast", answer: "葉綠體", hint: "在植物細胞圖中尋找同時保留原色的綠色橢圓形。" },
+  { id: "vacuole", answer: "液胞", hint: "留意植物細胞中央占較大範圍、像空腔且保留原色的區域。" }
 ];
+
+const CHECKPOINT1_DIRECT_EXP = 140 / checkpoint1Items.length;
+const CHECKPOINT1_REVISION_EXP = 70 / checkpoint1Items.length;
+const CELL_SCAN_PHASE_TARGETS = { animal: 2, plant: 2 };
 
 const structureOptions = ["細胞核", "細胞質", "粒線體", "液胞", "細胞膜", "細胞壁", "葉綠體"];
 
@@ -520,60 +521,45 @@ const cellDiagrams = {
 const cellHighlightShapes = {
   animal: {
     nucleus: [
-      { type: "ellipse", cx: 52, cy: 38, rx: 15, ry: 17, rotate: 2 }
+      { type: "ellipse", cx: 52, cy: 38, rx: 14, ry: 15.5, rotate: 2 }
     ],
     mitochondria: [
-      { type: "ellipse", cx: 76, cy: 62, rx: 6.5, ry: 9.5, rotate: 35 },
-      { type: "ellipse", cx: 28, cy: 25, rx: 5.5, ry: 8.5, rotate: 35 },
-      { type: "ellipse", cx: 33, cy: 66, rx: 8, ry: 5.5, rotate: 20 },
-      { type: "ellipse", cx: 70, cy: 26, rx: 7, ry: 4.8, rotate: -15 }
-    ],
-    vacuole: [
-      { type: "ellipse", cx: 76, cy: 43, rx: 5.7, ry: 6.2, rotate: -12 },
-      { type: "ellipse", cx: 39, cy: 13, rx: 5.6, ry: 4.8, rotate: -8 },
-      { type: "ellipse", cx: 22, cy: 47, rx: 3.6, ry: 3.8, rotate: 0 }
+      { type: "ellipse", cx: 76, cy: 62, rx: 5.6, ry: 8.5, rotate: 35 },
+      { type: "ellipse", cx: 28, cy: 25, rx: 4.8, ry: 7.6, rotate: 35 },
+      { type: "ellipse", cx: 33, cy: 66, rx: 7, ry: 4.8, rotate: 20 },
+      { type: "ellipse", cx: 70, cy: 26, rx: 6, ry: 4.1, rotate: -15 }
     ]
   },
   plant: {
-    nucleus: [
-      { type: "ellipse", cx: 34, cy: 39, rx: 15, ry: 16, rotate: -8 }
-    ],
     vacuole: [
-      { type: "ellipse", cx: 59, cy: 53, rx: 18, ry: 23, rotate: 20 },
-      { type: "ellipse", cx: 55, cy: 61, rx: 12, ry: 14, rotate: -22 }
+      { type: "path", d: "M55 32 C64 30 73 34 77 42 C80 50 76 64 68 72 C60 78 51 77 47 68 C43 60 45 50 49 42 C51 37 53 34 55 32 Z" }
     ],
     chloroplast: [
-      { type: "ellipse", cx: 70, cy: 27, rx: 9.5, ry: 5.5, rotate: -12 },
-      { type: "ellipse", cx: 22, cy: 58, rx: 5.5, ry: 10, rotate: 8 },
-      { type: "ellipse", cx: 70, cy: 69, rx: 9.5, ry: 5.4, rotate: -8 }
-    ],
-    mitochondria: [
-      { type: "ellipse", cx: 52, cy: 23, rx: 5, ry: 8.5, rotate: -58 },
-      { type: "ellipse", cx: 78, cy: 43, rx: 4.8, ry: 7.5, rotate: -5 },
-      { type: "ellipse", cx: 42, cy: 78, rx: 4.5, ry: 8.5, rotate: -78 },
-      { type: "ellipse", cx: 27, cy: 24, rx: 3.8, ry: 3.2, rotate: 0 }
+      { type: "ellipse", cx: 70, cy: 27, rx: 8.5, ry: 4.8, rotate: -12 },
+      { type: "ellipse", cx: 22, cy: 58, rx: 4.8, ry: 8.8, rotate: 8 },
+      { type: "ellipse", cx: 70, cy: 69, rx: 8.5, ry: 4.8, rotate: -8 }
     ]
   }
 };
 
-const cellArrowTargets = {
-  animal: {
-    membrane: { x1: 6, y1: 26, x2: 22, y2: 34 },
-    cytoplasm: { x1: 93, y1: 43, x2: 81, y2: 48 }
-  },
+const cellRevealExclusions = {
   plant: {
-    wall: { x1: 7, y1: 43, x2: 18, y2: 51 }
+    vacuole: [
+      { type: "ellipse", cx: 70, cy: 27, rx: 10, ry: 7, rotate: -12 },
+      { type: "ellipse", cx: 80, cy: 44, rx: 6, ry: 10, rotate: -5 },
+      { type: "ellipse", cx: 70, cy: 69, rx: 10, ry: 6, rotate: -8 }
+    ]
   }
 };
 
-function overlayModeForTarget(selectedId) {
-  return ["membrane", "cytoplasm", "wall"].includes(selectedId) ? "arrow" : "shape";
+function cellImageSource(type) {
+  return type === "animal" ? "assets/cell-animal-3d.webp?v=20260709-orange-mito" : "assets/cell-plant-3d.webp";
 }
 
 function renderCellArt(type) {
-  const src = type === "animal" ? "assets/cell-animal-3d.webp?v=20260709-orange-mito" : "assets/cell-plant-3d.webp";
+  const src = cellImageSource(type);
   const alt = type === "animal" ? "動物細胞構造圖" : "植物細胞構造圖";
-  return `<img class="cell-image" src="${src}" alt="${alt}">`;
+  return `<img class="cell-image cell-image-grayscale" src="${src}" alt="${alt}">`;
 }
 
 function renderHighlightShape(shape, selectedId, index, layer) {
@@ -592,35 +578,37 @@ function renderHighlightShape(shape, selectedId, index, layer) {
     const opacity = shape.opacity ? ` style="--shape-opacity:${shape.opacity}"` : "";
     return `<rect class="${className}" x="${shape.x}" y="${shape.y}" width="${shape.w}" height="${shape.h}" rx="2" ry="2"${opacity}></rect>`;
   }
+  if (shape.type === "path") {
+    return `<path class="${className}" d="${shape.d}"></path>`;
+  }
+  return "";
+}
+
+function renderRevealShape(shape, fill) {
+  if (shape.type === "ellipse") {
+    const rotate = shape.rotate ? ` transform="rotate(${shape.rotate} ${shape.cx} ${shape.cy})"` : "";
+    return `<ellipse cx="${shape.cx}" cy="${shape.cy}" rx="${shape.rx}" ry="${shape.ry}" fill="${fill}"${rotate}></ellipse>`;
+  }
+  if (shape.type === "path") return `<path d="${shape.d}" fill="${fill}"></path>`;
   return "";
 }
 
 function renderCellHighlightOverlay(type, selectedId) {
-  if (overlayModeForTarget(selectedId) === "arrow") {
-    const arrow = cellArrowTargets[type]?.[selectedId];
-    if (!arrow) return "";
-    const markerId = `cell-${type}-${selectedId}`;
-    return `
-      <svg class="cell-highlight-overlay cell-arrow-overlay" data-highlight-target="${selectedId}" data-overlay-mode="arrow" data-arrow-start-x="${arrow.x1}" data-arrow-start-y="${arrow.y1}" data-arrow-end-x="${arrow.x2}" data-arrow-end-y="${arrow.y2}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <defs>
-          <marker id="${markerId}-outline" class="cell-arrow-marker cell-arrow-marker-outline" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
-            <path d="M0,0 L9,4.5 L0,9 Z"></path>
-          </marker>
-          <marker id="${markerId}-core" class="cell-arrow-marker cell-arrow-marker-core" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" refX="5.4" refY="3" orient="auto">
-            <path d="M0,0 L6,3 L0,6 Z"></path>
-          </marker>
-        </defs>
-        <line class="cell-target-arrow cell-target-arrow-outline" x1="${arrow.x1}" y1="${arrow.y1}" x2="${arrow.x2}" y2="${arrow.y2}" marker-end="url(#${markerId}-outline)"></line>
-        <line class="cell-target-arrow cell-target-arrow-core" x1="${arrow.x1}" y1="${arrow.y1}" x2="${arrow.x2}" y2="${arrow.y2}" marker-end="url(#${markerId}-core)"></line>
-        <circle class="cell-target-endpoint cell-target-endpoint-halo" cx="${arrow.x2}" cy="${arrow.y2}" r="3.4"></circle>
-        <circle class="cell-target-endpoint cell-target-endpoint-core" cx="${arrow.x2}" cy="${arrow.y2}" r="1.65"></circle>
-      </svg>
-    `;
-  }
   const shapes = cellHighlightShapes[type]?.[selectedId] || [];
   if (!shapes.length) return "";
+  const exclusions = cellRevealExclusions[type]?.[selectedId] || [];
+  const maskId = `cell-reveal-${type}-${selectedId}`;
+  const source = cellImageSource(type);
   return `
-    <svg class="cell-highlight-overlay cell-shape-overlay" data-highlight-target="${selectedId}" data-overlay-mode="shape" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <svg class="cell-highlight-overlay cell-color-reveal-overlay" data-highlight-target="${selectedId}" data-overlay-mode="color-reveal" data-reveal-shape-count="${shapes.length}" data-reveal-exclusion-count="${exclusions.length}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <mask id="${maskId}" class="cell-color-reveal-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+          <rect x="0" y="0" width="100" height="100" fill="#000"></rect>
+          ${shapes.map((shape) => renderRevealShape(shape, "#fff")).join("")}
+          ${exclusions.map((shape) => renderRevealShape(shape, "#000")).join("")}
+        </mask>
+      </defs>
+      <image class="cell-color-reveal-image" href="${source}" x="0" y="0" width="100" height="100" preserveAspectRatio="none" mask="url(#${maskId})"></image>
       <g class="cell-highlight-layer halo-layer">${shapes.map((shape, index) => renderHighlightShape(shape, selectedId, index, "halo")).join("")}</g>
       <g class="cell-highlight-layer core-layer">${shapes.map((shape, index) => renderHighlightShape(shape, selectedId, index, "core")).join("")}</g>
     </svg>
@@ -636,33 +624,32 @@ function renderStructureExplorer() {
   const selected = selectedId ? structureGuide[selectedId] : null;
   const remaining = remainingStructureTargets();
   const completedCount = checkpoint1Items.length - remaining;
-  const phaseProgress = type === "animal" ? `${completedCount}/4` : `${Math.max(0, completedCount - 4)}/3`;
+  const phaseProgress = type === "animal"
+    ? `${Math.min(completedCount, CELL_SCAN_PHASE_TARGETS.animal)}/${CELL_SCAN_PHASE_TARGETS.animal}`
+    : `${Math.max(0, completedCount - CELL_SCAN_PHASE_TARGETS.animal)}/${CELL_SCAN_PHASE_TARGETS.plant}`;
   const targetId = target?.id || "";
   return `
     <div class="structure-explorer">
       <div>
         <div class="cell-phase-status" aria-label="細胞辨識階段">
           <span class="${type === "animal" ? "active" : "complete"}">1. 動物細胞共同構造</span>
-          <span class="${type === "plant" ? "active" : ""}">2. 植物細胞專屬構造</span>
+          <span class="${type === "plant" ? "active" : ""}">2. 植物細胞圖構造</span>
         </div>
         ${state.structureTransitionNotice ? `<div class="diagram-transition" role="status" aria-live="polite">${state.structureTransitionNotice}</div>` : ""}
         <div class="cell-board ${type}" data-cell-diagram-type="${type}" data-current-target="${targetId}">
           ${renderCellArt(type)}
           ${renderCellHighlightOverlay(type, targetId)}
-          ${diagram.structures.map((item) => `
-            <button class="cell-hotspot part-hotspot ${targetId === item.id ? "active" : ""}" style="left:${item.x}%;top:${item.y}%;" data-structure="${item.id}" aria-label="選取${structureGuide[item.id].label}"></button>
-          `).join("")}
         </div>
         <p class="cell-note"><strong>${diagram.title}</strong>｜${diagram.note}</p>
       </div>
       <div class="structure-card part-info">
         <span>目前 target</span>
-        <strong>${target ? "請辨識圖中正在發光的構造" : "所有構造已完成"}</strong>
-        <p>${target ? `${type === "animal" ? "動物細胞共同構造" : "植物細胞專屬構造"} ${phaseProgress}。請點選下方名稱標籤；尚有 ${remaining} 個構造未辨識。` : "已完成全部 7 個構造辨識。"}</p>
+        <strong>${target ? "請辨識圖中唯一保留原色的構造" : "所有構造已完成"}</strong>
+        <p>${target ? `${type === "animal" ? "動物細胞共同構造" : "植物細胞圖構造"} ${phaseProgress}。請點選下方名稱標籤；尚有 ${remaining} 個構造未辨識。` : "已完成全部 4 個構造辨識。"}</p>
         ${target && state.answers.checkpoint1Hints[target.id] ? `<div class="hint">${target.hint}</div>` : ""}
         <span>目前選取</span>
         <strong>${selected ? selected.label : "尚未選取構造"}</strong>
-        <p>${selected ? "已收到你的選擇，系統會依目前發光構造判定。" : "請從下方標籤選擇正在發光的構造名稱。"}</p>
+        <p>${selected ? "已收到你的選擇，系統會依目前保留原色的構造判定。" : "請從下方標籤選擇目前唯一保留原色的構造名稱。"}</p>
         <div class="part-labels structure-chips" aria-label="細胞構造標籤">
           ${checkpoint1Items.map((item) => `<button class="part-chip structure-chip ${selectedId === item.id ? "active" : ""} ${state.answers.checkpoint1[item.id] === item.answer ? "locked" : ""}" data-structure-chip="${item.id}">${item.answer}</button>`).join("")}
         </div>
@@ -672,7 +659,7 @@ function renderStructureExplorer() {
 }
 
 function diagramTypeForTarget(structureId) {
-  return ["wall", "chloroplast", "vacuole"].includes(structureId) ? "plant" : "animal";
+  return ["chloroplast", "vacuole"].includes(structureId) ? "plant" : "animal";
 }
 
 function currentStructureTarget() {
@@ -698,7 +685,7 @@ function selectStructureTarget(structureId) {
     state.activeDiagramType = nextType;
     state.activeStructure = "";
     state.structureTransitionNotice = previousType === "animal" && nextType === "plant"
-      ? "共同構造辨識完成，正在切換植物細胞。"
+      ? "動物細胞辨識完成，正在切換植物細胞。"
       : "";
     saveState();
     render();
@@ -720,7 +707,7 @@ function renderCheckpoint1() {
       <span>只辨識目前正在發光的構造名稱；功能判斷會在關卡二檢核。</span>
     </div>
   `;
-  return checkpointShell("關卡一：細胞掃描標記", "觀察正在發光的構造，點選下方名稱標籤完成辨識。", rows, "checkpoint1Next");
+  return checkpointShell("關卡一：細胞掃描標記", "觀察灰階細胞圖中唯一保留原色的構造，點選下方名稱標籤完成辨識。", rows, "checkpoint1Next");
 }
 
 function scheduleStructureTransitionClear() {
@@ -1347,7 +1334,7 @@ function evaluateReflectionQuality(reflection = {}) {
 }
 
 function calculateResult() {
-  const s1 = scoreMap(checkpoint1Items, "checkpoint1", "checkpoint1Hints", 20, 10);
+  const s1 = scoreMap(checkpoint1Items, "checkpoint1", "checkpoint1Hints", CHECKPOINT1_DIRECT_EXP, CHECKPOINT1_REVISION_EXP);
   const s2 = scoreMap(checkpoint2Items, "checkpoint2", "checkpoint2Hints", 20, 10);
   const s3 = calculateCompare();
   const s4 = scoreMap(misconceptionQuestions, "checkpoint4", "checkpoint4Hints", 30, 15);
@@ -1411,6 +1398,28 @@ function calculateResult() {
   };
 }
 
+function buildCheckpoint1QuestionLogs() {
+  return checkpoint1Items.map((item, index) => {
+    const answer = state.answers.checkpoint1[item.id] || "";
+    const hintUsed = Boolean(state.answers.checkpoint1Hints[item.id]);
+    const isCorrect = answer === item.answer;
+    return {
+      question_id: `${mission.unit_id}_scan_${item.id}`,
+      checkpoint_id: "checkpoint1",
+      question_type: "visual_target_choice",
+      target_index: index + 1,
+      target_count: checkpoint1Items.length,
+      diagram_type: diagramTypeForTarget(item.id),
+      attempt_answer: answer,
+      correct_answer: item.answer,
+      is_correct: isCorrect,
+      hint_used: hintUsed,
+      exp_type: !isCorrect ? "none" : hintUsed ? "revision" : "concept",
+      exp_awarded: !isCorrect ? 0 : hintUsed ? CHECKPOINT1_REVISION_EXP : CHECKPOINT1_DIRECT_EXP
+    };
+  });
+}
+
 function buildAttempt() {
   const now = new Date().toISOString();
   return {
@@ -1430,6 +1439,8 @@ function buildAttempt() {
     reflection_quality: state.result.reflection_quality,
     reflection_exp_reason: state.result.reflection_exp_reason,
     reflection_review_status: state.result.reflection_review_status,
+    checkpoint1_target_count: checkpoint1Items.length,
+    question_logs: buildCheckpoint1QuestionLogs(),
     raw_answers: state.answers
   };
 }
