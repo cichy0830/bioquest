@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260711-cell-observation-p1-v3";
+const VERSION = "20260715-cell-observation-qa-fixes-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -382,6 +382,9 @@ function cumulativeBadgeIds(current = []) {
   const local = studentAttempts(state.student.student_id).flatMap((attempt) => parseArray(attempt.badges));
   return [...new Set([...(state.cumulative_badges || []), ...local, ...current])];
 }
+function isProgressPending() {
+  return Boolean(state.submitted_at && state.backend_status !== "submitted");
+}
 function applyBackendProgress(progress = {}) {
   state.cumulative_badges = parseArray(progress.badges_json || progress.badges || state.cumulative_badges);
   state.cumulative_total_exp = Number(progress.total_exp ?? progress.total_credited_exp ?? state.cumulative_total_exp ?? 0);
@@ -481,16 +484,15 @@ function titleAvatarPath() {
 
 function renderLogin() {
   const value = state.student?.student_id && state.student.student_id !== "guest" ? state.student.student_id : "";
-  return layout(`
+  return `<div class="wide-layout"><div class="panel hero-panel">
     <p class="eyebrow">生命祕境 BioQuest</p>
     <h2 class="hero-title">任務登入</h2>
-    ${mentorCard("先確認身分", "請輸入學號並確認姓名。下一頁才會開啟本單元任務情境。")}
     <div class="story-panel"><strong>固定登入招呼</strong><p>輸入學號後，系統會顯示姓名。老師測試流程時可使用 guest。</p></div>
     <div class="mission-hud"><div><span>任務代號</span><strong>cell_observation</strong></div><div><span>預估時間</span><strong>10-15 分鐘</strong></div><div><span>後台</span><strong>Google Sheet</strong></div></div>
     <div class="form-grid"><label>學號<input id="studentIdInput" value="${value}" placeholder="例如 S70101 或 guest" autocomplete="off"></label></div>
     <div class="actions"><button class="primary" id="loginButton">登入任務</button><button class="secondary" id="guestButton">老師測試 guest</button><button class="ghost" id="resetButton">清除本機測試紀錄</button></div>
     <div id="loginMessage" class="status-line"></div>
-  `, assets.owlLogin);
+  </div></div>`;
 }
 async function fetchStudentStatus(id) {
   const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}&unit_id=${encodeURIComponent(mission.unit_id)}`;
@@ -1063,7 +1065,9 @@ function attachReflection() {
       const response = await submitAttemptToBackend(attempt);
       state.backend_status = "submitted";
       if (response.verified_attempt) state.result = { ...state.result, ...response.verified_attempt };
-      applyBackendProgress(response.student_progress || response.progress || {});
+      const progress = response.student_progress || response.progress || null;
+      if (progress && Object.keys(progress).length) applyBackendProgress(progress);
+      else state.backend_status = "pending_progress";
       attempt = { ...attempt, ...state.result, backend_status: state.backend_status, backend_attempt_id: response.attempt_id || attempt.attempt_id };
     } catch {
       state.backend_status = "pending_local";
@@ -1080,9 +1084,15 @@ function attachReflection() {
 function renderResult() {
   const result = state.result || calculateResult();
   const notice = state.lockNotice ? `<div class="feedback warn">${state.lockNotice}</div>` : "";
-  const backendNotice = state.backend_status === "pending_local" ? `<div class="feedback warn">後台暫時無法寫入，本次提交已保留在本機待補送佇列。</div>` : `<div class="feedback good">本次任務已提交，作答結果已鎖定。</div>`;
+  const pending = isProgressPending();
+  const backendNotice = state.backend_status === "pending_local"
+    ? `<div class="feedback warn">後台暫時無法寫入，本次提交已保留在本機待補送佇列；正式累積 EXP、完成單元與徽章需待同步後確認。</div>`
+    : state.backend_status === "pending_progress"
+      ? `<div class="feedback warn">後台尚未回傳正式累積資料；本次作答已鎖定，正式累積 EXP、完成單元與徽章需待同步後確認。</div>`
+      : `<div class="feedback good">本次任務已提交，作答結果已鎖定。</div>`;
+  const creditedLabel = pending ? "本單元待同步認列" : "本單元認列";
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>提交後本次作答已鎖定</h2>${notice}${backendNotice}
-    <div class="score-grid"><div class="score-box"><span>本次取得</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>本單元認列</span><strong>${result.unit_credited_exp} EXP</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
+    <div class="score-grid"><div class="score-box"><span>本次取得</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>${creditedLabel}</span><strong>${result.unit_credited_exp} EXP${pending ? "（待同步）" : ""}</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
     <div class="card-grid">
       <div class="story-panel"><strong>EXP 明細</strong><p>完成 ${result.completion_exp}｜直接答對 ${result.concept_exp}｜提示後修正 ${result.revision_exp}｜回報 ${result.question_exp}｜精熟 ${result.mastery_exp}｜再挑戰 ${result.retry_exp}</p></div>
       <div class="story-panel"><strong>本次與認列差異</strong><p>本次取得是這次挑戰的原始表現；本單元認列會保留最高表現並受 500 EXP 上限限制。</p></div>
@@ -1093,13 +1103,25 @@ function renderResult() {
 function renderAchievements() {
   const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : [];
   const litIds = cumulativeBadgeIds(currentBadges);
+  const pending = isProgressPending();
+  const officialBadgeIds = [...new Set(state.cumulative_badges || [])];
+  const badgeLabel = pending ? "本次待同步徽章" : "累積徽章";
+  const badgeCount = pending ? currentBadges.length : litIds.length;
+  const expValue = pending ? "待同步" : `${state.cumulative_total_exp || 0}`;
+  const unitValue = pending ? "待同步" : `${state.completed_unit_count || 0}`;
+  const syncNote = pending
+    ? "目前為本機待同步狀態：徽章亮燈先顯示本次作答預覽，正式累積 EXP、完成單元與後台徽章需待同步後確認。"
+    : "亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。";
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>顯微視野徽章牆</h2>
-    <div class="score-grid"><div class="score-box"><span>累積徽章</span><strong>${litIds.length}</strong></div><div class="score-box"><span>累積 EXP</span><strong>${state.cumulative_total_exp || 0}</strong></div><div class="score-box"><span>已完成單元</span><strong>${state.completed_unit_count || 0}</strong></div></div>
+    <div class="score-grid"><div class="score-box"><span>${badgeLabel}</span><strong>${badgeCount}</strong></div><div class="score-box"><span>正式累積 EXP</span><strong>${expValue}</strong></div><div class="score-box"><span>已完成單元</span><strong>${unitValue}</strong></div></div>
+    ${pending ? `<div class="feedback warn">待同步：本次作答已鎖定，但後台尚未確認正式累積資料。</div>` : ""}
     <div class="badge-grid">${badges.map((badge) => {
       const lit = litIds.includes(badge.id);
+      const official = officialBadgeIds.includes(badge.id);
       const gold = badge.id === "cell_observation_flawless";
-      return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="badge-icon" hidden>${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`;
-    }).join("")}</div><p class="muted">亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
+      const pendingBadge = pending && lit && !official;
+      return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="badge-icon" hidden>${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong>${pendingBadge ? `<span class="pill warn">待同步</span>` : ""}<p class="muted">${badge.condition}</p></div>`;
+    }).join("")}</div><p class="muted">${syncNote}</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
 }
 function renderRules() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2>
