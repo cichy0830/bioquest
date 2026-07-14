@@ -64,13 +64,15 @@ const defaultState = {
   optionOrders: {},
   result: null,
   submitted_at: null,
-  activeDiagramType: "plant",
+  activeDiagramType: "animal",
   activeStructure: "",
   structureTargetResults: {},
+  structureTransitionNotice: "",
   lockNotice: ""
 };
 
 let state = loadState();
+let structureTransitionTimer = null;
 
 const LOCK_MESSAGE = "本次任務已提交，作答結果已鎖定；若要再挑戰，請重新登入並從頭完成。";
 const LOCKED_SCREENS_AFTER_SUBMIT = new Set(["brief", "scan", "checkpoint1", "checkpoint2", "checkpoint3", "checkpoint4", "review", "reflection"]);
@@ -439,13 +441,13 @@ function renderScan() {
 }
 
 const checkpoint1Items = [
-  { id: "nucleus", prompt: "請辨識圖中正在發光、較大的圓形構造。", answer: "細胞核", hint: "先找細胞內較明顯、接近圓形的區域。" },
-  { id: "cytoplasm", prompt: "請辨識圖中正在發光、分布在細胞內部的大片區域。", answer: "細胞質", hint: "看高亮是不是位在細胞內側，並包圍多個小構造。" },
-  { id: "mitochondria", prompt: "請辨識圖中正在發光、常呈小橢圓且內部有皺褶的構造。", answer: "粒線體", hint: "尋找多個小橢圓形，內部常有彎曲紋理。" },
-  { id: "vacuole", prompt: "請辨識圖中正在發光、像透明囊泡或大型空腔的構造。", answer: "液胞", hint: "植物細胞中常較大；動物細胞中可能較小。" },
-  { id: "membrane", prompt: "請辨識圖中正在發光、貼近細胞外緣的薄界線。", answer: "細胞膜", hint: "留意外框附近較薄的一層，植物細胞中可在較厚外框內側找。" },
-  { id: "wall", prompt: "請辨識圖中正在發光、植物細胞最外側較厚的外框。", answer: "細胞壁", hint: "若目前看不到這個構造，請切換到植物細胞圖。" },
-  { id: "chloroplast", prompt: "請辨識圖中正在發光、植物細胞中的綠色橢圓顆粒。", answer: "葉綠體", hint: "若目前看不到這個構造，請切換到植物細胞圖，找綠色橢圓形。" }
+  { id: "membrane", answer: "細胞膜", hint: "留意動物細胞最外緣正在發光的薄界線。" },
+  { id: "cytoplasm", answer: "細胞質", hint: "留意細胞內側、包圍多個小構造的大片發光區域。" },
+  { id: "nucleus", answer: "細胞核", hint: "先找細胞內較明顯、接近圓形的發光區域。" },
+  { id: "mitochondria", answer: "粒線體", hint: "尋找同時亮起的多個小橢圓形，內部常有彎曲紋理。" },
+  { id: "wall", answer: "細胞壁", hint: "留意植物細胞最外側較厚、正在發光的外框。" },
+  { id: "chloroplast", answer: "葉綠體", hint: "在植物細胞圖中尋找同時亮起的綠色橢圓形。" },
+  { id: "vacuole", answer: "液胞", hint: "留意植物細胞中央占較大範圍、像空腔的發光區域。" }
 ];
 
 const structureOptions = ["細胞核", "細胞質", "粒線體", "液胞", "細胞膜", "細胞壁", "葉綠體"];
@@ -579,8 +581,8 @@ function renderCellArt(type) {
   return `<img class="cell-image" src="${src}" alt="${alt}">`;
 }
 
-function renderHighlightShape(shape, selectedId, index) {
-  const className = `cell-highlight-shape ${selectedId} shape-${shape.type} shape-${index}`;
+function renderHighlightShape(shape, selectedId, index, layer) {
+  const className = `cell-highlight-shape cell-highlight-${layer} ${selectedId} shape-${shape.type} shape-${index}`;
   if (shape.type === "ellipse") {
     const rotate = shape.rotate ? ` transform="rotate(${shape.rotate} ${shape.cx} ${shape.cy})"` : "";
     const opacity = shape.opacity ? ` style="--shape-opacity:${shape.opacity}"` : "";
@@ -602,42 +604,45 @@ function renderCellHighlightOverlay(type, selectedId) {
   const shapes = cellHighlightShapes[type]?.[selectedId] || [];
   if (!shapes.length) return "";
   return `
-    <svg class="cell-highlight-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      ${shapes.map((shape, index) => renderHighlightShape(shape, selectedId, index)).join("")}
+    <svg class="cell-highlight-overlay" data-highlight-target="${selectedId}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <g class="cell-highlight-layer halo-layer">${shapes.map((shape, index) => renderHighlightShape(shape, selectedId, index, "halo")).join("")}</g>
+      <g class="cell-highlight-layer core-layer">${shapes.map((shape, index) => renderHighlightShape(shape, selectedId, index, "core")).join("")}</g>
     </svg>
   `;
 }
 
 function renderStructureExplorer() {
   const target = currentStructureTarget();
-  const preferredType = target ? preferredDiagramType(target.id, state.activeDiagramType || "plant") : (state.activeDiagramType || "plant");
-  const type = preferredType;
+  const type = target ? diagramTypeForTarget(target.id) : "plant";
+  state.activeDiagramType = type;
   const diagram = cellDiagrams[type];
   const selectedId = state.activeStructure || "";
   const selected = selectedId ? structureGuide[selectedId] : null;
   const remaining = remainingStructureTargets();
+  const completedCount = checkpoint1Items.length - remaining;
+  const phaseProgress = type === "animal" ? `${completedCount}/4` : `${Math.max(0, completedCount - 4)}/3`;
   const targetId = target?.id || "";
   return `
     <div class="structure-explorer">
       <div>
-        <div class="tabs" aria-label="切換細胞類型">
-          ${Object.entries(cellDiagrams).map(([key, item]) => `
-            <button class="tab-button cell-tab ${type === key ? "active" : ""}" data-cell-type="${key}">${item.title}</button>
-          `).join("")}
+        <div class="cell-phase-status" aria-label="細胞辨識階段">
+          <span class="${type === "animal" ? "active" : "complete"}">1. 動物細胞共同構造</span>
+          <span class="${type === "plant" ? "active" : ""}">2. 植物細胞專屬構造</span>
         </div>
-        <div class="cell-board ${type}">
+        ${state.structureTransitionNotice ? `<div class="diagram-transition" role="status" aria-live="polite">${state.structureTransitionNotice}</div>` : ""}
+        <div class="cell-board ${type}" data-cell-diagram-type="${type}" data-current-target="${targetId}">
           ${renderCellArt(type)}
           ${renderCellHighlightOverlay(type, targetId)}
           ${diagram.structures.map((item) => `
             <button class="cell-hotspot part-hotspot ${targetId === item.id ? "active" : ""}" style="left:${item.x}%;top:${item.y}%;" data-structure="${item.id}" aria-label="選取${structureGuide[item.id].label}"></button>
           `).join("")}
         </div>
-        <p class="cell-note">${diagram.note}</p>
+        <p class="cell-note"><strong>${diagram.title}</strong>｜${diagram.note}</p>
       </div>
       <div class="structure-card part-info">
         <span>目前 target</span>
-        <strong>${target ? target.prompt : "所有構造已完成"}</strong>
-        <p>${target ? `請點選下方名稱標籤。尚有 ${remaining} 個構造未辨識。` : "已完成全部構造辨識。"}</p>
+        <strong>${target ? "請辨識圖中正在發光的構造" : "所有構造已完成"}</strong>
+        <p>${target ? `${type === "animal" ? "動物細胞共同構造" : "植物細胞專屬構造"} ${phaseProgress}。請點選下方名稱標籤；尚有 ${remaining} 個構造未辨識。` : "已完成全部 7 個構造辨識。"}</p>
         ${target && state.answers.checkpoint1Hints[target.id] ? `<div class="hint">${target.hint}</div>` : ""}
         <span>目前選取</span>
         <strong>${selected ? selected.label : "尚未選取構造"}</strong>
@@ -650,9 +655,8 @@ function renderStructureExplorer() {
   `;
 }
 
-function preferredDiagramType(structureId, fallback = "plant") {
-  if (cellDiagrams[fallback]?.structures.some((item) => item.id === structureId)) return fallback;
-  return Object.entries(cellDiagrams).find(([, diagram]) => diagram.structures.some((item) => item.id === structureId))?.[0] || fallback;
+function diagramTypeForTarget(structureId) {
+  return ["wall", "chloroplast", "vacuole"].includes(structureId) ? "plant" : "animal";
 }
 
 function currentStructureTarget() {
@@ -667,15 +671,19 @@ function selectStructureTarget(structureId) {
   const target = currentStructureTarget();
   if (!target) return;
   if (structureId === target.id) {
-    state.activeStructure = structureId;
+    const previousType = diagramTypeForTarget(target.id);
     state.answers.checkpoint1[target.id] = target.answer;
     state.structureTargetResults[target.id] = {
       correct: true,
       hint_used: Boolean(state.answers.checkpoint1Hints[target.id])
     };
-    const nextTarget = checkpoint1Items.find((item) => item.id !== target.id && state.answers.checkpoint1[item.id] !== item.answer);
-    if (nextTarget) state.activeDiagramType = preferredDiagramType(nextTarget.id, state.activeDiagramType || "plant");
-    else state.activeDiagramType = preferredDiagramType(target.id, state.activeDiagramType || "plant");
+    const nextTarget = currentStructureTarget();
+    const nextType = nextTarget ? diagramTypeForTarget(nextTarget.id) : previousType;
+    state.activeDiagramType = nextType;
+    state.activeStructure = "";
+    state.structureTransitionNotice = previousType === "animal" && nextType === "plant"
+      ? "共同構造辨識完成，正在切換植物細胞。"
+      : "";
     saveState();
     render();
     return;
@@ -697,6 +705,17 @@ function renderCheckpoint1() {
     </div>
   `;
   return checkpointShell("關卡一：細胞掃描標記", "觀察正在發光的構造，點選下方名稱標籤完成辨識。", rows, "checkpoint1Next");
+}
+
+function scheduleStructureTransitionClear() {
+  if (structureTransitionTimer) clearTimeout(structureTransitionTimer);
+  if (!state.structureTransitionNotice) return;
+  structureTransitionTimer = setTimeout(() => {
+    if (!state.structureTransitionNotice || state.screen !== "checkpoint1") return;
+    state.structureTransitionNotice = "";
+    saveState();
+    render();
+  }, 2400);
 }
 
 function selectRow(group, item) {
@@ -740,14 +759,6 @@ function checkpointShell(title, description, rows, nextId) {
 }
 
 function attachSelectHandlers() {
-  document.querySelectorAll(".cell-tab").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.activeDiagramType = button.dataset.cellType;
-      state.activeStructure = "";
-      saveState();
-      render();
-    });
-  });
   document.querySelectorAll(".cell-hotspot, [data-structure-chip]").forEach((button) => {
     button.addEventListener("click", () => {
       selectStructureTarget(button.dataset.structure || button.dataset.structureChip);
@@ -1590,6 +1601,7 @@ function attachCurrentScreen() {
   if (state.screen === "scan") document.querySelector("#scanNext").addEventListener("click", () => { unlock("checkpoint1"); setScreen("checkpoint1"); });
   if (state.screen === "checkpoint1") {
     attachSelectHandlers();
+    scheduleStructureTransitionClear();
     document.querySelector("#checkpoint1Next").addEventListener("click", () => nextWithValidation("checkpoint1", checkpoint1Items, "checkpoint2"));
   }
   if (state.screen === "checkpoint2") {
