@@ -519,13 +519,6 @@ const cellDiagrams = {
 
 const cellHighlightShapes = {
   animal: {
-    membrane: [
-      { type: "polyline", points: [[17, 54], [20, 34], [30, 12], [47, 7], [65, 13], [78, 25], [86, 43], [85, 63], [75, 80], [57, 87], [38, 83], [22, 72], [17, 54]], strokeWidth: 1.6 }
-    ],
-    cytoplasm: [
-      { type: "ellipse", cx: 43, cy: 55, rx: 23, ry: 25, opacity: 0.18 },
-      { type: "ellipse", cx: 68, cy: 55, rx: 17, ry: 22, opacity: 0.14 }
-    ],
     nucleus: [
       { type: "ellipse", cx: 52, cy: 38, rx: 15, ry: 17, rotate: 2 }
     ],
@@ -542,18 +535,6 @@ const cellHighlightShapes = {
     ]
   },
   plant: {
-    wall: [
-      { type: "polyline", points: [[16, 53], [22, 18], [47, 12], [72, 13], [84, 21], [86, 45], [80, 72], [70, 88], [43, 89], [21, 79], [16, 53]], strokeWidth: 2.2 }
-    ],
-    membrane: [
-      { type: "polyline", points: [[20, 61], [26, 21], [51, 16], [76, 18], [82, 39], [77, 70], [61, 81], [37, 80], [23, 69], [20, 61]], strokeWidth: 1.3 },
-      { type: "box", x: 18, y: 58, w: 8, h: 10, opacity: 0.16 }
-    ],
-    cytoplasm: [
-      { type: "ellipse", cx: 37, cy: 58, rx: 18, ry: 23, opacity: 0.16 },
-      { type: "ellipse", cx: 73, cy: 57, rx: 12, ry: 19, opacity: 0.12 },
-      { type: "ellipse", cx: 48, cy: 78, rx: 18, ry: 8, opacity: 0.12 }
-    ],
     nucleus: [
       { type: "ellipse", cx: 34, cy: 39, rx: 15, ry: 16, rotate: -8 }
     ],
@@ -574,6 +555,20 @@ const cellHighlightShapes = {
     ]
   }
 };
+
+const cellArrowTargets = {
+  animal: {
+    membrane: { x1: 6, y1: 26, x2: 22, y2: 34 },
+    cytoplasm: { x1: 93, y1: 43, x2: 81, y2: 48 }
+  },
+  plant: {
+    wall: { x1: 7, y1: 43, x2: 18, y2: 51 }
+  }
+};
+
+function overlayModeForTarget(selectedId) {
+  return ["membrane", "cytoplasm", "wall"].includes(selectedId) ? "arrow" : "shape";
+}
 
 function renderCellArt(type) {
   const src = type === "animal" ? "assets/cell-animal-3d.webp?v=20260709-orange-mito" : "assets/cell-plant-3d.webp";
@@ -601,10 +596,31 @@ function renderHighlightShape(shape, selectedId, index, layer) {
 }
 
 function renderCellHighlightOverlay(type, selectedId) {
+  if (overlayModeForTarget(selectedId) === "arrow") {
+    const arrow = cellArrowTargets[type]?.[selectedId];
+    if (!arrow) return "";
+    const markerId = `cell-${type}-${selectedId}`;
+    return `
+      <svg class="cell-highlight-overlay cell-arrow-overlay" data-highlight-target="${selectedId}" data-overlay-mode="arrow" data-arrow-start-x="${arrow.x1}" data-arrow-start-y="${arrow.y1}" data-arrow-end-x="${arrow.x2}" data-arrow-end-y="${arrow.y2}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <marker id="${markerId}-outline" class="cell-arrow-marker cell-arrow-marker-outline" markerUnits="userSpaceOnUse" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+            <path d="M0,0 L9,4.5 L0,9 Z"></path>
+          </marker>
+          <marker id="${markerId}-core" class="cell-arrow-marker cell-arrow-marker-core" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" refX="5.4" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z"></path>
+          </marker>
+        </defs>
+        <line class="cell-target-arrow cell-target-arrow-outline" x1="${arrow.x1}" y1="${arrow.y1}" x2="${arrow.x2}" y2="${arrow.y2}" marker-end="url(#${markerId}-outline)"></line>
+        <line class="cell-target-arrow cell-target-arrow-core" x1="${arrow.x1}" y1="${arrow.y1}" x2="${arrow.x2}" y2="${arrow.y2}" marker-end="url(#${markerId}-core)"></line>
+        <circle class="cell-target-endpoint cell-target-endpoint-halo" cx="${arrow.x2}" cy="${arrow.y2}" r="3.4"></circle>
+        <circle class="cell-target-endpoint cell-target-endpoint-core" cx="${arrow.x2}" cy="${arrow.y2}" r="1.65"></circle>
+      </svg>
+    `;
+  }
   const shapes = cellHighlightShapes[type]?.[selectedId] || [];
   if (!shapes.length) return "";
   return `
-    <svg class="cell-highlight-overlay" data-highlight-target="${selectedId}" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <svg class="cell-highlight-overlay cell-shape-overlay" data-highlight-target="${selectedId}" data-overlay-mode="shape" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
       <g class="cell-highlight-layer halo-layer">${shapes.map((shape, index) => renderHighlightShape(shape, selectedId, index, "halo")).join("")}</g>
       <g class="cell-highlight-layer core-layer">${shapes.map((shape, index) => renderHighlightShape(shape, selectedId, index, "core")).join("")}</g>
     </svg>
