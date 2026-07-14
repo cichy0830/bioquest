@@ -17,7 +17,7 @@ const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
 const DIRECT_RAW_MAX = 527;
 const REVISION_RAW_MAX = 315;
-const MICROSCOPE_VERSION = "20260713-microscope-onion-v1";
+const MICROSCOPE_VERSION = "20260714-microscope-paramecium-v3";
 const titleProgressRules = window.BioQuestTitleProgress;
 const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
 const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
@@ -30,6 +30,9 @@ const microscopeVisualAssets = {
   diagramParts: `assets/microscope-parts-interactive.webp?v=${MICROSCOPE_VERSION}`,
   onionLowPower: `assets/img-microscope-onion-low-power.webp?v=${MICROSCOPE_VERSION}`,
   onionHighPower: `assets/img-microscope-onion-high-power.webp?v=${MICROSCOPE_VERSION}`,
+  parameciumViewLeft: `assets/img-microscope-paramecium-view-left.webp?v=${MICROSCOPE_VERSION}`,
+  parameciumViewCenter: `assets/img-microscope-paramecium-view-center.webp?v=${MICROSCOPE_VERSION}`,
+  parameciumViewRight: `assets/img-microscope-paramecium-view-right.webp?v=${MICROSCOPE_VERSION}`,
   owlHooks: {
     opening: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
     scan: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
@@ -901,12 +904,36 @@ function renderChoiceQuestion(group, item) {
   `;
 }
 
+function fieldViewForSlidePosition(sliderValue) {
+  const slider = Math.max(-1, Math.min(1, Number(sliderValue) || 0));
+  if (slider < 0) {
+    return {
+      slideLabel: "向左",
+      imageLabel: "向右",
+      viewPosition: "right",
+      asset: microscopeVisualAssets.parameciumViewRight
+    };
+  }
+  if (slider > 0) {
+    return {
+      slideLabel: "向右",
+      imageLabel: "向左",
+      viewPosition: "left",
+      asset: microscopeVisualAssets.parameciumViewLeft
+    };
+  }
+  return {
+    slideLabel: "置中",
+    imageLabel: "置中",
+    viewPosition: "center",
+    asset: microscopeVisualAssets.parameciumViewCenter
+  };
+}
+
 function renderFieldDemo() {
   const slider = Number(state.fieldSlider || 0);
   const slideShift = slider * 64;
-  const imageShift = -slider * 64;
-  const slideLabel = slider < 0 ? "向左" : slider > 0 ? "向右" : "置中";
-  const imageLabel = slider < 0 ? "向右" : slider > 0 ? "向左" : "置中";
+  const fieldView = fieldViewForSlidePosition(slider);
   return `
     <div class="data-grid">
       <div class="data-panel">
@@ -916,15 +943,16 @@ function renderFieldDemo() {
           <div class="slide-track">
             <span class="slide-sample" style="transform: translateX(${slideShift}px);"></span>
           </div>
-          <div class="field-demo interactive-field">
-            <span class="field-sample" style="transform: translate(${imageShift}px, -50%);"></span>
-          </div>
+          <figure class="field-demo interactive-field" data-field-view="${fieldView.viewPosition}">
+            <img class="field-view-image" src="${fieldView.asset}" alt="複式顯微鏡視野中的草履蟲影像位於${fieldView.imageLabel}" onerror="this.hidden=true;this.parentElement.classList.add('image-failed');">
+            <span class="field-view-fallback" aria-hidden="true"></span>
+          </figure>
           <label class="field-slider-label">移動玻片
             <input type="range" min="-1" max="1" step="1" value="${slider}" id="fieldShiftSlider">
           </label>
           <div class="direction-readout">
-            <span>玻片：${slideLabel}</span>
-            <span>視野影像：${imageLabel}</span>
+            <span>玻片：${fieldView.slideLabel}</span>
+            <span>視野影像：${fieldView.imageLabel}</span>
           </div>
         </div>
       </div>

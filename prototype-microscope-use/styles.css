@@ -660,26 +660,38 @@ textarea {
 
 .field-demo {
   position: relative;
-  min-height: 230px;
+  width: min(100%, 360px);
+  aspect-ratio: 1;
+  min-height: 0;
+  margin: 0 auto;
   border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(16, 152, 166, 0.28);
+  box-shadow: 0 12px 24px rgba(16, 45, 58, 0.10);
+}
+
+.field-view-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.field-view-fallback {
+  display: none;
+  width: 100%;
+  height: 100%;
   background:
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.82) 0 42%, transparent 43%),
-    radial-gradient(circle at 50% 50%, rgba(16, 152, 166, 0.30) 0 47%, transparent 48%),
-    linear-gradient(135deg, rgba(224, 249, 248, 0.86), rgba(255, 247, 223, 0.84));
+    radial-gradient(ellipse at 50% 50%, rgba(67, 149, 129, 0.72) 0 8%, transparent 9%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.88) 0 44%, transparent 45%),
+    linear-gradient(135deg, rgba(224, 249, 248, 0.92), rgba(255, 247, 223, 0.88));
 }
 
-.field-sample {
-  position: absolute;
-  width: 34px;
-  height: 34px;
-  border-radius: 45% 55% 48% 52%;
-  background: linear-gradient(135deg, var(--leaf), var(--teal));
-  box-shadow: 0 0 0 12px rgba(16, 152, 166, 0.10);
-}
-
-.field-sample.offset-right {
-  right: 25%;
-  top: 45%;
+.field-demo.image-failed .field-view-fallback {
+  display: block;
 }
 
 .power-compare {
