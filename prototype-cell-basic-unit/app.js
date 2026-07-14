@@ -200,11 +200,15 @@ function saveAttempt(attempt) {
 function studentAttempts(studentId) {
   return getAttempts().filter((item) => item.student?.student_id === studentId && item.mission?.unit_id === mission.unit_id && item.completion_status === "complete");
 }
+function normalizedAttemptCredit(attempt) {
+  const credited = Number(attempt?.unit_credited_exp ?? attempt?.total_exp ?? attempt?.attempt_total_exp ?? 0);
+  return Math.min(UNIT_EXP_CAP, Math.max(0, credited), reflectionExpCap(attempt?.question_exp));
+}
 function localTotalExp(studentId) {
   const bestByUnit = new Map();
   getAttempts().filter((item) => item.student?.student_id === studentId && item.completion_status === "complete").forEach((item) => {
     const unitId = item.mission?.unit_id || item.unit_id || "unknown";
-    const credited = Number(item.unit_credited_exp ?? item.total_exp ?? 0);
+    const credited = normalizedAttemptCredit(item);
     bestByUnit.set(unitId, Math.max(bestByUnit.get(unitId) || 0, credited));
   });
   return [...bestByUnit.values()].reduce((sum, value) => sum + value, 0);
@@ -696,9 +700,12 @@ function evaluateReflectionQuality(reflection) {
   if (["難", "看不懂", "不懂", "不會"].some((term) => normalized.includes(term))) return { reflection_quality: "needs_review", question_exp: 0, reflection_exp_reason: "可能有學習困難，但未指出明確概念，需教師複核。", reflection_review_status: "pending_review" };
   return { reflection_quality: "invalid", question_exp: 0, reflection_exp_reason: "內容沒有明確學科關聯。", reflection_review_status: "auto_scored" };
 }
+function reflectionExpCap(questionExp) {
+  return Math.min(UNIT_EXP_CAP, 460 + Math.min(40, Math.max(0, Number(questionExp || 0))));
+}
 function previousBestCredited() {
   if (!state.student?.student_id) return 0;
-  return Math.max(0, ...studentAttempts(state.student.student_id).map((attempt) => attempt.unit_credited_exp || attempt.total_exp || 0));
+  return Math.max(0, ...studentAttempts(state.student.student_id).map(normalizedAttemptCredit));
 }
 function previousAccuracy() {
   if (!state.student?.student_id) return null;
@@ -721,7 +728,8 @@ function calculateResult() {
   const masteryExp = accuracy === 1 && hintUsed === 0 ? 140 : accuracy === 1 ? 80 : accuracy >= 0.9 ? 50 : 0;
   const prevAcc = previousAccuracy();
   const retryExp = state.attempt_type === "retry" && prevAcc !== null && accuracy > prevAcc ? Math.min(60, Math.round((accuracy - prevAcc) * 100)) : 0;
-  const attemptTotalExp = 100 + conceptExp + revisionExp + reflection.question_exp + masteryExp + retryExp;
+  const reflectionLedgerCap = reflectionExpCap(reflection.question_exp);
+  const attemptTotalExp = Math.min(reflectionLedgerCap, 100 + conceptExp + revisionExp + reflection.question_exp + masteryExp + retryExp);
   const best = previousBestCredited();
   const unitCreditedExp = Math.min(UNIT_EXP_CAP, Math.max(best, attemptTotalExp));
   const misconceptions = [...new Set(sections.flatMap((item) => item.misconceptions))];
@@ -743,6 +751,7 @@ function calculateResult() {
     reflection_exp_reason: reflection.reflection_exp_reason,
     reflection_review_status: reflection.reflection_review_status,
     mastery_exp: masteryExp,
+    reflection_ledger_cap: reflectionLedgerCap,
     retry_exp: retryExp,
     attempt_total_exp: attemptTotalExp,
     unit_credited_exp: unitCreditedExp,
@@ -1040,7 +1049,7 @@ function renderAchievements() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">累積成就</p><h2>${state.student?.student_name || "學習者"}</h2><div class="student-title-card" data-current-title-id="${title.id}" data-title-avatar-path="${titleAvatarPath(title.id)}"><div class="student-title-avatar"><img src="${titleAvatarPath(title.id)}" alt="${title.current}稱號角色"></div><div><span>目前稱號</span><strong>${title.current}</strong><p>累積 ${totalExp} EXP</p><p>${title.remaining ? `下一稱號：${title.next}，還差 ${title.remaining} EXP` : "已達最高稱號，EXP 仍會繼續累積。"}</p></div></div><div class="progress-bar"><div class="progress-fill" style="width:${title.title_progress_percent}%"></div></div><p class="muted">稱號進度 ${Math.min(100, Math.round(title.title_progress_percent * 10) / 10)}%</p></div><div class="panel"><p class="eyebrow">成就收藏</p><h2>本單元成就</h2><div class="badge-grid">${badges.map((badge) => `<div class="badge-card ${acquired.has(badge.id) || acquired.has(badge.name) ? "lit" : ""} ${earnedNow.has(badge.id) || earnedNow.has(badge.name) ? "earned-now" : ""}" data-badge-id="${badge.id}"><img src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div><div class="actions"><button class="secondary" id="achieveResult">返回結算</button></div></div></div>`;
 }
 function renderRules() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元封頂</strong><p>本單元認列 EXP 上限為 500。第一次零提示全對是最高路徑。</p></div><div class="story-panel"><strong>提示後修正</strong><p>提示會給判斷線索，不直接公布答案。提示後答對仍有修正 EXP，但低於未提示答對。</p></div><div class="story-panel"><strong>提交鎖定</strong><p>提交任務後本次作答結果鎖定。再挑戰必須重新登入並從頭完成整份任務。</p></div></div><div class="actions"><button class="secondary" id="rulesBack">返回目前任務</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元封頂</strong><p>本單元認列 EXP 上限為 500。零提示全對可取得題目與精熟 EXP；空白回報固定 0 EXP，因此最高為 460，具體有效回報取得 40 EXP 時才可達 500。</p></div><div class="story-panel"><strong>提示後修正</strong><p>提示會給判斷線索，不直接公布答案。提示後答對仍有修正 EXP，但低於未提示答對。</p></div><div class="story-panel"><strong>提交鎖定</strong><p>提交任務後本次作答結果鎖定。再挑戰必須重新登入並從頭完成整份任務。</p></div></div><div class="actions"><button class="secondary" id="rulesBack">返回目前任務</button></div></div></div>`;
 }
 function attachCommonChoiceHandlers() {
   document.querySelectorAll("[data-choice]").forEach((button) => button.addEventListener("click", () => recordChoice(button.dataset.choice, button.dataset.option)));

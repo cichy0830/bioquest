@@ -1129,7 +1129,8 @@ function calculateResult() {
   const retryExp = retryImproved ? Math.min(60, Math.max(1, Math.round((accuracy - prevAccuracy) * 100))) : 0;
   const accuracyDelta = prevAccuracy === null ? null : accuracy - prevAccuracy;
   const uncappedAttemptExp = completionExp + conceptExp + revisionExp + questionExp + retryExp + masteryExp;
-  const attemptTotalExp = Math.min(UNIT_EXP_CAP, uncappedAttemptExp);
+  const reflectionLedgerCap = Math.min(UNIT_EXP_CAP, 460 + Math.min(40, Math.max(0, questionExp)));
+  const attemptTotalExp = Math.min(reflectionLedgerCap, uncappedAttemptExp);
   const previousBestCredited = previousBestCreditedExp();
   const unitCreditedExp = Math.min(UNIT_EXP_CAP, Math.max(previousBestCredited, attemptTotalExp));
   const creditedDelta = Math.max(0, unitCreditedExp - previousBestCredited);

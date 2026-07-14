@@ -3,6 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
+const UNIT_EXP_CAP = 500;
 
 const mission = {
   mission_area: "微觀研究站",
@@ -1336,7 +1337,8 @@ function calculateResult() {
   const accuracy = correct / total;
   const masteryExp = accuracy >= 0.9 ? 100 : 0;
   const retryExp = state.attempt_type === "retry" ? 50 : 0;
-  const totalExp = completionExp + conceptExp + revisionExp + questionExp + masteryExp + retryExp;
+  const reflectionLedgerCap = Math.min(UNIT_EXP_CAP, 460 + Math.min(40, Math.max(0, questionExp)));
+  const totalExp = Math.min(reflectionLedgerCap, completionExp + conceptExp + revisionExp + questionExp + masteryExp + retryExp);
   const misconceptions = [...s1.misconceptions, ...s2.misconceptions, ...s3.misconceptions, ...s4.misconceptions];
   const membraneWallCorrect = state.answers.checkpoint4.wall === misconceptionQuestions.find((item) => item.id === "wall")?.answer;
   const energyFunctionCorrect = ["mitochondria", "chloroplast"].every((id) => state.answers.checkpoint2[id] === checkpoint2Items.find((item) => item.id === id)?.answer);

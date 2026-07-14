@@ -805,10 +805,11 @@ function calculateResult() {
   const masteryExp = accuracy === 1 && hintUsed === 0 ? 140 : accuracy === 1 ? 80 : accuracy >= 0.9 ? 50 : 0;
   const prevAcc = previousBestAccuracy();
   const completionExp = allRequiredAnswered() ? 100 : 0;
-  const baseExp = Math.min(UNIT_EXP_CAP, completionExp + directExp + revisionExp + reflectionEval.question_exp + masteryExp);
+  const reflectionLedgerCap = Math.min(UNIT_EXP_CAP, 460 + Math.min(40, Math.max(0, reflectionEval.question_exp)));
+  const baseExp = Math.min(reflectionLedgerCap, completionExp + directExp + revisionExp + reflectionEval.question_exp + masteryExp);
   const retryCandidate = state.attempt_type === "retry" && prevAcc !== null && accuracy > prevAcc ? Math.min(60, Math.round((accuracy - prevAcc) * 100)) : 0;
-  const retryExp = Math.min(retryCandidate, Math.max(0, UNIT_EXP_CAP - baseExp));
-  const attemptTotalExp = Math.min(UNIT_EXP_CAP, baseExp + retryExp);
+  const retryExp = Math.min(retryCandidate, Math.max(0, reflectionLedgerCap - baseExp));
+  const attemptTotalExp = Math.min(reflectionLedgerCap, baseExp + retryExp);
   const best = previousBestCredited();
   const unitCreditedExp = Math.min(UNIT_EXP_CAP, Math.max(best, attemptTotalExp));
   const sectionStats = [

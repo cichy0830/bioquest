@@ -594,12 +594,13 @@ function calculateResult() {
   const revisionExp = Math.round(REVISION_EXP_POOL * (correctedAfterHint / total));
   const reflectionEval = evaluateReflectionQuality(state.answers.reflection || {});
   const accuracy = correct / total;
-  const masteryExp = accuracy === 1 && hintUsed === 0 ? 180 : accuracy === 1 ? 80 : accuracy >= 0.9 ? 50 : 0;
+  const masteryExp = accuracy === 1 && hintUsed === 0 ? 140 : accuracy === 1 ? 80 : accuracy >= 0.9 ? 50 : 0;
   const previousAccuracy = previousBestAccuracy(); const completionExp = allRequiredAnswered() ? 100 : 0;
-  const baseExp = Math.min(UNIT_EXP_CAP, completionExp + directExp + revisionExp + reflectionEval.question_exp + masteryExp);
+  const reflectionLedgerCap = Math.min(UNIT_EXP_CAP, 460 + Math.min(40, Math.max(0, reflectionEval.question_exp)));
+  const baseExp = Math.min(reflectionLedgerCap, completionExp + directExp + revisionExp + reflectionEval.question_exp + masteryExp);
   const retryCandidate = state.attempt_type === "retry" && previousAccuracy !== null && accuracy > previousAccuracy ? Math.min(60, Math.round((accuracy - previousAccuracy) * 100)) : 0;
-  const retryExp = Math.min(retryCandidate, Math.max(0, UNIT_EXP_CAP - baseExp));
-  const attemptTotalExp = Math.min(UNIT_EXP_CAP, baseExp + retryExp); const best = previousBestCredited(); const unitCreditedExp = Math.min(UNIT_EXP_CAP, Math.max(best, attemptTotalExp));
+  const retryExp = Math.min(retryCandidate, Math.max(0, reflectionLedgerCap - baseExp));
+  const attemptTotalExp = Math.min(reflectionLedgerCap, baseExp + retryExp); const best = previousBestCredited(); const unitCreditedExp = Math.min(UNIT_EXP_CAP, Math.max(best, attemptTotalExp));
   const sectionStats = [sectionStat("養分種類與主要功能", sectionMap.checkpoint1), sectionStat("食物來源與養分角色", sectionMap.checkpoint2), sectionStat("能量資料與均衡判斷", sectionMap.checkpoint3)];
   const misconceptions = [...new Set(qids.filter((qid) => !isCorrect(qid) || state.hints[qid]).map(questionMisconception))];
   const earned = completionExp ? ["nutrients_energy_entry"] : [];

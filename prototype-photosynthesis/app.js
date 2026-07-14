@@ -518,10 +518,11 @@ function scoreAttempt() {
   const completionExp = 100;
   const directExp = Math.round(DIRECT_EXP_POOL * (directCorrect / logs.length));
   const revisionExp = Math.round(REVISION_EXP_POOL * (revisedCorrect / logs.length));
-  const masteryExp = correctCount === logs.length ? (hintUsed === 0 ? 180 : 80) : (accuracy >= 0.9 ? 50 : 0);
+  const masteryExp = correctCount === logs.length ? (hintUsed === 0 ? 140 : 80) : (accuracy >= 0.9 ? 50 : 0);
   const retryExp = 0;
   const rawExp = completionExp + directExp + revisionExp + reflection.question_exp + masteryExp + retryExp;
-  const totalExp = Math.min(UNIT_EXP_CAP, rawExp);
+  const reflectionLedgerCap = Math.min(UNIT_EXP_CAP, 460 + Math.min(40, Math.max(0, reflection.question_exp)));
+  const totalExp = Math.min(reflectionLedgerCap, rawExp);
   const earnedBadges = badgeIdsForScore(logs, reflection, retryExp, correctCount === logs.length && hintUsed === 0);
   return {
     unit_id: mission.unit_id,

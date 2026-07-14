@@ -532,10 +532,11 @@ function calculateResult() {
   const masteryExp = accuracy === 1 && hintUsed === 0 ? 140 : accuracy === 1 ? 80 : accuracy >= 0.9 ? 50 : 0;
   const previousAccuracy = previousBestAccuracy();
   const completionExp = allRequiredAnswered() ? 100 : 0;
-  const baseExp = Math.min(UNIT_EXP_CAP, completionExp + directExp + revisionExp + reflectionEval.question_exp + masteryExp);
+  const reflectionLedgerCap = Math.min(UNIT_EXP_CAP, 460 + Math.min(40, Math.max(0, reflectionEval.question_exp)));
+  const baseExp = Math.min(reflectionLedgerCap, completionExp + directExp + revisionExp + reflectionEval.question_exp + masteryExp);
   const retryCandidate = state.attempt_type === "retry" && previousAccuracy !== null && accuracy > previousAccuracy ? Math.min(60, Math.round((accuracy - previousAccuracy) * 100)) : 0;
-  const retryExp = Math.min(retryCandidate, Math.max(0, UNIT_EXP_CAP - baseExp));
-  const attemptTotalExp = Math.min(UNIT_EXP_CAP, baseExp + retryExp);
+  const retryExp = Math.min(retryCandidate, Math.max(0, reflectionLedgerCap - baseExp));
+  const attemptTotalExp = Math.min(reflectionLedgerCap, baseExp + retryExp);
   const previousCredited = previousBestCredited();
   const unitCreditedExp = Math.min(UNIT_EXP_CAP, Math.max(previousCredited, attemptTotalExp));
   const stats = [sectionStat("擴散、滲透與半透膜", sectionMap.checkpoint1), sectionStat("濃度方向與資料判讀", sectionMap.checkpoint2), sectionStat("細胞環境變化", sectionMap.checkpoint3)];
