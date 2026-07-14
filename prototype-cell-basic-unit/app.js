@@ -256,6 +256,29 @@ function setScreen(next) {
   render();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+function showReviewNavigationNotice(message) {
+  const notice = document.querySelector("#reviewNavigationNotice");
+  if (notice) notice.textContent = message;
+}
+function enterReflectionFromReview() {
+  if (state.submitted_at) return redirectLockedAttempt();
+  if (!state.student) {
+    showReviewNavigationNotice("登入狀態已失效，請重新登入後再填寫任務回報。");
+    return;
+  }
+  if (!state.completedScreens.includes("review")) {
+    showReviewNavigationNotice("請先完成關卡檢核並查看概念回饋，再填寫任務回報。");
+    return;
+  }
+  try {
+    state.result = state.result || calculateResult();
+    unlock("reflection");
+    setScreen("reflection");
+  } catch (error) {
+    console.error("review_to_reflection_failed", error);
+    showReviewNavigationNotice("目前無法開啟任務回報，請重新整理後再試；若持續發生請通知老師。");
+  }
+}
 function renderNav() {
   navButtons.forEach((button) => {
     const key = button.dataset.nav;
@@ -674,9 +697,11 @@ function evaluateReflectionQuality(reflection) {
   return { reflection_quality: "invalid", question_exp: 0, reflection_exp_reason: "內容沒有明確學科關聯。", reflection_review_status: "auto_scored" };
 }
 function previousBestCredited() {
+  if (!state.student?.student_id) return 0;
   return Math.max(0, ...studentAttempts(state.student.student_id).map((attempt) => attempt.unit_credited_exp || attempt.total_exp || 0));
 }
 function previousAccuracy() {
+  if (!state.student?.student_id) return null;
   const attempts = studentAttempts(state.student.student_id);
   return attempts.length ? attempts[attempts.length - 1].accuracy || 0 : null;
 }
@@ -922,7 +947,7 @@ function misconceptionText(tag) {
 function renderReview() {
   const result = calculateResult();
   const stable = result.section_stats.filter((item) => item.correct / item.total >= 0.85);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>任務掃描結果</h2><div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理主要概念。</p>"}</div><div class="story-panel"><strong>建議再閱讀</strong>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div><div class="story-panel"><strong>提問方向</strong><p>細胞為什麼被稱為基本單位、顯微鏡觀察如何支持細胞概念、單細胞生物如何完成生命活動。</p></div></div><div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>任務掃描結果</h2><div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理主要概念。</p>"}</div><div class="story-panel"><strong>建議再閱讀</strong>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div><div class="story-panel"><strong>提問方向</strong><p>細胞為什麼被稱為基本單位、顯微鏡觀察如何支持細胞概念、單細胞生物如何完成生命活動。</p></div></div><div id="reviewNavigationNotice" class="feedback warn" role="status" aria-live="polite"></div><div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
 }
 function renderReflection() {
   const reflection = state.answers.reflection || {};
@@ -1055,7 +1080,7 @@ function attachEvents() {
     }
     document.querySelector("#checkpoint4Next").addEventListener("click", () => { state.result = calculateResult(); saveState(); unlock("review"); setScreen("review"); });
   }
-  if (state.screen === "review") document.querySelector("#reviewNext").addEventListener("click", () => { unlock("reflection"); setScreen("reflection"); });
+  if (state.screen === "review") document.querySelector("#reviewNext")?.addEventListener("click", enterReflectionFromReview);
   if (state.screen === "reflection") attachReflection();
   if (state.screen === "result") {
     document.querySelector("#resultAchievements").addEventListener("click", () => setScreen("achievements"));
