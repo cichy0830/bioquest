@@ -55,7 +55,7 @@ const units = [
   { title: "酵素", unitId: "enzymes", status: "ready", sequence: 13, summary: "正式順序第十三單元。已完成學生端靜態原型，含酵素作用、專一性、可重複作用、溫度與酸鹼值資料判讀及消化情境。", tags: ["正式原型", "酵素", "專一性", "資料判讀", "已可測試"], url: "prototype-enzymes/?v=20260713-login-busy-v1" },
   { title: "植物如何製造養分", unitId: "photosynthesis", status: "ready", sequence: 14, summary: "正式順序第十四單元。已完成學生端靜態原型，含原料/能量/產物分類、葉片構造、澱粉與氣泡證據、變因判讀及光合作用/呼吸作用迷思修正。", tags: ["正式原型", "光合作用", "葉綠體", "變因判讀", "已可測試"], url: "prototype-photosynthesis/?v=20260713-login-busy-v1" },
   { title: "人體如何獲得養分", unitId: "human_nutrition", status: "ready", sequence: 15, summary: "正式順序第十五單元。已完成學生端靜態原型，含消化道與消化腺、食物流向、消化吸收、酵素與膽汁、小腸吸收與血液運送。", tags: ["正式原型", "消化", "吸收", "食物流向", "已可測試"], url: "prototype-human-nutrition/?v=20260714-human-nutrition-v1" },
-  { title: "植物的運輸構造", unitId: "plant_transport_structures", status: "planned", sequence: 16, summary: "根、莖、葉與維管束相關構造。", tags: ["植物", "運輸"] },
+  { title: "植物的運輸構造", unitId: "plant_transport_structures", status: "ready", sequence: 16, summary: "正式順序第十六單元。已完成學生端靜態原型，含根毛、維管束、木質部、韌皮部、葉脈、蒸散作用與形成層基礎判讀。", tags: ["正式原型", "植物", "維管束", "運輸", "已可測試"], url: "prototype-plant-transport-structures/?v=20260714-plant-transport-structures-v1" },
   { title: "植物體內物質的運輸", unitId: "plant_transport", status: "planned", sequence: 17, summary: "水分、礦物質、養分在植物體內的運輸。", tags: ["導管", "篩管"] },
   { title: "人體心血管系統的組成", unitId: "cardiovascular_components", status: "planned", sequence: 18, summary: "心臟、血管、血液組成與功能。", tags: ["心血管", "血液"] },
   { title: "人體的循環系統", unitId: "human_circulation", status: "planned", sequence: 19, summary: "體循環、肺循環、物質運輸與交換。", tags: ["循環", "人體"] },

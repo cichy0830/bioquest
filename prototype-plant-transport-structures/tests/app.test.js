@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import vm from "node:vm";
+import { fileURLToPath } from "node:url";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const source = fs.readFileSync(path.join(root, "app.js"), "utf8");
+const store = new Map();
+const context = { console, window: null, document: { readyState: "loading", querySelector() { return null; }, querySelectorAll() { return []; }, addEventListener() {} }, localStorage: { getItem: (key) => store.get(key) || null, setItem: (key, value) => store.set(key, String(value)) }, URLSearchParams, fetch: async () => ({ ok: true, json: async () => ({ ok: true }) }), Date, Math, setTimeout, clearTimeout };
+context.window = context; context.globalThis = context;
+vm.runInNewContext(source, context, { filename: "prototype-plant-transport-structures/app.js" });
+const api = context.window.__plant_transport_structuresTest;
+assert.equal(api.VERSION, "20260714-plant-transport-structures-canonical-v1");
+assert.equal(api.mission.unit_id, "plant_transport_structures");
+assert.equal(api.questions.length, 14);
+assert.equal(api.badges.length, 14);
+assert(source.includes("BioQuestLoginUX?.begin"));
+assert(fs.readFileSync(path.join(root, "styles.css"), "utf8").includes("正式徽章素材待接"));
+
+const answers = { q01: "transport_structure", q02: "root_hair_absorption", q03: { root: "root_hair_and_transport", stem: "vascular_bundle_connection", leaf: "vein_transport" }, q04: "vascular_bundle", q05: { xylem: "water_and_minerals", phloem: "photosynthetic_nutrients" }, q06: "xylem", q07: "phloem", q08: "veins_contain_vascular_bundle", q09_sequence: ["soil_contact", "root_hair_absorption", "xylem_upward_transport", "water_reaches_leaf", "transpiration_from_stoma"], q10: "transpiration_linked_to_upward_transport", q11: "material_transport", q12: "cambium", q13: "roots_water_minerals_leaves_nutrients_phloem", q14: "xylem_water_minerals_phloem_nutrients" };
+api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "plant_transport_test", attempt_session_token: "guest", question_version: api.VERSION, answers, reflection: { question: "" } });
+for (const question of api.questions) assert.equal(api.isCorrect(question.id), true, question.id);
+let score = api.scoreAttempt();
+assert.equal(score.correct_count, 14); assert.equal(score.unit_credited_exp, 500);
+assert(score.earned_badges.includes("plant_transport_structures_flawless"));
+assert(score.earned_badges.includes("transpiration_basic_linker"));
+api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "hint", attempt_session_token: "guest", question_version: api.VERSION, answers, hints: { q09: true }, hintEventStatus: { q09: "sent" }, reflection: { question: "我想確認木質部運水分與礦物質、韌皮部運養分的差異。" } });
+score = api.scoreAttempt(); assert(score.unit_credited_exp < 500); assert(!score.earned_badges.includes("plant_transport_structures_flawless"));
+for (const [text, exp] of [["", 0], ["老師好帥", 0], ["根毛吸收水分與礦物質", 0], ["我想知道葉脈中的維管束如何同時和水分與養分運輸有關？", 40]]) { api.setState({ reflection: { question: text } }); assert.equal(api.evaluateReflection().question_exp, exp); }
+api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "server", attempt_session_token: "token", question_version: api.VERSION, answers, hints: { q09: true }, reflection: { question: "我想確認蒸散作用如何與水分往上運輸連結？" } });
+const payload = api.buildBackendPayload(api.scoreAttempt());
+assert.equal(payload.unit_id, "plant_transport_structures"); assert.equal(payload.question_logs.length, 14); assert.deepEqual(payload.raw_answers.q09, answers.q09_sequence);
+assert(api.renderCheckpoint("checkpoint3").includes("上移"));
+assert(api.renderReflection().includes("owl-bioquest-report-reminder.webp"));
+assert(api.renderResult().includes("提交後本次作答已鎖定"));
+assert(api.renderAchievements().includes("學生稱號角色"));
+console.log("prototype-plant-transport-structures app regression passed");
