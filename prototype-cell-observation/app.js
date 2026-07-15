@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260715-cell-observation-qa-fixes-v3";
+const VERSION = "20260715-cell-observation-qa-fixes-v4";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -1101,7 +1101,7 @@ function resultStatusNotice(result, area = "result") {
   if (status === "pending") {
     const detail = state.backend_status === "pending_local"
       ? "後台暫時無法寫入，本次提交已保留在本機待補送佇列。"
-      : "後台尚未回傳正式累積資料。";
+      : "後台尚未完成本次確認。";
     return `<div class="feedback warn">${detail}本次預估 ${creditedExp}/${UNIT_EXP_CAP} EXP，待後台確認。</div>`;
   }
   return area === "result"
@@ -1120,13 +1120,13 @@ function renderResult() {
   const recognitionCopy = status === "verified"
     ? "本次取得是這次挑戰的原始表現；本單元正式認列會保留最高表現並受 500 EXP 上限限制。"
     : status === "guest"
-      ? `guest 測試：本次預估 ${creditedExp}/${UNIT_EXP_CAP} EXP，不列入正式累積。正式累積需使用學生學號登入並由後台確認。`
-      : `本次預估 ${creditedExp}/${UNIT_EXP_CAP} EXP，待後台確認；正式累積 EXP、完成單元與徽章需以後台 StudentProgress 為準。`;
+      ? `guest 測試：本次預估 ${creditedExp}/${UNIT_EXP_CAP} EXP，不列入正式累積。請使用學生學號登入，才會送交後台確認。`
+      : `本次預估 ${creditedExp}/${UNIT_EXP_CAP} EXP，待後台確認；確認完成前，這些數字只代表本次作答預覽。`;
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>提交後本次作答已鎖定</h2>${notice}${backendNotice}
     <div class="score-grid"><div class="score-box"><span>本次取得</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>${creditedLabel}</span><strong>${creditedValue}</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
     <div class="card-grid">
       <div class="story-panel"><strong>EXP 明細</strong><p>完成 ${result.completion_exp}｜直接答對 ${result.concept_exp}｜提示後修正 ${result.revision_exp}｜回報 ${result.question_exp}｜精熟 ${result.mastery_exp}｜再挑戰 ${result.retry_exp}</p></div>
-      <div class="story-panel"><strong>本次與正式累積差異</strong><p>${recognitionCopy}</p></div>
+      <div class="story-panel"><strong>${status === "verified" ? "本次與正式累積差異" : "本次預估狀態"}</strong><p>${recognitionCopy}</p></div>
       <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">前台候選 ${result.question_exp_candidate || 0} EXP；正式回報 EXP 以後台重算為準。</p></div>
     </div>
     <div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
