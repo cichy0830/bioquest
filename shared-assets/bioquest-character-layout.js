@@ -8,7 +8,7 @@
     retry_ready: ["整理後再挑戰", "先保留這次找到的線索，重新整理後再登入挑戰，會更容易看見自己的進步。"]
   };
   const enhancedGenerations = new WeakMap();
-  const BADGE_OVERVIEW_VERSION = "20260715-badge-overview-v1";
+  const BADGE_OVERVIEW_VERSION = "20260715-badge-overview-v2";
   const UNIT_BADGE_OVERVIEW_UNITS = [
     ["life_world", 1, "多彩多姿的生命世界", "open", 9],
     ["scientific_method", 2, "探究自然的科學方法", "open", 8],
@@ -133,6 +133,12 @@
       || {};
   }
 
+  function normalizeTotalBadgeCount(value) {
+    if (value === null || value === undefined || value === "") return null;
+    const total = Number(value);
+    return Number.isFinite(total) && total > 0 ? total : null;
+  }
+
   function isGuestState(state) {
     const student = state?.student || state || {};
     const id = String(student.student_id || student.id || "").toLowerCase();
@@ -195,7 +201,7 @@
         ...unit,
         station_title: item.station_title || item.stationTitle || unit.station_title,
         availability_status: availability,
-        total_badges: total === null || total === undefined || total === "" ? null : Number(total),
+        total_badges: normalizeTotalBadgeCount(total),
         earned_count: Number(item.earned_count ?? item.earnedCount ?? earnedBadges.length ?? 0),
         earned_badges: Array.isArray(earnedBadges) ? earnedBadges : []
       };
@@ -225,7 +231,7 @@
         ? "guest 測試不列入正式累積徽章；正式帳號登入並完成後台同步後才會更新。"
         : "等待後台回傳 unit_badge_summary_json；pending 或本機候選徽章不列入正式總覽。";
     const cards = units.map((unit) => {
-      const total = Number.isFinite(Number(unit.total_badges)) ? Number(unit.total_badges) : null;
+      const total = normalizeTotalBadgeCount(unit.total_badges);
       const open = ["open", "ready"].includes(String(unit.availability_status || "").toLowerCase());
       const countText = total === null ? (open ? "0/-" : "尚未開放") : `${Math.min(Number(unit.earned_count || 0), total)}/${total}`;
       const stateText = total === null ? (open ? "徽章目錄待接" : "尚未開放") : (Number(unit.earned_count || 0) ? "已有正式取得徽章" : "尚無正式取得徽章");

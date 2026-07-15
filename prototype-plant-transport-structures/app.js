@@ -991,14 +991,17 @@ function renderAchievements() {
 
 function renderBadgeWall(earned = []) {
   const earnedSet = new Set(earned);
+  const badgeVisual = (badge) => badge.image_status === "pending"
+    ? `<span class="bq-badge-asset-pending" role="img" aria-label="${escapeHtml(badge.name)}素材待接">徽章素材待接</span>`
+    : `<img src="${badge.badge_image_path}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('asset-missing'); this.remove();">`;
   return `<section class="panel">
     <p class="eyebrow">徽章收藏牆</p>
     <h2>本單元 14 枚徽章</h2>
     <div class="badge-wall">
       ${badges.map((badge) => `
         <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
-          <div class="badge-visual" data-badge-image-status="pending">
-            <img src="${badge.badge_image_path}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('asset-missing'); this.remove();">
+          <div class="badge-visual" data-badge-image-status="${badge.image_status || "ready"}">
+            ${badgeVisual(badge)}
           </div>
           <strong>${escapeHtml(badge.name)}</strong>
           <p>${escapeHtml(badge.condition)}</p>
