@@ -24,19 +24,19 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
-  owlPrep: "assets/owl-biological-organization-prep-reminder.webp",
-  owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.webp",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
+  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
+  owlPrep: "assets/owl-biological-organization-prep-reminder.png",
+  owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.png",
+  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  briefingSceneHook: "assets/bg-biological-organization-briefing-azhe-wide.webp",
-  ambientBackgroundHook: "assets/bg-biological-organization-ambient-wide.webp",
-  hierarchyCards: "assets/biological-organization-animal-hierarchy-cards.webp",
-  relationExamples: "assets/biological-organization-tissue-organ-system-examples.webp",
-  unicellularExamples: "assets/biological-organization-unicellular-multicellular-examples.webp",
-  plantOrgans: "assets/biological-organization-plant-organs-set.webp",
-  animalPlantCompare: "assets/biological-organization-animal-plant-compare.webp"
+  briefingSceneHook: "assets/bg-biological-organization-briefing-azhe-wide.png",
+  ambientBackgroundHook: "assets/bg-biological-organization-ambient-wide.png",
+  hierarchyCards: "assets/biological-organization-animal-hierarchy-cards.png",
+  relationExamples: "assets/biological-organization-tissue-organ-system-examples.png",
+  unicellularExamples: "assets/biological-organization-unicellular-multicellular-examples.png",
+  plantOrgans: "assets/biological-organization-plant-organs-set.png",
+  animalPlantCompare: "assets/biological-organization-animal-plant-compare.png"
 };
 
 const badgeAsset = (id) => `../shared-assets/badges/biological_organization/badge-biological_organization-${id}.webp`;
@@ -405,7 +405,14 @@ function layout(content, image = assets.owlPrep) {
 }
 function titleAvatarPath() {
   const student = state.student || {};
-  return student.title_avatar_path || assets.titleAvatarFallback;
+  return normalizeTitleAvatarPath(student.title_avatar_path || student.progress?.title_avatar_path);
+}
+function normalizeTitleAvatarPath(rawPath = "") {
+  const value = String(rawPath || "").trim();
+  if (!value) return assets.titleAvatarFallback;
+  if (/^(https?:|data:|\/|\.\/|\.\.\/)/.test(value)) return value;
+  if (value.startsWith("shared-assets/")) return `../${value}`;
+  return value;
 }
 
 function renderLogin() {

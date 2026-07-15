@@ -24,18 +24,18 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
-  owlPrep: "assets/owl-cell-transport-prep-reminder.webp",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
+  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
+  owlPrep: "assets/owl-cell-transport-prep-reminder.png",
+  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  briefingSceneHook: "assets/bg-cell-transport-briefing-azhe-wide.webp",
-  ambientBackgroundHook: "assets/bg-cell-transport-ambient-wide.webp",
-  diffusionImage: "assets/cell-transport-diffusion-particle-sim.webp",
-  osmosisImage: "assets/cell-transport-osmosis-semipermeable-scene.webp",
-  potatoDataImage: "assets/cell-transport-potato-water-balance-samples.webp",
-  animalCellImage: "assets/cell-transport-animal-cell-concentration-set.webp",
-  plantCellImage: "assets/cell-transport-plant-cell-concentration-set.webp"
+  briefingSceneHook: "assets/bg-cell-transport-briefing-azhe-wide.png",
+  ambientBackgroundHook: "assets/bg-cell-transport-ambient-wide.png",
+  diffusionImage: "assets/cell-transport-diffusion-particle-sim.png",
+  osmosisImage: "assets/cell-transport-osmosis-semipermeable-scene.png",
+  potatoDataImage: "assets/cell-transport-potato-water-balance-samples.png",
+  animalCellImage: "assets/cell-transport-animal-cell-concentration-set.png",
+  plantCellImage: "assets/cell-transport-plant-cell-concentration-set.png"
 };
 
 const badgeAsset = (id) => `../shared-assets/badges/cell_transport/badge-cell_transport-${id}.webp`;
@@ -321,7 +321,16 @@ function renderStudentMini() {
     ? `<p><strong>${state.student.student_name}</strong></p><p class="muted">${state.student.class_name}｜${state.student.student_id}</p>`
     : "<p class=\"muted\">尚未登入</p>";
 }
-function titleAvatarPath() { return state.student?.title_avatar_path || assets.titleAvatarFallback; }
+function normalizeTitleAvatarPath(rawPath = "") {
+  const value = String(rawPath || "").trim();
+  if (!value) return assets.titleAvatarFallback;
+  if (/^(https?:|data:|\/|\.\/|\.\.\/)/.test(value)) return value;
+  if (value.startsWith("shared-assets/")) return `../${value}`;
+  return value;
+}
+function titleAvatarPath() {
+  return normalizeTitleAvatarPath(state.student?.title_avatar_path || state.student?.progress?.title_avatar_path);
+}
 function mentorCard(title, text) {
   return `<div class="mentor-card"><div class="mentor-avatar"><img src="${assets.mentorFallback}" alt="阿澤老師" onerror="this.closest('.mentor-card').hidden=true"></div><div class="mentor-copy"><span>阿澤老師</span><strong>${title}</strong><p>${text}</p></div></div>`;
 }

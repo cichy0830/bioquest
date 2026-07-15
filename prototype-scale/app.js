@@ -24,19 +24,19 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
-  owlPrep: "assets/owl-scale-prep-reminder.webp",
-  owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.webp",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
+  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
+  owlPrep: "assets/owl-scale-prep-reminder.png",
+  owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.png",
+  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  briefingSceneHook: "assets/bg-scale-briefing-azhe-wide.webp",
-  ambientBackgroundHook: "assets/bg-scale-ambient-wide.webp",
-  sortCardsHook: "assets/scale-size-level-cards.webp",
-  unitCardsHook: "assets/scale-unit-match-cards.webp",
-  toolCardsHook: "assets/scale-observation-tool-cards.webp",
-  micrographHook: "assets/scale-bar-micrograph.webp",
-  imageCompareHook: "assets/scale-image-vs-actual-visual.webp"
+  briefingSceneHook: "assets/bg-scale-briefing-azhe-wide.png",
+  ambientBackgroundHook: "assets/bg-scale-ambient-wide.png",
+  sortCardsHook: "assets/scale-size-level-cards.png",
+  unitCardsHook: "assets/scale-unit-match-cards.png",
+  toolCardsHook: "assets/scale-observation-tool-cards.png",
+  micrographHook: "assets/scale-bar-micrograph.png",
+  imageCompareHook: "assets/scale-image-vs-actual-visual.png"
 };
 
 const badgeAsset = (id) => `../shared-assets/badges/scale/badge-scale-${id}.webp`;
@@ -288,7 +288,14 @@ function layout(content, image = assets.owlPrep) {
 }
 function titleAvatarPath() {
   const student = state.student || {};
-  return student.title_avatar_path || assets.titleAvatarFallback;
+  return normalizeTitleAvatarPath(student.title_avatar_path || student.progress?.title_avatar_path);
+}
+function normalizeTitleAvatarPath(rawPath = "") {
+  const value = String(rawPath || "").trim();
+  if (!value) return assets.titleAvatarFallback;
+  if (/^(https?:|data:|\/|\.\/|\.\.\/)/.test(value)) return value;
+  if (value.startsWith("shared-assets/")) return `../${value}`;
+  return value;
 }
 
 function renderLogin() {

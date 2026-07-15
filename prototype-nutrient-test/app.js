@@ -24,16 +24,16 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
-  owlPrep: "assets/owl-nutrient-test-prep-reminder.webp",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
+  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
+  owlPrep: "assets/owl-nutrient-test-prep-reminder.png",
+  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  briefingSceneHook: "assets/bg-nutrient-test-briefing-azhe-wide.webp",
-  ambientBackgroundHook: "assets/bg-nutrient-test-entry-wide.webp",
-  iodineStarchColorHook: "assets/iodine-starch-color-cards.webp",
-  biuretProteinColorHook: "assets/biuret-protein-color-cards.webp",
-  lipidOilSpotHook: "assets/lipid-oil-spot-cards.webp"
+  briefingSceneHook: "assets/bg-nutrient-test-briefing-azhe-wide.png",
+  ambientBackgroundHook: "assets/bg-nutrient-test-entry-wide.png",
+  iodineStarchColorHook: "assets/iodine-starch-color-cards.png",
+  biuretProteinColorHook: "assets/biuret-protein-color-cards.png",
+  lipidOilSpotHook: "assets/lipid-oil-spot-cards.png"
 };
 
 const badgeAsset = (id) => `../shared-assets/badges/nutrient_test/badge-nutrient_test-${id}.webp`;
@@ -287,7 +287,14 @@ function layout(content, image = assets.owlPrep) {
 }
 function titleAvatarPath() {
   const student = state.student || {};
-  return student.title_avatar_path || assets.titleAvatarFallback;
+  return normalizeTitleAvatarPath(student.title_avatar_path || student.progress?.title_avatar_path);
+}
+function normalizeTitleAvatarPath(rawPath = "") {
+  const value = String(rawPath || "").trim();
+  if (!value) return assets.titleAvatarFallback;
+  if (/^(https?:|data:|\/|\.\/|\.\.\/)/.test(value)) return value;
+  if (value.startsWith("shared-assets/")) return `../${value}`;
+  return value;
 }
 
 function renderLogin() {
