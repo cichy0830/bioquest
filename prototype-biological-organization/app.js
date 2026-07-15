@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260711-biological-organization-v1";
+const VERSION = "20260716-biological-organization-qa-fixes-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -24,19 +24,19 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
-  owlPrep: "assets/owl-biological-organization-prep-reminder.png",
-  owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.png",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
+  mentorFallback: "../shared-assets/mentor-feedback/mentor-feedback-stable.webp",
+  owlLogin: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
+  owlPrep: "assets/owl-biological-organization-prep-reminder.webp",
+  owlScan: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
+  owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "assets/bg-biological-organization-briefing-azhe-wide.webp",
-  ambientBackgroundHook: "assets/bg-biological-organization-ambient-wide.png",
-  hierarchyCards: "assets/biological-organization-animal-hierarchy-cards.png",
-  relationExamples: "assets/biological-organization-tissue-organ-system-examples.png",
-  unicellularExamples: "assets/biological-organization-unicellular-multicellular-examples.png",
-  plantOrgans: "assets/biological-organization-plant-organs-set.png",
-  animalPlantCompare: "assets/biological-organization-animal-plant-compare.png"
+  ambientBackgroundHook: "assets/bg-biological-organization-ambient-wide.webp",
+  hierarchyCards: "assets/biological-organization-animal-hierarchy-cards.webp",
+  relationExamples: "assets/biological-organization-tissue-organ-system-examples.webp",
+  unicellularExamples: "assets/biological-organization-unicellular-multicellular-examples.webp",
+  plantOrgans: "assets/biological-organization-plant-organs-set.webp",
+  animalPlantCompare: "assets/biological-organization-animal-plant-compare.webp"
 };
 
 const badgeAsset = (id) => `../shared-assets/badges/biological_organization/badge-biological_organization-${id}.webp`;
@@ -222,8 +222,8 @@ const classifyQuestions = {
 
 const sectionMap = {
   checkpoint1: ["q01", "q02", "q03", "q04"],
-  checkpoint2: ["q05", "q06", "q07", "q08", "q09", "q10"],
-  checkpoint3: ["q11", "q12", "q13", "q14"]
+  checkpoint2: ["q05", "q06", "q07", "q08"],
+  checkpoint3: ["q09", "q10", "q11", "q12", "q13", "q14"]
 };
 
 const defaultState = {
@@ -975,6 +975,7 @@ function scoreForConcept(attempt, ...concepts) {
   return total ? Math.round((correct / total) * 100) : 0;
 }
 async function submitAttemptToBackend(attempt) {
+  if (state.student?.is_guest) return { ok: true, verification_status: "local_guest" };
   const payload = buildBackendPayload(attempt);
   const body = new URLSearchParams();
   body.set("payload", JSON.stringify(payload));
@@ -1008,7 +1009,7 @@ function attachReflection() {
     let attempt = buildAttempt();
     try {
       const response = await submitAttemptToBackend(attempt);
-      state.backend_status = "submitted";
+      state.backend_status = state.student?.is_guest ? "local_guest" : "submitted";
       if (response.verified_attempt) state.result = { ...state.result, ...response.verified_attempt };
       applyBackendProgress(response.student_progress || response.progress || {});
       attempt = { ...attempt, ...state.result, backend_status: state.backend_status, backend_attempt_id: response.attempt_id || attempt.attempt_id };
@@ -1024,29 +1025,73 @@ function attachReflection() {
     setScreen("result");
   });
 }
+
+function submissionStatus() {
+  if (state.student?.is_guest) return "guest";
+  if (state.submitted_at && state.backend_status !== "submitted") return "pending";
+  return "verified";
+}
+
+function resultStatusNotice(result) {
+  const status = submissionStatus();
+  const attemptExp = Math.min(result.attempt_total_exp || 0, UNIT_EXP_CAP);
+  if (status === "guest") return `<div class="feedback warn">guest 測試：本次預估 ${attemptExp}/${UNIT_EXP_CAP} EXP，不列入正式累積。</div>`;
+  if (status === "pending") {
+    const detail = state.backend_status === "pending_local"
+      ? "後台暫時無法寫入，本次提交已保留在本機待補送佇列。"
+      : "本次資料正在等待後台確認。";
+    return `<div class="feedback warn">${detail}本次預估 ${attemptExp}/${UNIT_EXP_CAP} EXP，待後台確認。</div>`;
+  }
+  return `<div class="feedback good">本次任務已提交，作答結果已鎖定；後台已回傳正式認列資料。</div>`;
+}
+
 function renderResult() {
   const result = state.result || calculateResult();
+  const status = submissionStatus();
   const notice = state.lockNotice ? `<div class="feedback warn">${state.lockNotice}</div>` : "";
-  const backendNotice = state.backend_status === "pending_local" ? `<div class="feedback warn">後台暫時無法寫入，本次提交已保留在本機待補送佇列。</div>` : `<div class="feedback good">本次任務已提交，作答結果已鎖定。</div>`;
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>提交後本次作答已鎖定</h2>${notice}${backendNotice}
-    <div class="score-grid"><div class="score-box"><span>本次取得</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>本單元認列</span><strong>${result.unit_credited_exp} EXP</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
+  const creditedLabel = status === "verified" ? "本單元正式認列" : "認列狀態";
+  const creditedValue = status === "verified" ? `${result.unit_credited_exp} EXP` : status === "guest" ? "guest 不累積" : "待後台確認";
+  const recognitionCopy = status === "verified"
+    ? "本次取得是這次挑戰的原始表現；本單元正式認列會保留最高表現並受 500 EXP 上限限制。"
+    : status === "guest"
+      ? `guest 測試：本次預估 ${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)}/${UNIT_EXP_CAP} EXP，不列入正式累積。請使用學生學號登入，才會送交後台確認。`
+      : `本次預估 ${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)}/${UNIT_EXP_CAP} EXP，待後台確認；確認完成前，這些數字只代表本次作答預覽。`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>提交後本次作答已鎖定</h2>${notice}${resultStatusNotice(result)}
+    <div class="score-grid"><div class="score-box"><span>${status === "verified" ? "本次取得" : "本次預估"}</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>${creditedLabel}</span><strong>${creditedValue}</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
     <div class="card-grid">
       <div class="story-panel"><strong>EXP 明細</strong><p>完成 ${result.completion_exp}｜直接答對 ${result.concept_exp}｜提示後修正 ${result.revision_exp}｜回報 ${result.question_exp}｜精熟 ${result.mastery_exp}｜再挑戰 ${result.retry_exp}</p></div>
-      <div class="story-panel"><strong>本次與認列差異</strong><p>本次取得是這次挑戰的原始表現；本單元認列會保留最高表現並受 500 EXP 上限限制。</p></div>
-      <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">前台候選 ${result.question_exp_candidate || 0} EXP；正式回報 EXP 以後台重算為準。</p></div>
+      <div class="story-panel"><strong>${status === "verified" ? "本次與正式累積差異" : "本次預估狀態"}</strong><p>${recognitionCopy}</p></div>
+      <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">${status === "verified" ? `後台正式認列 ${result.question_exp} EXP。` : `前台候選 ${result.question_exp_candidate || 0} EXP，待後台重算。`}</p></div>
     </div>
     <div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
 }
 function renderAchievements() {
   const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : [];
+  const status = submissionStatus();
+  const guest = status === "guest";
+  const pending = status === "pending";
   const litIds = cumulativeBadgeIds(currentBadges);
+  const estimatedExp = Math.min((state.result || calculateResult()).attempt_total_exp || 0, UNIT_EXP_CAP);
+  const badgeLabel = guest ? "本次測試徽章" : pending ? "本次待確認徽章" : "正式累積徽章";
+  const badgeCount = guest || pending ? currentBadges.length : litIds.length;
+  const expLabel = guest || pending ? "本次預估 EXP" : "正式累積 EXP";
+  const expValue = guest || pending ? `${estimatedExp}/${UNIT_EXP_CAP}` : `${state.cumulative_total_exp || 0}`;
+  const unitLabel = guest ? "累積狀態" : pending ? "後台狀態" : "已完成單元";
+  const unitValue = guest ? "不列入正式累積" : pending ? "待後台確認" : `${state.completed_unit_count || 0}`;
+  const syncNote = guest
+    ? `guest 測試：本次預估 ${estimatedExp}/${UNIT_EXP_CAP} EXP，不列入正式累積；徽章亮燈僅供老師測試畫面。`
+    : pending
+      ? `本次預估 ${estimatedExp}/${UNIT_EXP_CAP} EXP，待後台確認；徽章亮燈先顯示本次作答預覽。`
+      : "";
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>生命階層徽章牆</h2>
-    <div class="score-grid"><div class="score-box"><span>累積徽章</span><strong>${litIds.length}</strong></div><div class="score-box"><span>累積 EXP</span><strong>${state.cumulative_total_exp || 0}</strong></div><div class="score-box"><span>已完成單元</span><strong>${state.completed_unit_count || 0}</strong></div></div>
+    ${guest || pending ? `<div class="feedback warn">${syncNote}</div>` : ""}
+    <div class="score-grid"><div class="score-box"><span>${badgeLabel}</span><strong>${badgeCount}</strong></div><div class="score-box"><span>${expLabel}</span><strong>${expValue}</strong></div><div class="score-box"><span>${unitLabel}</span><strong>${unitValue}</strong></div></div>
     <div class="badge-grid">${badges.map((badge) => {
       const lit = litIds.includes(badge.id);
       const gold = badge.id === "biological_organization_flawless";
-      return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="badge-icon" hidden>${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`;
-    }).join("")}</div><p class="muted">亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
+      const pendingBadge = pending && lit && !state.cumulative_badges.includes(badge.id);
+      return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="badge-icon" hidden>${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong>${pendingBadge ? `<span class="pill warn">待同步</span>` : ""}<p class="muted">${badge.condition}</p></div>`;
+    }).join("")}</div><p class="muted">${status === "verified" ? "正式亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。" : "目前只顯示本次作答預覽；正式徽章需等待後台確認。"}</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
 }
 function renderRules() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2>
@@ -1090,8 +1135,10 @@ function render() {
     achievements: renderAchievements,
     rules: renderRules
   };
+  screen.dataset.bioquestScreen = state.screen;
   screen.innerHTML = views[state.screen]();
   attachEvents();
+  window.BioQuestCharacterLayout?.enhance?.({ force: true });
 }
 
 render();
