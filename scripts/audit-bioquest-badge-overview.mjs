@@ -16,12 +16,13 @@ const sharedVersionOverrides = new Map([
   ["prototype-cell-structure", "20260715-brief-scene-unified-u1u7-v1"],
   ["prototype-cell-observation", "20260715-brief-scene-unified-u1u7-v1"],
   ["prototype-cell-transport", "20260715-title-avatar-card-v1"],
-  ["prototype-biological-organization", "20260715-title-avatar-card-v1"],
+  ["prototype-biological-organization", "20260716-biological-organization-qa-fixes-v1"],
   ["prototype-scale", "20260715-title-avatar-card-v1"],
   ["prototype-nutrients-energy", "20260715-title-avatar-card-v1"],
   ["prototype-nutrient-test", "20260715-title-avatar-card-v1"],
   ["prototype-enzymes", "20260715-title-avatar-card-v1"],
-  ["prototype-photosynthesis", "20260715-brief-scene-unified-u9u14-v1"]
+  ["prototype-photosynthesis", "20260715-brief-scene-unified-u9u14-v1"],
+  ["prototype-plant-material-transport", "20260713-login-busy-v1"]
 ]);
 const readyUnits = [
   "prototype-life-world",
@@ -39,7 +40,8 @@ const readyUnits = [
   "prototype-enzymes",
   "prototype-photosynthesis",
   "prototype-human-nutrition",
-  "prototype-plant-transport-structures"
+  "prototype-plant-transport-structures",
+  "prototype-plant-material-transport"
 ];
 
 function assert(condition, message) {

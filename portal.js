@@ -57,7 +57,7 @@ const units = [
   { title: "人體如何獲得養分", unitId: "human_nutrition", status: "ready", sequence: 15, summary: "正式順序第十五單元。已完成學生端靜態原型，含消化道與消化腺、食物流向、消化吸收、酵素與膽汁、小腸吸收與血液運送。", tags: ["正式原型", "消化", "吸收", "食物流向", "已可測試"], url: "prototype-human-nutrition/?v=20260715-badge-overview-v2" },
   { title: "植物的運輸構造", unitId: "plant_transport_structures", status: "ready", sequence: 16, summary: "正式順序第十六單元。已完成學生端靜態原型，含根毛、維管束、木質部、韌皮部、葉脈、蒸散作用與形成層基礎判讀。", tags: ["正式原型", "植物", "維管束", "運輸", "已可測試"], url: "prototype-plant-transport-structures/?v=20260715-badge-overview-v2" },
   { title: "植物體內物質的運輸", unitId: "plant_material_transport", status: "ready", sequence: 17, summary: "正式順序第十七單元。已完成來源端學生原型骨架，含水分與礦物質、葉製造養分、木質部與韌皮部、蒸散作用、氣孔與資料證據判讀。", tags: ["正式原型", "植物運輸", "木質部", "韌皮部", "來源可測"], url: "prototype-plant-material-transport/?v=20260716-plant-material-transport-publish-v1" },
-  { title: "人體心血管系統的組成", unitId: "cardiovascular_components", status: "planned", sequence: 18, summary: "心臟、血管、血液組成與功能。", tags: ["心血管", "血液"] },
+  { title: "人體心血管系統的組成", unitId: "cardiovascular_components", status: "testing", sequence: 18, summary: "正式順序第十八單元。已完成手機優先功能原型，含心臟、血管、血液成分、脈搏血壓與合作流程排序；正式視覺素材待核准後接線。", tags: ["功能原型", "心血管", "血液", "可測試中"], url: "prototype-cardiovascular-components/?v=20260716-cardiovascular-components-v1" },
   { title: "人體的循環系統", unitId: "human_circulation", status: "planned", sequence: 19, summary: "體循環、肺循環、物質運輸與交換。", tags: ["循環", "人體"] },
   { title: "刺激與反應", unitId: "stimulus_response", status: "planned", sequence: 20, summary: "受器、動器、刺激、反應與訊息傳遞。", tags: ["刺激", "反應"] },
   { title: "神經系統", unitId: "nervous_system", status: "planned", sequence: 21, summary: "神經元、中樞神經、周圍神經與反射。", tags: ["神經", "反射"] },
@@ -96,6 +96,7 @@ const units = [
 
 const statusText = {
   ready: "可測試",
+  testing: "測試中",
   spec: "已備料",
   planned: "待製作"
 };
@@ -132,6 +133,8 @@ function renderUnits() {
 
 function updateStats() {
   document.querySelector("#readyCount").textContent = units.filter((unit) => unit.status === "ready").length;
+  const testingCount = document.querySelector("#testingCount");
+  if (testingCount) testingCount.textContent = units.filter((unit) => unit.status === "testing").length;
   document.querySelector("#specCount").textContent = units.filter((unit) => unit.status === "spec").length;
   document.querySelector("#plannedCount").textContent = units.filter((unit) => unit.status === "planned").length;
 }

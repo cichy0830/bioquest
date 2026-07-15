@@ -26,7 +26,7 @@ body {
     linear-gradient(120deg, rgba(236, 248, 246, 0.74), rgba(255, 247, 225, 0.58)),
     radial-gradient(circle at 14% 18%, rgba(18, 151, 163, 0.18), transparent 28%),
     radial-gradient(circle at 88% 12%, rgba(215, 154, 53, 0.22), transparent 24%),
-    url("prototype-life-world/assets/bg-life-entry-wide.webp"),
+    url("prototype-life-world/assets/bg-life-entry-wide.png"),
     #edf6f4;
   background-attachment: fixed;
   background-position: center;
@@ -69,7 +69,7 @@ button {
   padding: 30px;
   background:
     linear-gradient(110deg, rgba(255, 255, 255, 0.82), rgba(235, 249, 247, 0.56)),
-    url("prototype-life-world/assets/bg-life-entry-wide.webp");
+    url("prototype-life-world/assets/bg-life-entry-wide.png");
   background-position: center;
   background-size: cover;
 }
@@ -196,7 +196,7 @@ input {
 
 .status-guide {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 24px;
   padding: 14px;
@@ -222,6 +222,10 @@ input {
 
 .dot.ready {
   background: var(--green);
+}
+
+.dot.testing {
+  background: var(--blue);
 }
 
 .dot.spec {
@@ -286,6 +290,11 @@ input {
 .status-pill.ready {
   color: #164c27;
   background: #dff4e5;
+}
+
+.status-pill.testing {
+  color: #153f72;
+  background: #e0edff;
 }
 
 .status-pill.spec {
