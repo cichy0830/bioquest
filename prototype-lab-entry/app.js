@@ -1550,10 +1550,7 @@ function renderAchievements() {
         <h3>實驗室安全啟動任務</h3>
         ${renderBadgeCatalog(unitBadges)}
       </div>
-      <div class="panel">
-        <p class="eyebrow">全部任務徽章</p>
-        <div class="badge-grid">${aggregate.badges.length ? aggregate.badges.map((badge) => `<div class="badge earned"><strong>${badge}</strong></div>`).join("") : `<p class="muted">目前沒有亮起的徽章。</p>`}</div>
-      </div>
+      <div class="panel bq-all-unit-badge-overview" data-bq-badge-overview="true"></div>
     </div>
   `;
 }

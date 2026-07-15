@@ -365,6 +365,101 @@ body[data-unit-id] #screen :where(input, textarea, select, th, td) {
   text-align: center;
 }
 
+.bq-all-unit-badge-overview {
+  overflow: visible !important;
+}
+
+.bq-unit-badge-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.bq-unit-badge-summary {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(34, 91, 95, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.bq-unit-badge-summary__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bq-unit-badge-summary__head strong {
+  min-width: 0;
+  color: #173f49;
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.bq-unit-badge-summary__head span {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #0f3d48;
+  background: rgba(230, 246, 241, 0.95);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.bq-unit-badge-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+}
+
+.bq-unit-badge-thumb,
+.bq-unit-badge-missing {
+  flex: 0 0 32px;
+  width: 32px !important;
+  height: 32px !important;
+  max-width: 32px !important;
+  max-height: 32px !important;
+  margin: 0 !important;
+  border-radius: 8px;
+}
+
+.bq-unit-badge-thumb {
+  display: block;
+  object-fit: contain;
+  object-position: center;
+}
+
+.bq-unit-badge-missing {
+  display: inline-grid;
+  place-items: center;
+  border: 1px dashed rgba(71, 96, 101, 0.42);
+  color: #52656a;
+  background: rgba(230, 237, 237, 0.72);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.bq-unit-badge-empty {
+  color: #587077;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.bq-unit-badge-summary > p {
+  margin: 0;
+  color: #587077;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 @media (max-width: 760px) {
   :root {
     --bq-character-prep-size: clamp(170px, 56vw, 230px);
@@ -439,5 +534,17 @@ body[data-unit-id] #screen :where(input, textarea, select, th, td) {
 
   .bq-result-hero {
     min-height: var(--bq-character-result-size);
+  }
+
+  .bq-unit-badge-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bq-unit-badge-summary {
+    padding: 10px;
+  }
+
+  .bq-unit-badge-summary__head {
+    align-items: center;
   }
 }

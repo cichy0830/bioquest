@@ -8,6 +8,68 @@
     retry_ready: ["整理後再挑戰", "先保留這次找到的線索，重新整理後再登入挑戰，會更容易看見自己的進步。"]
   };
   const enhancedGenerations = new WeakMap();
+  const BADGE_OVERVIEW_VERSION = "20260715-badge-overview-v1";
+  const UNIT_BADGE_OVERVIEW_UNITS = [
+    ["life_world", 1, "多彩多姿的生命世界", "open", 9],
+    ["scientific_method", 2, "探究自然的科學方法", "open", 8],
+    ["lab_intro", 3, "進入實驗室", "open", 8],
+    ["microscope_use", 4, "顯微鏡的使用", "open", 8],
+    ["cell_basic_unit", 5, "生物體的基本單位", "open", 8],
+    ["cell_structure", 6, "細胞的構造", "open", 9],
+    ["cell_observation", 7, "細胞的觀察", "open", 10],
+    ["cell_transport", 8, "物質進出細胞的方式", "open", 10],
+    ["biological_organization", 9, "生物體的組成層次", "open", 10],
+    ["scale", 10, "尺度", "open", 11],
+    ["nutrients_energy", 11, "食物中的養分與能量", "open", 11],
+    ["nutrient_test", 12, "養分檢測", "open", 11],
+    ["enzymes", 13, "酵素", "open", 11],
+    ["photosynthesis", 14, "植物如何製造養分", "open", 11],
+    ["human_nutrition", 15, "人體如何獲得養分", "open", 13],
+    ["plant_transport_structures", 16, "植物的運輸構造", "open", 14],
+    ["plant_material_transport", 17, "植物體內物質的運輸", "locked", null],
+    ["cardiovascular_components", 18, "人體心血管系統的組成", "locked", null],
+    ["human_circulation", 19, "人體的循環系統", "locked", null],
+    ["stimulus_response", 20, "刺激與反應", "locked", null],
+    ["nervous_system", 21, "神經系統", "locked", null],
+    ["endocrine_system", 22, "內分泌系統", "locked", null],
+    ["behavior_sensing", 23, "行為與感應", "locked", null],
+    ["respiration_homeostasis", 24, "呼吸與氣體的恆定", "locked", null],
+    ["excretion_water_homeostasis", 25, "排泄與水分的恆定", "locked", null],
+    ["temperature_glucose_homeostasis", 26, "體溫與血糖的恆定", "locked", null],
+    ["cell_division", 27, "細胞的分裂", "locked", null],
+    ["asexual_reproduction", 28, "無性生殖", "locked", null],
+    ["sexual_reproduction", 29, "有性生殖", "locked", null],
+    ["egg_observation", 30, "蛋的觀察", "locked", null],
+    ["flower_observation", 31, "花的觀察", "locked", null],
+    ["genetics_chromosome_gene", 32, "遺傳、染色體與基因", "locked", null],
+    ["human_genetics", 33, "人類的遺傳", "locked", null],
+    ["abo_blood_type", 34, "人類的 ABO 血型遺傳", "locked", null],
+    ["mutation_genetic_disease", 35, "突變與遺傳疾病", "locked", null],
+    ["biotechnology", 36, "生物技術", "locked", null],
+    ["fossils_evolution", 37, "化石與演化", "locked", null],
+    ["naming_classification", 38, "生物的命名與分類", "locked", null],
+    ["dichotomous_key", 39, "檢索表的認識與應用", "locked", null],
+    ["prokaryotes_protists_fungi", 40, "原核、原生生物及真菌界", "locked", null],
+    ["plant_kingdom", 41, "植物界", "locked", null],
+    ["fern_observation", 42, "蕨類植物的觀察", "locked", null],
+    ["animal_kingdom", 43, "動物界", "locked", null],
+    ["population_community_succession", 44, "族群、群集與演替", "locked", null],
+    ["population_sampling", 45, "族群個體數的調查", "locked", null],
+    ["biotic_interactions", 46, "生物間的互動關係", "locked", null],
+    ["ecosystem", 47, "生態系", "locked", null],
+    ["ecosystem_types", 48, "生態系的類型", "locked", null],
+    ["biodiversity", 49, "生物多樣性", "locked", null],
+    ["biodiversity_crisis", 50, "生物多樣性面臨的危機", "locked", null],
+    ["conservation_actions", 51, "保育的落實", "locked", null],
+    ["environment_sustainability", 52, "環境的永續發展", "locked", null]
+  ].map(([unit_id, sequence, unit_title, availability_status, total_badges]) => ({
+    unit_id,
+    sequence,
+    unit_title,
+    station_title: `第 ${sequence} 站｜${unit_title}`,
+    availability_status,
+    total_badges
+  }));
 
   function setText(node, value) {
     if (node && node.textContent !== value) node.textContent = value;
@@ -23,6 +85,163 @@
 
   function setDataset(node, name, value) {
     if (node && node.dataset[name] !== value) node.dataset[name] = value;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function parseJsonValue(value, fallback = []) {
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === "object") return value;
+    if (typeof value !== "string" || !value.trim()) return fallback;
+    try {
+      const parsed = JSON.parse(value);
+      return parsed ?? fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  function appStateFromGlobals() {
+    const explicit = global.__BIOQUEST_BADGE_OVERVIEW_STATE__;
+    if (explicit && typeof explicit === "object") return explicit;
+    for (const key of Object.keys(global)) {
+      if (!/^__.*Test$/.test(key)) continue;
+      const api = global[key];
+      if (!api || typeof api.state !== "function") continue;
+      try {
+        const state = api.state();
+        if (state && typeof state === "object") return state;
+      } catch {
+        // Ignore test helper state access failures; the renderer will use a safe empty state.
+      }
+    }
+    return {};
+  }
+
+  function progressFromState(state) {
+    return global.__BIOQUEST_BADGE_OVERVIEW_PROGRESS__
+      || state?.student?.progress
+      || state?.progress
+      || state?.student_progress
+      || {};
+  }
+
+  function isGuestState(state) {
+    const student = state?.student || state || {};
+    const id = String(student.student_id || student.id || "").toLowerCase();
+    return Boolean(student.is_guest || student.guest || id === "guest");
+  }
+
+  function isVerifiedProgress(progress) {
+    if (!progress || typeof progress !== "object") return false;
+    const source = String(progress.source || progress.verification_status || "").toLowerCase();
+    const applied = progress.progress_applied === true || String(progress.progress_applied || "").toLowerCase() === "true";
+    return source === "server_verified"
+      || source === "last_verified_snapshot"
+      || applied
+      || progress.unit_badge_summary_json !== undefined;
+  }
+
+  function normalizeBadgeImagePath(path, unitId) {
+    const value = String(path || "").trim();
+    if (!value) return "";
+    if (/^(https?:)?\/\//.test(value) || value.startsWith("/") || value.startsWith("../")) return value;
+    if (value.startsWith("shared-assets/") || value.startsWith("prototype-")) return `../${value}`;
+    if (value.startsWith("assets/")) {
+      const unitPath = {
+        life_world: "prototype-life-world",
+        scientific_method: "prototype-scientific-method",
+        lab_intro: "prototype-lab-entry",
+        microscope_use: "prototype-microscope-use",
+        cell_basic_unit: "prototype-cell-basic-unit",
+        cell_structure: "prototype-cell-structure",
+        cell_observation: "prototype-cell-observation",
+        cell_transport: "prototype-cell-transport",
+        biological_organization: "prototype-biological-organization",
+        scale: "prototype-scale",
+        nutrients_energy: "prototype-nutrients-energy",
+        nutrient_test: "prototype-nutrient-test",
+        enzymes: "prototype-enzymes",
+        photosynthesis: "prototype-photosynthesis",
+        human_nutrition: "prototype-human-nutrition",
+        plant_transport_structures: "prototype-plant-transport-structures"
+      }[unitId];
+      return unitPath && unitId !== document.body?.dataset?.unitId ? `../${unitPath}/${value}` : value;
+    }
+    return value;
+  }
+
+  function normalizeUnitBadgeSummary(progress, state) {
+    const fallback = UNIT_BADGE_OVERVIEW_UNITS.map((unit) => ({ ...unit, earned_count: 0, earned_badges: [] }));
+    if (isGuestState(state)) return { units: fallback, status: "guest" };
+    if (!isVerifiedProgress(progress)) return { units: fallback, status: "pending" };
+    const raw = parseJsonValue(progress.unit_badge_summary_json, []);
+    const summary = Array.isArray(raw) ? raw : Array.isArray(raw?.units) ? raw.units : [];
+    if (!summary.length) return { units: fallback, status: "verified_empty" };
+    const byId = new Map(summary.map((item) => [String(item.unit_id || item.unitId || ""), item]));
+    const units = UNIT_BADGE_OVERVIEW_UNITS.map((unit) => {
+      const item = byId.get(unit.unit_id) || {};
+      const earnedBadges = parseJsonValue(item.earned_badges ?? item.earnedBadges, []);
+      const total = item.total_badges ?? item.totalBadges ?? unit.total_badges;
+      const availability = item.availability_status || item.availabilityStatus || unit.availability_status;
+      return {
+        ...unit,
+        station_title: item.station_title || item.stationTitle || unit.station_title,
+        availability_status: availability,
+        total_badges: total === null || total === undefined || total === "" ? null : Number(total),
+        earned_count: Number(item.earned_count ?? item.earnedCount ?? earnedBadges.length ?? 0),
+        earned_badges: Array.isArray(earnedBadges) ? earnedBadges : []
+      };
+    });
+    return { units, status: "verified" };
+  }
+
+  function renderBadgeOverviewThumbs(unit) {
+    const badges = Array.isArray(unit.earned_badges) ? unit.earned_badges : [];
+    if (!badges.length) return `<span class="bq-unit-badge-empty">尚無正式取得徽章</span>`;
+    return badges.map((badge) => {
+      const id = badge.badge_id || badge.id || badge.badgeId || "";
+      const label = badge.name || badge.badge_name || badge.badgeName || id || "已取得徽章";
+      const src = normalizeBadgeImagePath(badge.badge_image_path || badge.badgeImagePath || badge.image || "", unit.unit_id);
+      if (!src) return `<span class="bq-unit-badge-missing" role="img" aria-label="${escapeHtml(label)}缺圖" title="${escapeHtml(label)}缺圖">缺圖</span>`;
+      return `<img class="bq-unit-badge-thumb" src="${escapeHtml(src)}" alt="${escapeHtml(label)}" title="${escapeHtml(label)}" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="bq-unit-badge-missing" hidden role="img" aria-label="${escapeHtml(label)}缺圖" title="${escapeHtml(label)}缺圖">缺圖</span>`;
+    }).join("");
+  }
+
+  function renderWholeBookBadgeOverview() {
+    const state = appStateFromGlobals();
+    const progress = progressFromState(state);
+    const { units, status } = normalizeUnitBadgeSummary(progress, state);
+    const note = status === "verified"
+      ? "以下只列入後台 verified 的正式累積徽章；未取得徽章與條件請看本單元成就。"
+      : status === "guest"
+        ? "guest 測試不列入正式累積徽章；正式帳號登入並完成後台同步後才會更新。"
+        : "等待後台回傳 unit_badge_summary_json；pending 或本機候選徽章不列入正式總覽。";
+    const cards = units.map((unit) => {
+      const total = Number.isFinite(Number(unit.total_badges)) ? Number(unit.total_badges) : null;
+      const open = ["open", "ready"].includes(String(unit.availability_status || "").toLowerCase());
+      const countText = total === null ? (open ? "0/-" : "尚未開放") : `${Math.min(Number(unit.earned_count || 0), total)}/${total}`;
+      const stateText = total === null ? (open ? "徽章目錄待接" : "尚未開放") : (Number(unit.earned_count || 0) ? "已有正式取得徽章" : "尚無正式取得徽章");
+      return `<article class="bq-unit-badge-summary" data-unit-id="${escapeHtml(unit.unit_id)}" data-availability="${escapeHtml(unit.availability_status || "")}">
+        <div class="bq-unit-badge-summary__head">
+          <strong>${escapeHtml(unit.station_title || `第 ${unit.sequence} 站｜${unit.unit_title}`)}</strong>
+          <span>${escapeHtml(countText)}</span>
+        </div>
+        <div class="bq-unit-badge-thumbs" aria-label="${escapeHtml(unit.unit_title)}已取得正式徽章">${renderBadgeOverviewThumbs(unit)}</div>
+        <p>${escapeHtml(stateText)}</p>
+      </article>`;
+    }).join("");
+    return `<p class="eyebrow">全部任務徽章</p>
+      <h3>全冊徽章總覽</h3>
+      <p class="muted">${note}</p>
+      <div class="bq-unit-badge-summary-grid" data-bq-badge-overview-version="${BADGE_OVERVIEW_VERSION}">${cards}</div>`;
   }
 
   function activeScreen() {
@@ -316,8 +535,19 @@
 
   function enhanceAchievements(root) {
     const panels = [...root.querySelectorAll(".panel")];
-    const unitPanel = panels.find((panel) => [...panel.querySelectorAll("h2, h3, .eyebrow")].some((heading) => heading.textContent.includes("本單元成就")));
+    const unitPanel = panels.find((panel) => [...panel.querySelectorAll("h2, h3, .eyebrow")].some((heading) => heading.textContent.includes("本單元成就")))
+      || panels.find((panel) => panel.querySelector(".badge-grid, .badge-wall") && !panel.matches("[data-bq-badge-overview]"));
     if (!unitPanel) return;
+    let overviewPanel = panels.find((panel) => panel.matches("[data-bq-badge-overview]"))
+      || panels.find((panel) => [...panel.querySelectorAll("h2, h3, .eyebrow")].some((heading) => heading.textContent.includes("全部任務徽章")));
+    if (!overviewPanel) {
+      overviewPanel = document.createElement("div");
+      overviewPanel.className = "panel";
+      unitPanel.insertAdjacentElement("beforebegin", overviewPanel);
+    }
+    overviewPanel.dataset.bqBadgeOverview = "true";
+    overviewPanel.classList.add("bq-all-unit-badge-overview");
+    setHtml(overviewPanel, renderWholeBookBadgeOverview());
     unitPanel.querySelectorAll(".badge, .badge-card").forEach((card) => {
       if (card.querySelector("img, .bq-badge-asset-pending")) return;
       const pending = document.createElement("span");
@@ -396,6 +626,10 @@
   }
 
   global.BioQuestCharacterLayout = Object.freeze({ enhance, feedbackState });
+  global.BioQuestBadgeOverview = Object.freeze({
+    version: BADGE_OVERVIEW_VERSION,
+    renderHtml: renderWholeBookBadgeOverview
+  });
   global.BioQuestLoginUX = Object.freeze({
     begin: beginLoginBusy,
     end: restoreLoginBusy,

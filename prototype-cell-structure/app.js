@@ -1610,11 +1610,7 @@ function renderAchievements() {
         <p class="muted">本單元可收集的徽章會全部列在這裡，已取得的徽章會亮燈。</p>
         ${renderBadgeCatalog(unitBadges)}
       </div>
-      <div class="panel">
-        <p class="eyebrow">目前為止的累積成就</p>
-        <h3>全部任務徽章</h3>
-        <div class="badge-grid">${aggregate.badges.length ? aggregate.badges.map((badge) => `<div class="badge earned"><span>已收集</span><strong>${badge}</strong></div>`).join("") : `<p class="muted">尚未取得徽章。</p>`}</div>
-      </div>
+      <div class="panel bq-all-unit-badge-overview" data-bq-badge-overview="true"></div>
       <div class="panel">
         <h3>可再挑戰任務</h3>
         <p>${aggregate.attempts.length ? "細胞工廠的祕密" : "完成首次任務後，這裡會出現可再挑戰項目。"}</p>
