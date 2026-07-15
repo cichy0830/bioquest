@@ -1,9 +1,19 @@
 const roster = {
-  guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
+  guest: {
+    student_id: "guest",
+    class_name: "測試",
+    seat_no: "00",
+    student_name: "老師測試帳號",
+    profile_gender: "male",
+    current_title_id: "trainee_investigator",
+    current_title: "見習調查員",
+    title_avatar_path: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
+    is_guest: true
+  }
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260715-cell-observation-qa-fixes-v5";
+const VERSION = "20260715-cell-observation-review-fixes-v6";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -24,12 +34,7 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
   owlPrep: "assets/owl-cell-observation-prep-reminder.webp",
-  owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.webp",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
-  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "assets/bg-cell-observation-briefing-azhe-wide.webp",
   ambientBackgroundHook: "assets/bg-cell-observation-entry-wide.webp",
   slidePreparation: "assets/cell-observation-slide-preparation-cards.webp",
@@ -343,7 +348,9 @@ function studentAttempts(studentId) {
 }
 function previousBestCredited() {
   if (!state.student) return 0;
-  return Math.max(0, ...studentAttempts(state.student.student_id).map((attempt) => Number(attempt.unit_credited_exp || 0)));
+  const verified = studentAttempts(state.student.student_id)
+    .filter((attempt) => !attempt.student?.is_guest && attempt.backend_status === "submitted");
+  return Math.max(0, ...verified.map((attempt) => Number(attempt.unit_credited_exp || 0)));
 }
 function previousBestAccuracy() {
   if (!state.student) return null;
@@ -367,7 +374,9 @@ function latestLocalAttempt() {
 function previousAttemptId() { return latestLocalAttempt()?.attempt_id || state.remote_previous_attempt_id || ""; }
 function cumulativeBadgeIds(current = []) {
   if (!state.student) return [...new Set(current)];
-  const local = studentAttempts(state.student.student_id).flatMap((attempt) => parseArray(attempt.badges));
+  const local = studentAttempts(state.student.student_id)
+    .filter((attempt) => !attempt.student?.is_guest && attempt.backend_status === "submitted")
+    .flatMap((attempt) => parseArray(attempt.badges));
   return [...new Set([...(state.cumulative_badges || []), ...local, ...current])];
 }
 function isProgressPending() {
@@ -377,6 +386,12 @@ function applyBackendProgress(progress = {}) {
   state.cumulative_badges = parseArray(progress.badges_json || progress.badges || state.cumulative_badges);
   state.cumulative_total_exp = Number(progress.total_exp ?? progress.total_credited_exp ?? state.cumulative_total_exp ?? 0);
   state.completed_unit_count = Number(progress.completed_unit_count ?? state.completed_unit_count ?? 0);
+  if (state.student) {
+    state.student.progress = { ...(state.student.progress || {}), ...progress };
+    state.student.current_title_id = progress.current_title_id || state.student.current_title_id || "";
+    state.student.current_title = progress.current_title || state.student.current_title || "";
+    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path || "";
+  }
 }
 function pendingQueue() {
   try { return JSON.parse(localStorage.getItem(pendingQueueKey)) || []; } catch { return []; }
@@ -456,21 +471,31 @@ function renderStudentMini() {
   studentMini.innerHTML = `<p><strong>${state.student.student_name}</strong></p><p>${state.student.class_name} 班 ${state.student.seat_no} 號</p><p class="muted">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</p><p class="muted">後台完成紀錄：${state.remote_completed_attempts || 0} 筆</p>`;
 }
 
-function mentorCard(title, text) {
-  return `<div class="mentor-card"><div class="mentor-avatar"><img src="${assets.mentorFallback}" alt="阿澤老師"></div><div class="mentor-copy"><span>阿澤老師</span><strong>${title}</strong><p>${text}</p></div></div>`;
-}
 function owlPanel(image = assets.owlPrep, alt = "貓頭鷹助理") {
   return `<div class="owl-frame"><img src="${image}" alt="${alt}"></div>`;
 }
-function layout(content, image = assets.owlPrep) {
-  return `<div class="mission-layout"><div class="panel hero-panel">${content}</div>${owlPanel(image)}</div>`;
+function titleAvatarFallbackPath() {
+  const gender = state.student?.profile_gender === "female" ? "female" : "male";
+  return `../shared-assets/title-avatars/title-01-trainee_investigator-${gender}.webp`;
 }
 function titleAvatarPath() {
   const student = state.student || {};
-  const path = student.title_avatar_path || "";
-  if (path.startsWith("../") || path.startsWith("assets/") || path.startsWith("http")) return path;
+  const gender = student.profile_gender === "female" ? "female" : "male";
+  const titleId = student.current_title_id || student.progress?.current_title_id || "trainee_investigator";
+  const level = window.BioQuestTitleProgress?.levels?.find((item) => item.id === titleId);
+  const fallback = titleAvatarFallbackPath();
+  const path = student.title_avatar_path || student.progress?.title_avatar_path || (level ? `../shared-assets/title-avatars/title-${level.order}-${level.id}-${gender}.webp` : fallback);
+  if (/^(https?:|data:|\/|\.\/|\.\.\/)/.test(path) || path.startsWith("assets/")) return path;
   if (path.startsWith("shared-assets/")) return `../${path}`;
-  return assets.titleAvatarFallback;
+  return fallback;
+}
+function currentTitleName() {
+  const student = state.student || {};
+  if (student.current_title || student.progress?.current_title) return student.current_title || student.progress.current_title;
+  const titleId = student.current_title_id || student.progress?.current_title_id;
+  const explicit = window.BioQuestTitleProgress?.levels?.find((item) => item.id === titleId);
+  if (explicit) return explicit.title;
+  return window.BioQuestTitleProgress?.getTitleForExp(state.cumulative_total_exp || 0)?.current || "見習調查員";
 }
 
 function renderLogin() {
@@ -500,8 +525,10 @@ function normalizeBackendStudent(data, id) {
     seat_no: source.seat_no || source.seat || "00",
     student_name: source.student_name || source.name || "未設定",
     profile_gender: source.profile_gender || source.gender || "",
-    current_title_id: source.current_title_id || "",
-    title_avatar_path: source.title_avatar_path || "",
+    current_title_id: source.current_title_id || data.progress?.current_title_id || data.student_progress?.current_title_id || "",
+    current_title: source.current_title || data.progress?.current_title || data.student_progress?.current_title || "",
+    title_avatar_path: source.title_avatar_path || data.progress?.title_avatar_path || data.student_progress?.title_avatar_path || "",
+    progress: data.student_progress || data.progress || source.progress || {},
     is_guest: id === "guest" || Boolean(source.is_guest)
   };
 }
@@ -521,8 +548,14 @@ async function login(id) {
     const data = await fetchStudentStatus(id);
     student = normalizeBackendStudent(data, id);
     if (!student) {
-      message.innerHTML = `<span class="pill warn">${data?.message || "查無此學號，請重新輸入。"}</span>`;
-      return;
+      if (id === "guest") {
+        student = roster.guest;
+        completed = studentAttempts(student.student_id).length;
+        message.innerHTML = `<span class="pill warn">guest 已切換為本機測試模式，不列入正式統計。</span>`;
+      } else {
+        message.innerHTML = `<span class="pill warn">${data?.message || "查無此學號，請重新輸入。"}</span>`;
+        return;
+      }
     }
     remoteProgress = data.progress || data.student_progress || {};
     remoteAttemptStatus = data.attempt_status || {};
@@ -537,7 +570,7 @@ async function login(id) {
     message.innerHTML = `<span class="pill warn">guest 已切換為本機測試模式，不列入正式統計。</span>`;
   }
   state = clone(defaultState);
-  state.student = { ...student };
+  state.student = { ...student, progress: { ...(student.progress || {}), ...remoteProgress } };
   state.remote_completed_attempts = completed;
   state.attempt_type = completed > 0 ? "retry" : "first";
   state.started_at = new Date().toISOString();
@@ -565,6 +598,7 @@ function attachLogin() {
 }
 
 function renderBrief() {
+  const studentName = state.student?.student_name || "學生";
   return `<div class="wide-layout">
     <div class="panel">
       <p class="eyebrow">任務簡報</p>
@@ -573,8 +607,11 @@ function renderBrief() {
         <picture class="brief-scene-media">
           <img src="${assets.briefingSceneHook}" alt="阿澤老師在顯微觀察研究站簡報細胞視野任務">
         </picture>
+        <div class="title-avatar-brief" data-student-title-card="true">
+          <img src="${titleAvatarPath()}" alt="${currentTitleName()}稱號角色" onerror="this.onerror=null;this.src='${titleAvatarFallbackPath()}';">
+          <div><span>登入身份</span><strong>${studentName}</strong><p>目前稱號：${currentTitleName()}</p></div>
+        </div>
         <div class="scene-copy">
-          <div class="student-avatar-slot"><img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}';"></div>
           <h3>微觀研究站收到三組視野</h3>
           <p>洋蔥表皮、口腔皮膜與葉片下表皮影像混在一起。請用觀察線索整理製片流程、判讀視野，並修正常見迷思。</p>
         </div>
@@ -585,8 +622,8 @@ function renderBrief() {
   </div>`;
 }
 function renderScan() {
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的觀察線索</h2>
-    <div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>先用線索判讀，不要只背材料名稱。觀察時會用到製片、倍率、染色與樣本特徵。</p></div>
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的觀察線索</h2>
+    <div class="prep-owl-reminder">${owlPanel(assets.owlPrep, "顯微觀察任務提醒貓頭鷹")}<div><span>貓頭鷹助理</span><strong>先聽完叮嚀再進入檢核</strong><p>先用線索判讀，不要只背材料名稱。觀察時會用到製片、倍率、染色與樣本特徵。</p></div></div>
     <div class="card-grid">
       <div class="concept-card"><strong>製片</strong><p>材料要薄且平整，蓋玻片斜放可減少氣泡。</p></div>
       <div class="concept-card"><strong>倍率</strong><p>先低倍找位置，再高倍觀察細節。</p></div>
@@ -595,7 +632,7 @@ function renderScan() {
       <div class="concept-card"><strong>圖像證據</strong><p>先看形狀差異與構造彼此的位置，再對照題目敘述。</p></div>
       <div class="concept-card"><strong>干擾</strong><p>判讀影像時要同時檢查邊界、內部構造與排列脈絡。</p></div>
     </div>
-    <div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div>${owlPanel(assets.owlPrep, "顯微觀察任務提醒貓頭鷹")}</div>`;
+    <div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div></div>`;
 }
 
 function selectedClass(question, option) {
@@ -651,7 +688,7 @@ function renderCheckpoint2() {
     <div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`;
 }
 function renderClassifyQuestion() {
-  return `<div class="question-card"><h3>請依觀察到的線索或取材來源分類：哪些較支持植物細胞視野？哪些較支持動物細胞視野？</h3>
+  return `<div class="question-card"><h3>請依觀察到的線索或取材來源分類：哪些較支持植物細胞？哪些較支持動物細胞？</h3>
     <div class="classify-list">${classifyItems.map((item) => {
       const selected = state.answers.q14[item.id] || "";
       return `<div class="classify-row" data-classify-id="${item.id}">
@@ -659,11 +696,11 @@ function renderClassifyQuestion() {
         <label>分類
           <select data-classify="${item.id}">
             <option value="">請選擇</option>
-            <option value="plant" ${selected === "plant" ? "selected" : ""}>較支持植物細胞視野</option>
-            <option value="animal" ${selected === "animal" ? "selected" : ""}>較支持動物細胞視野</option>
+            <option value="plant" ${selected === "plant" ? "selected" : ""}>較支持植物細胞</option>
+            <option value="animal" ${selected === "animal" ? "selected" : ""}>較支持動物細胞</option>
           </select>
         </label>
-        <p class="selected-answer">${selected ? `已選：${selected === "plant" ? "較支持植物細胞視野" : "較支持動物細胞視野"}` : "尚未選擇"}</p>
+        <p class="selected-answer">${selected ? `已選：${selected === "plant" ? "較支持植物細胞" : "較支持動物細胞"}` : "尚未選擇"}</p>
       </div>`;
     }).join("")}</div>
     ${state.hints.q14 ? `<div class="feedback warn">先用外框、排列方式、取材來源與特殊構造判斷，不要只看細胞大小。</div>` : ""}
@@ -783,6 +820,27 @@ function questionMisconception(qid) {
   if (qid === "q14") return "observation_without_evidence";
   return questionById(qid)?.misconception || "unknown";
 }
+function calculateExpLedger({ completionExp, directExp, revisionExp, questionExp, masteryExp, retryCandidate }) {
+  const normalizedQuestionExp = Math.min(40, Math.max(0, Number(questionExp) || 0));
+  const ledgerCap = Math.min(UNIT_EXP_CAP, 460 + normalizedQuestionExp);
+  const values = [completionExp, directExp, revisionExp, normalizedQuestionExp, masteryExp, retryCandidate]
+    .map((value) => Math.max(0, Number(value) || 0));
+  let remaining = ledgerCap;
+  const [completion, direct, revision, question, mastery, retry] = values.map((value) => {
+    const awarded = Math.min(value, remaining);
+    remaining -= awarded;
+    return awarded;
+  });
+  return {
+    completion_exp: completion,
+    concept_exp: direct,
+    revision_exp: revision,
+    question_exp: question,
+    mastery_exp: mastery,
+    retry_exp: retry,
+    attempt_total_exp: completion + direct + revision + question + mastery + retry
+  };
+}
 function calculateResult() {
   const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
   const total = qids.length;
@@ -798,13 +856,11 @@ function calculateResult() {
   const masteryExp = accuracy === 1 && hintUsed === 0 ? 140 : accuracy === 1 ? 80 : accuracy >= 0.9 ? 50 : 0;
   const prevAcc = previousBestAccuracy();
   const completionExp = allRequiredAnswered() ? 100 : 0;
-  const reflectionLedgerCap = Math.min(UNIT_EXP_CAP, 460 + Math.min(40, Math.max(0, reflectionEval.question_exp)));
-  const baseExp = Math.min(reflectionLedgerCap, completionExp + directExp + revisionExp + reflectionEval.question_exp + masteryExp);
   const retryCandidate = state.attempt_type === "retry" && prevAcc !== null && accuracy > prevAcc ? Math.min(60, Math.round((accuracy - prevAcc) * 100)) : 0;
-  const retryExp = Math.min(retryCandidate, Math.max(0, reflectionLedgerCap - baseExp));
-  const attemptTotalExp = Math.min(reflectionLedgerCap, baseExp + retryExp);
+  const officialLedger = calculateExpLedger({ completionExp, directExp, revisionExp, questionExp: reflectionEval.question_exp, masteryExp, retryCandidate });
+  const candidateLedger = calculateExpLedger({ completionExp, directExp, revisionExp, questionExp: reflectionEval.question_exp_candidate, masteryExp, retryCandidate });
   const best = previousBestCredited();
-  const unitCreditedExp = Math.min(UNIT_EXP_CAP, Math.max(best, attemptTotalExp));
+  const unitCreditedExp = Math.min(UNIT_EXP_CAP, Math.max(best, officialLedger.attempt_total_exp));
   const sectionStats = [
     sectionStat("玻片製作與觀察策略", sectionMap.checkpoint1),
     sectionStat("顯微視野判讀", sectionMap.checkpoint2),
@@ -817,17 +873,13 @@ function calculateResult() {
   if (sectionStats[2].correct / sectionStats[2].total >= 0.85) earned.push("staining_purpose_explainer", "artifact_detector");
   if (accuracy === 1 && hintUsed === 0) earned.push("cell_observation_flawless");
   if (reflectionEval.reflection_quality === "discussion_question" && reflectionEval.reflection_review_status === "server_recalculated") earned.push("cell_observation_reflection_reporter");
-  if (retryExp > 0) earned.push("retry_growth_cell_observation");
+  if (candidateLedger.retry_exp > 0) earned.push("retry_growth_cell_observation");
   return {
     unit_exp_cap: UNIT_EXP_CAP,
-    completion_exp: completionExp,
-    concept_exp: directExp,
-    revision_exp: revisionExp,
-    question_exp: reflectionEval.question_exp,
+    ...officialLedger,
     ...reflectionEval,
-    mastery_exp: masteryExp,
-    retry_exp: retryExp,
-    attempt_total_exp: attemptTotalExp,
+    retry_exp_candidate: candidateLedger.retry_exp,
+    attempt_total_exp_candidate: candidateLedger.attempt_total_exp,
     unit_credited_exp: unitCreditedExp,
     credited_delta: Math.max(0, unitCreditedExp - best),
     correct,
@@ -967,9 +1019,12 @@ function buildBackendPayload(attempt) {
     concept_exp: attempt.concept_exp,
     revision_exp: attempt.revision_exp,
     question_exp: attempt.question_exp,
+    question_exp_candidate: attempt.question_exp_candidate,
     mastery_exp: attempt.mastery_exp,
     retry_exp: attempt.retry_exp,
+    retry_exp_candidate: attempt.retry_exp_candidate,
     attempt_total_exp: attempt.attempt_total_exp,
+    attempt_total_exp_candidate: attempt.attempt_total_exp_candidate,
     unit_credited_exp: attempt.unit_credited_exp,
     credited_delta: attempt.credited_delta,
     confidence_score: attempt.confidence_score,
@@ -1007,7 +1062,7 @@ function buildBackendPayload(attempt) {
       is_correct: isCorrect(qid),
       used_hint: Boolean(state.hints[qid]),
       attempt_answer: JSON.stringify(qid === "q01" ? state.answers.q01_sequence : qid === "q14" ? state.answers.q14 : state.answers[qid]),
-      correct_answer: qid === "q01" ? correctSequence.join(" > ") : qid === "q14" ? "依觀察線索分類動植物細胞視野" : questionById(qid).answer,
+      correct_answer: qid === "q01" ? correctSequence.join(" > ") : qid === "q14" ? "依觀察線索分類動植物細胞" : questionById(qid).answer,
       exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept",
       exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total)
     }))
@@ -1077,17 +1132,28 @@ function attemptCreditStatus() {
   if (state.submitted_at && state.backend_status !== "submitted") return "pending";
   return "verified";
 }
+function displayExpLedger(result, status = attemptCreditStatus()) {
+  const candidate = status !== "verified";
+  return calculateExpLedger({
+    completionExp: result.completion_exp,
+    directExp: result.concept_exp,
+    revisionExp: result.revision_exp,
+    questionExp: candidate ? result.question_exp_candidate : result.question_exp,
+    masteryExp: result.mastery_exp,
+    retryCandidate: candidate ? result.retry_exp_candidate : result.retry_exp
+  });
+}
 function resultStatusNotice(result, area = "result") {
   const status = attemptCreditStatus();
-  const creditedExp = Math.min(Number(result.unit_credited_exp || result.attempt_total_exp || 0), UNIT_EXP_CAP);
+  const attemptExp = displayExpLedger(result, status).attempt_total_exp;
   if (status === "guest") {
-    return `<div class="feedback warn">guest 測試：本次預估 ${creditedExp}/${UNIT_EXP_CAP} EXP，不列入正式累積。</div>`;
+    return `<div class="feedback warn">guest 測試：本次預估 ${attemptExp}/${UNIT_EXP_CAP} EXP，不列入正式累積。</div>`;
   }
   if (status === "pending") {
     const detail = state.backend_status === "pending_local"
       ? "後台暫時無法寫入，本次提交已保留在本機待補送佇列。"
       : "後台尚未完成本次確認。";
-    return `<div class="feedback warn">${detail}本次預估 ${creditedExp}/${UNIT_EXP_CAP} EXP，待後台確認。</div>`;
+    return `<div class="feedback warn">${detail}本次預估 ${attemptExp}/${UNIT_EXP_CAP} EXP，待後台確認。</div>`;
   }
   return area === "result"
     ? `<div class="feedback good">本次任務已提交，作答結果已鎖定；後台已回傳正式認列資料。</div>`
@@ -1097,22 +1163,22 @@ function renderResult() {
   const result = state.result || calculateResult();
   const notice = state.lockNotice ? `<div class="feedback warn">${state.lockNotice}</div>` : "";
   const status = attemptCreditStatus();
-  const pending = status === "pending";
-  const creditedExp = Math.min(Number(result.unit_credited_exp || result.attempt_total_exp || 0), UNIT_EXP_CAP);
+  const ledger = displayExpLedger(result, status);
+  const creditedExp = Math.min(Number(result.unit_credited_exp || ledger.attempt_total_exp || 0), UNIT_EXP_CAP);
   const backendNotice = resultStatusNotice(result, "result");
-  const creditedLabel = status === "verified" ? "本單元正式認列" : "本次預估";
-  const creditedValue = status === "verified" ? `${creditedExp} EXP` : `${creditedExp}/${UNIT_EXP_CAP} EXP`;
+  const creditedLabel = status === "verified" ? "本單元正式認列" : "認列狀態";
+  const creditedValue = status === "verified" ? `${creditedExp} EXP` : status === "guest" ? "guest 不累積" : "待後台確認";
   const recognitionCopy = status === "verified"
     ? "本次取得是這次挑戰的原始表現；本單元正式認列會保留最高表現並受 500 EXP 上限限制。"
     : status === "guest"
-      ? `guest 測試：本次預估 ${creditedExp}/${UNIT_EXP_CAP} EXP，不列入正式累積。請使用學生學號登入，才會送交後台確認。`
-      : `本次預估 ${creditedExp}/${UNIT_EXP_CAP} EXP，待後台確認；確認完成前，這些數字只代表本次作答預覽。`;
+      ? `guest 測試：本次預估 ${ledger.attempt_total_exp}/${UNIT_EXP_CAP} EXP，不列入正式累積。請使用學生學號登入，才會送交後台確認。`
+      : `本次預估 ${ledger.attempt_total_exp}/${UNIT_EXP_CAP} EXP，待後台確認；確認完成前，這些數字只代表本次作答預覽。`;
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>提交後本次作答已鎖定</h2>${notice}${backendNotice}
-    <div class="score-grid"><div class="score-box"><span>本次取得</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>${creditedLabel}</span><strong>${creditedValue}</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
+    <div class="score-grid"><div class="score-box"><span>${status === "verified" ? "本次取得" : "本次預估"}</span><strong>${ledger.attempt_total_exp} EXP</strong></div><div class="score-box"><span>${creditedLabel}</span><strong>${creditedValue}</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
     <div class="card-grid">
-      <div class="story-panel"><strong>EXP 明細</strong><p>完成 ${result.completion_exp}｜直接答對 ${result.concept_exp}｜提示後修正 ${result.revision_exp}｜回報 ${result.question_exp}｜精熟 ${result.mastery_exp}｜再挑戰 ${result.retry_exp}</p></div>
+      <div class="story-panel" data-exp-ledger-total="${ledger.attempt_total_exp}"><strong>EXP 明細</strong><p>完成 ${ledger.completion_exp}｜直接答對 ${ledger.concept_exp}｜提示後修正 ${ledger.revision_exp}｜回報 ${ledger.question_exp}｜精熟 ${ledger.mastery_exp}｜再挑戰 ${ledger.retry_exp}</p></div>
       <div class="story-panel"><strong>${status === "verified" ? "本次與正式累積差異" : "本次預估狀態"}</strong><p>${recognitionCopy}</p></div>
-      <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">前台候選 ${result.question_exp_candidate || 0} EXP；正式回報 EXP 以後台重算為準。</p></div>
+      <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">${status === "verified" ? `後台正式認列 ${ledger.question_exp} EXP。` : `前台候選 ${ledger.question_exp} EXP，待後台重算。`}</p></div>
     </div>
     <div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
 }
@@ -1123,7 +1189,7 @@ function renderAchievements() {
   const pending = status === "pending";
   const guest = status === "guest";
   const officialBadgeIds = [...new Set(state.cumulative_badges || [])];
-  const estimatedExp = Math.min(Number((state.result || calculateResult()).unit_credited_exp || 0), UNIT_EXP_CAP);
+  const estimatedExp = displayExpLedger(state.result || calculateResult(), status).attempt_total_exp;
   const badgeLabel = guest ? "本次測試徽章" : pending ? "本次待確認徽章" : "正式累積徽章";
   const badgeCount = guest || pending ? currentBadges.length : litIds.length;
   const expLabel = guest || pending ? "本次預估 EXP" : "正式累積 EXP";
@@ -1135,7 +1201,7 @@ function renderAchievements() {
     : pending
       ? `本次預估 ${estimatedExp}/${UNIT_EXP_CAP} EXP，待後台確認；徽章亮燈先顯示本次作答預覽。`
       : "亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。";
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>顯微視野徽章牆</h2>
+  return `<div class="wide-layout"><div class="panel" data-bq-unit-achievements="cell_observation"><p class="eyebrow">本單元成就</p><h2>本單元成就｜顯微觀察徽章牆</h2>
     <div class="score-grid"><div class="score-box"><span>${badgeLabel}</span><strong>${badgeCount}</strong></div><div class="score-box"><span>${expLabel}</span><strong>${expValue}</strong></div><div class="score-box"><span>${unitLabel}</span><strong>${unitValue}</strong></div></div>
     ${guest || pending ? `<div class="feedback warn">${syncNote}</div>` : ""}
     <div class="badge-grid">${badges.map((badge) => {
@@ -1191,5 +1257,20 @@ function render() {
   screen.innerHTML = views[state.screen]();
   attachEvents();
 }
+
+window.__cellObservationTest = {
+  getState: () => clone(state),
+  setState: (next) => {
+    state = { ...clone(defaultState), ...clone(next), answers: { ...clone(defaultState.answers), ...clone(next.answers || {}) } };
+    render();
+  },
+  answerKey: () => ({
+    sequence: [...correctSequence],
+    choices: Object.fromEntries(questions.map((question) => [question.id, question.answer])),
+    classify: Object.fromEntries(classifyItems.map((item) => [item.id, item.answer]))
+  }),
+  calculateResult,
+  displayExpLedger
+};
 
 render();

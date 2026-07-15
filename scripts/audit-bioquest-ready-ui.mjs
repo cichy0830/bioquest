@@ -34,7 +34,7 @@ const surfaceCacheVersion = "20260715-achievement-order-v1";
 const backendConfigVersion = "20260713-backend-endpoint-v1";
 const appCacheVersion = "20260715-badge-overview-v2";
 const appVersionOverrides = new Map();
-appVersionOverrides.set("cell_observation", "20260715-cell-observation-qa-fixes-v5");
+appVersionOverrides.set("cell_observation", "20260715-cell-observation-review-fixes-v6");
 appVersionOverrides.set("cell_structure", "20260715-cell-structure-achievement-avatar-v1");
 ["cell_transport", "biological_organization", "scale", "nutrients_energy", "nutrient_test", "enzymes"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-path-v1");
@@ -139,6 +139,9 @@ const audit = units.map(([unitId, folder]) => {
   }
   if (unitId === "cell_structure") {
     assert(index.includes("styles.css?v=20260715-cell-structure-achievement-avatar-v1"), "cell_structure style cache bust missing");
+  }
+  if (unitId === "cell_observation") {
+    assert(index.includes("styles.css?v=20260715-cell-observation-review-fixes-v6"), "cell_observation style cache bust missing");
   }
   for (const functionName of ["renderLogin", "renderReview", "renderReflection", "renderResult", "renderAchievements"]) {
     assert(app.includes(`function ${functionName}(`), `${unitId} missing ${functionName}`);
