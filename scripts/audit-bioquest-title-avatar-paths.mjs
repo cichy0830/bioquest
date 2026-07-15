@@ -8,6 +8,9 @@ const { chromium } = playwright;
 
 const root = process.env.BIOQUEST_AUDIT_ROOT ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT) : process.cwd();
 const version = "20260715-title-avatar-card-v1";
+const versionOverrides = new Map([
+  ["scale", "20260716-scale-qa-fixes-v1"]
+]);
 const units = [
   { unitId: "cell_transport", folder: "prototype-cell-transport", storageKey: "bioquest_cell_transport_state_v1" },
   { unitId: "biological_organization", folder: "prototype-biological-organization", storageKey: "bioquest_biological_organization_state_v1" },
@@ -111,7 +114,7 @@ async function openWithState(browser, baseUrl, unit, viewport, screen, titleAvat
     if (message.type() === "error") consoleErrors.push(message.text());
   });
   page.on("pageerror", (error) => pageErrors.push(error.message));
-  await page.goto(`${baseUrl}/${unit.folder}/index.html?v=${version}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${baseUrl}/${unit.folder}/index.html?v=${versionOverrides.get(unit.unitId) || version}`, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("#screen");
   return { page, context, imageErrors, consoleErrors, pageErrors };
 }

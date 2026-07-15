@@ -22,7 +22,8 @@ const units = [
   ["enzymes", "prototype-enzymes"],
   ["photosynthesis", "prototype-photosynthesis"],
   ["human_nutrition", "prototype-human-nutrition"],
-  ["plant_transport_structures", "prototype-plant-transport-structures"]
+  ["plant_transport_structures", "prototype-plant-transport-structures"],
+  ["plant_material_transport", "prototype-plant-material-transport"]
 ];
 
 const layoutJsPath = path.join(root, "shared-assets", "bioquest-character-layout.js");
@@ -39,16 +40,22 @@ appVersionOverrides.set("cell_structure", "20260715-cell-structure-achievement-a
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test", "enzymes"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
+appVersionOverrides.set("scale", "20260716-scale-qa-fixes-v1");
 appVersionOverrides.set("photosynthesis", "20260715-brief-scene-unified-u9u14-v1");
+appVersionOverrides.set("biological_organization", "20260716-biological-organization-qa-fixes-v1");
 appVersionOverrides.set("cell_transport", "20260715-cell-transport-brief-scene-v2");
+appVersionOverrides.set("plant_material_transport", "20260716-plant-material-transport-publish-v1");
 const sharedCacheOverrides = new Map();
 ["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit", "cell_structure", "cell_observation"].forEach((unitId) => {
   sharedCacheOverrides.set(unitId, "20260715-brief-scene-unified-u1u7-v1");
 });
-["cell_transport", "biological_organization", "scale", "nutrients_energy", "nutrient_test", "enzymes"].forEach((unitId) => {
+["cell_transport", "scale", "nutrients_energy", "nutrient_test", "enzymes"].forEach((unitId) => {
   sharedCacheOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
+sharedCacheOverrides.set("scale", "20260716-scale-qa-fixes-v1");
+sharedCacheOverrides.set("biological_organization", "20260716-biological-organization-qa-fixes-v1");
 sharedCacheOverrides.set("photosynthesis", "20260715-brief-scene-unified-u9u14-v1");
+sharedCacheOverrides.set("plant_material_transport", "20260713-login-busy-v1");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -67,7 +74,7 @@ function badgeInventory(source, folder) {
     const explicit = match[2].match(/badge_image_path:\s*["']([^"']+)["']/)?.[1] || "";
     return { id: match[1], explicit };
   });
-  if (!entries.length && folder === "prototype-plant-transport-structures") {
+  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport")) {
     return [...block.matchAll(/\["([^"]+)",\s*"[^"]+",\s*"[^"]+"\]/g)].map((match) => ({ id: match[1], imagePath: "", exists: false }));
   }
   const dynamicTemplate = source.match(/const badgeAsset = \(id\) => `([^`]+)`/)?.[1] || "";
@@ -215,7 +222,7 @@ const rows = audit.map((item) => `| \`${item.unitId}\` | shared wide/mobile | sh
 const report = `# 全站角色與徽章接線盤點
 
 更新日期：2026-07-11  
-適用範圍：入口目前標示 ready 的第 1–15 單元
+適用範圍：入口目前標示 ready 的第 1–17 單元
 
 | unit_id | login cover | feedback | report | result | 徽章圖 | 缺圖 badge_id |
 |---|---|---|---|---|---:|---|

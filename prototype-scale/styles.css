@@ -104,11 +104,7 @@ h1, h2, h3, p { margin-top: 0; }
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background:
-    linear-gradient(90deg, rgba(5, 49, 61, .74), rgba(5, 49, 61, .08) 48%, rgba(255,255,255,.04)),
-    url("assets/bg-scale-briefing-azhe-wide.webp");
-  background-size: cover;
-  background-position: center;
+  background: rgba(7, 48, 55, 0.82);
 }
 .brief-scene::before {
   content: none;
@@ -125,18 +121,6 @@ h1, h2, h3, p { margin-top: 0; }
   color: #f7ffff;
   background: linear-gradient(90deg, rgba(5,49,61,.72), rgba(5,49,61,.12));
 }
-.scene-copy .student-avatar-slot {
-  display: grid;
-  place-items: center;
-  width: 118px;
-  height: 118px;
-  margin-bottom: 16px;
-  border: 1px solid rgba(16,152,166,.25);
-  border-radius: 50%;
-  background: rgba(255,255,255,.76);
-}
-.scene-copy .student-avatar-slot img { width: 94%; height: 94%; object-fit: contain; }
-
 .transport-scene-art { position:absolute; inset:0 auto 0 0; width:55%; overflow:hidden; pointer-events:none; }
 .membrane-line { position:absolute; left:52%; top:10%; width:12px; height:80%; border:2px dashed rgba(238,252,246,.78); border-radius:999px; background:rgba(12,71,82,.45); }
 .particle, .water { position:absolute; width:24px; aspect-ratio:1; border-radius:50%; }
@@ -351,12 +335,7 @@ textarea { min-height: 96px; resize: vertical; }
 
 /* The mentor scene is restricted to briefing; all other screens use the ambient background. */
 .scale-brief-scene {
-  background:
-    radial-gradient(circle at 78% 28%, rgba(255, 224, 138, .7) 0 4%, transparent 4.5%),
-    linear-gradient(90deg, rgba(6, 48, 61, .84), rgba(12, 106, 116, .42) 52%, rgba(214, 244, 237, .06)),
-    url("assets/bg-scale-briefing-azhe-wide.webp") !important;
-  background-size: auto, auto, cover !important;
-  background-position: center !important;
+  background: rgba(7, 48, 55, 0.82) !important;
 }
 .scale-brief-scene .scene-copy { width: min(62%, 620px); }
 .asset-note { margin-top: 14px; font-size: 13px; color: rgba(245,255,253,.8); }
