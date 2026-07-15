@@ -7,7 +7,7 @@ import playwright from "/Users/biomin/.cache/codex-runtimes/codex-primary-runtim
 const { chromium } = playwright;
 
 const root = process.env.BIOQUEST_AUDIT_ROOT ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT) : process.cwd();
-const version = "20260715-title-avatar-path-v1";
+const version = "20260715-title-avatar-card-v1";
 const units = [
   { unitId: "cell_transport", folder: "prototype-cell-transport", storageKey: "bioquest_cell_transport_state_v1" },
   { unitId: "biological_organization", folder: "prototype-biological-organization", storageKey: "bioquest_biological_organization_state_v1" },
@@ -119,7 +119,7 @@ async function openWithState(browser, baseUrl, unit, viewport, screen, titleAvat
 async function assertBriefAvatar(browser, baseUrl, unit, viewport, variant) {
   const opened = await openWithState(browser, baseUrl, unit, viewport, "brief", variant.path);
   const { page, context, imageErrors, consoleErrors, pageErrors } = opened;
-  const metrics = await page.locator(".student-avatar-slot img").first().evaluate((img) => ({
+  const metrics = await page.locator(".bq-brief-student-avatar, .student-avatar-slot img, .title-avatar-brief img").first().evaluate((img) => ({
     src: img.getAttribute("src") || "",
     naturalWidth: img.naturalWidth,
     width: img.getBoundingClientRect().width,
@@ -139,15 +139,35 @@ async function assertBriefAvatar(browser, baseUrl, unit, viewport, variant) {
 async function assertAchievementsClean(browser, baseUrl, unit, viewport) {
   const opened = await openWithState(browser, baseUrl, unit, viewport, "achievements", "shared-assets/title-avatars/title-02-life_observer-male.webp");
   const { page, context, imageErrors, consoleErrors, pageErrors } = opened;
-  const order = await page.locator("#screen").evaluate((root) => {
+  const metrics = await page.locator("#screen").evaluate((root) => {
     const panels = [...root.querySelectorAll(".panel")];
     const unitIndex = panels.findIndex((panel) => panel.querySelector(".badge-grid, .badge-wall") && !panel.matches("[data-bq-badge-overview]"));
     const overviewIndex = panels.findIndex((panel) => panel.matches("[data-bq-badge-overview]"));
-    return { unitIndex, overviewIndex, overviewCount: root.querySelectorAll("[data-bq-badge-overview]").length };
+    const titleImages = [...root.querySelectorAll(".bq-title-avatar-card img, .title-avatar-card.achievements img")];
+    const titleImage = titleImages[0];
+    const imageRect = titleImage?.getBoundingClientRect();
+    return {
+      unitIndex,
+      overviewIndex,
+      overviewCount: root.querySelectorAll("[data-bq-badge-overview]").length,
+      titleImageCount: titleImages.length,
+      titleImage: titleImage ? {
+        src: titleImage.getAttribute("src") || "",
+        currentSrc: titleImage.currentSrc || "",
+        naturalWidth: titleImage.naturalWidth,
+        width: imageRect.width,
+        height: imageRect.height
+      } : null,
+      horizontalOverflow: root.scrollWidth > root.clientWidth + 1
+    };
   });
-  assert.ok(order.unitIndex >= 0, `${unit.unitId} should have a unit badge panel`);
-  assert.ok(order.overviewIndex > order.unitIndex, `${unit.unitId} overview should follow unit badge panel`);
-  assert.equal(order.overviewCount, 1, `${unit.unitId} should have one overview panel`);
+  assert.ok(metrics.unitIndex >= 0, `${unit.unitId} should have a unit badge panel`);
+  assert.ok(metrics.overviewIndex > metrics.unitIndex, `${unit.unitId} overview should follow unit badge panel`);
+  assert.equal(metrics.overviewCount, 1, `${unit.unitId} should have one overview panel`);
+  assert.equal(metrics.titleImageCount, 1, `${unit.unitId} achievements should show one title avatar image`);
+  assert.ok(metrics.titleImage?.naturalWidth > 0, `${unit.unitId} achievements title avatar should load`);
+  assert.match(metrics.titleImage?.currentSrc || metrics.titleImage?.src || "", /\/shared-assets\/title-avatars\/title-02-life_observer-male\.webp/, `${unit.unitId} achievements title avatar should normalize backend path`);
+  assert.equal(metrics.horizontalOverflow, false, `${unit.unitId} achievements should not overflow horizontally`);
   assert.deepEqual(imageErrors, [], `${unit.unitId} achievements ${viewport.width} image 404`);
   assert.deepEqual(consoleErrors, [], `${unit.unitId} achievements ${viewport.width} console errors`);
   assert.deepEqual(pageErrors, [], `${unit.unitId} achievements ${viewport.width} page errors`);

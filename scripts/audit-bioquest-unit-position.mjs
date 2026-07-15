@@ -17,12 +17,12 @@ const sharedVersionOverrides = new Map([
   ["cell_basic_unit", "20260715-brief-scene-unified-u1u7-v1"],
   ["cell_structure", "20260715-brief-scene-unified-u1u7-v1"],
   ["cell_observation", "20260715-brief-scene-unified-u1u7-v1"],
-  ["cell_transport", "20260715-brief-scene-u8-v2"],
-  ["biological_organization", "20260715-brief-scene-unified-u9u14-v1"],
-  ["scale", "20260715-brief-scene-unified-u9u14-v1"],
-  ["nutrients_energy", "20260715-brief-scene-unified-u9u14-v1"],
-  ["nutrient_test", "20260715-brief-scene-unified-u9u14-v1"],
-  ["enzymes", "20260715-brief-scene-unified-u9u14-v1"],
+  ["cell_transport", "20260715-title-avatar-card-v1"],
+  ["biological_organization", "20260715-title-avatar-card-v1"],
+  ["scale", "20260715-title-avatar-card-v1"],
+  ["nutrients_energy", "20260715-title-avatar-card-v1"],
+  ["nutrient_test", "20260715-title-avatar-card-v1"],
+  ["enzymes", "20260715-title-avatar-card-v1"],
   ["photosynthesis", "20260715-brief-scene-unified-u9u14-v1"]
 ]);
 

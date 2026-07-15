@@ -545,6 +545,7 @@
     const unitPanel = panels.find((panel) => [...panel.querySelectorAll("h2, h3, .eyebrow")].some((heading) => heading.textContent.includes("本單元成就")))
       || panels.find((panel) => panel.querySelector(".badge-grid, .badge-wall") && !panel.matches("[data-bq-badge-overview]"));
     if (!unitPanel) return;
+    ensureAchievementTitleAvatar(unitPanel);
     const overviewPanels = panels.filter((panel) => panel.matches("[data-bq-badge-overview]") || [...panel.querySelectorAll("h2, h3, .eyebrow")].some((heading) => heading.textContent.includes("全部任務徽章")));
     let overviewPanel = overviewPanels[0];
     if (!overviewPanel) {
@@ -567,6 +568,27 @@
 
   const TITLE_AVATAR_BASE_PATH = "../shared-assets/title-avatars";
 
+  function titleAvatarGender(student = {}) {
+    return /female|girl|女/.test(String(student.profile_gender || student.gender || student.title_avatar_variant || student.profile?.gender || "")) ? "female" : "male";
+  }
+
+  function titleProgressLevel(titleId) {
+    const levels = global.BioQuestTitleProgress?.levels || [];
+    return levels.find((item) => item.id === titleId) || levels[0] || { order: "01", id: "trainee_investigator", title: "見習調查員", need: 0 };
+  }
+
+  function titleInfoFromStudent(student = {}) {
+    const progress = student.progress || student.student_progress || {};
+    const totalExp = Number(progress.total_exp ?? student.total_exp ?? 0) || 0;
+    const explicitTitleId = String(progress.current_title_id || student.current_title_id || "").trim();
+    const level = explicitTitleId
+      ? titleProgressLevel(explicitTitleId)
+      : (global.BioQuestTitleProgress?.getTitleForExp?.(totalExp) || titleProgressLevel("trainee_investigator"));
+    const title = progress.current_title || student.current_title || level.title || "見習調查員";
+    const completed = Number(progress.completed_units ?? progress.completed_attempts ?? student.completed_units ?? student.completed_attempts ?? 0) || 0;
+    return { level, title, totalExp, completed };
+  }
+
   function normalizeBriefAvatarPath(rawPath, student = {}) {
     const value = String(rawPath || "").trim();
     if (value) {
@@ -574,14 +596,64 @@
       if (value.startsWith("shared-assets/")) return `../${value}`;
       return value;
     }
-    const gender = /female|girl|女/.test(String(student.profile_gender || student.gender || student.title_avatar_variant || "")) ? "female" : "male";
+    const gender = titleAvatarGender(student);
     const titleId = String(student.current_title_id || student.progress?.current_title_id || "trainee_investigator");
-    const level = global.BioQuestTitleProgress?.levels?.find((item) => item.id === titleId) || global.BioQuestTitleProgress?.levels?.[0] || { order: "01", id: "trainee_investigator" };
+    const level = titleProgressLevel(titleId);
     return `${TITLE_AVATAR_BASE_PATH}/title-${level.order}-${level.id}-${gender}.webp`;
+  }
+
+  function normalizeTitleAvatarPath(rawPath, student = {}) {
+    return normalizeBriefAvatarPath(rawPath, student);
+  }
+
+  function createAchievementTitleAvatarCard(student = readStoredStudent()) {
+    const info = titleInfoFromStudent(student);
+    const avatarPath = normalizeTitleAvatarPath(student.title_avatar_path || student.progress?.title_avatar_path || student.student_progress?.title_avatar_path, {
+      ...student,
+      current_title_id: student.current_title_id || student.progress?.current_title_id || info.level.id
+    });
+    const fallbackPath = `${TITLE_AVATAR_BASE_PATH}/title-01-trainee_investigator-${titleAvatarGender(student)}.webp`;
+    const card = document.createElement("aside");
+    card.className = "bq-title-avatar-card title-avatar-card achievements";
+    card.dataset.bqTitleAvatarCard = "true";
+    card.dataset.titleAvatarPath = avatarPath;
+    setHtml(card, `
+      <div class="bq-title-avatar-visual title-avatar-visual">
+        <img src="${escapeHtml(avatarPath)}" alt="${escapeHtml(info.title)}稱號角色" loading="eager" onerror="this.onerror=null;this.src='${escapeHtml(fallbackPath)}';">
+      </div>
+      <div class="bq-title-avatar-copy">
+        <span>目前稱號</span>
+        <strong>${escapeHtml(info.title)}</strong>
+        <p>${escapeHtml(String(info.totalExp))} EXP｜已完成 ${escapeHtml(String(info.completed))} 站</p>
+      </div>
+    `);
+    return card;
+  }
+
+  function ensureAchievementTitleAvatar(unitPanel) {
+    let card = unitPanel.querySelector(":scope > .bq-title-avatar-card, :scope > .title-avatar-card.achievements");
+    const student = readStoredStudent();
+    const rendered = createAchievementTitleAvatarCard(student);
+    if (!card) {
+      card = rendered;
+      const heading = unitPanel.querySelector("h2, h3");
+      if (heading) heading.insertAdjacentElement("afterend", card);
+      else unitPanel.prepend(card);
+      return;
+    }
+    card.classList.add("bq-title-avatar-card", "title-avatar-card", "achievements");
+    setHtml(card, rendered.innerHTML);
+    card.dataset.bqTitleAvatarCard = "true";
+    card.dataset.titleAvatarPath = rendered.dataset.titleAvatarPath;
   }
 
   function readStoredStudent() {
     try {
+      const unitId = document.body?.dataset?.unitId || "";
+      if (unitId) {
+        const parsedCurrent = JSON.parse(localStorage.getItem(`bioquest_${unitId}_state_v1`) || "null");
+        if (parsedCurrent?.student) return parsedCurrent.student;
+      }
       for (let index = 0; index < localStorage.length; index += 1) {
         const key = localStorage.key(index);
         if (!key || !/^bioquest_.*_state_v1$/.test(key)) continue;
