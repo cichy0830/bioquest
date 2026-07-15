@@ -24,18 +24,18 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
-  owlPrep: "assets/owl-cell-transport-prep-reminder.png",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
+  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
+  owlPrep: "assets/owl-cell-transport-prep-reminder.webp",
+  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  briefingSceneHook: "assets/bg-cell-transport-briefing-azhe-wide.png",
-  ambientBackgroundHook: "assets/bg-cell-transport-ambient-wide.png",
-  diffusionImage: "assets/cell-transport-diffusion-particle-sim.png",
-  osmosisImage: "assets/cell-transport-osmosis-semipermeable-scene.png",
-  potatoDataImage: "assets/cell-transport-potato-water-balance-samples.png",
-  animalCellImage: "assets/cell-transport-animal-cell-concentration-set.png",
-  plantCellImage: "assets/cell-transport-plant-cell-concentration-set.png"
+  briefingSceneHook: "assets/bg-cell-transport-briefing-azhe-wide.webp",
+  ambientBackgroundHook: "assets/bg-cell-transport-ambient-wide.webp",
+  diffusionImage: "assets/cell-transport-diffusion-particle-sim.webp",
+  osmosisImage: "assets/cell-transport-osmosis-semipermeable-scene.webp",
+  potatoDataImage: "assets/cell-transport-potato-water-balance-samples.webp",
+  animalCellImage: "assets/cell-transport-animal-cell-concentration-set.webp",
+  plantCellImage: "assets/cell-transport-plant-cell-concentration-set.webp"
 };
 
 const badgeAsset = (id) => `../shared-assets/badges/cell_transport/badge-cell_transport-${id}.webp`;
@@ -406,9 +406,13 @@ function attachLogin() {
 
 function renderBrief() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務簡報</p><h2>細胞邊界通行任務</h2>
-    <div class="brief-scene transport-scene" data-briefing-scene-hook="${assets.briefingSceneHook}" data-ambient-background-hook="${assets.ambientBackgroundHook}">
-      <div class="scene-copy"><div class="student-avatar-slot"><img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'"></div><h3>微觀研究站偵測到濃度異常</h3><p>有些粒子慢慢散開，有些細胞在不同溶液中改變外形。請先判斷追蹤物質、膜的條件與濃度差，再用證據解釋變化。</p></div>
-    </div>
+    <figure class="brief-scene transport-scene bq-brief-scene-stage" data-briefing-scene-hook="${assets.briefingSceneHook}" data-ambient-background-hook="${assets.ambientBackgroundHook}" data-bq-brief-dual-role="true">
+      <picture class="bq-brief-scene-media">
+        <img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="阿澤老師在細胞邊界通行任務研究站，引導學生判斷物質進出細胞">
+      </picture>
+      <img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'">
+    </figure>
+    <div class="scene-copy bq-brief-scene-caption"><h3>微觀研究站偵測到濃度異常</h3><p>有些粒子慢慢散開，有些細胞在不同溶液中改變外形。請先判斷追蹤物質、膜的條件與濃度差，再用證據解釋變化。</p></div>
     <div class="mission-hud"><div><span>任務區</span><strong>微觀研究站</strong></div><div><span>重點</span><strong>擴散與滲透</strong></div><div><span>排序題</span><strong>拖曳 + 上下移</strong></div></div>
     <div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
 }

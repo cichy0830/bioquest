@@ -143,6 +143,88 @@ body[data-unit-id] #screen :where(input, textarea, select, th, td) {
   display: none !important;
 }
 
+.bq-brief-card-enhanced .bq-brief-visual-row-enhanced,
+.bq-brief-card-enhanced .brief-visual-row {
+  display: block !important;
+}
+
+.bq-brief-scene-stage {
+  --bq-brief-avatar-left: 58%;
+  --bq-brief-avatar-bottom: 5.5%;
+  --bq-brief-avatar-height: 70%;
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  aspect-ratio: 16 / 9 !important;
+  margin: 16px 0 0 !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(25, 104, 111, 0.2) !important;
+  border-radius: 8px !important;
+  background: rgba(7, 48, 55, 0.82) !important;
+  box-shadow: 0 16px 36px rgba(15, 48, 56, 0.16) !important;
+}
+
+.bq-brief-scene-stage .bq-brief-scene-media,
+.bq-brief-scene-stage > picture {
+  position: absolute !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+}
+
+.bq-brief-scene-stage .bq-brief-scene-image,
+.bq-brief-scene-stage > picture > img,
+.bq-brief-scene-stage > img:not(.bq-brief-student-avatar) {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+}
+
+.bq-brief-scene-stage .bq-brief-student-avatar {
+  position: absolute !important;
+  z-index: 3 !important;
+  left: var(--bq-brief-avatar-left) !important;
+  bottom: var(--bq-brief-avatar-bottom) !important;
+  height: var(--bq-brief-avatar-height) !important;
+  width: auto !important;
+  max-width: 24% !important;
+  max-height: 90% !important;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.26)) !important;
+  transform: translateX(-50%) !important;
+  pointer-events: none !important;
+}
+
+.bq-brief-scene-stage .bq-brief-legacy-avatar,
+.bq-brief-legacy-avatar {
+  display: none !important;
+}
+
+.bq-brief-scene-caption {
+  position: static !important;
+  z-index: auto !important;
+  width: auto !important;
+  max-width: none !important;
+  margin: 12px 0 0 !important;
+  padding: 16px 18px !important;
+  color: #14363f !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid rgba(25, 104, 111, 0.16) !important;
+  border-radius: 8px !important;
+}
+
+.bq-brief-scene-caption .student-avatar-slot {
+  display: none !important;
+}
+
 .checkbox-list label {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr);

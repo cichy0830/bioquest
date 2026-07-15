@@ -36,9 +36,12 @@ const appCacheVersion = "20260715-badge-overview-v2";
 const appVersionOverrides = new Map();
 appVersionOverrides.set("cell_observation", "20260715-cell-observation-review-fixes-v6");
 appVersionOverrides.set("cell_structure", "20260715-cell-structure-achievement-avatar-v1");
-["cell_transport", "biological_organization", "scale", "nutrients_energy", "nutrient_test", "enzymes"].forEach((unitId) => {
+["biological_organization", "scale", "nutrients_energy", "nutrient_test", "enzymes"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-path-v1");
 });
+appVersionOverrides.set("cell_transport", "20260715-cell-transport-brief-scene-v1");
+const sharedCacheOverrides = new Map();
+sharedCacheOverrides.set("cell_transport", "20260715-brief-scene-u8-v1");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -122,6 +125,8 @@ const audit = units.map(([unitId, folder]) => {
   const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
   const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
   const expectedAppVersion = appVersionOverrides.get(unitId) || appCacheVersion;
+  const expectedSharedJsVersion = sharedCacheOverrides.get(unitId) || cacheVersion;
+  const expectedSharedCssVersion = sharedCacheOverrides.get(unitId) || surfaceCacheVersion;
   for (const marker of [
     `data-unit-id="${unitId}"`,
     "data-login-cover-wide=",
@@ -129,8 +134,8 @@ const audit = units.map(([unitId, folder]) => {
     "data-feedback-mentor-base=",
     "data-report-owl-src=",
     "data-result-owl-src=",
-    `bioquest-character-layout.css?v=${surfaceCacheVersion}`,
-    `bioquest-character-layout.js?v=${cacheVersion}`,
+    `bioquest-character-layout.css?v=${expectedSharedCssVersion}`,
+    `bioquest-character-layout.js?v=${expectedSharedJsVersion}`,
     `bioquest-backend-config.js?v=${backendConfigVersion}`,
     `app.js?v=${expectedAppVersion}`
   ]) assert(index.includes(marker), `${unitId} index hook missing: ${marker}`);

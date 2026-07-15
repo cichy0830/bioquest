@@ -564,6 +564,134 @@
     });
   }
 
+  const TITLE_AVATAR_BASE_PATH = "../shared-assets/title-avatars";
+
+  function normalizeBriefAvatarPath(rawPath, student = {}) {
+    const value = String(rawPath || "").trim();
+    if (value) {
+      if (/^(https?:|data:|\/|\.\/|\.\.\/)/.test(value)) return value;
+      if (value.startsWith("shared-assets/")) return `../${value}`;
+      return value;
+    }
+    const gender = /female|girl|女/.test(String(student.profile_gender || student.gender || student.title_avatar_variant || "")) ? "female" : "male";
+    const titleId = String(student.current_title_id || student.progress?.current_title_id || "trainee_investigator");
+    const level = global.BioQuestTitleProgress?.levels?.find((item) => item.id === titleId) || global.BioQuestTitleProgress?.levels?.[0] || { order: "01", id: "trainee_investigator" };
+    return `${TITLE_AVATAR_BASE_PATH}/title-${level.order}-${level.id}-${gender}.webp`;
+  }
+
+  function readStoredStudent() {
+    try {
+      for (let index = 0; index < localStorage.length; index += 1) {
+        const key = localStorage.key(index);
+        if (!key || !/^bioquest_.*_state_v1$/.test(key)) continue;
+        const parsed = JSON.parse(localStorage.getItem(key) || "null");
+        if (parsed?.student) return parsed.student;
+      }
+    } catch {}
+    return {};
+  }
+
+  function briefSceneImagePath(scene, root) {
+    const data = scene.dataset || {};
+    const rootData = root.querySelector("[data-briefing-scene-image], [data-brief-mentor-background-hook], [data-briefing-scene-hook], [data-asset-hook]")?.dataset || {};
+    const existingImage = scene.querySelector("picture img, :scope > img:not(.bq-brief-student-avatar)");
+    return data.briefingSceneHook
+      || data.assetHook
+      || data.briefingSceneImage
+      || data.briefMentorBackgroundHook
+      || rootData.briefingSceneImage
+      || rootData.briefMentorBackgroundHook
+      || rootData.briefingSceneHook
+      || rootData.assetHook
+      || existingImage?.getAttribute("src")
+      || "";
+  }
+
+  function briefSceneMobilePath(scene) {
+    return scene.dataset.mobileHook || scene.dataset.briefingSceneMobile || scene.dataset.briefingSceneMobileHook || "";
+  }
+
+  function resolveBriefAvatar(root) {
+    const student = readStoredStudent();
+    const holder = root.querySelector("[data-title-avatar-path], [data-student-character-hook]");
+    const holderPath = holder?.dataset.titleAvatarPath || holder?.dataset.studentCharacterHook || "";
+    const image = root.querySelector(".student-avatar-slot img, .title-avatar-brief img, .brief-title-avatar-card img, .student-title-avatar img");
+    const imagePath = image?.getAttribute("src") || "";
+    return normalizeBriefAvatarPath(holderPath || imagePath || student.title_avatar_path || student.progress?.title_avatar_path, student);
+  }
+
+  function findBriefScene(root) {
+    return root.querySelector(".brief-background-figure, .brief-scene-figure, .brief-scene, .microscope-brief-scene, [data-brief-scene]");
+  }
+
+  function ensureBriefSceneMedia(scene, imagePath, mobilePath) {
+    let picture = scene.querySelector(":scope > .bq-brief-scene-media, :scope > picture");
+    let image = picture?.querySelector("img") || scene.querySelector(":scope > img:not(.bq-brief-student-avatar)");
+    if (!picture && !image && imagePath) {
+      picture = document.createElement("picture");
+      picture.className = "bq-brief-scene-media";
+      if (mobilePath) {
+        const source = document.createElement("source");
+        source.media = "(max-width: 680px)";
+        source.srcset = mobilePath;
+        picture.appendChild(source);
+      }
+      image = document.createElement("img");
+      image.alt = "任務簡報主視覺";
+      image.loading = "eager";
+      image.src = imagePath;
+      picture.appendChild(image);
+      scene.insertBefore(picture, scene.firstChild);
+    } else if (picture) {
+      picture.classList.add("bq-brief-scene-media");
+      if (mobilePath && !picture.querySelector("source")) {
+        const source = document.createElement("source");
+        source.media = "(max-width: 680px)";
+        source.srcset = mobilePath;
+        picture.insertBefore(source, picture.firstChild);
+      }
+    }
+    if (image) {
+      image.classList.add("bq-brief-scene-image");
+      if (imagePath && !image.getAttribute("src")) image.src = imagePath;
+      image.loading = "eager";
+      image.decoding = "async";
+    }
+  }
+
+  function enhanceBriefScene(root) {
+    if (document.body?.dataset?.unitId !== "cell_transport") return;
+    const scene = findBriefScene(root);
+    if (!scene) return;
+    const imagePath = briefSceneImagePath(scene, root);
+    const mobilePath = briefSceneMobilePath(scene);
+    if (!imagePath && !scene.querySelector("picture img, :scope > img")) return;
+    scene.classList.add("bq-brief-scene-stage");
+    scene.closest(".brief-visual-row")?.classList.add("bq-brief-visual-row-enhanced");
+    scene.closest(".brief-scene-card, .brief-hero")?.classList.add("bq-brief-card-enhanced");
+    ensureBriefSceneMedia(scene, imagePath, mobilePath);
+
+    const avatarPath = resolveBriefAvatar(root);
+    let avatar = scene.querySelector(":scope > .bq-brief-student-avatar");
+    if (!avatar) {
+      avatar = document.createElement("img");
+      avatar.className = "bq-brief-student-avatar";
+      avatar.alt = "學生稱號角色";
+      avatar.loading = "eager";
+      avatar.decoding = "async";
+      avatar.onerror = () => {
+        avatar.onerror = null;
+        avatar.src = `${TITLE_AVATAR_BASE_PATH}/title-01-trainee_investigator-male.webp`;
+      };
+      scene.appendChild(avatar);
+    }
+    setAttribute(avatar, "src", avatarPath);
+    root.querySelectorAll(".student-avatar-slot, .brief-title-avatar-card, .title-avatar-brief").forEach((node) => {
+      if (!node.contains(avatar)) node.classList.add("bq-brief-legacy-avatar");
+    });
+    root.querySelectorAll(".scene-copy, .brief-scene figcaption, .brief-background-figure figcaption").forEach((node) => node.classList.add("bq-brief-scene-caption"));
+  }
+
   function enhance(options = {}) {
     const root = document.querySelector("#screen");
     if (!root) return;
@@ -577,6 +705,7 @@
     setDataset(root, "bioquestScreen", screenName);
     enhanceUnitPosition(root);
     if (screenName === "login") enhanceLogin(root);
+    if (screenName === "brief") enhanceBriefScene(root);
     if (screenName === "review") enhanceReview(root);
     if (screenName === "reflection") enhanceReflection(root);
     if (screenName === "result") enhanceResult(root);

@@ -114,6 +114,13 @@ h1, h2, h3, p { margin-top: 0; }
 .brief-scene::after {
   content: none;
 }
+.bq-brief-scene-stage.brief-scene {
+  min-height: 0;
+  background: rgba(7, 48, 55, 0.82);
+  background-image: none;
+  background-size: auto;
+  background-position: center;
+}
 .scene-copy {
   position: relative;
   z-index: 1;
