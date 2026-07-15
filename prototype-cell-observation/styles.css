@@ -22,7 +22,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
   background:
     linear-gradient(120deg, rgba(235, 249, 247, 0.86), rgba(237, 242, 248, 0.78)),
-    url("assets/bg-cell-observation-entry-wide.webp");
+    url("assets/bg-cell-observation-entry-wide.png");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -98,15 +98,11 @@ h1, h2, h3, p { margin-top: 0; }
 
 .brief-scene {
   position: relative;
-  min-height: min(58vw, 460px);
   overflow: hidden;
+  margin: 0;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background:
-    linear-gradient(90deg, rgba(10, 62, 72, .7), rgba(10, 102, 107, .12) 48%, rgba(255, 246, 221, .72)),
-    url("assets/bg-cell-observation-briefing-azhe-wide.webp");
-  background-size: cover;
-  background-position: center;
+  background: rgba(232, 247, 245, .82);
 }
 .brief-scene::before {
   content: none;
@@ -114,25 +110,40 @@ h1, h2, h3, p { margin-top: 0; }
 .brief-scene::after {
   content: none;
 }
+.brief-scene-media,
+.brief-scene-media img {
+  display: block;
+  width: 100%;
+}
+.brief-scene-media img {
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  object-position: center;
+  background: rgba(13, 75, 84, .12);
+}
 .scene-copy {
-  position: relative;
-  z-index: 1;
-  margin-left: auto;
-  width: min(48%, 420px);
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr);
+  gap: 16px;
+  align-items: center;
+  width: 100%;
   padding: 28px;
   color: #12343b;
+  background: rgba(255,255,255,.84);
+  border-top: 1px solid rgba(24, 111, 128, .18);
 }
 .scene-copy .student-avatar-slot {
   display: grid;
   place-items: center;
   width: 118px;
   height: 118px;
-  margin-bottom: 16px;
   border: 1px solid rgba(16,152,166,.25);
   border-radius: 50%;
   background: rgba(255,255,255,.76);
 }
 .scene-copy .student-avatar-slot img { width: 94%; height: 94%; object-fit: contain; }
+.scene-copy h3,
+.scene-copy p { grid-column: 2; }
 
 .asset-strip { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0 0 16px; }
 .asset-strip figure, .wide-asset { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.86); }
@@ -334,21 +345,17 @@ textarea { min-height: 96px; resize: vertical; }
   .main-stage { padding: 14px; }
   .mission-layout, .mission-hud, .score-grid, .card-grid, .choice-grid, .token-grid, .microscope-layout { grid-template-columns: 1fr; }
   .hero-panel { min-height: auto; }
-  .brief-scene {
-    min-height: 0;
-    padding-top: 56.25%;
-    background-size: 100% auto;
-    background-repeat: no-repeat;
-    background-position: center top;
-    background-color: rgba(232, 247, 245, .82);
-  }
   .scene-copy {
+    grid-template-columns: 1fr;
     width: 100%;
     margin: 0;
     padding: 18px;
     background: rgba(255,255,255,.9);
     border-top: 1px solid rgba(24, 111, 128, .18);
   }
+  .scene-copy .student-avatar-slot { width: 96px; height: 96px; }
+  .scene-copy h3,
+  .scene-copy p { grid-column: auto; }
   .mentor-card, .classify-row { grid-template-columns: 1fr; }
   .mentor-avatar { min-height: 230px; height: min(62vw, 320px); place-items: center; }
   .owl-frame { min-height: 260px; }

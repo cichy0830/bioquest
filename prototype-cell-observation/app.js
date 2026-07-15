@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260715-cell-observation-qa-fixes-v1";
+const VERSION = "20260715-cell-observation-qa-fixes-v2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -24,26 +24,26 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
-  owlPrep: "assets/owl-cell-observation-prep-reminder.webp",
-  owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.webp",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
-  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  briefingSceneHook: "assets/bg-cell-observation-briefing-azhe-wide.webp",
-  ambientBackgroundHook: "assets/bg-cell-observation-entry-wide.webp",
-  slidePreparation: "assets/cell-observation-slide-preparation-cards.webp",
-  lowHighStrategy: "assets/cell-observation-low-high-power-strategy.webp",
-  stainingComparison: "assets/cell-observation-staining-before-after.webp",
+  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
+  owlPrep: "assets/owl-cell-observation-prep-reminder.png",
+  owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.png",
+  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
+  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.png",
+  briefingSceneHook: "assets/bg-cell-observation-briefing-azhe-wide.png",
+  ambientBackgroundHook: "assets/bg-cell-observation-entry-wide.png",
+  slidePreparation: "assets/cell-observation-slide-preparation-cards.png",
+  lowHighStrategy: "assets/cell-observation-low-high-power-strategy.png",
+  stainingComparison: "assets/cell-observation-staining-before-after.png",
   scopeViews: {
-    onion: "assets/cell-observation-onion-epidermis-view.webp",
-    mouth: "assets/cell-observation-mouth-epithelial-view.webp",
-    leaf: "assets/cell-observation-leaf-lower-epidermis-view.webp",
-    bubble: "assets/cell-observation-bubble-artifact-view.webp"
+    onion: "assets/cell-observation-onion-epidermis-view.png",
+    mouth: "assets/cell-observation-mouth-epithelial-view.png",
+    leaf: "assets/cell-observation-leaf-lower-epidermis-view.png",
+    bubble: "assets/cell-observation-bubble-artifact-view.png"
   }
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/cell_observation/badge-cell_observation-${id}.webp`;
+const badgeAsset = (id) => `../shared-assets/badges/cell_observation/badge-cell_observation-${id}.png`;
 const reflectionRules = {
   conceptTerms: ["玻片", "蓋玻片", "氣泡", "低倍率", "高倍率", "洋蔥表皮", "口腔皮膜", "葉片下表皮", "保衛細胞", "氣孔", "葉綠體", "染色", "細胞核", "顯微", "動物細胞", "植物細胞", "視野", "細胞壁"],
   irrelevantTerms: ["老師好帥", "帥", "午餐", "下課", "遊戲", "天氣", "好笑"],
@@ -479,7 +479,10 @@ function layout(content, image = assets.owlPrep) {
 }
 function titleAvatarPath() {
   const student = state.student || {};
-  return student.title_avatar_path || assets.titleAvatarFallback;
+  const path = student.title_avatar_path || "";
+  if (path.startsWith("../") || path.startsWith("assets/") || path.startsWith("http")) return path;
+  if (path.startsWith("shared-assets/")) return `../${path}`;
+  return assets.titleAvatarFallback;
 }
 
 function renderLogin() {
@@ -578,13 +581,16 @@ function renderBrief() {
     <div class="panel">
       <p class="eyebrow">任務簡報</p>
       <h2>顯微視野偵查任務</h2>
-      <div class="brief-scene" data-briefing-scene-hook="${assets.briefingSceneHook}" data-ambient-background-hook="${assets.ambientBackgroundHook}">
+      <figure class="brief-scene" data-briefing-scene-hook="${assets.briefingSceneHook}" data-ambient-background-hook="${assets.ambientBackgroundHook}">
+        <picture class="brief-scene-media">
+          <img src="${assets.briefingSceneHook}" alt="阿澤老師在顯微觀察研究站簡報細胞視野任務">
+        </picture>
         <div class="scene-copy">
           <div class="student-avatar-slot"><img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}';"></div>
           <h3>微觀研究站收到三組視野</h3>
           <p>洋蔥表皮、口腔皮膜與葉片下表皮影像混在一起。請用觀察線索整理製片流程、判讀視野，並修正常見迷思。</p>
         </div>
-      </div>
+      </figure>
       <div class="mission-hud"><div><span>任務區</span><strong>微觀研究站</strong></div><div><span>重點</span><strong>視野判讀</strong></div><div><span>排序題</span><strong>拖曳 + 上下移</strong></div></div>
       <div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div>
     </div>
@@ -1081,21 +1087,46 @@ function attachReflection() {
     setScreen("result");
   });
 }
+function attemptCreditStatus() {
+  if (state.student?.is_guest) return "guest";
+  if (state.submitted_at && state.backend_status !== "submitted") return "pending";
+  return "verified";
+}
+function resultStatusNotice(result, area = "result") {
+  const status = attemptCreditStatus();
+  const creditedExp = Math.min(Number(result.unit_credited_exp || result.attempt_total_exp || 0), UNIT_EXP_CAP);
+  if (status === "guest") {
+    return `<div class="feedback warn">guest 測試：本次預估 ${creditedExp}/${UNIT_EXP_CAP} EXP，不列入正式累積。</div>`;
+  }
+  if (status === "pending") {
+    const detail = state.backend_status === "pending_local"
+      ? "後台暫時無法寫入，本次提交已保留在本機待補送佇列。"
+      : "後台尚未回傳正式累積資料。";
+    return `<div class="feedback warn">${detail}本次預估 ${creditedExp}/${UNIT_EXP_CAP} EXP，待後台確認。</div>`;
+  }
+  return area === "result"
+    ? `<div class="feedback good">本次任務已提交，作答結果已鎖定；後台已回傳正式認列資料。</div>`
+    : "";
+}
 function renderResult() {
   const result = state.result || calculateResult();
   const notice = state.lockNotice ? `<div class="feedback warn">${state.lockNotice}</div>` : "";
-  const pending = isProgressPending();
-  const backendNotice = state.backend_status === "pending_local"
-    ? `<div class="feedback warn">後台暫時無法寫入，本次提交已保留在本機待補送佇列；正式累積 EXP、完成單元與徽章需待同步後確認。</div>`
-    : state.backend_status === "pending_progress"
-      ? `<div class="feedback warn">後台尚未回傳正式累積資料；本次作答已鎖定，正式累積 EXP、完成單元與徽章需待同步後確認。</div>`
-      : `<div class="feedback good">本次任務已提交，作答結果已鎖定。</div>`;
-  const creditedLabel = pending ? "本單元待同步認列" : "本單元認列";
+  const status = attemptCreditStatus();
+  const pending = status === "pending";
+  const creditedExp = Math.min(Number(result.unit_credited_exp || result.attempt_total_exp || 0), UNIT_EXP_CAP);
+  const backendNotice = resultStatusNotice(result, "result");
+  const creditedLabel = status === "verified" ? "本單元正式認列" : "本次預估";
+  const creditedValue = status === "verified" ? `${creditedExp} EXP` : `${creditedExp}/${UNIT_EXP_CAP} EXP`;
+  const recognitionCopy = status === "verified"
+    ? "本次取得是這次挑戰的原始表現；本單元正式認列會保留最高表現並受 500 EXP 上限限制。"
+    : status === "guest"
+      ? `guest 測試：本次預估 ${creditedExp}/${UNIT_EXP_CAP} EXP，不列入正式累積。正式累積需使用學生學號登入並由後台確認。`
+      : `本次預估 ${creditedExp}/${UNIT_EXP_CAP} EXP，待後台確認；正式累積 EXP、完成單元與徽章需以後台 StudentProgress 為準。`;
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>提交後本次作答已鎖定</h2>${notice}${backendNotice}
-    <div class="score-grid"><div class="score-box"><span>本次取得</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>${creditedLabel}</span><strong>${result.unit_credited_exp} EXP${pending ? "（待同步）" : ""}</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
+    <div class="score-grid"><div class="score-box"><span>本次取得</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>${creditedLabel}</span><strong>${creditedValue}</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
     <div class="card-grid">
       <div class="story-panel"><strong>EXP 明細</strong><p>完成 ${result.completion_exp}｜直接答對 ${result.concept_exp}｜提示後修正 ${result.revision_exp}｜回報 ${result.question_exp}｜精熟 ${result.mastery_exp}｜再挑戰 ${result.retry_exp}</p></div>
-      <div class="story-panel"><strong>本次與認列差異</strong><p>本次取得是這次挑戰的原始表現；本單元認列會保留最高表現並受 500 EXP 上限限制。</p></div>
+      <div class="story-panel"><strong>本次與正式累積差異</strong><p>${recognitionCopy}</p></div>
       <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">前台候選 ${result.question_exp_candidate || 0} EXP；正式回報 EXP 以後台重算為準。</p></div>
     </div>
     <div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
@@ -1103,18 +1134,22 @@ function renderResult() {
 function renderAchievements() {
   const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : [];
   const litIds = cumulativeBadgeIds(currentBadges);
-  const pending = isProgressPending();
+  const status = attemptCreditStatus();
+  const pending = status === "pending";
+  const guest = status === "guest";
   const officialBadgeIds = [...new Set(state.cumulative_badges || [])];
-  const badgeLabel = pending ? "本次待同步徽章" : "累積徽章";
-  const badgeCount = pending ? currentBadges.length : litIds.length;
-  const expValue = pending ? "待同步" : `${state.cumulative_total_exp || 0}`;
-  const unitValue = pending ? "待同步" : `${state.completed_unit_count || 0}`;
-  const syncNote = pending
-    ? "目前為本機待同步狀態：徽章亮燈先顯示本次作答預覽，正式累積 EXP、完成單元與後台徽章需待同步後確認。"
-    : "亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。";
+  const badgeLabel = guest ? "本次測試徽章" : pending ? "本次待確認徽章" : "正式累積徽章";
+  const badgeCount = guest || pending ? currentBadges.length : litIds.length;
+  const expValue = guest ? "guest 不累積" : pending ? "待後台確認" : `${state.cumulative_total_exp || 0}`;
+  const unitValue = guest ? "guest 不累積" : pending ? "待後台確認" : `${state.completed_unit_count || 0}`;
+  const syncNote = guest
+    ? `guest 測試：本次預估 ${Math.min(Number((state.result || calculateResult()).unit_credited_exp || 0), UNIT_EXP_CAP)}/${UNIT_EXP_CAP} EXP，不列入正式累積；徽章亮燈僅供老師測試畫面。`
+    : pending
+      ? "本次預估，待後台確認：徽章亮燈先顯示本次作答預覽，正式累積 EXP、完成單元與後台徽章需以 StudentProgress 為準。"
+      : "亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。";
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>顯微視野徽章牆</h2>
     <div class="score-grid"><div class="score-box"><span>${badgeLabel}</span><strong>${badgeCount}</strong></div><div class="score-box"><span>正式累積 EXP</span><strong>${expValue}</strong></div><div class="score-box"><span>已完成單元</span><strong>${unitValue}</strong></div></div>
-    ${pending ? `<div class="feedback warn">待同步：本次作答已鎖定，但後台尚未確認正式累積資料。</div>` : ""}
+    ${guest || pending ? `<div class="feedback warn">${syncNote}</div>` : ""}
     <div class="badge-grid">${badges.map((badge) => {
       const lit = litIds.includes(badge.id);
       const official = officialBadgeIds.includes(badge.id);
