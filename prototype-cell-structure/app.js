@@ -502,24 +502,16 @@ const cellDiagrams = {
     title: "動物細胞",
     note: "動物細胞沒有細胞壁與葉綠體，外側主要以細胞膜包圍。",
     structures: [
-      { id: "membrane", x: 13, y: 73 },
-      { id: "cytoplasm", x: 49, y: 67 },
       { id: "nucleus", x: 51, y: 39 },
-      { id: "mitochondria", x: 78, y: 67 },
-      { id: "vacuole", x: 76, y: 39 }
+      { id: "mitochondria", x: 78, y: 67 }
     ]
   },
   plant: {
     title: "植物細胞",
     note: "植物細胞外側有細胞壁，細胞膜在細胞壁內側；液胞常較大。",
     structures: [
-      { id: "wall", x: 14, y: 54 },
-      { id: "membrane", x: 22, y: 65 },
-      { id: "cytoplasm", x: 45, y: 70 },
-      { id: "nucleus", x: 31, y: 39 },
       { id: "vacuole", x: 63, y: 50 },
-      { id: "chloroplast", x: 77, y: 30 },
-      { id: "mitochondria", x: 75, y: 22 }
+      { id: "chloroplast", x: 77, y: 30 }
     ]
   }
 };
