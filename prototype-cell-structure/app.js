@@ -551,7 +551,7 @@ const cellRevealExclusions = {
 };
 
 function cellImageSource(type) {
-  return type === "animal" ? "assets/cell-animal-3d.webp?v=20260709-orange-mito" : "assets/cell-plant-3d.webp";
+  return type === "animal" ? "assets/cell-animal-3d.webp?v=20260715-cell-structure-achievement-avatar-v1" : "assets/cell-plant-3d.webp?v=20260715-cell-structure-achievement-avatar-v1";
 }
 
 function renderCellArt(type) {

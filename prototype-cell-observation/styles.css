@@ -238,21 +238,6 @@ textarea { min-height: 96px; resize: vertical; }
 .question-image-wrap { position: relative; width: min(100%, 560px); margin: 0 auto; aspect-ratio: 1; }
 .question-image-wrap img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .question-visual figcaption { padding: 10px 12px; color: var(--muted); font-size: 13px; font-weight: 800; }
-.image-target {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  transform: translate(-50%, -50%);
-  border: 2px solid #fff;
-  border-radius: 50%;
-  color: #fff;
-  background: rgba(11, 95, 118, .82);
-  box-shadow: 0 0 0 3px rgba(11, 95, 118, .28);
-  font-weight: 900;
-}
-.image-target.selected { background: var(--amber); box-shadow: 0 0 0 4px rgba(216, 155, 50, .3); }
 
 .sortable-list { display:grid; gap:10px; }
 .sortable-item {

@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260715-cell-observation-qa-fixes-v4";
+const VERSION = "20260715-cell-observation-qa-fixes-v5";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -126,7 +126,7 @@ const questions = [
     hint: "觀察線索是排列規則、外框明顯，以及染色後可見較清楚的內部構造。",
     misconception: "observation_without_evidence",
     image: assets.scopeViews.onion,
-    imageAlt: "未標註的顯微視野圖 A",
+    imageAlt: "未標註的洋蔥表皮細胞顯微視野",
     options: [
       { id: "onion", text: "洋蔥表皮細胞" },
       { id: "mouth", text: "口腔皮膜細胞" },
@@ -143,13 +143,7 @@ const questions = [
     hint: "先找讓細胞呈現整齊邊界的線索，不要只看顏色深淺。",
     misconception: "plant_cell_wall_identification",
     image: assets.scopeViews.onion,
-    imageAlt: "未標註的顯微視野圖 B",
-    imageTargets: [
-      { id: "wall", label: "A", left: 47, top: 39 },
-      { id: "nucleus", label: "B", left: 57, top: 52 },
-      { id: "edge", label: "C", left: 12, top: 51 },
-      { id: "dust", label: "D", left: 77, top: 76 }
-    ],
+    imageAlt: "未標註的洋蔥表皮細胞顯微視野，需依格狀外框等線索判讀",
     options: [
       { id: "wall", text: "細胞間清楚的格狀外框" },
       { id: "nucleus", text: "細胞中央深色圓點" },
@@ -166,7 +160,7 @@ const questions = [
     hint: "觀察線索是沒有整齊格狀外框，且形狀較柔和、不規則。",
     misconception: "animal_cell_has_cell_wall",
     image: assets.scopeViews.mouth,
-    imageAlt: "未標註的顯微視野圖 C",
+    imageAlt: "未標註的口腔皮膜細胞顯微視野",
     options: [
       { id: "mouth", text: "口腔皮膜細胞" },
       { id: "onion", text: "洋蔥表皮細胞" },
@@ -183,7 +177,7 @@ const questions = [
     hint: "想想口腔皮膜來自身體哪一類生物組織，以及染色常讓哪個構造更容易看見。",
     misconception: "animal_cell_has_cell_wall",
     image: assets.scopeViews.mouth,
-    imageAlt: "未標註的顯微視野圖 D",
+    imageAlt: "未標註的口腔皮膜細胞染色顯微視野",
     options: [
       { id: "animal_nucleus", text: "可觀察動物細胞，染色後細胞核較明顯。" },
       { id: "cell_wall", text: "可觀察細胞壁形成的規則格子。" },
@@ -200,13 +194,7 @@ const questions = [
     hint: "先比較一般表皮細胞與成對特殊細胞周圍的形狀差異。",
     misconception: "all_plant_cells_have_chloroplast_in_view",
     image: assets.scopeViews.leaf,
-    imageAlt: "未標註的顯微視野圖 E",
-    imageTargets: [
-      { id: "stoma", label: "A", left: 50, top: 36 },
-      { id: "grid", label: "B", left: 72, top: 52 },
-      { id: "vacuole", label: "C", left: 28, top: 67 },
-      { id: "scope_edge", label: "D", left: 9, top: 50 }
-    ],
+    imageAlt: "未標註的葉片下表皮顯微視野，需依保衛細胞與開口線索判讀",
     options: [
       { id: "stoma", text: "兩個保衛細胞之間的開口" },
       { id: "grid", text: "整片規則格狀外框" },
@@ -223,7 +211,7 @@ const questions = [
     hint: "想想哪一種細胞和氣孔開閉有關，視野中常可見綠色小顆粒。",
     misconception: "all_plant_cells_have_chloroplast_in_view",
     image: assets.scopeViews.leaf,
-    imageAlt: "未標註的顯微視野圖 F",
+    imageAlt: "未標註的葉片下表皮顯微視野",
     options: [
       { id: "guard", text: "保衛細胞" },
       { id: "onion_skin", text: "洋蔥鱗葉表皮細胞" },
@@ -619,12 +607,9 @@ function selectedClass(question, option) {
 }
 function renderQuestionImage(question) {
   if (!question.image) return "";
-  const targets = question.imageTargets || [];
   return `<figure class="question-visual">
-    <div class="question-image-wrap"><img src="${question.image}" alt="${question.imageAlt || "未標註觀察圖"}">
-      ${targets.map((target) => `<button type="button" class="image-target ${state.answers[question.id] === target.id ? "selected" : ""}" style="left:${target.left}%;top:${target.top}%" data-choice="${question.id}" data-value="${target.id}" aria-label="圖中位置 ${target.label}">${target.label}</button>`).join("")}
-    </div>
-    <figcaption>${targets.length ? "請比較圖中的 A-D 位置，再選擇最符合題意的位置。" : "請只依這張未標註影像的外框、排列與構造線索判讀。"}</figcaption>
+    <div class="question-image-wrap"><img src="${question.image}" alt="${question.imageAlt || "未標註觀察圖"}"></div>
+    <figcaption>請只依這張未標註影像的外框、排列與構造線索判讀。</figcaption>
   </figure>`;
 }
 function renderChoiceQuestion(qid) {
@@ -911,7 +896,7 @@ function renderReview() {
 }
 function renderReflection() {
   const reflection = state.answers.reflection || {};
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2>
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2>
     <div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；具體且與玻片製作、視野判讀、染色目的、樣本比較或觀察迷思相關的問題，可取得回報 EXP。</p></div>
     <div class="form-grid">
       <label>我最能判斷的顯微觀察線索是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label>
@@ -919,7 +904,7 @@ function renderReflection() {
       <label>選一個希望老師課堂解釋的方向，並用自己的話補充<span class="field-help">方向詞可以參考，但不要直接複製。</span><textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label>
       <label>信心分數<span class="field-help">5 分代表我能自己說明本單元重點概念。</span><select id="confidenceScore">${[1,2,3,4,5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label>
     </div>
-    <div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div>${owlPanel(assets.owlResult)}</div>`;
+    <div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div></div>`;
 }
 function buildAttempt() {
   const now = new Date().toISOString();

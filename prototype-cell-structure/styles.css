@@ -428,13 +428,23 @@ p {
 
 .title-avatar-card.achievements {
   margin: 14px 0;
+  overflow: visible;
+}
+
+.title-avatar-card.achievements .title-avatar-visual {
+  justify-self: center;
+  width: min(100%, 220px);
+  height: auto;
+  aspect-ratio: 2 / 3;
+  max-height: min(58vh, 360px);
 }
 
 .title-avatar-visual {
   display: grid;
   place-items: end center;
   height: clamp(180px, 24vw, 260px);
-  overflow: hidden;
+  overflow: visible;
+  min-width: 0;
 }
 
 .title-avatar-visual img {
@@ -1349,7 +1359,14 @@ textarea {
   }
 
   .title-avatar-visual {
-    height: 240px;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 2 / 3;
+    max-height: min(76vh, 360px);
+  }
+
+  .title-avatar-card.achievements .title-avatar-visual {
+    width: min(72vw, 240px);
   }
 
   .prep-owl-visual,

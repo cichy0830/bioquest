@@ -8,7 +8,7 @@
     retry_ready: ["整理後再挑戰", "先保留這次找到的線索，重新整理後再登入挑戰，會更容易看見自己的進步。"]
   };
   const enhancedGenerations = new WeakMap();
-  const BADGE_OVERVIEW_VERSION = "20260715-badge-overview-v2";
+  const BADGE_OVERVIEW_VERSION = "20260715-achievement-order-v1";
   const UNIT_BADGE_OVERVIEW_UNITS = [
     ["life_world", 1, "多彩多姿的生命世界", "open", 9],
     ["scientific_method", 2, "探究自然的科學方法", "open", 8],
@@ -544,13 +544,14 @@
     const unitPanel = panels.find((panel) => [...panel.querySelectorAll("h2, h3, .eyebrow")].some((heading) => heading.textContent.includes("本單元成就")))
       || panels.find((panel) => panel.querySelector(".badge-grid, .badge-wall") && !panel.matches("[data-bq-badge-overview]"));
     if (!unitPanel) return;
-    let overviewPanel = panels.find((panel) => panel.matches("[data-bq-badge-overview]"))
-      || panels.find((panel) => [...panel.querySelectorAll("h2, h3, .eyebrow")].some((heading) => heading.textContent.includes("全部任務徽章")));
+    const overviewPanels = panels.filter((panel) => panel.matches("[data-bq-badge-overview]") || [...panel.querySelectorAll("h2, h3, .eyebrow")].some((heading) => heading.textContent.includes("全部任務徽章")));
+    let overviewPanel = overviewPanels[0];
     if (!overviewPanel) {
       overviewPanel = document.createElement("div");
       overviewPanel.className = "panel";
-      unitPanel.insertAdjacentElement("beforebegin", overviewPanel);
     }
+    overviewPanels.slice(1).forEach((panel) => panel.remove());
+    unitPanel.insertAdjacentElement("afterend", overviewPanel);
     overviewPanel.dataset.bqBadgeOverview = "true";
     overviewPanel.classList.add("bq-all-unit-badge-overview");
     setHtml(overviewPanel, renderWholeBookBadgeOverview());
