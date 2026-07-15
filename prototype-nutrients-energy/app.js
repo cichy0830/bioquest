@@ -29,7 +29,7 @@ const assets = {
   owlPrep: "assets/owl-nutrients-energy-prep-reminder.png",
   owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  briefingSceneHook: "assets/bg-nutrients-energy-briefing-azhe-wide.png",
+  briefingSceneHook: "assets/bg-nutrients-energy-briefing-azhe-wide.webp",
   ambientBackgroundHook: "assets/bg-nutrients-energy-ambient-wide.png",
   nutrientFunctionCards: "assets/nutrient-function-cards.png",
   foodSourceCards: "assets/food-source-cards.png",

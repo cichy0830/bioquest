@@ -25,13 +25,13 @@ const mission = {
 
 const assets = {
   mentorFallback: "../shared-assets/mentor-feedback/mentor-feedback-stable.webp",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
   owlPrep: "assets/owl-photosynthesis-prep-reminder.webp",
   owlReport: "assets/owl-photosynthesis-report-reminder.webp",
   owlResult: "assets/owl-photosynthesis-result.webp",
-  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
+  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.png",
   briefingSceneHook: "assets/bg-photosynthesis-briefing-azhe-wide.webp",
-  briefingSceneMobileHook: "assets/bg-photosynthesis-briefing-azhe-mobile",
+  briefingSceneMobileHook: "",
   ambientBackgroundHook: "assets/bg-photosynthesis-entry-wide.webp",
   questionLeafStructure: "assets/img-photosynthesis-leaf-structure.webp",
   questionStarchEvidence: "assets/img-photosynthesis-starch-evidence.webp",
@@ -249,7 +249,7 @@ function formatSelected(question) {
 
 function titleAvatarPath(student = state.student) {
   const gender = student?.profile_gender === "female" ? "female" : "male";
-  const fallback = `../shared-assets/title-avatars/title-01-trainee_investigator-${gender}.webp`;
+  const fallback = `../shared-assets/title-avatars/title-01-trainee_investigator-${gender}.png`;
   const rawPath = student?.title_avatar_path || student?.progress?.title_avatar_path || fallback;
   if (rawPath.startsWith("../") || rawPath.startsWith("http")) return rawPath;
   if (rawPath.startsWith("shared-assets/")) return `../${rawPath}`;

@@ -218,6 +218,40 @@ body[data-unit-id="cell_observation"] .bq-brief-scene-stage {
   --bq-brief-avatar-max-height: 98%;
 }
 
+body[data-unit-id="biological_organization"] .bq-brief-scene-stage {
+  --bq-brief-avatar-left: 63%;
+  --bq-brief-avatar-bottom: 0.5%;
+  --bq-brief-avatar-height: 92%;
+  --bq-brief-avatar-max-width: 26%;
+  --bq-brief-avatar-max-height: 94%;
+}
+
+body[data-unit-id="scale"] .bq-brief-scene-stage {
+  --bq-brief-avatar-left: 74%;
+  --bq-brief-avatar-bottom: 0.5%;
+  --bq-brief-avatar-height: 92%;
+  --bq-brief-avatar-max-width: 26%;
+  --bq-brief-avatar-max-height: 94%;
+}
+
+body[data-unit-id="nutrients_energy"] .bq-brief-scene-stage,
+body[data-unit-id="nutrient_test"] .bq-brief-scene-stage,
+body[data-unit-id="enzymes"] .bq-brief-scene-stage {
+  --bq-brief-avatar-left: 76%;
+  --bq-brief-avatar-bottom: 0.5%;
+  --bq-brief-avatar-height: 92%;
+  --bq-brief-avatar-max-width: 26%;
+  --bq-brief-avatar-max-height: 94%;
+}
+
+body[data-unit-id="photosynthesis"] .bq-brief-scene-stage {
+  --bq-brief-avatar-left: 61%;
+  --bq-brief-avatar-bottom: 0.5%;
+  --bq-brief-avatar-height: 92%;
+  --bq-brief-avatar-max-width: 26%;
+  --bq-brief-avatar-max-height: 94%;
+}
+
 .bq-brief-scene-stage .bq-brief-scene-media,
 .bq-brief-scene-stage > picture {
   position: absolute !important;

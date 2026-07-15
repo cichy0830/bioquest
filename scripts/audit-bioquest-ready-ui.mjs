@@ -36,8 +36,8 @@ const appCacheVersion = "20260715-badge-overview-v2";
 const appVersionOverrides = new Map();
 appVersionOverrides.set("cell_observation", "20260715-cell-observation-review-fixes-v6");
 appVersionOverrides.set("cell_structure", "20260715-cell-structure-achievement-avatar-v1");
-["biological_organization", "scale", "nutrients_energy", "nutrient_test", "enzymes"].forEach((unitId) => {
-  appVersionOverrides.set(unitId, "20260715-title-avatar-path-v1");
+["biological_organization", "scale", "nutrients_energy", "nutrient_test", "enzymes", "photosynthesis"].forEach((unitId) => {
+  appVersionOverrides.set(unitId, "20260715-brief-scene-unified-u9u14-v1");
 });
 appVersionOverrides.set("cell_transport", "20260715-cell-transport-brief-scene-v2");
 const sharedCacheOverrides = new Map();
@@ -45,6 +45,9 @@ const sharedCacheOverrides = new Map();
   sharedCacheOverrides.set(unitId, "20260715-brief-scene-unified-u1u7-v1");
 });
 sharedCacheOverrides.set("cell_transport", "20260715-brief-scene-u8-v2");
+["biological_organization", "scale", "nutrients_energy", "nutrient_test", "enzymes", "photosynthesis"].forEach((unitId) => {
+  sharedCacheOverrides.set(unitId, "20260715-brief-scene-unified-u9u14-v1");
+});
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);

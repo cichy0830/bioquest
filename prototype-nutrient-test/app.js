@@ -29,7 +29,7 @@ const assets = {
   owlPrep: "assets/owl-nutrient-test-prep-reminder.png",
   owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  briefingSceneHook: "assets/bg-nutrient-test-briefing-azhe-wide.png",
+  briefingSceneHook: "assets/bg-nutrient-test-briefing-azhe-wide.webp",
   ambientBackgroundHook: "assets/bg-nutrient-test-entry-wide.png",
   iodineStarchColorHook: "assets/iodine-starch-color-cards.png",
   biuretProteinColorHook: "assets/biuret-protein-color-cards.png",

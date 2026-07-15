@@ -251,7 +251,8 @@
   }
 
   function activeScreen() {
-    return document.querySelector("[data-nav].active")?.dataset.nav || "";
+    const rootScreen = document.querySelector("#screen");
+    return rootScreen?.dataset?.bioquestScreen || document.querySelector("[data-nav].active")?.dataset.nav || "";
   }
 
   function bodyPath(name, fallback) {

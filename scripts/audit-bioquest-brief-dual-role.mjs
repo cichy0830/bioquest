@@ -67,6 +67,42 @@ const allUnits = [
     folder: "prototype-cell-transport",
     storageKey: "bioquest_cell_transport_state_v1",
     azhe: { left: 0.63, right: 0.86, top: 0.11, bottom: 0.975 }
+  },
+  {
+    unitId: "biological_organization",
+    folder: "prototype-biological-organization",
+    storageKey: "bioquest_biological_organization_state_v1",
+    azhe: { left: 0.71, right: 0.91, top: 0.16, bottom: 0.98 }
+  },
+  {
+    unitId: "scale",
+    folder: "prototype-scale",
+    storageKey: "bioquest_scale_state_v1",
+    azhe: { left: 0.16, right: 0.44, top: 0.07, bottom: 0.99 }
+  },
+  {
+    unitId: "nutrients_energy",
+    folder: "prototype-nutrients-energy",
+    storageKey: "bioquest_nutrients_energy_state_v1",
+    azhe: { left: 0.12, right: 0.39, top: 0.11, bottom: 0.99 }
+  },
+  {
+    unitId: "nutrient_test",
+    folder: "prototype-nutrient-test",
+    storageKey: "bioquest_nutrient_test_state_v1",
+    azhe: { left: 0.11, right: 0.36, top: 0.08, bottom: 0.99 }
+  },
+  {
+    unitId: "enzymes",
+    folder: "prototype-enzymes",
+    storageKey: "bioquest_enzymes_state_v1",
+    azhe: { left: 0.13, right: 0.42, top: 0.11, bottom: 0.99 }
+  },
+  {
+    unitId: "photosynthesis",
+    folder: "prototype-photosynthesis",
+    storageKey: "bioquest_photosynthesis_state_v1",
+    azhe: { left: 0.13, right: 0.38, top: 0.11, bottom: 0.98 }
   }
 ];
 
@@ -143,7 +179,8 @@ function stateFor(unit) {
     submitted_at: null,
     backend_status: "",
     attempt_type: "first",
-    unit_id: unit.unitId
+    unit_id: unit.unitId,
+    question_version: "brief_scene_audit"
   };
 }
 

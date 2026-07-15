@@ -15,7 +15,13 @@ const sharedVersionOverrides = new Map([
   ["prototype-cell-basic-unit", "20260715-brief-scene-unified-u1u7-v1"],
   ["prototype-cell-structure", "20260715-brief-scene-unified-u1u7-v1"],
   ["prototype-cell-observation", "20260715-brief-scene-unified-u1u7-v1"],
-  ["prototype-cell-transport", "20260715-brief-scene-u8-v2"]
+  ["prototype-cell-transport", "20260715-brief-scene-u8-v2"],
+  ["prototype-biological-organization", "20260715-brief-scene-unified-u9u14-v1"],
+  ["prototype-scale", "20260715-brief-scene-unified-u9u14-v1"],
+  ["prototype-nutrients-energy", "20260715-brief-scene-unified-u9u14-v1"],
+  ["prototype-nutrient-test", "20260715-brief-scene-unified-u9u14-v1"],
+  ["prototype-enzymes", "20260715-brief-scene-unified-u9u14-v1"],
+  ["prototype-photosynthesis", "20260715-brief-scene-unified-u9u14-v1"]
 ]);
 const readyUnits = [
   "prototype-life-world",

@@ -30,7 +30,7 @@ const assets = {
   owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.png",
   owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  briefingSceneHook: "assets/bg-scale-briefing-azhe-wide.png",
+  briefingSceneHook: "assets/bg-scale-briefing-azhe-wide.webp",
   ambientBackgroundHook: "assets/bg-scale-ambient-wide.png",
   sortCardsHook: "assets/scale-size-level-cards.png",
   unitCardsHook: "assets/scale-unit-match-cards.png",
