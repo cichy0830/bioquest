@@ -659,8 +659,14 @@
     }
   }
 
+  function moveBriefCaptionBelow(scene) {
+    const caption = scene.querySelector(":scope > figcaption, :scope > .scene-copy");
+    if (!caption) return;
+    caption.classList.add("bq-brief-scene-caption");
+    if (caption.parentElement === scene) scene.insertAdjacentElement("afterend", caption);
+  }
+
   function enhanceBriefScene(root) {
-    if (document.body?.dataset?.unitId !== "cell_transport") return;
     const scene = findBriefScene(root);
     if (!scene) return;
     const imagePath = briefSceneImagePath(scene, root);
@@ -669,7 +675,9 @@
     scene.classList.add("bq-brief-scene-stage");
     scene.closest(".brief-visual-row")?.classList.add("bq-brief-visual-row-enhanced");
     scene.closest(".brief-scene-card, .brief-hero")?.classList.add("bq-brief-card-enhanced");
+    scene.closest(".microscope-briefing-layout")?.classList.add("bq-brief-card-enhanced");
     ensureBriefSceneMedia(scene, imagePath, mobilePath);
+    moveBriefCaptionBelow(scene);
 
     const avatarPath = resolveBriefAvatar(root);
     let avatar = scene.querySelector(":scope > .bq-brief-student-avatar");

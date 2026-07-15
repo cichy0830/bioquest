@@ -148,6 +148,15 @@ body[data-unit-id] #screen :where(input, textarea, select, th, td) {
   display: block !important;
 }
 
+.bq-brief-card-enhanced.microscope-briefing-layout {
+  display: block !important;
+}
+
+.bq-brief-card-enhanced.microscope-briefing-layout .brief-copy-panel {
+  width: 100% !important;
+  margin-top: 12px !important;
+}
+
 .bq-brief-scene-stage {
   --bq-brief-avatar-left: 58%;
   --bq-brief-avatar-bottom: 5.5%;
@@ -165,6 +174,48 @@ body[data-unit-id] #screen :where(input, textarea, select, th, td) {
   border-radius: 8px !important;
   background: rgba(7, 48, 55, 0.82) !important;
   box-shadow: 0 16px 36px rgba(15, 48, 56, 0.16) !important;
+}
+
+body[data-unit-id="life_world"] .bq-brief-scene-stage {
+  --bq-brief-avatar-left: 74%;
+  --bq-brief-avatar-bottom: 0.5%;
+  --bq-brief-avatar-height: 100%;
+  --bq-brief-avatar-max-width: 30%;
+  --bq-brief-avatar-max-height: 98%;
+}
+
+body[data-unit-id="microscope_use"] .bq-brief-scene-stage,
+body[data-unit-id="cell_basic_unit"] .bq-brief-scene-stage {
+  --bq-brief-avatar-left: 74%;
+  --bq-brief-avatar-bottom: 0.5%;
+  --bq-brief-avatar-height: 100%;
+  --bq-brief-avatar-max-width: 30%;
+  --bq-brief-avatar-max-height: 98%;
+}
+
+body[data-unit-id="cell_structure"] .bq-brief-scene-stage {
+  --bq-brief-avatar-left: 61%;
+  --bq-brief-avatar-bottom: 0.5%;
+  --bq-brief-avatar-height: 93%;
+  --bq-brief-avatar-max-width: 24%;
+  --bq-brief-avatar-max-height: 93%;
+}
+
+body[data-unit-id="scientific_method"] .bq-brief-scene-stage,
+body[data-unit-id="lab_intro"] .bq-brief-scene-stage {
+  --bq-brief-avatar-left: 74%;
+  --bq-brief-avatar-bottom: 0.5%;
+  --bq-brief-avatar-height: 76%;
+  --bq-brief-avatar-max-width: 28%;
+  --bq-brief-avatar-max-height: 78%;
+}
+
+body[data-unit-id="cell_observation"] .bq-brief-scene-stage {
+  --bq-brief-avatar-left: 54%;
+  --bq-brief-avatar-bottom: 0.5%;
+  --bq-brief-avatar-height: 100%;
+  --bq-brief-avatar-max-width: 30%;
+  --bq-brief-avatar-max-height: 98%;
 }
 
 .bq-brief-scene-stage .bq-brief-scene-media,

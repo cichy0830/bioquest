@@ -41,6 +41,9 @@ appVersionOverrides.set("cell_structure", "20260715-cell-structure-achievement-a
 });
 appVersionOverrides.set("cell_transport", "20260715-cell-transport-brief-scene-v2");
 const sharedCacheOverrides = new Map();
+["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit", "cell_structure", "cell_observation"].forEach((unitId) => {
+  sharedCacheOverrides.set(unitId, "20260715-brief-scene-unified-u1u7-v1");
+});
 sharedCacheOverrides.set("cell_transport", "20260715-brief-scene-u8-v2");
 
 function assert(condition, message) {
