@@ -22,7 +22,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
   background:
     linear-gradient(120deg, rgba(235, 249, 247, 0.86), rgba(237, 242, 248, 0.78)),
-    url("assets/bg-cell-observation-entry-wide.png");
+    url("assets/bg-cell-observation-entry-wide.webp");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;

@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260715-cell-observation-qa-fixes-v2";
+const VERSION = "20260715-cell-observation-qa-fixes-v3";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -24,26 +24,26 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
-  owlPrep: "assets/owl-cell-observation-prep-reminder.png",
-  owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.png",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
-  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.png",
-  briefingSceneHook: "assets/bg-cell-observation-briefing-azhe-wide.png",
-  ambientBackgroundHook: "assets/bg-cell-observation-entry-wide.png",
-  slidePreparation: "assets/cell-observation-slide-preparation-cards.png",
-  lowHighStrategy: "assets/cell-observation-low-high-power-strategy.png",
-  stainingComparison: "assets/cell-observation-staining-before-after.png",
+  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
+  owlPrep: "assets/owl-cell-observation-prep-reminder.webp",
+  owlScan: "../prototype-cell-basic-unit/assets/owl-basic-unit-cell-scan.webp",
+  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
+  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
+  briefingSceneHook: "assets/bg-cell-observation-briefing-azhe-wide.webp",
+  ambientBackgroundHook: "assets/bg-cell-observation-entry-wide.webp",
+  slidePreparation: "assets/cell-observation-slide-preparation-cards.webp",
+  lowHighStrategy: "assets/cell-observation-low-high-power-strategy.webp",
+  stainingComparison: "assets/cell-observation-staining-before-after.webp",
   scopeViews: {
-    onion: "assets/cell-observation-onion-epidermis-view.png",
-    mouth: "assets/cell-observation-mouth-epithelial-view.png",
-    leaf: "assets/cell-observation-leaf-lower-epidermis-view.png",
-    bubble: "assets/cell-observation-bubble-artifact-view.png"
+    onion: "assets/cell-observation-onion-epidermis-view.webp",
+    mouth: "assets/cell-observation-mouth-epithelial-view.webp",
+    leaf: "assets/cell-observation-leaf-lower-epidermis-view.webp",
+    bubble: "assets/cell-observation-bubble-artifact-view.webp"
   }
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/cell_observation/badge-cell_observation-${id}.png`;
+const badgeAsset = (id) => `../shared-assets/badges/cell_observation/badge-cell_observation-${id}.webp`;
 const reflectionRules = {
   conceptTerms: ["玻片", "蓋玻片", "氣泡", "低倍率", "高倍率", "洋蔥表皮", "口腔皮膜", "葉片下表皮", "保衛細胞", "氣孔", "葉綠體", "染色", "細胞核", "顯微", "動物細胞", "植物細胞", "視野", "細胞壁"],
   irrelevantTerms: ["老師好帥", "帥", "午餐", "下課", "遊戲", "天氣", "好笑"],
@@ -1138,17 +1138,20 @@ function renderAchievements() {
   const pending = status === "pending";
   const guest = status === "guest";
   const officialBadgeIds = [...new Set(state.cumulative_badges || [])];
+  const estimatedExp = Math.min(Number((state.result || calculateResult()).unit_credited_exp || 0), UNIT_EXP_CAP);
   const badgeLabel = guest ? "本次測試徽章" : pending ? "本次待確認徽章" : "正式累積徽章";
   const badgeCount = guest || pending ? currentBadges.length : litIds.length;
-  const expValue = guest ? "guest 不累積" : pending ? "待後台確認" : `${state.cumulative_total_exp || 0}`;
-  const unitValue = guest ? "guest 不累積" : pending ? "待後台確認" : `${state.completed_unit_count || 0}`;
+  const expLabel = guest || pending ? "本次預估 EXP" : "正式累積 EXP";
+  const expValue = guest || pending ? `${estimatedExp}/${UNIT_EXP_CAP}` : `${state.cumulative_total_exp || 0}`;
+  const unitLabel = guest ? "累積狀態" : pending ? "後台狀態" : "已完成單元";
+  const unitValue = guest ? "不列入正式累積" : pending ? "待後台確認" : `${state.completed_unit_count || 0}`;
   const syncNote = guest
-    ? `guest 測試：本次預估 ${Math.min(Number((state.result || calculateResult()).unit_credited_exp || 0), UNIT_EXP_CAP)}/${UNIT_EXP_CAP} EXP，不列入正式累積；徽章亮燈僅供老師測試畫面。`
+    ? `guest 測試：本次預估 ${estimatedExp}/${UNIT_EXP_CAP} EXP，不列入正式累積；徽章亮燈僅供老師測試畫面。`
     : pending
-      ? "本次預估，待後台確認：徽章亮燈先顯示本次作答預覽，正式累積 EXP、完成單元與後台徽章需以 StudentProgress 為準。"
+      ? `本次預估 ${estimatedExp}/${UNIT_EXP_CAP} EXP，待後台確認；徽章亮燈先顯示本次作答預覽。`
       : "亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。";
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>顯微視野徽章牆</h2>
-    <div class="score-grid"><div class="score-box"><span>${badgeLabel}</span><strong>${badgeCount}</strong></div><div class="score-box"><span>正式累積 EXP</span><strong>${expValue}</strong></div><div class="score-box"><span>已完成單元</span><strong>${unitValue}</strong></div></div>
+    <div class="score-grid"><div class="score-box"><span>${badgeLabel}</span><strong>${badgeCount}</strong></div><div class="score-box"><span>${expLabel}</span><strong>${expValue}</strong></div><div class="score-box"><span>${unitLabel}</span><strong>${unitValue}</strong></div></div>
     ${guest || pending ? `<div class="feedback warn">${syncNote}</div>` : ""}
     <div class="badge-grid">${badges.map((badge) => {
       const lit = litIds.includes(badge.id);
