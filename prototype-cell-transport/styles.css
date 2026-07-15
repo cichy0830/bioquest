@@ -115,6 +115,11 @@ h1, h2, h3, p { margin-top: 0; }
   content: none;
 }
 .bq-brief-scene-stage.brief-scene {
+  --bq-brief-avatar-left: 54%;
+  --bq-brief-avatar-bottom: 0.5%;
+  --bq-brief-avatar-height: 100%;
+  --bq-brief-avatar-max-width: 30%;
+  --bq-brief-avatar-max-height: 98%;
   min-height: 0;
   background: rgba(7, 48, 55, 0.82);
   background-image: none;

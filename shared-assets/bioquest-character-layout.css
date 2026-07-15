@@ -152,6 +152,8 @@ body[data-unit-id] #screen :where(input, textarea, select, th, td) {
   --bq-brief-avatar-left: 58%;
   --bq-brief-avatar-bottom: 5.5%;
   --bq-brief-avatar-height: 70%;
+  --bq-brief-avatar-max-width: 24%;
+  --bq-brief-avatar-max-height: 90%;
   position: relative !important;
   display: block !important;
   width: 100% !important;
@@ -194,8 +196,8 @@ body[data-unit-id] #screen :where(input, textarea, select, th, td) {
   bottom: var(--bq-brief-avatar-bottom) !important;
   height: var(--bq-brief-avatar-height) !important;
   width: auto !important;
-  max-width: 24% !important;
-  max-height: 90% !important;
+  max-width: var(--bq-brief-avatar-max-width) !important;
+  max-height: var(--bq-brief-avatar-max-height) !important;
   object-fit: contain !important;
   object-position: center bottom !important;
   filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.26)) !important;

@@ -39,9 +39,9 @@ appVersionOverrides.set("cell_structure", "20260715-cell-structure-achievement-a
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test", "enzymes"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-path-v1");
 });
-appVersionOverrides.set("cell_transport", "20260715-cell-transport-brief-scene-v1");
+appVersionOverrides.set("cell_transport", "20260715-cell-transport-brief-scene-v2");
 const sharedCacheOverrides = new Map();
-sharedCacheOverrides.set("cell_transport", "20260715-brief-scene-u8-v1");
+sharedCacheOverrides.set("cell_transport", "20260715-brief-scene-u8-v2");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
