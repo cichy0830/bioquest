@@ -13,7 +13,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260716-cell-observation-canonical-v1";
+const VERSION = "20260716-cell-observation-guest-local-v1";
 const QUESTION_VERSION = "20260716-cell-observation-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -1238,18 +1238,23 @@ function attachReflection() {
     state.result = calculateResult();
     state.submitted_at = new Date().toISOString();
     let attempt = buildAttempt();
-    try {
-      const response = await submitAttemptToBackend(attempt);
-      state.backend_status = "submitted";
-      if (response.verified_attempt) state.result = { ...state.result, ...response.verified_attempt };
-      const progress = response.student_progress || response.progress || null;
-      if (progress && Object.keys(progress).length) applyBackendProgress(progress);
-      else state.backend_status = "pending_progress";
-      attempt = { ...attempt, ...state.result, backend_status: state.backend_status, backend_attempt_id: response.attempt_id || attempt.attempt_id };
-    } catch {
-      state.backend_status = "pending_local";
-      attempt = { ...attempt, backend_status: state.backend_status };
-      savePending(buildBackendPayload(attempt));
+    if (state.student?.is_guest) {
+      state.backend_status = "guest_local";
+      attempt = { ...attempt, ...state.result, backend_status: state.backend_status };
+    } else {
+      try {
+        const response = await submitAttemptToBackend(attempt);
+        state.backend_status = "submitted";
+        if (response.verified_attempt) state.result = { ...state.result, ...response.verified_attempt };
+        const progress = response.student_progress || response.progress || null;
+        if (progress && Object.keys(progress).length) applyBackendProgress(progress);
+        else state.backend_status = "pending_progress";
+        attempt = { ...attempt, ...state.result, backend_status: state.backend_status, backend_attempt_id: response.attempt_id || attempt.attempt_id };
+      } catch {
+        state.backend_status = "pending_local";
+        attempt = { ...attempt, backend_status: state.backend_status };
+        savePending(buildBackendPayload(attempt));
+      }
     }
     saveAttempt(attempt);
     state.remote_completed_attempts = Number(state.remote_completed_attempts || 0) + 1;

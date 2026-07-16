@@ -35,7 +35,7 @@ const surfaceCacheVersion = "20260715-achievement-order-v1";
 const backendConfigVersion = "20260713-backend-endpoint-v1";
 const appCacheVersion = "20260715-badge-overview-v2";
 const appVersionOverrides = new Map();
-appVersionOverrides.set("cell_observation", "20260716-cell-observation-canonical-v1");
+appVersionOverrides.set("cell_observation", "20260716-cell-observation-guest-local-v1");
 appVersionOverrides.set("cell_structure", "20260715-cell-structure-achievement-avatar-v1");
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test", "enzymes"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
@@ -49,7 +49,7 @@ const sharedCacheOverrides = new Map();
 ["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit", "cell_structure", "cell_observation"].forEach((unitId) => {
   sharedCacheOverrides.set(unitId, "20260715-brief-scene-unified-u1u7-v1");
 });
-sharedCacheOverrides.set("cell_observation", "20260716-cell-observation-canonical-v1");
+sharedCacheOverrides.set("cell_observation", "20260716-cell-observation-guest-local-v1");
 ["cell_transport", "scale", "nutrients_energy", "nutrient_test", "enzymes"].forEach((unitId) => {
   sharedCacheOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
@@ -161,7 +161,7 @@ const audit = units.map(([unitId, folder]) => {
     assert(index.includes("styles.css?v=20260715-cell-structure-achievement-avatar-v1"), "cell_structure style cache bust missing");
   }
   if (unitId === "cell_observation") {
-    assert(index.includes("styles.css?v=20260716-cell-observation-canonical-v1"), "cell_observation style cache bust missing");
+    assert(index.includes("styles.css?v=20260716-cell-observation-guest-local-v1"), "cell_observation style cache bust missing");
   }
   for (const functionName of ["renderLogin", "renderReview", "renderReflection", "renderResult", "renderAchievements"]) {
     assert(app.includes(`function ${functionName}(`), `${unitId} missing ${functionName}`);
