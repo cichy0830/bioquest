@@ -578,15 +578,52 @@
   }
 
   function titleInfoFromStudent(student = {}) {
-    const progress = student.progress || student.student_progress || {};
-    const totalExp = Number(progress.total_exp ?? student.total_exp ?? 0) || 0;
+    const progress = student.progress || student.student_progress || student.title_progress || {};
+    const guest = isGuestState(student);
+    const totalExp = guest ? 0 : Number(progress.total_exp ?? student.total_exp ?? 0) || 0;
     const explicitTitleId = String(progress.current_title_id || student.current_title_id || "").trim();
     const level = explicitTitleId
       ? titleProgressLevel(explicitTitleId)
       : (global.BioQuestTitleProgress?.getTitleForExp?.(totalExp) || titleProgressLevel("trainee_investigator"));
     const title = progress.current_title || student.current_title || level.title || "見習調查員";
-    const completed = Number(progress.completed_units ?? progress.completed_attempts ?? student.completed_units ?? student.completed_attempts ?? 0) || 0;
+    const completed = guest ? 0 : trustedCompletedUnitCount(student, progress);
     return { level, title, totalExp, completed };
+  }
+
+  function parseMaybeJsonArray(value) {
+    if (Array.isArray(value)) return value;
+    if (typeof value !== "string" || !value.trim()) return [];
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function trustedCompletedUnitCount(student = {}, progress = {}) {
+    for (const value of [
+      progress.completed_unit_count,
+      progress.completed_units_count,
+      progress.completed_units,
+      progress.completed_attempts,
+      student.completed_unit_count,
+      student.completed_units_count,
+      student.completed_units,
+      student.completed_attempts
+    ]) {
+      if (Array.isArray(value)) return value.length;
+      const numeric = Number(value);
+      if (Number.isFinite(numeric) && numeric > 0) return numeric;
+    }
+    const completedUnits = parseMaybeJsonArray(progress.completed_units_json || student.completed_units_json);
+    if (completedUnits.length) return completedUnits.length;
+    if (isVerifiedProgress(progress)) {
+      const summary = parseMaybeJsonArray(progress.unit_badge_summary_json || student.unit_badge_summary_json);
+      const verifiedUnits = summary.filter((unit) => Number(unit?.earned_count || 0) > 0 || (Array.isArray(unit?.earned_badges) && unit.earned_badges.length > 0));
+      if (verifiedUnits.length) return verifiedUnits.length;
+    }
+    return 0;
   }
 
   function normalizeBriefAvatarPath(rawPath, student = {}) {
@@ -649,6 +686,8 @@
 
   function readStoredStudent() {
     try {
+      const explicit = global.__BIOQUEST_BADGE_OVERVIEW_STATE__;
+      if (explicit?.student) return explicit.student;
       const unitId = document.body?.dataset?.unitId || "";
       if (unitId) {
         const parsedCurrent = JSON.parse(localStorage.getItem(`bioquest_${unitId}_state_v1`) || "null");
