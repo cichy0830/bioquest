@@ -13,7 +13,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260715-cell-observation-review-fixes-v6";
+const VERSION = "20260716-cell-observation-achievement-overview-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -1254,8 +1254,12 @@ function render() {
     achievements: renderAchievements,
     rules: renderRules
   };
+  screen.dataset.bioquestScreen = state.screen;
   screen.innerHTML = views[state.screen]();
   attachEvents();
+  if (window.BioQuestCharacterLayout?.enhance) {
+    window.BioQuestCharacterLayout.enhance({ force: true });
+  }
 }
 
 window.__cellObservationTest = {
