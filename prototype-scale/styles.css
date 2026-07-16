@@ -351,6 +351,7 @@ textarea { min-height: 96px; resize: vertical; }
 }
 .owl-fallback { display: grid; place-items: center; width: min(210px, 60vw); aspect-ratio: 1; border: 6px solid rgba(22, 110, 118, .28); border-radius: 50%; color: #16545a; background: radial-gradient(circle at 50% 44%, #fff5c8 0 13%, #e4a950 14% 25%, #4e8391 26% 58%, #d6f3ef 59%); font-weight: 900; text-align: center; line-height: 1.45; box-shadow: 0 10px 24px rgba(17,77,85,.14); }
 .scale-prep-owl img + .owl-fallback { position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); }
+.scale-prep-owl .owl-fallback[hidden] { display: none !important; }
 .scale-visual { margin: 12px 0; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: linear-gradient(135deg, #f8fcfa, #e8f5f1); }
 .scale-sort-image img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #eff7f3; }
 .scale-question-image img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #eff7f3; }
