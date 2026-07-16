@@ -84,7 +84,6 @@ h1, h2, h3, p { margin-top: 0; }
 
 .main-stage { padding: 28px; }
 .wide-layout, .stack { display: grid; gap: 18px; }
-.mission-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(260px,360px); gap: 24px; align-items: stretch; }
 .panel {
   padding: 22px;
   border: 1px solid var(--line);
@@ -339,7 +338,17 @@ textarea { min-height: 96px; resize: vertical; }
 }
 .scale-brief-scene .scene-copy { width: min(62%, 620px); }
 .asset-note { margin-top: 14px; font-size: 13px; color: rgba(245,255,253,.8); }
-.scale-prep-owl { min-height: 280px; position: relative; overflow: hidden; }
+.scale-prep-owl {
+  position: relative;
+  width: min(100%, 320px);
+  min-height: 0;
+  margin: 12px auto 14px;
+  padding: 6px;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
 .owl-fallback { display: grid; place-items: center; width: min(210px, 60vw); aspect-ratio: 1; border: 6px solid rgba(22, 110, 118, .28); border-radius: 50%; color: #16545a; background: radial-gradient(circle at 50% 44%, #fff5c8 0 13%, #e4a950 14% 25%, #4e8391 26% 58%, #d6f3ef 59%); font-weight: 900; text-align: center; line-height: 1.45; box-shadow: 0 10px 24px rgba(17,77,85,.14); }
 .scale-prep-owl img + .owl-fallback { position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); }
 .scale-visual { margin: 12px 0; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: linear-gradient(135deg, #f8fcfa, #e8f5f1); }
@@ -389,7 +398,7 @@ textarea { min-height: 96px; resize: vertical; }
   .step-item { flex: 0 0 auto; width: auto; min-width: 64px; min-height: 40px; padding: 8px 10px; }
   .student-mini { display: none; }
   .main-stage { padding: 14px; }
-  .mission-layout, .mission-hud, .score-grid, .card-grid, .choice-grid, .token-grid, .microscope-layout, .transport-layout, .cell-change-strip { grid-template-columns: 1fr; }
+  .mission-hud, .score-grid, .card-grid, .choice-grid, .token-grid, .microscope-layout, .transport-layout, .cell-change-strip { grid-template-columns: 1fr; }
   .hero-panel { min-height: auto; }
   .brief-scene { min-height: 520px; }
   .brief-scene { background-position: 58% center; }

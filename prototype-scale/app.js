@@ -180,6 +180,37 @@ function parseArray(value) {
   if (!value) return [];
   try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
 }
+function deepFreeze(value) {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+  Object.keys(value).forEach((key) => deepFreeze(value[key]));
+  return Object.freeze(value);
+}
+function updateBadgeOverviewBridge() {
+  if (!state.student) {
+    delete window.__BIOQUEST_BADGE_OVERVIEW_STATE__;
+    delete window.__BIOQUEST_BADGE_OVERVIEW_PROGRESS__;
+    return;
+  }
+  const progress = clone(state.student.progress || {});
+  const snapshot = {
+    unit_id: mission.unit_id,
+    backend_status: state.backend_status || "",
+    submitted_at: state.submitted_at || "",
+    student: {
+      student_id: state.student.student_id || "",
+      profile_gender: state.student.profile_gender || "",
+      current_title_id: state.student.current_title_id || progress.current_title_id || "",
+      current_title: state.student.current_title || progress.current_title || "",
+      title_avatar_path: state.student.title_avatar_path || progress.title_avatar_path || "",
+      is_guest: Boolean(state.student.is_guest),
+      progress
+    },
+    progress,
+    student_progress: progress
+  };
+  window.__BIOQUEST_BADGE_OVERVIEW_STATE__ = deepFreeze(snapshot);
+  window.__BIOQUEST_BADGE_OVERVIEW_PROGRESS__ = deepFreeze(clone(progress));
+}
 function latestLocalAttempt() {
   if (!state.student) return null;
   return studentAttempts(state.student.student_id)
@@ -193,9 +224,20 @@ function cumulativeBadgeIds(current = []) {
   return [...new Set([...(state.cumulative_badges || []), ...local, ...current])];
 }
 function applyBackendProgress(progress = {}) {
+  if (!progress || typeof progress !== "object") return;
   state.cumulative_badges = parseArray(progress.badges_json || progress.badges || state.cumulative_badges);
   state.cumulative_total_exp = Number(progress.total_exp ?? progress.total_credited_exp ?? state.cumulative_total_exp ?? 0);
   state.completed_unit_count = Number(progress.completed_unit_count ?? state.completed_unit_count ?? 0);
+  if (state.student) {
+    const previous = state.student.progress || {};
+    state.student.progress = { ...previous, ...progress };
+    state.student.current_title_id = progress.current_title_id || state.student.current_title_id || "";
+    state.student.current_title = progress.current_title || state.student.current_title || "";
+    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path || "";
+    state.student.profile_gender = progress.profile_gender || state.student.profile_gender || "";
+    state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
+  }
+  updateBadgeOverviewBridge();
 }
 function pendingQueue() {
   try { return JSON.parse(localStorage.getItem(pendingQueueKey)) || []; } catch { return []; }
@@ -275,15 +317,6 @@ function renderStudentMini() {
   studentMini.innerHTML = `<p><strong>${state.student.student_name}</strong></p><p>${state.student.class_name} 班 ${state.student.seat_no} 號</p><p class="muted">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</p><p class="muted">後台完成紀錄：${state.remote_completed_attempts || 0} 筆</p>`;
 }
 
-function mentorCard(title, text) {
-  return `<div class="mentor-card"><div class="mentor-avatar"><img src="${assets.mentorFallback}" alt="阿澤老師"></div><div class="mentor-copy"><span>阿澤老師</span><strong>${title}</strong><p>${text}</p></div></div>`;
-}
-function owlPanel(image = assets.owlPrep, alt = "貓頭鷹助理") {
-  return `<div class="owl-frame"><img src="${image}" alt="${alt}"></div>`;
-}
-function layout(content, image = assets.owlPrep) {
-  return `<div class="mission-layout"><div class="panel hero-panel">${content}</div>${owlPanel(image)}</div>`;
-}
 function titleAvatarPath() {
   const student = state.student || {};
   return normalizeTitleAvatarPath(student.title_avatar_path || student.progress?.title_avatar_path);
@@ -388,7 +421,7 @@ async function login(id) {
     return;
   }
   state = clone(defaultState);
-  state.student = { ...student };
+  state.student = { ...student, progress: remoteProgress };
   state.remote_completed_attempts = completed;
   state.attempt_type = serverSession.attempt_type || (completed > 0 ? "retry" : "first");
   state.started_at = serverSession.issued_at;
@@ -400,9 +433,7 @@ async function login(id) {
   state.remote_previous_attempt_id = serverSession.previous_attempt_id || remoteAttemptStatus.previous_attempt_id || remoteAttemptStatus.latest_attempt_id || remoteProgress.latest_attempt_id || "";
   const remoteAccuracy = remoteAttemptStatus.previous_accuracy ?? remoteAttemptStatus.best_accuracy;
   state.remote_previous_accuracy = remoteAccuracy === null || remoteAccuracy === undefined || remoteAccuracy === "" ? null : Number.isFinite(Number(remoteAccuracy)) ? Number(remoteAccuracy) : null;
-  state.cumulative_badges = parseArray(remoteProgress.badges_json || remoteProgress.badges);
-  state.cumulative_total_exp = Number(remoteProgress.total_exp ?? remoteProgress.total_credited_exp ?? 0);
-  state.completed_unit_count = Number(remoteProgress.completed_unit_count || 0);
+  applyBackendProgress(remoteProgress);
   unlock("brief", "rules", "achievements");
   ensureSequence();
   saveState();
@@ -502,7 +533,7 @@ function renderBrief() {
     <div class="mission-hud"><div><span>任務區</span><strong>微觀研究站</strong></div><div><span>重點</span><strong>尺度與標尺</strong></div><div><span>排序題</span><strong>拖曳 + 上下移</strong></div></div><div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
 }
 function renderScan() {
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的尺度線索</h2><div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>先確認單位，再判斷實際大小與適合的觀察工具。顯微影像變大，不代表實物變大。</p></div><div class="card-grid"><div class="concept-card"><strong>先統一單位</strong><p>比較長度前，先把數字換成同一種單位。</p></div><div class="concept-card"><strong>微米尺度</strong><p>細胞常屬於微米等級，通常需要顯微鏡。</p></div><div class="concept-card"><strong>工具選擇</strong><p>依物體大小與觀察目的選直尺、放大鏡或顯微鏡。</p></div><div class="concept-card"><strong>看標尺</strong><p>判斷圖中實際大小，要看比例尺或倍率資訊。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div><div class="owl-frame scale-prep-owl" data-owl-hook="${assets.owlPrep}"><img src="${assets.owlPrep}" alt="尺度任務提醒貓頭鷹" onload="this.nextElementSibling.hidden=true" onerror="this.remove()"><div class="owl-fallback" aria-label="貓頭鷹提醒">尺度<br>提醒</div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的尺度線索</h2><div class="owl-frame scale-prep-owl" data-owl-hook="${assets.owlPrep}"><img src="${assets.owlPrep}" alt="尺度任務提醒貓頭鷹" onload="this.nextElementSibling.hidden=true" onerror="this.remove()"><div class="owl-fallback" aria-label="貓頭鷹提醒">尺度<br>提醒</div></div><div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>先確認單位，再判斷實際大小與適合的觀察工具。顯微影像變大，不代表實物變大。</p></div><div class="card-grid"><div class="concept-card"><strong>先統一單位</strong><p>比較長度前，先把數字換成同一種單位。</p></div><div class="concept-card"><strong>微米尺度</strong><p>細胞常屬於微米等級，通常需要顯微鏡。</p></div><div class="concept-card"><strong>工具選擇</strong><p>依物體大小與觀察目的選直尺、放大鏡或顯微鏡。</p></div><div class="concept-card"><strong>看標尺</strong><p>判斷圖中實際大小，要看比例尺或倍率資訊。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div></div>`;
 }
 function renderCheckpoint1() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>尺度與單位校準</h2><p class="muted">以實際大小、適合單位與基本換算完成判讀。</p><div class="question-grid">${renderSequenceQuestion()}${renderClassifyQuestion("q02")}${["q03", "q04"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`;
@@ -976,6 +1007,7 @@ function render() {
     achievements: renderAchievements,
     rules: renderRules
   };
+  updateBadgeOverviewBridge();
   screen.dataset.bioquestScreen = state.screen;
   screen.innerHTML = views[state.screen]();
   attachEvents();
