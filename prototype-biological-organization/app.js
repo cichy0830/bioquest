@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260716-biological-organization-qa-fixes-v1";
+const VERSION = "20260716-biological-organization-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -24,11 +24,7 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../shared-assets/mentor-feedback/mentor-feedback-stable.webp",
-  owlLogin: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   owlPrep: "assets/owl-biological-organization-prep-reminder.webp",
-  owlScan: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
-  owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "assets/bg-biological-organization-briefing-azhe-wide.webp",
   ambientBackgroundHook: "assets/bg-biological-organization-ambient-wide.webp",
@@ -230,7 +226,11 @@ const defaultState = {
   screen: "login",
   student: null,
   attempt_type: "first",
+  attempt_id: "",
   attempt_session_id: "",
+  attempt_session_token: "",
+  question_version: VERSION,
+  session_expires_at: "",
   remote_completed_attempts: 0,
   remote_previous_attempt_id: "",
   remote_previous_accuracy: null,
@@ -299,6 +299,37 @@ function parseArray(value) {
   if (!value) return [];
   try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
 }
+function deepFreeze(value) {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+  Object.keys(value).forEach((key) => deepFreeze(value[key]));
+  return Object.freeze(value);
+}
+function updateBadgeOverviewBridge() {
+  if (!state.student) {
+    delete window.__BIOQUEST_BADGE_OVERVIEW_STATE__;
+    delete window.__BIOQUEST_BADGE_OVERVIEW_PROGRESS__;
+    return;
+  }
+  const progress = clone(state.student.progress || {});
+  const snapshot = {
+    unit_id: mission.unit_id,
+    backend_status: state.backend_status || "",
+    submitted_at: state.submitted_at || "",
+    student: {
+      student_id: state.student.student_id || "",
+      profile_gender: state.student.profile_gender || "",
+      current_title_id: state.student.current_title_id || progress.current_title_id || "",
+      current_title: state.student.current_title || progress.current_title || "",
+      title_avatar_path: state.student.title_avatar_path || progress.title_avatar_path || "",
+      is_guest: Boolean(state.student.is_guest),
+      progress
+    },
+    progress,
+    student_progress: progress
+  };
+  window.__BIOQUEST_BADGE_OVERVIEW_STATE__ = deepFreeze(snapshot);
+  window.__BIOQUEST_BADGE_OVERVIEW_PROGRESS__ = deepFreeze(clone(progress));
+}
 function latestLocalAttempt() {
   if (!state.student) return null;
   return studentAttempts(state.student.student_id)
@@ -312,9 +343,20 @@ function cumulativeBadgeIds(current = []) {
   return [...new Set([...(state.cumulative_badges || []), ...local, ...current])];
 }
 function applyBackendProgress(progress = {}) {
+  if (!progress || typeof progress !== "object") return;
   state.cumulative_badges = parseArray(progress.badges_json || progress.badges || state.cumulative_badges);
   state.cumulative_total_exp = Number(progress.total_exp ?? progress.total_credited_exp ?? state.cumulative_total_exp ?? 0);
   state.completed_unit_count = Number(progress.completed_unit_count ?? state.completed_unit_count ?? 0);
+  if (state.student) {
+    const previous = state.student.progress || {};
+    state.student.progress = { ...previous, ...progress };
+    state.student.current_title_id = progress.current_title_id || state.student.current_title_id || "";
+    state.student.current_title = progress.current_title || state.student.current_title || "";
+    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path || "";
+    state.student.profile_gender = progress.profile_gender || state.student.profile_gender || "";
+    state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
+  }
+  updateBadgeOverviewBridge();
 }
 function pendingQueue() {
   try { return JSON.parse(localStorage.getItem(pendingQueueKey)) || []; } catch { return []; }
@@ -394,14 +436,8 @@ function renderStudentMini() {
   studentMini.innerHTML = `<p><strong>${state.student.student_name}</strong></p><p>${state.student.class_name} 班 ${state.student.seat_no} 號</p><p class="muted">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</p><p class="muted">後台完成紀錄：${state.remote_completed_attempts || 0} 筆</p>`;
 }
 
-function mentorCard(title, text) {
-  return `<div class="mentor-card"><div class="mentor-avatar"><img src="${assets.mentorFallback}" alt="阿澤老師"></div><div class="mentor-copy"><span>阿澤老師</span><strong>${title}</strong><p>${text}</p></div></div>`;
-}
 function owlPanel(image = assets.owlPrep, alt = "貓頭鷹助理") {
   return `<div class="owl-frame"><img src="${image}" alt="${alt}"></div>`;
-}
-function layout(content, image = assets.owlPrep) {
-  return `<div class="mission-layout"><div class="panel hero-panel">${content}</div>${owlPanel(image)}</div>`;
 }
 function titleAvatarPath() {
   const student = state.student || {};
@@ -417,22 +453,40 @@ function normalizeTitleAvatarPath(rawPath = "") {
 
 function renderLogin() {
   const value = state.student?.student_id && state.student.student_id !== "guest" ? state.student.student_id : "";
-  return layout(`
+  return `<div class="wide-layout"><div class="panel hero-panel">
     <p class="eyebrow">生命祕境 BioQuest</p>
     <h2 class="hero-title">任務登入</h2>
-    ${mentorCard("先確認身分", "請輸入學號並確認姓名。下一頁才會開啟本單元任務情境。")}
     <div class="story-panel"><strong>固定登入招呼</strong><p>輸入學號後，系統會顯示姓名。老師測試流程時可使用 guest。</p></div>
     <div class="mission-hud"><div><span>任務代號</span><strong>biological_organization</strong></div><div><span>預估時間</span><strong>10-15 分鐘</strong></div><div><span>後台</span><strong>Google Sheet</strong></div></div>
     <div class="form-grid"><label>學號<input id="studentIdInput" value="${value}" placeholder="例如 S70101 或 guest" autocomplete="off"></label></div>
     <div class="actions"><button class="primary" id="loginButton">登入任務</button><button class="secondary" id="guestButton">老師測試 guest</button><button class="ghost" id="resetButton">清除本機測試紀錄</button></div>
     <div id="loginMessage" class="status-line"></div>
-  `, assets.owlLogin);
+  </div></div>`;
 }
 async function fetchStudentStatus(id) {
   const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}&unit_id=${encodeURIComponent(mission.unit_id)}`;
   const response = await fetch(`${url}&_=${Date.now()}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`backend_${response.status}`);
   return response.json();
+}
+async function postBackendAction(action, payload) {
+  const body = new URLSearchParams();
+  Object.entries(payload).forEach(([key, value]) => body.set(key, typeof value === "object" ? JSON.stringify(value) : String(value ?? "")));
+  const response = await fetch(`${BACKEND_URL}?action=${encodeURIComponent(action)}&_=${Date.now()}`, { method: "POST", body, cache: "no-store" });
+  if (!response.ok) throw new Error(`backend_${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || `${action}_failed`);
+  return data;
+}
+function startAttemptSession(studentId) {
+  return postBackendAction("startAttempt", { student_id: studentId, unit_id: mission.unit_id });
+}
+function validServerSession(session) {
+  return session?.verification_mode === "server_verified"
+    && session.attempt_id
+    && session.attempt_session_id
+    && session.attempt_session_token
+    && session.question_version === VERSION;
 }
 function normalizeBackendStudent(data, id) {
   if (!data?.ok) return null;
@@ -444,7 +498,10 @@ function normalizeBackendStudent(data, id) {
     student_name: source.student_name || source.name || "未設定",
     profile_gender: source.profile_gender || source.gender || "",
     current_title_id: source.current_title_id || "",
+    current_title: source.current_title || "",
     title_avatar_path: source.title_avatar_path || "",
+    title_avatar_variant: source.title_avatar_variant || "",
+    total_exp: Number(source.total_exp || 0),
     is_guest: id === "guest" || Boolean(source.is_guest)
   };
 }
@@ -456,6 +513,24 @@ async function login(id) {
   }
   window.BioQuestLoginUX?.begin({ guest: id === "guest" });
   await window.BioQuestLoginUX?.paint();
+  if (id === "guest") {
+    state = clone(defaultState);
+    state.student = { ...roster.guest };
+    state.remote_completed_attempts = studentAttempts("guest").length;
+    state.attempt_type = state.remote_completed_attempts > 0 ? "retry" : "first";
+    state.started_at = new Date().toISOString();
+    state.attempt_id = `guest_${mission.unit_id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    state.attempt_session_id = state.attempt_id;
+    state.attempt_session_token = "guest_local_session";
+    state.question_version = VERSION;
+    state.backend_status = "local_guest";
+    unlock("brief", "rules", "achievements");
+    ensureSequence();
+    updateBadgeOverviewBridge();
+    saveState();
+    setScreen("brief");
+    return;
+  }
   let student = null;
   let completed = 0;
   let remoteProgress = {};
@@ -470,27 +545,33 @@ async function login(id) {
     remoteProgress = data.progress || data.student_progress || {};
     remoteAttemptStatus = data.attempt_status || {};
     completed = Number(remoteAttemptStatus.completed_attempt_count ?? data.completed_attempts ?? 0);
-  } catch {
-    if (id !== "guest") {
-      message.innerHTML = `<span class="pill warn">後台目前無法連線，尚未登入。請檢查網路後重試或通知老師。</span>`;
-      return;
+    const session = await startAttemptSession(student.student_id);
+    if (!validServerSession(session)) {
+      throw new Error(session?.verification_mode === "pending_canonical_registry" || session?.question_version === "pending_registry" ? "backend_registry_not_ready" : "backend_session_not_ready");
     }
-    student = roster.guest;
-    completed = studentAttempts(student.student_id).length;
-    message.innerHTML = `<span class="pill warn">guest 已切換為本機測試模式，不列入正式統計。</span>`;
+    state = clone(defaultState);
+    state.student = { ...student, progress: remoteProgress };
+    state.remote_completed_attempts = completed;
+    state.attempt_type = session.attempt_type || (completed > 0 ? "retry" : "first");
+    state.started_at = session.issued_at || new Date().toISOString();
+    state.attempt_id = session.attempt_id;
+    state.attempt_session_id = session.attempt_session_id;
+    state.attempt_session_token = session.attempt_session_token;
+    state.question_version = session.question_version;
+    state.session_expires_at = session.expires_at || "";
+    state.remote_previous_attempt_id = session.previous_attempt_id || remoteAttemptStatus.previous_attempt_id || remoteAttemptStatus.latest_attempt_id || remoteProgress.latest_attempt_id || "";
+  } catch (error) {
+    window.BioQuestLoginUX?.end();
+    const text = String(error?.message || error);
+    const detail = text.includes("backend_registry_not_ready")
+      ? "後台版本尚未更新，請通知老師。"
+      : "後台目前無法連線或安全任務憑證無法建立，尚未登入。請檢查網路後重試或通知老師。";
+    message.innerHTML = `<span class="pill warn">${detail}</span>`;
+    return;
   }
-  state = clone(defaultState);
-  state.student = { ...student };
-  state.remote_completed_attempts = completed;
-  state.attempt_type = completed > 0 ? "retry" : "first";
-  state.started_at = new Date().toISOString();
-  state.attempt_session_id = `${mission.unit_id}_${student.student_id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  state.remote_previous_attempt_id = remoteAttemptStatus.previous_attempt_id || remoteAttemptStatus.latest_attempt_id || remoteProgress.latest_attempt_id || "";
   const remoteAccuracy = remoteAttemptStatus.previous_accuracy ?? remoteAttemptStatus.best_accuracy;
   state.remote_previous_accuracy = remoteAccuracy === null || remoteAccuracy === undefined || remoteAccuracy === "" ? null : Number.isFinite(Number(remoteAccuracy)) ? Number(remoteAccuracy) : null;
-  state.cumulative_badges = parseArray(remoteProgress.badges_json || remoteProgress.badges);
-  state.cumulative_total_exp = Number(remoteProgress.total_exp ?? remoteProgress.total_credited_exp ?? 0);
-  state.completed_unit_count = Number(remoteProgress.completed_unit_count || 0);
+  applyBackendProgress(remoteProgress);
   unlock("brief", "rules", "achievements");
   ensureSequence();
   saveState();
@@ -525,7 +606,8 @@ function renderBrief() {
   </div>`;
 }
 function renderScan() {
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的階層線索</h2>
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的階層線索</h2>
+    ${owlPanel(assets.owlPrep, "生命階層任務提醒貓頭鷹")}
     <div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>先判斷例子是單一細胞、共同工作的細胞群、完整器官、多個器官協作，還是一個完整生物。</p></div>
     <div class="card-grid">
       <div class="concept-card"><strong>細胞與組織</strong><p>相似細胞可共同形成具有特定功能的組織。</p></div>
@@ -535,7 +617,7 @@ function renderScan() {
       <div class="concept-card"><strong>單細胞</strong><p>一個細胞同時也是一個完整個體。</p></div>
       <div class="concept-card"><strong>植物器官</strong><p>根、莖、葉偏向營養功能；花、果實、種子與生殖有關。</p></div>
     </div>
-    <div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div>${owlPanel(assets.owlPrep, "生命階層任務提醒貓頭鷹")}</div>`;
+    <div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div></div>`;
 }
 
 function selectedClass(question, option) {
@@ -632,11 +714,33 @@ function isAnswered(qid) {
 function allRequiredAnswered() {
   return [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].every(isAnswered);
 }
-function markHint(qid) {
-  if (!state.hints[qid]) state.hints[qid] = true;
-  state.checkedWrong[qid] = true;
+async function markHint(qid) {
+  if (state.hints[qid]) {
+    state.checkedWrong[qid] = true;
+    return true;
+  }
+  if (state.student?.is_guest) {
+    state.hints[qid] = true;
+    state.checkedWrong[qid] = true;
+    return true;
+  }
+  try {
+    await postBackendAction("hintEvent", {
+      student_id: state.student.student_id,
+      unit_id: mission.unit_id,
+      attempt_id: state.attempt_id,
+      attempt_session_token: state.attempt_session_token,
+      question_id: `${mission.unit_id}_${qid}`
+    });
+    state.hints[qid] = true;
+    state.checkedWrong[qid] = true;
+    return true;
+  } catch {
+    window.alert("提示紀錄暫時無法寫入，為避免成就誤判，請重新登入或稍後再試。");
+    return false;
+  }
 }
-function checkSection(section) {
+async function checkSection(section) {
   const qids = sectionMap[section];
   const unanswered = qids.filter((qid) => !isAnswered(qid));
   if (unanswered.length) {
@@ -647,7 +751,10 @@ function checkSection(section) {
   const wrong = qids.filter((qid) => !isCorrect(qid));
   const newlyHinted = wrong.filter((qid) => !state.hints[qid]);
   if (newlyHinted.length) {
-    newlyHinted.forEach(markHint);
+    for (const qid of newlyHinted) {
+      const recorded = await markHint(qid);
+      if (!recorded) return;
+    }
     saveState();
     render();
     const message = document.querySelector("#sectionMessage");
@@ -684,24 +791,30 @@ function dropSequence(targetId) {
 }
 function attachQuestionEvents() {
   document.querySelectorAll("[data-choice]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const question = questionById(button.dataset.choice);
       state.answers[question.id] = button.dataset.value;
       state.interactions[question.id] = true;
-      if (button.dataset.value !== question.answer) markHint(question.id);
+      if (button.dataset.value !== question.answer) {
+        const recorded = await markHint(question.id);
+        if (!recorded) return;
+      }
       saveState();
       render();
     });
   });
   document.querySelectorAll("[data-classify-question]").forEach((select) => {
-    select.addEventListener("change", () => {
+    select.addEventListener("change", async () => {
       const qid = select.dataset.classifyQuestion;
       const itemId = select.dataset.classifyItem;
       state.answers[qid] ||= {};
       state.answers[qid][itemId] = select.value;
       state.interactions[qid] = true;
       const item = classifyQuestions[qid].items.find((candidate) => candidate.id === itemId);
-      if (select.value && item && select.value !== item.answer) markHint(qid);
+      if (select.value && item && select.value !== item.answer) {
+        const recorded = await markHint(qid);
+        if (!recorded) return;
+      }
       saveState();
       render();
     });
@@ -731,6 +844,23 @@ function questionMisconception(qid) {
   if (qid === "q01") return "organization_hierarchy_sequence";
   if (classifyQuestions[qid]) return classifyQuestions[qid].misconception;
   return questionById(qid)?.misconception || "unknown";
+}
+function questionType(qid) {
+  if (qid === "q01") return "sequence";
+  if (classifyQuestions[qid]) return "mapping";
+  return "choice";
+}
+function answerForQuestion(qid) {
+  if (qid === "q01") return state.answers.q01_sequence || [];
+  return state.answers[qid];
+}
+function answerDescription(qid) {
+  if (qid === "q01") return "依序排列細胞、組織、器官、器官系統與個體。";
+  if (qid === "q02") return "把肌肉細胞、肌肉組織、心臟、循環系統與一個人分類到正確層次。";
+  if (qid === "q10") return "把草履蟲、變形蟲、酵母菌、人、榕樹與蝴蝶分類為單細胞或多細胞生物。";
+  if (qid === "q12") return "把根、莖、葉、花、果實、種子分類為營養器官或生殖器官。";
+  const question = questionById(qid);
+  return question?.options?.find((option) => option.id === question.answer)?.text || "";
 }
 function calculateResult() {
   const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
@@ -853,7 +983,7 @@ function renderReview() {
 }
 function renderReflection() {
   const reflection = state.answers.reflection || {};
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2>
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2>
     <div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；具體且與組成層次、單多細胞或植物器官相關的問題，才可能取得回報 EXP。前台只做初篩，正式分數由後台重算。</p></div>
     <div class="form-grid">
       <label>我最能說明的組成層次關係是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label>
@@ -861,12 +991,12 @@ function renderReflection() {
       <label>選一個希望老師課堂解釋的方向，並用自己的話補充<span class="field-help">方向詞可以參考，但不要直接複製。</span><textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label>
       <label>信心分數<span class="field-help">5 分代表我能自己說明本單元重點概念。</span><select id="confidenceScore">${[1,2,3,4,5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label>
     </div>
-    <div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div>${owlPanel(assets.owlResult)}</div>`;
+    <div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div></div>`;
 }
 function buildAttempt() {
   const now = new Date().toISOString();
   return {
-    attempt_id: state.attempt_session_id,
+    attempt_id: state.attempt_id || state.attempt_session_id,
     timestamp: now,
     student: state.student,
     mission,
@@ -874,6 +1004,8 @@ function buildAttempt() {
     attempt_type_candidate: state.attempt_type,
     attempt_no: Number(state.remote_completed_attempts || 0) + 1,
     attempt_session_id: state.attempt_session_id,
+    attempt_session_token: state.attempt_session_token,
+    question_version: state.question_version || VERSION,
     started_from_login: true,
     previous_attempt_id: previousAttemptId(),
     retry_validation_status: state.attempt_type === "retry" ? "pending_backend_validation" : "not_retry",
@@ -893,6 +1025,7 @@ function buildAttempt() {
   };
 }
 function buildBackendPayload(attempt) {
+  const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
   return {
     attempt_id: attempt.attempt_id,
     student_id: attempt.student.student_id,
@@ -905,6 +1038,8 @@ function buildBackendPayload(attempt) {
     attempt_type_candidate: attempt.attempt_type_candidate,
     attempt_no_candidate: attempt.attempt_no,
     attempt_session_id: attempt.attempt_session_id,
+    attempt_session_token: attempt.attempt_session_token,
+    question_version: attempt.question_version,
     started_from_login: attempt.started_from_login,
     previous_attempt_id: attempt.previous_attempt_id,
     retry_validation_status: attempt.retry_validation_status,
@@ -955,13 +1090,20 @@ function buildBackendPayload(attempt) {
     misconceptions_json: JSON.stringify(attempt.misconceptions),
     raw_answers_json: JSON.stringify(attempt.raw_answers),
     badge_eval_json: JSON.stringify(badges.map((badge) => ({ badge_id: badge.id, earned_candidate: attempt.badges.includes(badge.id), badge_image_path: badge.badge_image_path }))),
-    question_logs: [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].map((qid) => ({
+    question_logs: qids.map((qid) => ({
       question_id: `${mission.unit_id}_${qid}`,
+      question_version: attempt.question_version,
+      question_type: questionType(qid),
       skill_tag: questionConcept(qid),
+      concept_id: questionConcept(qid),
+      checkpoint_id: qid === "q01" || qid === "q02" || qid === "q03" || qid === "q04" ? "checkpoint1" : qid === "q05" || qid === "q06" || qid === "q07" || qid === "q08" ? "checkpoint2" : "checkpoint3",
       is_correct: isCorrect(qid),
+      hint_used: Boolean(state.hints[qid]),
       used_hint: Boolean(state.hints[qid]),
-      attempt_answer: JSON.stringify(qid === "q01" ? state.answers.q01_sequence : state.answers[qid]),
+      attempt_answer: JSON.stringify(answerForQuestion(qid)),
+      answer_json: JSON.stringify(answerForQuestion(qid)),
       correct_answer: qid === "q01" ? correctSequence.join(" > ") : classifyQuestions[qid] ? JSON.stringify(Object.fromEntries(classifyQuestions[qid].items.map((item) => [item.id, item.answer]))) : questionById(qid).answer,
+      answer_description: answerDescription(qid),
       exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept",
       exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total)
     }))
@@ -1135,6 +1277,7 @@ function render() {
     achievements: renderAchievements,
     rules: renderRules
   };
+  updateBadgeOverviewBridge();
   screen.dataset.bioquestScreen = state.screen;
   screen.innerHTML = views[state.screen]();
   attachEvents();
