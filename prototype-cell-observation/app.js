@@ -13,7 +13,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260716-cell-observation-achievement-overview-v2";
+const VERSION = "20260716-cell-observation-canonical-v1";
+const QUESTION_VERSION = "20260716-cell-observation-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -302,6 +303,13 @@ const defaultState = {
   cumulative_total_exp: 0,
   completed_unit_count: 0,
   started_at: null,
+  attempt_id: "",
+  attempt_session_id: "",
+  attempt_session_token: "",
+  question_version: QUESTION_VERSION,
+  session_expires_at: "",
+  pending_hint_ids: [],
+  failed_hint_ids: [],
   completedScreens: ["login", "rules"],
   answers: {
     q01_sequence: [],
@@ -547,6 +555,56 @@ async function fetchStudentStatus(id) {
   if (!response.ok) throw new Error(`backend_${response.status}`);
   return response.json();
 }
+async function postBackendAction(action, payload) {
+  const body = new URLSearchParams();
+  body.set("payload", JSON.stringify(payload));
+  const response = await fetch(`${BACKEND_URL}?action=${encodeURIComponent(action)}&_=${Date.now()}`, { method: "POST", body, cache: "no-store" });
+  if (!response.ok) throw new Error(`backend_${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || `${action}_failed`);
+  return data;
+}
+async function startAttemptSession(studentId) {
+  return postBackendAction("startAttempt", { student_id: studentId, unit_id: mission.unit_id });
+}
+function isServerVerifiedSession(session) {
+  return Boolean(
+    session
+    && session.verification_mode === "server_verified"
+    && session.attempt_id
+    && session.attempt_session_token
+    && session.question_version === QUESTION_VERSION
+  );
+}
+async function flushHintEvents(ids = null) {
+  if (!state.student || state.student.is_guest) return true;
+  const targets = [...new Set((ids || [...state.pending_hint_ids, ...state.failed_hint_ids]).filter(Boolean))];
+  if (!targets.length) return true;
+  const failed = [];
+  for (const qid of targets) {
+    try {
+      await postBackendAction("hintEvent", {
+        student_id: state.student.student_id,
+        unit_id: mission.unit_id,
+        attempt_id: state.attempt_id,
+        attempt_session_token: state.attempt_session_token,
+        question_id: `${mission.unit_id}_${qid}`
+      });
+    } catch {
+      failed.push(qid);
+    }
+  }
+  const failedSet = new Set(failed);
+  state.pending_hint_ids = state.pending_hint_ids.filter((qid) => !targets.includes(qid) || failedSet.has(qid));
+  state.failed_hint_ids = [...new Set(failed)];
+  saveState();
+  return failed.length === 0;
+}
+function recordHintEvent(qid) {
+  if (!state.student || state.student.is_guest) return;
+  if (!state.pending_hint_ids.includes(qid) && !state.failed_hint_ids.includes(qid)) state.pending_hint_ids.push(qid);
+  flushHintEvents([qid]);
+}
 function normalizeBackendStudent(data, id) {
   if (!data?.ok) return null;
   const source = data.student || data;
@@ -575,25 +633,33 @@ async function login(id) {
   let completed = 0;
   let remoteProgress = {};
   let remoteAttemptStatus = {};
+  let serverSession = null;
   try {
-    const data = await fetchStudentStatus(id);
-    student = normalizeBackendStudent(data, id);
-    if (!student) {
-      if (id === "guest") {
-        student = roster.guest;
-        completed = studentAttempts(student.student_id).length;
-        message.innerHTML = `<span class="pill warn">guest 已切換為本機測試模式，不列入正式統計。</span>`;
-      } else {
+    if (id === "guest") {
+      student = roster.guest;
+      completed = studentAttempts(student.student_id).length;
+      message.innerHTML = `<span class="pill warn">guest 已切換為本機測試模式，不列入正式統計。</span>`;
+    } else {
+      const data = await fetchStudentStatus(id);
+      student = normalizeBackendStudent(data, id);
+      if (!student) {
         message.innerHTML = `<span class="pill warn">${data?.message || "查無此學號，請重新輸入。"}</span>`;
+        window.BioQuestLoginUX?.end();
         return;
       }
+      remoteProgress = data.progress || data.student_progress || {};
+      remoteAttemptStatus = data.attempt_status || {};
+      completed = Number(remoteAttemptStatus.completed_attempt_count ?? data.completed_attempts ?? 0);
+      serverSession = await startAttemptSession(student.student_id);
+      if (!isServerVerifiedSession(serverSession)) throw new Error("backend_registry_not_ready");
     }
-    remoteProgress = data.progress || data.student_progress || {};
-    remoteAttemptStatus = data.attempt_status || {};
-    completed = Number(remoteAttemptStatus.completed_attempt_count ?? data.completed_attempts ?? 0);
-  } catch {
+  } catch (error) {
     if (id !== "guest") {
-      message.innerHTML = `<span class="pill warn">後台目前無法連線，尚未登入。請檢查網路後重試或通知老師。</span>`;
+      const copy = error?.message === "backend_registry_not_ready"
+        ? "後台版本尚未更新，請通知老師。"
+        : "後台目前無法連線，尚未登入。請檢查網路後重試或通知老師。";
+      message.innerHTML = `<span class="pill warn">${copy}</span>`;
+      window.BioQuestLoginUX?.end();
       return;
     }
     student = roster.guest;
@@ -603,10 +669,15 @@ async function login(id) {
   state = clone(defaultState);
   state.student = { ...student, progress: { ...(student.progress || {}), ...remoteProgress } };
   state.remote_completed_attempts = completed;
-  state.attempt_type = completed > 0 ? "retry" : "first";
+  state.attempt_type = serverSession?.attempt_type || (completed > 0 ? "retry" : "first");
   state.started_at = new Date().toISOString();
-  state.attempt_session_id = `${mission.unit_id}_${student.student_id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  state.remote_previous_attempt_id = remoteAttemptStatus.previous_attempt_id || remoteAttemptStatus.latest_attempt_id || remoteProgress.latest_attempt_id || "";
+  const guestAttemptId = `${mission.unit_id}_${student.student_id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  state.attempt_id = serverSession?.attempt_id || guestAttemptId;
+  state.attempt_session_id = serverSession?.attempt_session_id || state.attempt_id;
+  state.attempt_session_token = serverSession?.attempt_session_token || "";
+  state.question_version = serverSession?.question_version || QUESTION_VERSION;
+  state.session_expires_at = serverSession?.expires_at || "";
+  state.remote_previous_attempt_id = serverSession?.previous_attempt_id || remoteAttemptStatus.previous_attempt_id || remoteAttemptStatus.latest_attempt_id || remoteProgress.latest_attempt_id || "";
   const remoteAccuracy = remoteAttemptStatus.previous_accuracy ?? remoteAttemptStatus.best_accuracy;
   state.remote_previous_accuracy = remoteAccuracy === null || remoteAccuracy === undefined || remoteAccuracy === "" ? null : Number.isFinite(Number(remoteAccuracy)) ? Number(remoteAccuracy) : null;
   state.cumulative_badges = parseArray(remoteProgress.badges_json || remoteProgress.badges);
@@ -758,6 +829,7 @@ function allRequiredAnswered() {
 function markHint(qid) {
   if (!state.hints[qid]) state.hints[qid] = true;
   state.checkedWrong[qid] = true;
+  recordHintEvent(qid);
 }
 function checkSection(section) {
   const qids = sectionMap[section];
@@ -992,7 +1064,7 @@ function renderReflection() {
 function buildAttempt() {
   const now = new Date().toISOString();
   return {
-    attempt_id: state.attempt_session_id,
+    attempt_id: state.attempt_id || state.attempt_session_id,
     timestamp: now,
     student: state.student,
     mission,
@@ -1000,6 +1072,8 @@ function buildAttempt() {
     attempt_type_candidate: state.attempt_type,
     attempt_no: Number(state.remote_completed_attempts || 0) + 1,
     attempt_session_id: state.attempt_session_id,
+    attempt_session_token: state.attempt_session_token,
+    question_version: state.question_version || QUESTION_VERSION,
     started_from_login: true,
     previous_attempt_id: previousAttemptId(),
     retry_validation_status: state.attempt_type === "retry" ? "pending_backend_validation" : "not_retry",
@@ -1021,6 +1095,8 @@ function buildAttempt() {
 function buildBackendPayload(attempt) {
   return {
     attempt_id: attempt.attempt_id,
+    attempt_session_token: attempt.attempt_session_token,
+    question_version: attempt.question_version,
     student_id: attempt.student.student_id,
     student_name: attempt.student.student_name,
     class_name: attempt.student.class_name,
@@ -1087,16 +1163,31 @@ function buildBackendPayload(attempt) {
     misconceptions_json: JSON.stringify(attempt.misconceptions),
     raw_answers_json: JSON.stringify(attempt.raw_answers),
     badge_eval_json: JSON.stringify(badges.map((badge) => ({ badge_id: badge.id, earned_candidate: attempt.badges.includes(badge.id), badge_image_path: badge.badge_image_path }))),
-    question_logs: [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].map((qid) => ({
-      question_id: `${mission.unit_id}_${qid}`,
-      skill_tag: questionConcept(qid),
-      is_correct: isCorrect(qid),
-      used_hint: Boolean(state.hints[qid]),
-      attempt_answer: JSON.stringify(qid === "q01" ? state.answers.q01_sequence : qid === "q14" ? state.answers.q14 : state.answers[qid]),
-      correct_answer: qid === "q01" ? correctSequence.join(" > ") : qid === "q14" ? "依觀察線索分類動植物細胞" : questionById(qid).answer,
-      exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept",
-      exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total)
-    }))
+    question_logs: [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].map((qid) => {
+      const rawAnswer = qid === "q01" ? state.answers.q01_sequence : qid === "q14" ? state.answers.q14 : state.answers[qid];
+      const questionType = qid === "q01" ? "sequence" : qid === "q14" ? "mapping" : "choice";
+      return {
+        question_id: `${mission.unit_id}_${qid}`,
+        question_version: attempt.question_version,
+        question_type: questionType,
+        skill_tag: questionConcept(qid),
+        concept_id: questionConcept(qid),
+        unit_id: mission.unit_id,
+        unit_title: mission.unit_title,
+        student_id: attempt.student.student_id,
+        student_name: attempt.student.student_name,
+        is_correct: isCorrect(qid),
+        used_hint: Boolean(state.hints[qid]),
+        hint_used: Boolean(state.hints[qid]),
+        attempt_answer: JSON.stringify(rawAnswer),
+        answer_json: JSON.stringify(rawAnswer),
+        correct_answer: qid === "q01" ? correctSequence.join(" > ") : qid === "q14" ? "依觀察線索分類動植物細胞" : questionById(qid).answer,
+        misconception_tag: isCorrect(qid) ? "" : questionMisconception(qid),
+        misconception_tags_json: JSON.stringify(isCorrect(qid) ? [] : [questionMisconception(qid)]),
+        exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept",
+        exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total)
+      };
+    })
   };
 }
 function scoreForConcept(attempt, ...concepts) {
@@ -1135,6 +1226,15 @@ function attachReflection() {
       confidence_score: Number(document.querySelector("#confidenceScore").value)
     };
     Object.assign(state.answers.reflection, evaluateReflectionQuality(state.answers.reflection));
+    if (!state.student?.is_guest) {
+      const hintEventsReady = await flushHintEvents();
+      if (!hintEventsReady) {
+        button.disabled = false;
+        button.textContent = "提交任務";
+        window.alert("提示紀錄尚未同步，請稍後重試；系統不會用未同步資料提交正式成績。");
+        return;
+      }
+    }
     state.result = calculateResult();
     state.submitted_at = new Date().toISOString();
     let attempt = buildAttempt();
