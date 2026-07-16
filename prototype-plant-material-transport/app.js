@@ -744,25 +744,21 @@ function renderLogin() {
 }
 
 function renderBrief() {
-  const titleInfo = titleAndProgress();
-  const sceneAttrs = `${assets.briefingSceneHook ? ` data-asset-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
+  const sceneAttrs = `${assets.briefingSceneHook ? ` data-briefing-scene-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
+  const sceneMedia = assets.briefingSceneHook
+    ? `<picture class="bq-brief-scene-media">${assets.briefingSceneMobileHook ? `<source media="(max-width: 680px)" srcset="${assets.briefingSceneMobileHook}">` : ""}<img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="阿澤老師在植物體內物質運輸任務場景中引導學生"></picture>`
+    : `<div class="bq-brief-scene-missing" data-briefing-scene-missing="true"><strong>主視覺素材待接</strong><span>等待核准：assets/plant-material-transport-briefing-azhe-wide.webp</span></div>`;
   return `
     <div class="wide-layout">
       <section class="panel hero-panel brief-hero">
-        <div class="brief-scene plant-material-transport-brief-scene"${sceneAttrs}>
-          <div class="scene-copy">
-            <p class="eyebrow">${mission.mission_area}</p>
-            <h2>${mission.mission_title}</h2>
-            <p>綠植運輸調度站收到一株植物的移動紀錄：根取得水分與礦物質，葉製造養分，氣孔影響水分散失與氣體交換。請用來源、管線、方向與證據協助判讀。</p>
-          </div>
-          <div class="title-avatar-brief">
-            <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
-            <div>
-              <span>目前稱號</span>
-              <strong>${escapeHtml(titleInfo.current.title)}</strong>
-              <p>${titleInfo.totalExp} EXP</p>
-            </div>
-          </div>
+        <figure class="brief-scene plant-material-transport-brief-scene bq-brief-scene-stage" data-bq-brief-dual-role="true"${sceneAttrs}>
+          ${sceneMedia}
+          <img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'">
+        </figure>
+        <div class="scene-copy bq-brief-scene-caption">
+          <p class="eyebrow">${mission.mission_area}</p>
+          <h2>${mission.mission_title}</h2>
+          <p>綠植運輸調度站收到一株植物的移動紀錄：根取得水分與礦物質，葉製造養分，氣孔影響水分散失與氣體交換。請用來源、管線、方向與證據協助判讀。</p>
         </div>
         <div class="button-row">
           <button class="primary" data-next="scan">查看進關卡提醒</button>

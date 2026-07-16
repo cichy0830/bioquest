@@ -148,20 +148,6 @@ textarea { resize: vertical; min-height: 116px; }
   background-size: cover;
   background-position: center;
 }
-.human-nutrition-brief-scene::after {
-  content: "";
-  position: absolute;
-  right: 9%;
-  bottom: 9%;
-  width: min(36%, 310px);
-  aspect-ratio: 1;
-  border-radius: 44% 56% 46% 54%;
-  background:
-    radial-gradient(circle at 46% 42%, #f7f4d1 0 7%, transparent 7.5%),
-    radial-gradient(circle at 62% 36%, rgba(255,255,255,.8) 0 5%, transparent 5.5%),
-    linear-gradient(135deg, rgba(31,121,68,.75), rgba(157,213,96,.62));
-  opacity: .72;
-}
 .scene-copy {
   position: relative;
   z-index: 1;
@@ -172,21 +158,6 @@ textarea { resize: vertical; min-height: 116px; }
   border-radius: 8px;
 }
 .scene-copy h2 { margin-bottom: 10px; font-size: clamp(30px, 5vw, 58px); line-height: 1.05; }
-.title-avatar-brief {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  gap: 10px;
-  justify-items: center;
-  padding: 14px;
-  border: 1px solid rgba(255,255,255,.32);
-  border-radius: 8px;
-  color: #173025;
-  background: rgba(255,255,255,.82);
-}
-.title-avatar-brief img { width: min(190px, 44vw); aspect-ratio: 1; object-fit: contain; }
-.title-avatar-brief span, .title-avatar-brief p { margin: 0; color: var(--muted); font-size: 13px; font-weight: 800; }
-
 .prep-owl-hero {
   display: grid;
   grid-template-columns: minmax(150px, 240px) minmax(0, 1fr);
@@ -439,7 +410,6 @@ textarea { resize: vertical; min-height: 116px; }
     color: #173025;
     background: linear-gradient(0deg, rgba(255,255,255,.96), rgba(255,255,255,.68));
   }
-  .title-avatar-brief { justify-self: start; width: min(230px, 100%); }
   .prep-owl-hero { grid-template-columns: 1fr; text-align: center; }
   .prep-owl-hero img { width: min(250px, 70vw); margin: 0 auto; }
   .sequence-item { grid-template-columns: 42px minmax(0,1fr); }
@@ -452,7 +422,6 @@ textarea { resize: vertical; min-height: 116px; }
   .panel { padding: 16px; }
   .hero-title { font-size: 34px; }
   .brief-scene { min-height: 560px; }
-  .human-nutrition-brief-scene::after { right: -2%; bottom: 38%; width: 56%; }
   .badge-visual { width: 74px; height: 74px; }
   .badge { min-height: 164px; }
 }

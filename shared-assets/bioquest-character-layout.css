@@ -253,6 +253,49 @@ body[data-unit-id="photosynthesis"] .bq-brief-scene-stage {
   --bq-brief-avatar-max-height: 94%;
 }
 
+body[data-unit-id="human_nutrition"] .bq-brief-scene-stage,
+body[data-unit-id="plant_transport_structures"] .bq-brief-scene-stage,
+body[data-unit-id="plant_material_transport"] .bq-brief-scene-stage {
+  --bq-brief-avatar-left: 74%;
+  --bq-brief-avatar-bottom: 0.5%;
+  --bq-brief-avatar-height: 92%;
+  --bq-brief-avatar-max-width: 26%;
+  --bq-brief-avatar-max-height: 94%;
+}
+
+.bq-brief-scene-stage::before,
+.bq-brief-scene-stage::after {
+  content: none !important;
+  display: none !important;
+}
+
+.bq-brief-scene-missing {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  display: grid !important;
+  align-content: center !important;
+  justify-items: start !important;
+  gap: 8px !important;
+  padding: clamp(18px, 4vw, 42px) !important;
+  color: #eaf9f8 !important;
+  background:
+    linear-gradient(90deg, rgba(8, 47, 58, 0.92), rgba(8, 47, 58, 0.56) 58%, rgba(8, 47, 58, 0.28)),
+    repeating-linear-gradient(135deg, rgba(255,255,255,0.08) 0 1px, transparent 1px 16px) !important;
+}
+
+.bq-brief-scene-missing strong {
+  font-size: clamp(20px, 4vw, 38px) !important;
+  line-height: 1.1 !important;
+}
+
+.bq-brief-scene-missing span {
+  max-width: min(58%, 620px) !important;
+  font-size: clamp(13px, 2vw, 16px) !important;
+  font-weight: 800 !important;
+  color: rgba(234, 249, 248, 0.86) !important;
+}
+
 .bq-brief-scene-stage .bq-brief-scene-media,
 .bq-brief-scene-stage > picture {
   position: absolute !important;

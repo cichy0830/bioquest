@@ -30,9 +30,9 @@ const assets = {
   owlReport: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  // Visual team handoff names: attach the approved WebP paths here when they land.
-  briefingSceneHook: "plant-transport-structures-briefing-azhe-wide",
-  briefingSceneMobileHook: "plant-transport-structures-briefing-azhe-mobile",
+  // Visual team handoff names: attach approved WebP paths only after they land.
+  briefingSceneHook: "",
+  briefingSceneMobileHook: "",
   ambientBackgroundHook: "plant-transport-structures-entry-wide",
   questionRootHair: "plant-transport-structures-root-hair",
   questionVascularBundle: "plant-transport-structures-vascular-bundle",
@@ -727,24 +727,21 @@ function renderLogin() {
 }
 
 function renderBrief() {
-  const titleInfo = titleAndProgress();
+  const sceneAttrs = `${assets.briefingSceneHook ? ` data-briefing-scene-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
+  const sceneMedia = assets.briefingSceneHook
+    ? `<picture class="bq-brief-scene-media">${assets.briefingSceneMobileHook ? `<source media="(max-width: 680px)" srcset="${assets.briefingSceneMobileHook}">` : ""}<img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="阿澤老師在植物運輸構造任務場景中引導學生"></picture>`
+    : `<div class="bq-brief-scene-missing" data-briefing-scene-missing="true"><strong>主視覺素材待接</strong><span>等待核准：assets/plant-transport-structures-briefing-azhe-wide.webp</span></div>`;
   return `
     <div class="wide-layout">
       <section class="panel hero-panel brief-hero">
-        <div class="brief-scene plant-transport-structures-brief-scene" data-asset-hook="${assets.briefingSceneHook}" data-mobile-hook="${assets.briefingSceneMobileHook}">
-          <div class="scene-copy">
-            <p class="eyebrow">${mission.mission_area}</p>
-            <h2>${mission.mission_title}</h2>
-            <p>綠植運輸管線站收到一份植物由根到葉的運輸紀錄。請協助整理根毛、維管束、木質部、韌皮部、葉脈與蒸散作用的基本關係。</p>
-          </div>
-          <div class="title-avatar-brief">
-            <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
-            <div>
-              <span>目前稱號</span>
-              <strong>${escapeHtml(titleInfo.current.title)}</strong>
-              <p>${titleInfo.totalExp} EXP</p>
-            </div>
-          </div>
+        <figure class="brief-scene plant-transport-structures-brief-scene bq-brief-scene-stage" data-bq-brief-dual-role="true"${sceneAttrs}>
+          ${sceneMedia}
+          <img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'">
+        </figure>
+        <div class="scene-copy bq-brief-scene-caption">
+          <p class="eyebrow">${mission.mission_area}</p>
+          <h2>${mission.mission_title}</h2>
+          <p>綠植運輸管線站收到一份植物由根到葉的運輸紀錄。請協助整理根毛、維管束、木質部、韌皮部、葉脈與蒸散作用的基本關係。</p>
         </div>
         <div class="button-row">
           <button class="primary" data-next="scan">查看進關卡提醒</button>
