@@ -98,15 +98,11 @@ h1, h2, h3, p { margin-top: 0; }
 
 .brief-scene {
   position: relative;
-  min-height: min(58vw, 460px);
+  min-height: 0;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background:
-    linear-gradient(90deg, rgba(5, 49, 61, .74), rgba(5, 49, 61, .08) 48%, rgba(255,255,255,.04)),
-    url("assets/bg-cell-transport-briefing-azhe-wide.webp");
-  background-size: cover;
-  background-position: center;
+  background: rgba(7, 48, 55, 0.82);
 }
 .brief-scene::before {
   content: none;
@@ -125,6 +121,16 @@ h1, h2, h3, p { margin-top: 0; }
   background-image: none;
   background-size: auto;
   background-position: center;
+}
+.bq-brief-scene-stage .bq-brief-scene-media,
+.bq-brief-scene-stage .bq-brief-scene-image {
+  display: block;
+  width: 100%;
+}
+.bq-brief-scene-stage .bq-brief-scene-image {
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
 }
 .scene-copy {
   position: relative;
@@ -358,6 +364,11 @@ textarea { min-height: 96px; resize: vertical; }
 .badge-card.lit.gold { border-color:#d89b32; background:linear-gradient(135deg,#fff9dc,#ffe7a4); box-shadow:0 8px 22px rgba(216,155,50,.22); }
 .badge-icon { display:grid; place-items:center; width:42px; height:42px; margin-bottom:8px; border-radius:50%; background:linear-gradient(135deg,#dff8f6,#fff1c9); color:#12434d; font-weight:900; }
 .badge-image { display:block; width:72px; height:72px; margin:0 auto 8px; object-fit:contain; }
+.badge-mini-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px; }
+.badge-mini-row img { width:64px; height:64px; object-fit:contain; }
+.title-progress-summary { display:grid; gap:8px; }
+.title-progress-bar { height:10px; overflow:hidden; border-radius:999px; background:rgba(16,152,166,.14); }
+.title-progress-bar span { display:block; height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--teal),var(--amber)); }
 
 @media (max-width: 980px) {
   .app-shell { grid-template-columns: 1fr; }
@@ -368,8 +379,7 @@ textarea { min-height: 96px; resize: vertical; }
   .main-stage { padding: 14px; }
   .mission-layout, .mission-hud, .score-grid, .card-grid, .choice-grid, .token-grid, .microscope-layout, .transport-layout, .cell-change-strip { grid-template-columns: 1fr; }
   .hero-panel { min-height: auto; }
-  .brief-scene { min-height: 520px; }
-  .brief-scene { background-position: 58% center; }
+  .brief-scene { min-height: 0; }
   .scene-copy { width: 100%; padding: 22px; padding-top: 58%; color: #12343b; background: linear-gradient(0deg, rgba(255,255,255,.94), rgba(255,255,255,.08)); }
   .mentor-card, .classify-row { grid-template-columns: 1fr; }
   .mentor-avatar { min-height: 230px; height: min(62vw, 320px); place-items: center; }

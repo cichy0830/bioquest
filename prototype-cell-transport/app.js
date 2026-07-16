@@ -3,7 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260711-cell-transport-p1-v3";
+const VERSION = "20260716-cell-transport-u8-ux-v1";
+const QUESTION_VERSION = "20260716-cell-transport-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -24,8 +25,6 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
   owlPrep: "assets/owl-cell-transport-prep-reminder.webp",
   owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
@@ -40,10 +39,10 @@ const assets = {
 
 const badgeAsset = (id) => `../shared-assets/badges/cell_transport/badge-cell_transport-${id}.webp`;
 const reflectionRules = {
-  conceptTerms: ["擴散", "滲透", "半透膜", "細胞膜", "濃度", "溶質", "水分", "紅血球", "植物細胞", "質壁分離", "馬鈴薯", "皺縮", "膨脹"],
+  conceptTerms: ["擴散", "滲透", "半透膜", "細胞膜", "濃度", "溶液濃度", "水分", "紅血球", "植物細胞", "質壁分離", "馬鈴薯", "皺縮", "膨脹"],
   irrelevantTerms: ["老師好帥", "帥", "午餐", "下課", "遊戲", "天氣", "好笑"],
   lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
-  copiedDirections: ["擴散與滲透的差異", "半透膜如何影響水分移動", "為什麼水分常往溶質濃度較高的一側移動", "細胞膜選擇性通透", "紅血球在清水或濃食鹽水中的變化", "植物細胞膨壓與質壁分離", "質量變化資料如何推論水分進出"]
+  copiedDirections: ["擴散與滲透的差異", "半透膜如何影響水分移動", "為什麼水分常往溶液較濃、溶解物質較多的一側淨移動", "細胞膜選擇性通透", "紅血球在清水或濃食鹽水中的變化", "植物細胞膨壓與質壁分離", "質量變化資料如何推論水分進出"]
 };
 const badges = [
   { id: "cell_transport_entry", name: "細胞通行入門徽章", condition: "完成細胞邊界通行任務。" },
@@ -80,7 +79,7 @@ const questions = [
   {
     id: "q03", section: "checkpoint1", concept: "osmosis", misconception: "direction_by_water_amount_only",
     prompt: "半透膜兩側分別是清水與濃糖水，水可以通過，但糖較不容易通過。水分主要會往哪一側移動？",
-    answer: "to_sugar", hint: "注意這題追蹤的是水；把兩側的溶質多寡與水分多寡分開比較。",
+    answer: "to_sugar", hint: "注意這題追蹤的是水；把清水與濃糖水兩側的溶液濃度、水分多寡分開比較。",
     image: assets.osmosisImage, imageAlt: "半透膜兩側粒子分布的未標註示意圖", imageEvidence: "辨認膜的位置，再比較膜兩側可通過的小粒子與受限制粒子的分布。",
     options: [
       { id: "to_sugar", text: "往濃糖水一側" }, { id: "to_water", text: "往清水一側" }, { id: "no_move", text: "完全不會移動" }, { id: "container", text: "只看容器大小決定" }
@@ -127,8 +126,8 @@ const questions = [
   },
   {
     id: "q09", section: "checkpoint3", concept: "animal_cell_concentration_change", misconception: "animal_cell_wall_confusion",
-    prompt: "紅血球放入濃食鹽水中，外界溶質濃度較高。較可能出現哪種變化方向？",
-    answer: "shrink", hint: "先比較細胞外溶質濃度，再想水分通過細胞膜時的移動方向。",
+    prompt: "紅血球放入濃食鹽水中，外界溶液濃度較高。較可能出現哪種變化方向？",
+    answer: "shrink", hint: "先比較細胞外是濃食鹽水還是清水，再想水分通過細胞膜時的移動方向。",
     image: assets.animalCellImage, imageAlt: "動物細胞在不同濃度環境的未標註比較圖", imageEvidence: "比較紅血球外形，並用題幹提供的外界濃度解釋水分淨移動。",
     options: [
       { id: "shrink", text: "水分離開細胞，細胞可能皺縮。" }, { id: "swell", text: "水分大量進入細胞，細胞一定變大。" }, { id: "same", text: "外界濃度不會影響細胞。" }, { id: "wall", text: "細胞壁會阻止紅血球變形。" }
@@ -136,8 +135,8 @@ const questions = [
   },
   {
     id: "q10", section: "checkpoint3", concept: "animal_cell_concentration_change", misconception: "animal_cell_wall_confusion",
-    prompt: "紅血球放入清水中，外界溶質濃度比細胞內低很多。較可能出現哪種變化方向？",
-    answer: "swell", hint: "先判斷外界溶質濃度相對較低時，水分會更傾向往哪一側移動。",
+    prompt: "紅血球放入清水中，外界溶液濃度比細胞內低很多。較可能出現哪種變化方向？",
+    answer: "swell", hint: "先判斷外界是清水、溶解物質較少時，水分較可能往哪一側淨移動。",
     image: assets.animalCellImage, imageAlt: "動物細胞在不同濃度環境的未標註比較圖", imageEvidence: "比較紅血球外形，並用題幹提供的外界濃度解釋水分淨移動。",
     options: [
       { id: "swell", text: "水分進入細胞，細胞可能膨脹甚至破裂。" }, { id: "shrink", text: "水分離開細胞，細胞皺縮。" }, { id: "wall", text: "紅血球因細胞壁保護完全不變。" }, { id: "no_water", text: "清水中沒有水分能移動。" }
@@ -163,10 +162,10 @@ const questions = [
   },
   {
     id: "q13", section: "checkpoint3", concept: "osmosis", misconception: "direction_by_water_amount_only",
-    prompt: "有同學說：「水一定往水比較多的地方移動，所以不需要看溶質濃度。」哪個修正較合理？",
-    answer: "solute", hint: "先不要只看液體多少，改比較兩側溶質濃度與半透膜條件。",
+    prompt: "有同學說：「水一定往水比較多的地方移動，所以不需要看溶液濃度。」哪個修正較合理？",
+    answer: "solute", hint: "先不要只看液體多少，改比較兩側溶液濃度與半透膜條件。",
     options: [
-      { id: "solute", text: "判斷滲透時要看半透膜兩側溶質濃度差，水分常往溶質濃度較高的一側移動。" }, { id: "no_pass", text: "水分完全不會通過半透膜。" }, { id: "always_stop", text: "只要有水就一定平均不動。" }, { id: "color_only", text: "溶質濃度只影響顏色不影響水分。" }
+      { id: "solute", text: "判斷滲透時要看半透膜兩側溶液濃度差；水分淨移動常往溶解物質較多、溶液較濃的一側。" }, { id: "no_pass", text: "水分完全不會通過半透膜。" }, { id: "always_stop", text: "只要有水就一定平均不動。" }, { id: "color_only", text: "溶液濃度只影響顏色不影響水分。" }
     ]
   },
   {
@@ -200,6 +199,10 @@ const defaultState = {
   remote_completed_attempts: 0,
   remote_previous_attempt_id: "",
   remote_previous_accuracy: null,
+  attempt_id: "",
+  attempt_session_token: "",
+  question_version: "",
+  session_expires_at: "",
   cumulative_badges: [],
   cumulative_total_exp: 0,
   completed_unit_count: 0,
@@ -260,6 +263,37 @@ function parseArray(value) {
   if (!value) return [];
   try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
 }
+function deepFreeze(value) {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+  Object.keys(value).forEach((key) => deepFreeze(value[key]));
+  return Object.freeze(value);
+}
+function updateBadgeOverviewBridge() {
+  if (!state.student) {
+    delete window.__BIOQUEST_BADGE_OVERVIEW_STATE__;
+    delete window.__BIOQUEST_BADGE_OVERVIEW_PROGRESS__;
+    return;
+  }
+  const progress = clone(state.student.progress || {});
+  const snapshot = {
+    unit_id: mission.unit_id,
+    backend_status: state.backend_status || "",
+    submitted_at: state.submitted_at || "",
+    student: {
+      student_id: state.student.student_id || "",
+      profile_gender: state.student.profile_gender || "",
+      current_title_id: state.student.current_title_id || progress.current_title_id || "",
+      current_title: state.student.current_title || progress.current_title || "",
+      title_avatar_path: state.student.title_avatar_path || progress.title_avatar_path || "",
+      is_guest: Boolean(state.student.is_guest),
+      progress
+    },
+    progress,
+    student_progress: progress
+  };
+  window.__BIOQUEST_BADGE_OVERVIEW_STATE__ = deepFreeze(snapshot);
+  window.__BIOQUEST_BADGE_OVERVIEW_PROGRESS__ = deepFreeze(clone(progress));
+}
 function latestLocalAttempt() {
   if (!state.student) return null;
   return studentAttempts(state.student.student_id)
@@ -276,6 +310,14 @@ function applyBackendProgress(progress = {}) {
   state.cumulative_badges = parseArray(progress.badges_json || progress.badges || state.cumulative_badges);
   state.cumulative_total_exp = Number(progress.total_exp ?? progress.total_credited_exp ?? state.cumulative_total_exp ?? 0);
   state.completed_unit_count = Number(progress.completed_unit_count ?? state.completed_unit_count ?? 0);
+  if (state.student) {
+    state.student.progress = { ...(state.student.progress || {}), ...progress };
+    state.student.current_title_id = progress.current_title_id || state.student.current_title_id || "";
+    state.student.current_title = progress.current_title || state.student.current_title || "";
+    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path || "";
+    state.student.profile_gender = progress.profile_gender || state.student.profile_gender || "";
+    state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
+  }
 }
 function questionById(qid) { return questions.find((question) => question.id === qid); }
 function shuffle(ids) {
@@ -331,27 +373,41 @@ function normalizeTitleAvatarPath(rawPath = "") {
 function titleAvatarPath() {
   return normalizeTitleAvatarPath(state.student?.title_avatar_path || state.student?.progress?.title_avatar_path);
 }
-function mentorCard(title, text) {
-  return `<div class="mentor-card"><div class="mentor-avatar"><img src="${assets.mentorFallback}" alt="阿澤老師" onerror="this.closest('.mentor-card').hidden=true"></div><div class="mentor-copy"><span>阿澤老師</span><strong>${title}</strong><p>${text}</p></div></div>`;
-}
 function owlPanel(image, alt = "貓頭鷹助理") { return `<div class="owl-frame"><img src="${image}" alt="${alt}" onerror="this.closest('.owl-frame').hidden=true"></div>`; }
-function layout(content, owlImage = assets.owlLogin) { return `<div class="mission-layout"><div class="panel hero-panel">${content}</div>${owlPanel(owlImage)}</div>`; }
 
 function renderLogin() {
   const value = state.student?.student_id && state.student.student_id !== "guest" ? state.student.student_id : "";
-  return layout(`
+  return `<div class="wide-layout"><div class="panel">
     <p class="eyebrow">生命祕境 BioQuest</p><h2 class="hero-title">任務登入</h2>
-    ${mentorCard("先確認身分", "請輸入學號並確認姓名。登入後會開啟本次任務簡報。")}
     <div class="story-panel"><strong>固定登入招呼</strong><p>輸入學號後，系統會顯示姓名。老師測試流程時可使用 guest。</p></div>
     <div class="mission-hud"><div><span>任務代號</span><strong>cell_transport</strong></div><div><span>預估時間</span><strong>10-15 分鐘</strong></div><div><span>後台</span><strong>Google Sheet</strong></div></div>
     <div class="form-grid"><label>學號<input id="studentIdInput" value="${value}" placeholder="例如 S70101 或 guest" autocomplete="off"></label></div>
     <div class="actions"><button class="primary" id="loginButton">登入任務</button><button class="secondary" id="guestButton">老師測試 guest</button><button class="ghost" id="resetButton">清除本機測試紀錄</button></div><div id="loginMessage" class="status-line"></div>
-  `);
+  </div></div>`;
 }
 async function fetchStudentStatus(id) {
   const response = await fetch(`${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}&unit_id=${encodeURIComponent(mission.unit_id)}&_=${Date.now()}`, { cache: "no-store" });
   if (!response.ok) throw new Error(`backend_${response.status}`);
   return response.json();
+}
+async function postBackendAction(action, payload) {
+  const body = new URLSearchParams();
+  Object.entries(payload).forEach(([key, value]) => body.set(key, typeof value === "object" ? JSON.stringify(value) : String(value ?? "")));
+  const response = await fetch(`${BACKEND_URL}?action=${encodeURIComponent(action)}&_=${Date.now()}`, { method: "POST", body, cache: "no-store" });
+  if (!response.ok) throw new Error(`backend_${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || `${action}_failed`);
+  return data;
+}
+function startAttemptSession(studentId) {
+  return postBackendAction("startAttempt", { student_id: studentId, unit_id: mission.unit_id });
+}
+function validServerSession(session) {
+  return session?.verification_mode === "server_verified"
+    && session.attempt_id
+    && session.attempt_session_id
+    && session.attempt_session_token
+    && session.question_version === QUESTION_VERSION;
 }
 function normalizeBackendStudent(data, id) {
   if (!data?.ok) return null;
@@ -359,7 +415,8 @@ function normalizeBackendStudent(data, id) {
   return {
     student_id: source.student_id || id, class_name: source.class_name || source.class || "未設定", seat_no: source.seat_no || source.seat || "00",
     student_name: source.student_name || source.name || "未設定", profile_gender: source.profile_gender || source.gender || "",
-    current_title_id: source.current_title_id || "", title_avatar_path: source.title_avatar_path || "", is_guest: id === "guest" || Boolean(source.is_guest)
+    current_title_id: source.current_title_id || "", current_title: source.current_title || "", title_avatar_path: source.title_avatar_path || "",
+    title_avatar_variant: source.title_avatar_variant || "", total_exp: Number(source.total_exp || 0), is_guest: id === "guest" || Boolean(source.is_guest)
   };
 }
 async function login(id) {
@@ -367,27 +424,59 @@ async function login(id) {
   if (!id) { message.innerHTML = "<span class=\"pill warn\">請輸入學號。</span>"; return; }
   window.BioQuestLoginUX?.begin({ guest: id === "guest" });
   await window.BioQuestLoginUX?.paint();
+  if (id === "guest") {
+    state = clone(defaultState);
+    state.student = { ...roster.guest };
+    state.remote_completed_attempts = studentAttempts("guest").length;
+    state.attempt_type = state.remote_completed_attempts > 0 ? "retry" : "first";
+    state.started_at = new Date().toISOString();
+    state.attempt_id = `guest_${mission.unit_id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    state.attempt_session_id = state.attempt_id;
+    state.attempt_session_token = "guest_local_session";
+    state.question_version = QUESTION_VERSION;
+    state.backend_status = "local_guest";
+    unlock("brief", "rules", "achievements");
+    ensureSequence();
+    saveState();
+    setScreen("brief");
+    return;
+  }
   let student; let completed = 0; let remoteProgress = {}; let remoteAttemptStatus = {};
   try {
     const data = await fetchStudentStatus(id);
     student = normalizeBackendStudent(data, id);
-    if (!student) { message.innerHTML = `<span class="pill warn">${data?.message || "查無此學號，請重新輸入。"}</span>`; return; }
+    if (!student) {
+      window.BioQuestLoginUX?.end();
+      message.innerHTML = `<span class="pill warn">${data?.message || "查無此學號，請重新輸入。"}</span>`;
+      return;
+    }
     remoteProgress = data.progress || data.student_progress || {};
     remoteAttemptStatus = data.attempt_status || {};
     completed = Number(remoteAttemptStatus.completed_attempt_count ?? data.completed_attempts ?? 0);
-  } catch {
-    if (id !== "guest") { message.innerHTML = "<span class=\"pill warn\">後台目前無法連線，尚未登入。請檢查網路後重試或通知老師。</span>"; return; }
-    student = roster.guest;
-    completed = studentAttempts(student.student_id).length;
-    message.innerHTML = "<span class=\"pill warn\">guest 已切換為本機測試模式，不列入正式統計。</span>";
+    const session = await startAttemptSession(student.student_id);
+    if (!validServerSession(session)) {
+      throw new Error(session?.verification_mode === "pending_canonical_registry" || session?.question_version === "pending_registry" ? "backend_registry_not_ready" : "backend_session_not_ready");
+    }
+    state = clone(defaultState);
+    state.student = { ...student, progress: remoteProgress };
+    state.remote_completed_attempts = completed;
+    state.attempt_type = session.attempt_type || (completed > 0 ? "retry" : "first");
+    state.started_at = session.issued_at || new Date().toISOString();
+    state.attempt_id = session.attempt_id;
+    state.attempt_session_id = session.attempt_session_id;
+    state.attempt_session_token = session.attempt_session_token;
+    state.question_version = session.question_version;
+    state.session_expires_at = session.expires_at || "";
+    state.remote_previous_attempt_id = session.previous_attempt_id || remoteAttemptStatus.previous_attempt_id || remoteAttemptStatus.latest_attempt_id || remoteProgress.latest_attempt_id || "";
+  } catch (error) {
+    window.BioQuestLoginUX?.end();
+    const text = String(error?.message || error);
+    const detail = text.includes("backend_registry_not_ready")
+      ? "後台版本尚未更新，請通知老師。"
+      : "後台目前無法連線或安全任務憑證無法建立，尚未登入。請檢查網路後重試或通知老師。";
+    message.innerHTML = `<span class="pill warn">${detail}</span>`;
+    return;
   }
-  state = clone(defaultState);
-  state.student = { ...student };
-  state.remote_completed_attempts = completed;
-  state.attempt_type = completed > 0 ? "retry" : "first";
-  state.started_at = new Date().toISOString();
-  state.attempt_session_id = `${mission.unit_id}_${student.student_id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  state.remote_previous_attempt_id = remoteAttemptStatus.previous_attempt_id || remoteAttemptStatus.latest_attempt_id || remoteProgress.latest_attempt_id || "";
   const remoteAccuracy = remoteAttemptStatus.previous_accuracy ?? remoteAttemptStatus.best_accuracy;
   state.remote_previous_accuracy = remoteAccuracy === null || remoteAccuracy === undefined || remoteAccuracy === "" ? null : Number.isFinite(Number(remoteAccuracy)) ? Number(remoteAccuracy) : null;
   state.cumulative_badges = parseArray(remoteProgress.badges_json || remoteProgress.badges);
@@ -417,10 +506,11 @@ function renderBrief() {
     <div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
 }
 function renderScan() {
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的判斷線索</h2>
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的判斷線索</h2>
+    ${owlPanel(assets.owlPrep, "細胞通行任務提醒貓頭鷹")}
     <div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>每次先確認追蹤的是水還是其他物質，再看是否有半透膜，最後比較兩側濃度。</p></div>
-    <div class="card-grid"><div class="concept-card"><strong>擴散</strong><p>粒子常由濃度較高處往較低處移動。</p></div><div class="concept-card"><strong>滲透</strong><p>水分通過半透膜時，要比較兩側溶質濃度。</p></div><div class="concept-card"><strong>細胞膜</strong><p>細胞膜調控物質進出，不是完全開放或封閉。</p></div><div class="concept-card"><strong>動物細胞</strong><p>沒有細胞壁，水分進出時外形較容易改變。</p></div><div class="concept-card"><strong>植物細胞</strong><p>有細胞壁支撐，高濃度時內部仍可能縮小。</p></div><div class="concept-card"><strong>資料證據</strong><p>質量增加常表示水分進入，減少常表示水分離開。</p></div></div>
-    <div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div>${owlPanel(assets.owlPrep, "細胞通行任務提醒貓頭鷹")}</div>`;
+    <div class="card-grid"><div class="concept-card"><strong>擴散</strong><p>粒子常由濃度較高處往較低處移動。</p></div><div class="concept-card"><strong>滲透</strong><p>水分通過半透膜時，要比較兩側溶液濃度。</p></div><div class="concept-card"><strong>細胞膜</strong><p>細胞膜調控物質進出，不是完全開放或封閉。</p></div><div class="concept-card"><strong>動物細胞</strong><p>沒有細胞壁，水分進出時外形較容易改變。</p></div><div class="concept-card"><strong>植物細胞</strong><p>有細胞壁支撐，高濃度時內部仍可能縮小。</p></div><div class="concept-card"><strong>資料證據</strong><p>質量增加常表示水分進入，減少常表示水分離開。</p></div></div>
+    <div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div></div>`;
 }
 
 function selectedClass(question, option) {
@@ -469,8 +559,33 @@ function isAnswered(qid) {
 function allRequiredAnswered() {
   return [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].every(isAnswered);
 }
-function markHint(qid) { if (!state.hints[qid]) state.hints[qid] = true; state.checkedWrong[qid] = true; }
-function checkSection(section) {
+async function markHint(qid) {
+  if (state.hints[qid]) {
+    state.checkedWrong[qid] = true;
+    return true;
+  }
+  if (state.student?.is_guest) {
+    state.hints[qid] = true;
+    state.checkedWrong[qid] = true;
+    return true;
+  }
+  try {
+    await postBackendAction("hintEvent", {
+      student_id: state.student.student_id,
+      unit_id: mission.unit_id,
+      attempt_id: state.attempt_id,
+      attempt_session_token: state.attempt_session_token,
+      question_id: `${mission.unit_id}_${qid}`
+    });
+    state.hints[qid] = true;
+    state.checkedWrong[qid] = true;
+    return true;
+  } catch (error) {
+    window.alert("提示紀錄暫時無法寫入，為避免成就誤判，請重新登入或稍後再試。");
+    return false;
+  }
+}
+async function checkSection(section) {
   const unanswered = sectionMap[section].filter((qid) => !isAnswered(qid));
   if (unanswered.length) {
     const message = document.querySelector("#sectionMessage");
@@ -480,7 +595,11 @@ function checkSection(section) {
   const wrong = sectionMap[section].filter((qid) => !isCorrect(qid));
   const newlyHinted = wrong.filter((qid) => !state.hints[qid]);
   if (newlyHinted.length) {
-    newlyHinted.forEach(markHint); saveState(); render();
+    for (const qid of newlyHinted) {
+      const recorded = await markHint(qid);
+      if (!recorded) return;
+    }
+    saveState(); render();
     const message = document.querySelector("#sectionMessage");
     if (message) message.innerHTML = `<span class="pill warn">已顯示 ${newlyHinted.length} 題概念提示；同一題只提示一次。可調整答案，也可保留本次作答再按一次前進。</span>`;
     return;
@@ -500,11 +619,14 @@ function dropSequence(targetId) {
   order.splice(order.indexOf(targetId), 0, draggedSequenceId); state.answers.q07_sequence = order; state.interactions.q07 = true; draggedSequenceId = null; saveState(); render();
 }
 function attachQuestionEvents() {
-  document.querySelectorAll("[data-choice]").forEach((button) => button.addEventListener("click", () => {
+  document.querySelectorAll("[data-choice]").forEach((button) => button.addEventListener("click", async () => {
     const question = questionById(button.dataset.choice);
     state.answers[question.id] = button.dataset.value;
     state.interactions[question.id] = true;
-    if (button.dataset.value !== question.answer) markHint(question.id);
+    if (button.dataset.value !== question.answer) {
+      const recorded = await markHint(question.id);
+      if (!recorded) return;
+    }
     saveState(); render();
   }));
   document.querySelectorAll("[data-move]").forEach((button) => button.addEventListener("click", () => moveSequence(button.dataset.move, Number(button.dataset.dir))));
@@ -522,6 +644,18 @@ function evaluateReflectionQuality(reflection) {
 }
 function questionConcept(qid) { return qid === "q07" ? "concentration_gradient" : questionById(qid)?.concept || "unknown"; }
 function questionMisconception(qid) { return qid === "q07" ? "transport_decision_sequence" : questionById(qid)?.misconception || "unknown"; }
+function answerDescription(qid) {
+  const map = {
+    q03: "水分主要往濃糖水一側移動",
+    q09: "水分離開細胞，紅血球可能皺縮",
+    q10: "水分進入細胞，紅血球可能膨脹甚至破裂",
+    q13: "判斷滲透要比較半透膜兩側溶液濃度差"
+  };
+  if (map[qid]) return map[qid];
+  if (qid === "q07") return "依序確認追蹤對象、膜條件、兩側濃度，再預測主要移動方向";
+  const question = questionById(qid);
+  return question?.options?.find((option) => option.id === question.answer)?.text || "";
+}
 function sectionStat(title, qids) {
   const correct = qids.filter(isCorrect);
   return { title, correct: correct.length, total: qids.length, correct_without_hint: correct.filter((qid) => !state.hints[qid]).length, corrected_after_hint: correct.filter((qid) => state.hints[qid]).length };
@@ -583,7 +717,7 @@ function misconceptionText(tag) {
     diffusion_requires_cell_membrane: "建議再閱讀擴散：擴散不一定需要細胞膜，重點是粒子受濃度差影響。",
     diffusion_osmosis_confusion: "建議再比較擴散與滲透：滲透特別強調水分通過半透膜。",
     semipermeable_as_wall: "建議再確認半透膜：它不是完全封閉，而是讓某些物質通過、限制另一些物質通過。",
-    direction_by_water_amount_only: "建議再練習方向判斷：比較兩側溶質濃度，不要只看水量或容器大小。",
+    direction_by_water_amount_only: "建議再練習方向判斷：比較兩側溶液濃度，不要只看水量或容器大小。",
     diffusion_direction_by_solute_concentration: "建議先鎖定題目追蹤的物質本身，再比較它在膜兩側的濃度；若可通過，淨移動趨勢由該物質濃度較高處往較低處。",
     transport_decision_sequence: "建議再把每一步的判斷目的連起來：先確認追蹤對象，再確認會影響通過的膜條件，最後才用兩側濃度推論主要方向。",
     cell_membrane_all_or_none: "建議再理解細胞膜選擇性通透：不是完全開放，也不是完全封閉。",
@@ -600,18 +734,18 @@ function renderReview() {
 }
 function renderReflection() {
   const reflection = state.answers.reflection || {};
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2><div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；具體且與擴散、滲透、半透膜、濃度差或細胞變化相關的問題，可取得回報 EXP。</p></div><div class="form-grid"><label>這次任務中，我最能掌握的一項物質進出細胞概念是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label><label>我還不確定擴散、滲透、半透膜、濃度差或細胞變化中的哪一部分？<textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea></label><label>選一個希望老師課堂解釋的方向，並用自己的話補充<span class="field-help">方向詞可以參考，但不要直接複製。</span><textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label><label>信心分數<span class="field-help">5 分代表我能自己說明本單元重點概念。</span><select id="confidenceScore">${[1, 2, 3, 4, 5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label></div><div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div>${owlPanel(assets.owlResult, "任務回報貓頭鷹")}</div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2><div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；具體且與擴散、滲透、半透膜、濃度差或細胞變化相關的問題，可取得回報 EXP。</p></div><div class="form-grid"><label>這次任務中，我最能掌握的一項物質進出細胞概念是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label><label>我還不確定擴散、滲透、半透膜、濃度差或細胞變化中的哪一部分？<textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea></label><label>選一個希望老師課堂解釋的方向，並用自己的話補充<span class="field-help">方向詞可以參考，但不要直接複製。</span><textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label><label>信心分數<span class="field-help">5 分代表我能自己說明本單元重點概念。</span><select id="confidenceScore">${[1, 2, 3, 4, 5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label></div><div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div></div>`;
 }
 function buildAttempt() {
   const now = new Date().toISOString();
   const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
-  return { attempt_id: state.attempt_session_id, timestamp: now, student: state.student, mission, attempt_type: state.attempt_type, attempt_type_candidate: state.attempt_type, attempt_no: Number(state.remote_completed_attempts || 0) + 1, attempt_session_id: state.attempt_session_id, started_from_login: true, previous_attempt_id: previousAttemptId(), retry_validation_status: state.attempt_type === "retry" ? "pending_backend_validation" : "not_retry", started_at: state.started_at, submitted_at: state.submitted_at || now, completion_status: "complete", required_answer_count: qids.length, answered_required_count: qids.filter(isAnswered).length, backend_status: state.backend_status, ...state.result, confidence_score: state.answers.reflection.confidence_score, confident_concept: state.answers.reflection.confident_concept, uncertain_concept: state.answers.reflection.uncertain_concept, student_question: state.answers.reflection.student_question, raw_answers: state.answers, payload_version: VERSION };
+  return { attempt_id: state.attempt_id || state.attempt_session_id, timestamp: now, student: state.student, mission, attempt_type: state.attempt_type, attempt_type_candidate: state.attempt_type, attempt_no: Number(state.remote_completed_attempts || 0) + 1, attempt_session_id: state.attempt_session_id, attempt_session_token: state.attempt_session_token, question_version: state.question_version || QUESTION_VERSION, started_from_login: true, previous_attempt_id: previousAttemptId(), retry_validation_status: state.attempt_type === "retry" ? "pending_backend_validation" : "not_retry", started_at: state.started_at, submitted_at: state.submitted_at || now, completion_status: "complete", required_answer_count: qids.length, answered_required_count: qids.filter(isAnswered).length, backend_status: state.backend_status, ...state.result, confidence_score: state.answers.reflection.confidence_score, confident_concept: state.answers.reflection.confident_concept, uncertain_concept: state.answers.reflection.uncertain_concept, student_question: state.answers.reflection.student_question, raw_answers: state.answers, payload_version: VERSION };
 }
 function buildBackendPayload(attempt) {
   const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
   return {
     attempt_id: attempt.attempt_id, student_id: attempt.student.student_id, student_name: attempt.student.student_name, class_name: attempt.student.class_name, seat_no: attempt.student.seat_no,
-    unit_id: mission.unit_id, unit_title: mission.unit_title, mission_title: mission.mission_title, attempt_type: attempt.attempt_type, attempt_type_candidate: attempt.attempt_type_candidate, attempt_no_candidate: attempt.attempt_no, attempt_session_id: attempt.attempt_session_id, started_from_login: attempt.started_from_login, previous_attempt_id: attempt.previous_attempt_id, retry_validation_status: attempt.retry_validation_status, completion_status: attempt.completion_status, required_answer_count: attempt.required_answer_count, answered_required_count: attempt.answered_required_count, all_required_answered: attempt.all_required_answered, started_at: attempt.started_at, submitted_at: attempt.submitted_at,
+    unit_id: mission.unit_id, unit_title: mission.unit_title, mission_title: mission.mission_title, attempt_type: attempt.attempt_type, attempt_type_candidate: attempt.attempt_type_candidate, attempt_no_candidate: attempt.attempt_no, attempt_session_id: attempt.attempt_session_id, attempt_session_token: attempt.attempt_session_token, question_version: attempt.question_version, started_from_login: attempt.started_from_login, previous_attempt_id: attempt.previous_attempt_id, retry_validation_status: attempt.retry_validation_status, completion_status: attempt.completion_status, required_answer_count: attempt.required_answer_count, answered_required_count: attempt.answered_required_count, all_required_answered: attempt.all_required_answered, started_at: attempt.started_at, submitted_at: attempt.submitted_at,
     total_questions: attempt.total, correct: attempt.correct, accuracy: attempt.accuracy, hints_used: attempt.hint_used, correct_without_hint: attempt.correct_without_hint, corrected_after_hint: attempt.corrected_after_hint,
     completion_exp: attempt.completion_exp, concept_exp: attempt.concept_exp, revision_exp: attempt.revision_exp, question_exp: attempt.question_exp, mastery_exp: attempt.mastery_exp, retry_exp: attempt.retry_exp,
     attempt_total_exp: attempt.attempt_total_exp, unit_exp_cap: attempt.unit_exp_cap, unit_credited_exp: attempt.unit_credited_exp, credited_delta: attempt.credited_delta, no_hint_perfect: attempt.no_hint_perfect,
@@ -619,10 +753,11 @@ function buildBackendPayload(attempt) {
     teacher_attention_needed: attempt.teacher_attention_needed, student_question: attempt.student_question,
     diffusion_direction_score: scoreForConcept(attempt, "diffusion"), osmosis_flow_score: scoreForConcept(attempt, "osmosis"), semipermeable_membrane_score: scoreForConcept(attempt, "semipermeable_membrane", "cell_membrane_selectivity"), concentration_data_score: scoreForConcept(attempt, "concentration_gradient", "evidence_based_prediction"), cell_change_explanation_score: scoreForConcept(attempt, "animal_cell_concentration_change", "plant_cell_concentration_change"), diffusion_osmosis_compare_score: scoreForConcept(attempt, "diffusion", "osmosis"),
     misconceptions_json: JSON.stringify(attempt.misconceptions), raw_answers_json: JSON.stringify(attempt.raw_answers), badges_json: JSON.stringify(attempt.badges), existing_badges_json: JSON.stringify(cumulativeBadgeIds()), cumulative_badges_candidate_json: JSON.stringify(attempt.cumulative_badges_candidate), badge_eval_json: JSON.stringify(badges.map((badge) => ({ badge_id: badge.id, earned_candidate: attempt.badges.includes(badge.id), badge_image_path: badge.badge_image_path }))),
-    question_logs: qids.map((qid) => ({ question_id: `${mission.unit_id}_${qid}`, concept_id: questionConcept(qid), checkpoint_id: qid === "q07" ? "checkpoint2" : questionById(qid)?.section, is_correct: isCorrect(qid), hint_used: Boolean(state.hints[qid]), attempt_answer: JSON.stringify(qid === "q07" ? state.answers.q07_sequence : state.answers[qid]), correct_answer: qid === "q07" ? correctSequence.join(" > ") : questionById(qid)?.answer, exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept", exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total) }))
+    question_logs: qids.map((qid) => ({ question_id: `${mission.unit_id}_${qid}`, question_version: attempt.question_version, question_type: qid === "q07" ? "sequence" : "choice", skill_tag: questionConcept(qid), concept_id: questionConcept(qid), checkpoint_id: qid === "q07" ? "checkpoint2" : questionById(qid)?.section, is_correct: isCorrect(qid), hint_used: Boolean(state.hints[qid]), used_hint: Boolean(state.hints[qid]), attempt_answer: JSON.stringify(qid === "q07" ? state.answers.q07_sequence : state.answers[qid]), answer_json: JSON.stringify(qid === "q07" ? state.answers.q07_sequence : state.answers[qid]), correct_answer: qid === "q07" ? correctSequence.join(" > ") : questionById(qid)?.answer, answer_description: answerDescription(qid), exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept", exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total) }))
   };
 }
 async function submitAttemptToBackend(attempt) {
+  if (state.student?.is_guest) return { ok: true, verification_status: "local_guest" };
   const body = new URLSearchParams(); body.set("payload", JSON.stringify(buildBackendPayload(attempt)));
   const response = await fetch(`${BACKEND_URL}?action=submitAttempt`, { method: "POST", body });
   if (!response.ok) throw new Error(`backend_${response.status}`);
@@ -637,20 +772,105 @@ function attachReflection() {
     state.answers.reflection = { confident_concept: document.querySelector("#confidentConcept").value.trim(), uncertain_concept: document.querySelector("#uncertainConcept").value.trim(), student_question: document.querySelector("#studentQuestion").value.trim(), confidence_score: Number(document.querySelector("#confidenceScore").value) };
     Object.assign(state.answers.reflection, evaluateReflectionQuality(state.answers.reflection)); state.result = calculateResult(); state.submitted_at = new Date().toISOString();
     let attempt = buildAttempt();
-    try { const response = await submitAttemptToBackend(attempt); state.backend_status = "submitted"; if (response.verified_attempt) state.result = { ...state.result, ...response.verified_attempt }; applyBackendProgress(response.student_progress || response.progress || {}); attempt = { ...attempt, ...state.result, backend_status: state.backend_status, backend_attempt_id: response.attempt_id || attempt.attempt_id }; }
-    catch { state.backend_status = "pending_local"; attempt = { ...attempt, backend_status: state.backend_status }; savePending(buildBackendPayload(attempt)); }
+    try {
+      const response = await submitAttemptToBackend(attempt);
+      state.backend_status = state.student?.is_guest ? "local_guest" : "submitted";
+      if (response.verified_attempt) state.result = { ...state.result, ...response.verified_attempt };
+      const progress = response.student_progress || response.progress || {};
+      if (progress && Object.keys(progress).length) applyBackendProgress(progress);
+      attempt = { ...attempt, ...state.result, backend_status: state.backend_status, backend_attempt_id: response.attempt_id || attempt.attempt_id };
+    }
+    catch {
+      state.backend_status = "pending_local";
+      attempt = { ...attempt, backend_status: state.backend_status };
+      savePending(buildBackendPayload(attempt));
+    }
     saveAttempt(attempt); state.remote_completed_attempts = Number(state.remote_completed_attempts || 0) + 1; unlock("result", "achievements"); saveState(); setScreen("result");
   });
 }
+function attemptCreditStatus() {
+  if (state.student?.is_guest) return "guest";
+  if (state.submitted_at && state.backend_status !== "submitted") return "pending";
+  return "verified";
+}
+function displayExpLedger(result) {
+  const values = {
+    completion_exp: Number(result.completion_exp || 0),
+    concept_exp: Number(result.concept_exp || 0),
+    revision_exp: Number(result.revision_exp || 0),
+    question_exp: Number(result.question_exp || 0),
+    mastery_exp: Number(result.mastery_exp || 0),
+    retry_exp: Number(result.retry_exp || 0)
+  };
+  return { ...values, attempt_total_exp: Math.min(UNIT_EXP_CAP, Object.values(values).reduce((sum, value) => sum + value, 0)) };
+}
+function titleProgressSummary() {
+  const progress = state.student?.progress || {};
+  const totalExp = Number(progress.total_exp ?? state.student?.total_exp ?? state.cumulative_total_exp ?? 0) || 0;
+  const title = progress.current_title || state.student?.current_title || window.BioQuestTitleProgress?.getTitleForExp?.(totalExp)?.current || "見習調查員";
+  const next = progress.next_title || window.BioQuestTitleProgress?.getTitleForExp?.(totalExp)?.next || "下一稱號";
+  const remaining = Number(progress.next_title_need_exp ?? window.BioQuestTitleProgress?.getTitleForExp?.(totalExp)?.remaining ?? 0) || 0;
+  const percent = Number(progress.title_progress_percent ?? window.BioQuestTitleProgress?.progressPercent?.(totalExp) ?? 0) || 0;
+  return { totalExp, title, next, remaining, percent: Math.max(0, Math.min(100, percent)) };
+}
+function renderTitleProgressSummary() {
+  const info = titleProgressSummary();
+  const status = attemptCreditStatus();
+  const label = status === "verified" ? "正式稱號進度" : status === "guest" ? "guest 稱號預覽" : "待後台確認稱號進度";
+  return `<div class="story-panel title-progress-summary"><strong>${label}</strong><p>目前稱號：${info.title}｜累積 ${info.totalExp} EXP</p><div class="title-progress-bar" aria-label="稱號進度 ${Math.round(info.percent)}%"><span style="width:${info.percent}%"></span></div><p class="muted">${status === "verified" ? `下一稱號：${info.next}，還差 ${info.remaining} EXP。` : "正式累積與稱號需待後台確認；guest 不列入正式累積。"}</p></div>`;
+}
+function resultStatusNotice(result) {
+  const status = attemptCreditStatus();
+  const ledger = displayExpLedger(result);
+  if (status === "guest") return `<div class="feedback warn">guest 測試：本次預估 ${ledger.attempt_total_exp}/${UNIT_EXP_CAP} EXP，不列入正式累積。</div>`;
+  if (status === "pending") return `<div class="feedback warn">本次預估 ${ledger.attempt_total_exp}/${UNIT_EXP_CAP} EXP，待後台確認；確認完成前不顯示正式認列或正式累積。</div>`;
+  return `<div class="feedback good">本次任務已提交，作答結果已鎖定；後台已回傳正式認列資料。</div>`;
+}
+function renderResultBadges(result) {
+  const earned = new Set(result.badges || []);
+  return `<section class="story-panel result-badges"><strong>本次取得徽章</strong><div class="badge-mini-row">${badges.filter((badge) => earned.has(badge.id)).map((badge) => `<img src="${badge.badge_image_path}" alt="${badge.name}" title="${badge.name}">`).join("") || "<span class=\"muted\">本次尚未取得新徽章。</span>"}</div></section>`;
+}
 function renderResult() {
   const result = state.result || calculateResult();
-  const backend = state.backend_status === "pending_local" ? "<div class=\"feedback warn\">後台暫時無法寫入，本次提交已保留在本機待補送佇列。</div>" : "<div class=\"feedback good\">本次任務已提交，作答結果已鎖定。</div>";
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>提交後本次作答已鎖定</h2>${state.lockNotice ? `<div class="feedback warn">${state.lockNotice}</div>` : ""}${backend}<div class="score-grid"><div class="score-box"><span>本次取得</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>本單元認列</span><strong>${result.unit_credited_exp} EXP</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>EXP 明細</strong><p>完成 ${result.completion_exp}｜直接答對 ${result.concept_exp}｜提示後修正 ${result.revision_exp}｜回報 ${result.question_exp}｜精熟 ${result.mastery_exp}｜再挑戰 ${result.retry_exp}</p></div><div class="story-panel"><strong>本次與認列差異</strong><p>本次取得是這次挑戰的原始表現；本單元認列會保留最高表現並受 500 EXP 上限限制。</p></div><div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">前台候選 ${result.question_exp_candidate || 0} EXP；正式回報 EXP 以後台重算為準。</p></div></div><div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
+  const ledger = displayExpLedger(result);
+  const status = attemptCreditStatus();
+  const creditedLabel = status === "verified" ? "本單元正式認列" : "認列狀態";
+  const creditedValue = status === "verified" ? `${Math.min(Number(result.unit_credited_exp || ledger.attempt_total_exp || 0), UNIT_EXP_CAP)} EXP` : status === "guest" ? "guest 不累積" : "待後台確認";
+  const deltaValue = status === "verified" ? `${Number(result.credited_delta || 0)} EXP` : status === "guest" ? "guest 不累積" : "待確認";
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>提交後本次作答已鎖定</h2>${state.lockNotice ? `<div class="feedback warn">${state.lockNotice}</div>` : ""}${resultStatusNotice(result)}
+    <div class="score-grid"><div class="score-box"><span>${status === "verified" ? "本次取得" : "本次預估"}</span><strong>${ledger.attempt_total_exp} EXP</strong></div><div class="score-box"><span>${creditedLabel}</span><strong>${creditedValue}</strong></div><div class="score-box"><span>本次增量</span><strong>${deltaValue}</strong></div></div>
+    <div class="card-grid">
+      <div class="story-panel" data-exp-ledger-total="${ledger.attempt_total_exp}"><strong>EXP 明細</strong><p>完成 ${ledger.completion_exp}｜直接答對 ${ledger.concept_exp}｜提示後修正 ${ledger.revision_exp}｜回報 ${ledger.question_exp}｜精熟 ${ledger.mastery_exp}｜再挑戰 ${ledger.retry_exp}｜總計 ${ledger.attempt_total_exp}</p></div>
+      <div class="story-panel"><strong>${status === "verified" ? "正式認列說明" : "本次預估狀態"}</strong><p>${status === "verified" ? "本單元正式認列會保留最高表現並受 500 EXP 上限限制。" : status === "guest" ? "guest 測試只供老師預覽，不寫入正式 Attempts 或 StudentProgress。" : "本次數字是本機預估，後台確認前不列入正式累積。"}</p></div>
+      <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">${status === "verified" ? `後台正式認列 ${ledger.question_exp} EXP。` : `本次預估回報 ${ledger.question_exp} EXP，待後台重算。`}</p></div>
+    </div>${renderTitleProgressSummary()}${renderResultBadges(result)}<div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
 }
 function renderAchievements() {
   const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : [];
-  const litIds = cumulativeBadgeIds(currentBadges);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>細胞通行徽章牆</h2><div class="score-grid"><div class="score-box"><span>累積徽章</span><strong>${litIds.length}</strong></div><div class="score-box"><span>累積 EXP</span><strong>${state.cumulative_total_exp || 0}</strong></div><div class="score-box"><span>已完成單元</span><strong>${state.completed_unit_count || 0}</strong></div></div><div class="badge-grid">${badges.map((badge) => { const lit = litIds.includes(badge.id); const gold = badge.id === "cell_transport_flawless"; return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="badge-icon" hidden>${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`; }).join("")}</div><p class="muted">亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
+  const status = attemptCreditStatus();
+  const guest = status === "guest";
+  const pending = status === "pending";
+  const litIds = cumulativeBadgeIds(guest || pending ? currentBadges : []);
+  const officialBadgeIds = new Set(state.cumulative_badges || []);
+  const ledger = displayExpLedger(state.result || calculateResult());
+  const badgeLabel = guest ? "本次測試徽章" : pending ? "本次待確認徽章" : "正式累積徽章";
+  const badgeCount = guest || pending ? currentBadges.length : litIds.length;
+  const expLabel = guest || pending ? "本次預估 EXP" : "正式累積 EXP";
+  const expValue = guest || pending ? `${ledger.attempt_total_exp}/${UNIT_EXP_CAP}` : `${state.cumulative_total_exp || 0}`;
+  const unitLabel = guest ? "累積狀態" : pending ? "後台狀態" : "已完成單元";
+  const unitValue = guest ? "不列入正式累積" : pending ? "待後台確認" : `${state.completed_unit_count || 0}`;
+  const syncNote = guest
+    ? `guest 測試：本次預估 ${ledger.attempt_total_exp}/${UNIT_EXP_CAP} EXP，不列入正式累積；徽章亮燈僅供老師測試畫面。`
+    : pending
+      ? `本次預估 ${ledger.attempt_total_exp}/${UNIT_EXP_CAP} EXP，待後台確認；徽章亮燈先顯示本次作答預覽。`
+      : "";
+  return `<div class="wide-layout"><div class="panel" data-bq-unit-achievements="cell_transport"><p class="eyebrow">本單元成就</p><h2>本單元成就｜細胞通行徽章牆</h2>${guest || pending ? `<div class="feedback warn">${syncNote}</div>` : ""}
+    <div class="score-grid"><div class="score-box"><span>${badgeLabel}</span><strong>${badgeCount}</strong></div><div class="score-box"><span>${expLabel}</span><strong>${expValue}</strong></div><div class="score-box"><span>${unitLabel}</span><strong>${unitValue}</strong></div></div>${renderTitleProgressSummary()}<div class="badge-grid">${badges.map((badge) => {
+      const lit = litIds.includes(badge.id);
+      const gold = badge.id === "cell_transport_flawless";
+      const pendingBadge = pending && lit && !officialBadgeIds.has(badge.id);
+      return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="badge-icon" hidden>${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong>${pendingBadge ? `<span class="pill warn">待同步</span>` : ""}<p class="muted">${badge.condition}</p></div>`;
+    }).join("")}</div><p class="muted">${status === "verified" ? "正式亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。" : "目前只顯示本次作答預覽；正式徽章需等待後台確認。"}</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
 }
 function renderRules() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元上限</strong><p>本單元最高認列 500 EXP。一次零提示全對是最高路徑。</p></div><div class="story-panel"><strong>完成條件</strong><p>回答完所有必答題即可提交，不必先全對；需要調整的概念會保留提示與回饋。</p></div><div class="story-panel"><strong>提示後修正</strong><p>每題第一次錯選會出現一次提示；提示後修正仍有 EXP，但低於直接答對。</p></div><div class="story-panel"><strong>再挑戰</strong><p>提交後本次作答鎖定。若要再挑戰，請重新登入並從頭完成整份任務。</p></div></div><div class="actions"><button class="primary" id="rulesBack">回到任務</button></div></div></div>`;
@@ -670,7 +890,11 @@ function render() {
   if (state.submitted_at && LOCKED_SCREENS_AFTER_SUBMIT.has(state.screen)) state.screen = "result";
   renderNav(); renderStudentMini();
   const views = { login: renderLogin, brief: renderBrief, scan: renderScan, checkpoint1: renderCheckpoint1, checkpoint2: renderCheckpoint2, checkpoint3: renderCheckpoint3, review: renderReview, reflection: renderReflection, result: renderResult, achievements: renderAchievements, rules: renderRules };
-  screen.innerHTML = views[state.screen](); attachEvents();
+  screen.dataset.bioquestScreen = state.screen;
+  screen.innerHTML = views[state.screen]();
+  attachEvents();
+  updateBadgeOverviewBridge();
+  window.BioQuestCharacterLayout?.enhance?.({ force: true });
 }
 
 render();

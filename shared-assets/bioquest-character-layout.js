@@ -688,7 +688,7 @@
     const student = readStoredStudent();
     const holder = root.querySelector("[data-title-avatar-path], [data-student-character-hook]");
     const holderPath = holder?.dataset.titleAvatarPath || holder?.dataset.studentCharacterHook || "";
-    const image = root.querySelector(".student-avatar-slot img, .title-avatar-brief img, .brief-title-avatar-card img, .student-title-avatar img");
+    const image = root.querySelector(".bq-brief-student-avatar, .student-avatar-slot img, .title-avatar-brief img, .brief-title-avatar-card img, .student-title-avatar img");
     const imagePath = image?.getAttribute("src") || "";
     return normalizeBriefAvatarPath(holderPath || imagePath || student.title_avatar_path || student.progress?.title_avatar_path, student);
   }
