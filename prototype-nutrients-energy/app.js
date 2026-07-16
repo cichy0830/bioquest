@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260711-nutrients-energy-security-v1";
+const VERSION = "20260717-nutrients-energy-u11-fixes-v2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -24,18 +24,18 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
-  owlPrep: "assets/owl-nutrients-energy-prep-reminder.png",
-  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.png",
+  mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.webp",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
+  owlPrep: "assets/owl-nutrients-energy-prep-reminder.webp",
+  owlResult: "../prototype-cell-basic-unit/assets/owl-basic-unit-result.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "assets/bg-nutrients-energy-briefing-azhe-wide.webp",
-  ambientBackgroundHook: "assets/bg-nutrients-energy-ambient-wide.png",
-  nutrientFunctionCards: "assets/nutrient-function-cards.png",
-  foodSourceCards: "assets/food-source-cards.png",
-  energySourceCards: "assets/energy-source-cards.png",
-  balancedMealComparison: "assets/balanced-meal-comparison.png",
-  nutritionLabelBoard: "assets/nutrition-label-blank-board.png"
+  ambientBackgroundHook: "assets/bg-nutrients-energy-ambient-wide.webp",
+  nutrientFunctionCards: "assets/nutrient-function-cards.webp",
+  foodSourceCards: "assets/food-source-cards.webp",
+  energySourceCards: "assets/energy-source-cards.webp",
+  balancedMealComparison: "assets/balanced-meal-comparison.webp",
+  nutritionLabelBoard: "assets/nutrition-label-blank-board.webp"
 };
 
 const badgeAsset = (id) => `../shared-assets/badges/nutrients_energy/badge-nutrients_energy-${id}.webp`;
@@ -196,6 +196,37 @@ function parseArray(value) {
   if (!value) return [];
   try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
 }
+function deepFreeze(value) {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+  Object.keys(value).forEach((key) => deepFreeze(value[key]));
+  return Object.freeze(value);
+}
+function updateBadgeOverviewBridge() {
+  if (!state.student) {
+    delete window.__BIOQUEST_BADGE_OVERVIEW_STATE__;
+    delete window.__BIOQUEST_BADGE_OVERVIEW_PROGRESS__;
+    return;
+  }
+  const progress = clone(state.student.progress || {});
+  const snapshot = {
+    unit_id: mission.unit_id,
+    backend_status: state.backend_status || "",
+    submitted_at: state.submitted_at || "",
+    student: {
+      student_id: state.student.student_id || "",
+      profile_gender: state.student.profile_gender || "",
+      current_title_id: state.student.current_title_id || progress.current_title_id || "",
+      current_title: state.student.current_title || progress.current_title || "",
+      title_avatar_path: state.student.title_avatar_path || progress.title_avatar_path || "",
+      is_guest: Boolean(state.student.is_guest),
+      progress
+    },
+    progress,
+    student_progress: progress
+  };
+  window.__BIOQUEST_BADGE_OVERVIEW_STATE__ = deepFreeze(snapshot);
+  window.__BIOQUEST_BADGE_OVERVIEW_PROGRESS__ = deepFreeze(clone(progress));
+}
 function latestLocalAttempt() {
   if (!state.student) return null;
   return studentAttempts(state.student.student_id)
@@ -209,9 +240,20 @@ function cumulativeBadgeIds(current = []) {
   return [...new Set([...(state.cumulative_badges || []), ...local, ...current])];
 }
 function applyBackendProgress(progress = {}) {
+  if (!progress || typeof progress !== "object") return;
   state.cumulative_badges = parseArray(progress.badges_json || progress.badges || state.cumulative_badges);
   state.cumulative_total_exp = Number(progress.total_exp ?? progress.total_credited_exp ?? state.cumulative_total_exp ?? 0);
   state.completed_unit_count = Number(progress.completed_unit_count ?? state.completed_unit_count ?? 0);
+  if (state.student) {
+    const previous = state.student.progress || {};
+    state.student.progress = { ...previous, ...progress };
+    state.student.current_title_id = progress.current_title_id || state.student.current_title_id || "";
+    state.student.current_title = progress.current_title || state.student.current_title || "";
+    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path || "";
+    state.student.profile_gender = progress.profile_gender || state.student.profile_gender || "";
+    state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
+  }
+  updateBadgeOverviewBridge();
 }
 function pendingQueue() {
   try { return JSON.parse(localStorage.getItem(pendingQueueKey)) || []; } catch { return []; }
@@ -315,14 +357,14 @@ function normalizeTitleAvatarPath(rawPath = "") {
 
 function renderLogin() {
   const value = state.student?.student_id && state.student.student_id !== "guest" ? state.student.student_id : "";
-  return layout(`
+  return `<div class="wide-layout"><div class="panel hero-panel">
     <p class="eyebrow">生命祕境 BioQuest</p><h2 class="hero-title">任務登入</h2>
     <div class="story-panel"><strong>固定登入招呼</strong><p>輸入學號後，系統會顯示姓名。老師測試流程時可使用 guest。</p></div>
     <div class="mission-hud"><div><span>任務代號</span><strong>nutrients_energy</strong></div><div><span>預估時間</span><strong>10-15 分鐘</strong></div><div><span>後台</span><strong>Google Sheet</strong></div></div>
     <div class="form-grid"><label>學號<input id="studentIdInput" value="${value}" placeholder="例如 S70101 或 guest" autocomplete="off"></label></div>
     <div class="actions"><button class="primary" id="loginButton">登入任務</button><button class="secondary" id="guestButton">老師測試 guest</button><button class="ghost" id="resetButton">清除本機測試紀錄</button></div>
     <div id="loginMessage" class="status-line"></div>
-  `, assets.owlLogin);
+  </div></div>`;
 }
 
 async function fetchStudentStatus(id) {
@@ -367,6 +409,23 @@ async function login(id) {
   }
   window.BioQuestLoginUX?.begin({ guest: id === "guest" });
   await window.BioQuestLoginUX?.paint();
+  if (id === "guest") {
+    state = clone(defaultState);
+    state.student = { ...roster.guest, progress: {} };
+    state.remote_completed_attempts = studentAttempts("guest").length;
+    state.attempt_type = state.remote_completed_attempts > 0 ? "retry" : "first";
+    state.started_at = new Date().toISOString();
+    state.attempt_id = `guest_${mission.unit_id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    state.attempt_session_id = state.attempt_id;
+    state.attempt_session_token = "guest_local_session";
+    state.question_version = VERSION;
+    state.backend_status = "local_guest";
+    unlock("brief", "rules", "achievements");
+    ensureSequence();
+    saveState();
+    setScreen("brief");
+    return;
+  }
   let student = null;
   let completed = 0;
   let remoteProgress = {};
@@ -388,7 +447,7 @@ async function login(id) {
     return;
   }
   state = clone(defaultState);
-  state.student = { ...student };
+  state.student = { ...student, progress: remoteProgress };
   state.remote_completed_attempts = completed;
   state.attempt_type = serverSession.attempt_type || (completed > 0 ? "retry" : "first");
   state.started_at = serverSession.issued_at;
@@ -400,9 +459,7 @@ async function login(id) {
   state.remote_previous_attempt_id = serverSession.previous_attempt_id || remoteAttemptStatus.previous_attempt_id || remoteAttemptStatus.latest_attempt_id || remoteProgress.latest_attempt_id || "";
   const remoteAccuracy = remoteAttemptStatus.previous_accuracy ?? remoteAttemptStatus.best_accuracy;
   state.remote_previous_accuracy = remoteAccuracy === null || remoteAccuracy === undefined || remoteAccuracy === "" ? null : Number.isFinite(Number(remoteAccuracy)) ? Number(remoteAccuracy) : null;
-  state.cumulative_badges = parseArray(remoteProgress.badges_json || remoteProgress.badges);
-  state.cumulative_total_exp = Number(remoteProgress.total_exp ?? remoteProgress.total_credited_exp ?? 0);
-  state.completed_unit_count = Number(remoteProgress.completed_unit_count || 0);
+  applyBackendProgress(remoteProgress);
   unlock("brief", "rules", "achievements");
   ensureSequence();
   saveState();
@@ -461,7 +518,7 @@ function renderBrief() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務簡報</p><h2>生命補給辨識任務</h2><div class="brief-scene nutrients-brief-scene" data-briefing-scene-hook="${assets.briefingSceneHook}"><div class="scene-copy"><div class="student-avatar-slot"><img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}';"></div><h3>生命補給站需要整理食物資料</h3><p>請把食物例子連到主要養分與功能，判斷能量來源，並用多樣與適量的概念整理餐點線索。</p></div></div><div class="mission-hud"><div><span>任務區</span><strong>生命補給站</strong></div><div><span>重點</span><strong>養分與能量</strong></div><div><span>原則</span><strong>多樣與適量</strong></div></div><div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
 }
 function renderScan() {
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的養分線索</h2><div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>食物是混合物；分類多半問主要來源。能量不是唯一功能，不供能的養分也可能很重要。</p></div><div class="card-grid"><div class="concept-card"><strong>主要養分</strong><p>醣類、蛋白質、脂質、維生素、礦物質與水各有角色。</p></div><div class="concept-card"><strong>能量來源</strong><p>醣類、脂質與蛋白質可提供能量。</p></div><div class="concept-card"><strong>不只一種</strong><p>多數食物同時含有多種養分。</p></div><div class="concept-card"><strong>均衡判斷</strong><p>以食物多樣與適量思考，不用好壞二分。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div><div class="owl-frame nutrients-prep-owl"><img src="${assets.owlPrep}" alt="養分任務提醒貓頭鷹"></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的養分線索</h2><div class="owl-frame nutrients-prep-owl"><img src="${assets.owlPrep}" alt="養分任務提醒貓頭鷹"></div><div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>食物是混合物；分類多半問主要來源。能量不是唯一功能，不供能的養分也可能很重要。</p></div><div class="card-grid"><div class="concept-card"><strong>主要養分</strong><p>醣類、蛋白質、脂質、維生素、礦物質與水各有角色。</p></div><div class="concept-card"><strong>能量來源</strong><p>醣類、脂質與蛋白質可提供能量。</p></div><div class="concept-card"><strong>不只一種</strong><p>多數食物同時含有多種養分。</p></div><div class="concept-card"><strong>均衡判斷</strong><p>以食物多樣與適量思考，不用好壞二分。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div></div>`;
 }
 function renderCheckpoint1() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>養分種類與主要功能</h2><div class="question-grid">${renderMultiSelect("q01")}${renderClassifyQuestion("q02")}${renderMultiSelect("q03")}${renderChoiceQuestion("q04")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`; }
 function renderCheckpoint2() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>食物來源與養分角色</h2><div class="question-grid">${renderClassifyQuestion("q05")}${["q06","q07","q08"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`; }
@@ -489,6 +546,12 @@ function allRequiredAnswered() {
 }
 async function markHint(qid) {
   if (state.hints[qid]) return true;
+  if (state.student?.is_guest) {
+    state.hints[qid] = true;
+    state.checkedWrong[qid] = true;
+    state.session_error = "";
+    return true;
+  }
   try {
     await postBackendAction("hintEvent", {
       student_id: state.student.student_id,
@@ -645,7 +708,7 @@ function renderReview() {
 
 function renderReflection() {
   const reflection = state.answers.reflection || {};
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2><div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；只複製方向、寫飲食偏好或無關玩笑不會取得高 EXP。具體且與養分、功能、能量或均衡飲食相關的疑問，才可能取得回報 EXP，正式分數由後台重算。</p></div><div class="form-grid"><label>我最能掌握的一項養分或能量概念是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label><label>我還不確定養分種類、功能、能量來源或均衡飲食中的哪一部分？<textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea></label><label>選一個希望老師再解釋的方向，並用自己的話補充<textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label><label>信心分數<span class="field-help">5 分代表我能自己說明本單元重點概念。</span><select id="confidenceScore">${[1,2,3,4,5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label></div><div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div>${owlPanel(assets.owlResult)}</div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2><div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；只複製方向、寫飲食偏好或無關玩笑不會取得高 EXP。具體且與養分、功能、能量或均衡飲食相關的疑問，才可能取得回報 EXP，正式分數由後台重算。</p></div><div class="form-grid"><label>我最能掌握的一項養分或能量概念是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label><label>我還不確定養分種類、功能、能量來源或均衡飲食中的哪一部分？<textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea></label><label>選一個希望老師再解釋的方向，並用自己的話補充<textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label><label>信心分數<span class="field-help">5 分代表我能自己說明本單元重點概念。</span><select id="confidenceScore">${[1,2,3,4,5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label></div><div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div></div>`;
 }
 
 function buildBackendPayload(attempt) {
@@ -661,13 +724,51 @@ function buildBackendPayload(attempt) {
     badges_json: JSON.stringify(attempt.badges), existing_badges_json: JSON.stringify(cumulativeBadgeIds()), cumulative_badges_candidate_json: JSON.stringify(attempt.cumulative_badges_candidate),
     nutrient_function_score: scoreForConcept(attempt, "nutrient_types", "carbohydrate_energy", "vitamins_minerals_regulation"), food_source_classification_score: scoreForConcept(attempt, "food_nutrient_mix"), energy_source_score: scoreForConcept(attempt, "energy_sources"), balanced_diet_score: scoreForConcept(attempt, "balanced_diet"), nutrition_label_reading_score: isCorrect("q09") ? 100 : 0, nutrient_role_balance_score: scoreForConcept(attempt, "protein_body_material", "lipid_energy_storage", "vitamins_minerals_regulation", "water_body_function"), nutrient_test_extension_flag: false, nutrition_health_advice_flag: false,
     misconceptions_json: JSON.stringify(attempt.misconceptions), raw_answers_json: JSON.stringify(attempt.raw_answers), badge_eval_json: JSON.stringify(badges.map((badge) => ({ badge_id: badge.id, earned_candidate: attempt.badges.includes(badge.id), badge_image_path: badge.badge_image_path }))),
-    question_logs: qids.map((qid) => ({ question_id: `${mission.unit_id}_${qid}`, skill_tag: questionConcept(qid), is_correct: isCorrect(qid), used_hint: Boolean(state.hints[qid]), attempt_answer: JSON.stringify(answerFor(qid)), correct_answer: JSON.stringify(correctFor(qid)), exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept", exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total) }))
+    question_logs: qids.map((qid) => {
+      const answer = answerFor(qid);
+      const questionType = qid === "q11" ? "sequence" : multiSelectQuestions[qid] ? "multi_select" : classifyQuestions[qid] ? "mapping" : "choice";
+      const checkpointId = sectionMap.checkpoint1.includes(qid) ? "checkpoint1" : sectionMap.checkpoint2.includes(qid) ? "checkpoint2" : "checkpoint3";
+      return {
+        student_id: attempt.student.student_id,
+        student_name: attempt.student.student_name,
+        unit_id: mission.unit_id,
+        unit_title: mission.unit_title,
+        checkpoint_id: checkpointId,
+        question_id: `${mission.unit_id}_${qid}`,
+        question_type: questionType,
+        concept_id: questionConcept(qid),
+        skill_tag: questionConcept(qid),
+        is_correct: isCorrect(qid),
+        used_hint: Boolean(state.hints[qid]),
+        hint_used: Boolean(state.hints[qid]),
+        attempt_answer: JSON.stringify(answer),
+        answer_json: JSON.stringify(answer),
+        correct_answer: JSON.stringify(correctFor(qid)),
+        misconception_tag: isCorrect(qid) ? "" : questionById(qid)?.misconception || multiSelectQuestions[qid]?.misconception || classifyQuestions[qid]?.misconception || "",
+        exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept",
+        exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total)
+      };
+    })
   };
 }
 
 function renderAchievements() {
-  const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : []; const litIds = cumulativeBadgeIds(currentBadges);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>生命補給徽章牆</h2><div class="score-grid"><div class="score-box"><span>累積徽章</span><strong>${litIds.length}</strong></div><div class="score-box"><span>累積 EXP</span><strong>${state.cumulative_total_exp || 0}</strong></div><div class="score-box"><span>已完成單元</span><strong>${state.completed_unit_count || 0}</strong></div></div><div class="badge-grid">${badges.map((badge) => { const lit = litIds.includes(badge.id); const gold = badge.id === "nutrients_energy_flawless"; return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`; }).join("")}</div><p class="muted">未取得徽章維持灰階，取得後亮燈；同一徽章在累積收藏只計一次。</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
+  const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : [];
+  const status = submissionStatus();
+  const guest = status === "guest";
+  const pending = status === "pending";
+  const litIds = cumulativeBadgeIds(currentBadges);
+  const estimatedExp = Math.min((state.result || calculateResult()).attempt_total_exp || 0, UNIT_EXP_CAP);
+  const badgeLabel = guest ? "本次測試徽章" : pending ? "本次待確認徽章" : "正式累積徽章";
+  const badgeCount = guest || pending ? currentBadges.length : litIds.length;
+  const expLabel = guest || pending ? "本次預估 EXP" : "正式累積 EXP";
+  const expValue = guest || pending ? `${estimatedExp}/${UNIT_EXP_CAP}` : `${state.cumulative_total_exp || 0}`;
+  const unitLabel = guest ? "累積狀態" : pending ? "後台狀態" : "已完成單元";
+  const unitValue = guest ? "不列入正式累積" : pending ? "待後台確認" : `${state.completed_unit_count || 0}`;
+  const syncNote = guest
+    ? `guest 測試：本次預估 ${estimatedExp}/${UNIT_EXP_CAP} EXP，不列入正式累積；徽章亮燈僅供老師測試畫面。`
+    : pending ? `本次預估 ${estimatedExp}/${UNIT_EXP_CAP} EXP，待後台確認；徽章亮燈先顯示本次作答預覽。` : "";
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>本單元成就：生命補給徽章牆</h2>${guest || pending ? `<div class="feedback warn">${syncNote}</div>` : ""}<div class="score-grid"><div class="score-box"><span>${badgeLabel}</span><strong>${badgeCount}</strong></div><div class="score-box"><span>${expLabel}</span><strong>${expValue}</strong></div><div class="score-box"><span>${unitLabel}</span><strong>${unitValue}</strong></div></div><div class="badge-grid">${badges.map((badge) => { const lit = litIds.includes(badge.id); const gold = badge.id === "nutrients_energy_flawless"; const pendingBadge = pending && lit && !state.cumulative_badges.includes(badge.id); return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="badge-icon" hidden>${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong>${pendingBadge ? `<span class="pill warn">待同步</span>` : ""}<p class="muted">${badge.condition}</p></div>`; }).join("")}</div><p class="muted">${status === "verified" ? "正式亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。" : "目前只顯示本次作答預覽；正式徽章需等待後台確認。"}</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
 }
 
 function renderRules() {
@@ -734,6 +835,7 @@ function scoreForConcept(attempt, ...concepts) {
   return total ? Math.round((correct / total) * 100) : 0;
 }
 async function submitAttemptToBackend(attempt) {
+  if (state.student?.is_guest) return { ok: true, verification_status: "local_guest" };
   const payload = buildBackendPayload(attempt);
   const body = new URLSearchParams();
   body.set("payload", JSON.stringify(payload));
@@ -773,7 +875,7 @@ function attachReflection() {
     let attempt = buildAttempt();
     try {
       const response = await submitAttemptToBackend(attempt);
-      state.backend_status = response.verification_status === "server_verified" ? "submitted_verified" : "pending_verification";
+      state.backend_status = state.student?.is_guest ? "local_guest" : response.verification_status === "server_verified" ? "submitted_verified" : "pending_verification";
       if (response.verified_attempt) state.result = { ...state.result, ...response.verified_attempt };
       applyBackendProgress(response.student_progress || response.progress || {});
       attempt = { ...attempt, ...state.result, backend_status: state.backend_status, backend_attempt_id: response.attempt_id || attempt.attempt_id };
@@ -797,16 +899,34 @@ function attachReflection() {
     setScreen("result");
   });
 }
+function submissionStatus() {
+  if (state.student?.is_guest || state.backend_status === "local_guest") return "guest";
+  if (state.submitted_at && state.backend_status !== "submitted_verified") return "pending";
+  return "verified";
+}
+function resultStatusNotice(result) {
+  const status = submissionStatus();
+  const attemptExp = Math.min(result.attempt_total_exp || 0, UNIT_EXP_CAP);
+  if (status === "guest") return `<div class="feedback warn">guest 測試：本次預估 ${attemptExp}/${UNIT_EXP_CAP} EXP，不列入正式累積。</div>`;
+  if (status === "pending") {
+    const detail = state.backend_status === "pending_local" ? "後台暫時無法寫入，本次提交已保留在本機待補送佇列。" : "本次資料正在等待後台確認。";
+    return `<div class="feedback warn">${detail}本次預估 ${attemptExp}/${UNIT_EXP_CAP} EXP，待後台確認。</div>`;
+  }
+  return `<div class="feedback good">本次任務已提交，作答結果已鎖定；後台已回傳正式認列資料。</div>`;
+}
 function renderResult() {
   const result = state.result || calculateResult();
+  const status = submissionStatus();
   const notice = state.lockNotice ? `<div class="feedback warn">${state.lockNotice}</div>` : "";
-  const backendNotice = state.backend_status === "pending_local" ? `<div class="feedback warn">後台暫時無法寫入，本機已保留原始作答；在後台驗證完成前不認列 EXP 或徽章。若憑證過期，請重新登入。</div>` : state.backend_status === "submitted_verified" ? `<div class="feedback good">本次任務已由後台驗證並鎖定。</div>` : `<div class="feedback warn">本次資料仍待後台驗證，暫不新增認列 EXP 或徽章。</div>`;
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>提交後本次作答已鎖定</h2>${notice}${backendNotice}
-    <div class="score-grid"><div class="score-box"><span>本次取得</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>本單元認列</span><strong>${result.unit_credited_exp} EXP</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
+  const creditedLabel = status === "verified" ? "本單元正式認列" : "認列狀態";
+  const creditedValue = status === "verified" ? `${result.unit_credited_exp} EXP` : status === "guest" ? "guest 不累積" : "待後台確認";
+  const recognitionCopy = status === "verified" ? "本次取得是這次挑戰的原始表現；本單元正式認列會保留最高表現並受 500 EXP 上限限制。" : status === "guest" ? `guest 測試：本次預估 ${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)}/${UNIT_EXP_CAP} EXP，不列入正式累積。請使用學生學號登入，才會送交後台確認。` : `本次預估 ${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)}/${UNIT_EXP_CAP} EXP，待後台確認；確認完成前，這些數字只代表本次作答預覽。`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>提交後本次作答已鎖定</h2>${notice}${resultStatusNotice(result)}
+    <div class="score-grid"><div class="score-box"><span>${status === "verified" ? "本次取得" : "本次預估"}</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>${creditedLabel}</span><strong>${creditedValue}</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
     <div class="card-grid">
       <div class="story-panel"><strong>EXP 明細</strong><p>完成 ${result.completion_exp}｜直接答對 ${result.concept_exp}｜提示後修正 ${result.revision_exp}｜回報 ${result.question_exp}｜精熟 ${result.mastery_exp}｜再挑戰 ${result.retry_exp}</p></div>
-      <div class="story-panel"><strong>本次與認列差異</strong><p>本次取得是這次挑戰的原始表現；本單元認列會保留最高表現並受 500 EXP 上限限制。</p></div>
-      <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">前台候選 ${result.question_exp_candidate || 0} EXP；正式回報 EXP 以後台重算為準。</p></div>
+      <div class="story-panel"><strong>${status === "verified" ? "本次與正式累積差異" : "本次預估狀態"}</strong><p>${recognitionCopy}</p></div>
+      <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">${status === "verified" ? `後台正式認列 ${result.question_exp} EXP。` : `前台候選 ${result.question_exp_candidate || 0} EXP，待後台重算。`}</p></div>
     </div>
     <div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
 }
@@ -841,8 +961,11 @@ function render() {
     achievements: renderAchievements,
     rules: renderRules
   };
+  updateBadgeOverviewBridge();
+  screen.dataset.bioquestScreen = state.screen;
   screen.innerHTML = views[state.screen]();
   attachEvents();
+  window.BioQuestCharacterLayout?.enhance?.({ force: true });
 }
 
 render();

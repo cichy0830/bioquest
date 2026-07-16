@@ -194,6 +194,14 @@ h1, h2, h3, p { margin-top: 0; }
 .mentor-avatar img, .owl-frame img { width: auto; height: 100%; max-width: 100%; object-fit: contain; object-position: center bottom; }
 .owl-frame { min-height: 420px; padding: 20px; border: 1px solid rgba(68,132,99,.22); background: linear-gradient(180deg, rgba(255,255,255,.7), rgba(231,246,241,.62)); box-shadow: var(--shadow); }
 .owl-frame img { width: 100%; max-width: 340px; max-height: 420px; }
+.nutrients-prep-owl {
+  width: min(100%, 560px);
+  min-height: 280px;
+  margin: 14px 0 18px;
+  padding: 14px;
+  place-items: center;
+}
+.nutrients-prep-owl img { max-height: 300px; }
 .mentor-copy span { display:block; color: var(--teal-dark); font-size:13px; font-weight:900; }
 .mentor-copy strong { display:block; margin: 3px 0 6px; font-size:18px; }
 
