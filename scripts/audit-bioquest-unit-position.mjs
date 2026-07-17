@@ -17,13 +17,16 @@ const sharedVersionOverrides = new Map([
   ["cell_basic_unit", "20260715-brief-scene-unified-u1u7-v1"],
   ["cell_structure", "20260715-brief-scene-unified-u1u7-v1"],
   ["cell_observation", "20260716-cell-observation-guest-local-v1"],
-  ["cell_transport", "20260715-title-avatar-card-v1"],
-  ["biological_organization", "20260716-biological-organization-qa-fixes-v1"],
-  ["scale", "20260716-scale-qa-fixes-v1"],
+  ["cell_transport", "20260716-cell-transport-u8-ux-v1"],
+  ["biological_organization", "20260716-biological-organization-title-count-v1"],
+  ["scale", "20260716-scale-prep-fallback-v3"],
   ["nutrients_energy", "20260715-title-avatar-card-v1"],
   ["nutrient_test", "20260715-title-avatar-card-v1"],
   ["enzymes", "20260715-title-avatar-card-v1"],
-  ["photosynthesis", "20260715-brief-scene-unified-u9u14-v1"]
+  ["photosynthesis", "20260715-brief-scene-unified-u9u14-v1"],
+  ["human_nutrition", "20260717-u15u17-brief-scenes-v1"],
+  ["plant_transport_structures", "20260717-u15u17-brief-scenes-v1"],
+  ["plant_material_transport", "20260717-u15u17-brief-scenes-v1"]
 ]);
 
 function assert(condition, message) {
@@ -32,12 +35,14 @@ function assert(condition, message) {
 
 assert(start >= 0 && end > start, "portal units block missing");
 const units = Function(`${portal.slice(start, end)}; return units;`)();
-const readyUnits = units.filter((unit) => unit.status === "ready" && unit.url && unit.unitId !== "plant_material_transport");
+const readyUnits = units.filter((unit) => unit.status === "ready" && unit.url);
 
-assert(readyUnits.length === 16, `expected 16 ready units, found ${readyUnits.length}`);
+assert(readyUnits.length === 17, `expected 17 ready units, found ${readyUnits.length}`);
 assert(portal.includes("第 ${unit.sequence} 站｜${unit.title}"), "portal card must render station and formal title");
 assert(!portal.includes("第 ${unit.sequence} 單元"), "portal card must not render old unit wording");
-assert(portal.includes("20260715-badge-overview-v2"), "portal ready URLs must include badge overview cache bust");
+readyUnits.forEach((unit) => {
+  assert(/\?v=[^"]+/.test(unit.url), `${unit.unitId} ready URL must include a cache bust query`);
+});
 
 const layoutJs = fs.readFileSync(path.join(root, "shared-assets", "bioquest-character-layout.js"), "utf8");
 const layoutCss = fs.readFileSync(path.join(root, "shared-assets", "bioquest-character-layout.css"), "utf8");

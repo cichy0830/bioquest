@@ -15,14 +15,16 @@ const sharedVersionOverrides = new Map([
   ["prototype-cell-basic-unit", "20260715-brief-scene-unified-u1u7-v1"],
   ["prototype-cell-structure", "20260715-brief-scene-unified-u1u7-v1"],
   ["prototype-cell-observation", "20260716-cell-observation-guest-local-v1"],
-  ["prototype-cell-transport", "20260715-title-avatar-card-v1"],
-  ["prototype-biological-organization", "20260716-biological-organization-qa-fixes-v1"],
-  ["prototype-scale", "20260716-scale-qa-fixes-v1"],
+  ["prototype-cell-transport", "20260716-cell-transport-u8-ux-v1"],
+  ["prototype-biological-organization", "20260716-biological-organization-title-count-v1"],
+  ["prototype-scale", "20260716-scale-prep-fallback-v3"],
   ["prototype-nutrients-energy", "20260715-title-avatar-card-v1"],
   ["prototype-nutrient-test", "20260715-title-avatar-card-v1"],
   ["prototype-enzymes", "20260715-title-avatar-card-v1"],
   ["prototype-photosynthesis", "20260715-brief-scene-unified-u9u14-v1"],
-  ["prototype-plant-material-transport", "20260713-login-busy-v1"]
+  ["prototype-human-nutrition", "20260717-u15u17-brief-scenes-v1"],
+  ["prototype-plant-transport-structures", "20260717-u15u17-brief-scenes-v1"],
+  ["prototype-plant-material-transport", "20260717-u15u17-brief-scenes-v1"]
 ]);
 const readyUnits = [
   "prototype-life-world",

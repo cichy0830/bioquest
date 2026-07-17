@@ -30,8 +30,7 @@ const assets = {
   owlReport: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  // Visual team handoff names: attach approved WebP paths only after they land.
-  briefingSceneHook: "",
+  briefingSceneHook: "assets/human-nutrition-briefing-azhe-wide.webp",
   briefingSceneMobileHook: "",
   ambientBackgroundHook: "human-nutrition-entry-wide",
   questionDigestiveMap: "human-nutrition-digestive-map",
@@ -743,9 +742,7 @@ function renderLogin() {
 
 function renderBrief() {
   const sceneAttrs = `${assets.briefingSceneHook ? ` data-briefing-scene-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
-  const sceneMedia = assets.briefingSceneHook
-    ? `<picture class="bq-brief-scene-media">${assets.briefingSceneMobileHook ? `<source media="(max-width: 680px)" srcset="${assets.briefingSceneMobileHook}">` : ""}<img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="阿澤老師在人體養分轉運任務場景中引導學生"></picture>`
-    : `<div class="bq-brief-scene-missing" data-briefing-scene-missing="true"><strong>主視覺素材待接</strong><span>等待核准：assets/human-nutrition-briefing-azhe-wide.webp</span></div>`;
+  const sceneMedia = `<picture class="bq-brief-scene-media">${assets.briefingSceneMobileHook ? `<source media="(max-width: 680px)" srcset="${assets.briefingSceneMobileHook}">` : ""}<img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="阿澤老師在人體養分轉運任務場景中引導學生"></picture>`;
   return `
     <div class="wide-layout">
       <section class="panel hero-panel brief-hero">

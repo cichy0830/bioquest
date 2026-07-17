@@ -1345,7 +1345,7 @@ function renderAchievements() {
       const official = officialBadgeIds.includes(badge.id);
       const gold = badge.id === "cell_observation_flawless";
       const pendingBadge = pending && lit && !official;
-      return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div class="badge-icon" hidden>${lit ? "亮" : "徽"}</div><strong>${badge.name}</strong>${pendingBadge ? `<span class="pill warn">待同步</span>` : ""}<p class="muted">${badge.condition}</p></div>`;
+      return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><strong>${badge.name}</strong>${pendingBadge ? `<span class="pill warn">待同步</span>` : ""}<p class="muted">${badge.condition}</p></div>`;
     }).join("")}</div><p class="muted">${syncNote}</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
 }
 function renderRules() {

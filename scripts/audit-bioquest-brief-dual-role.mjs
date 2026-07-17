@@ -103,6 +103,24 @@ const allUnits = [
     folder: "prototype-photosynthesis",
     storageKey: "bioquest_photosynthesis_state_v1",
     azhe: { left: 0.13, right: 0.38, top: 0.11, bottom: 0.98 }
+  },
+  {
+    unitId: "human_nutrition",
+    folder: "prototype-human-nutrition",
+    storageKey: "bioquest_human_nutrition_state_v1",
+    azhe: { left: 0.1, right: 0.34, top: 0.1, bottom: 0.98 }
+  },
+  {
+    unitId: "plant_transport_structures",
+    folder: "prototype-plant-transport-structures",
+    storageKey: "bioquest_plant_transport_structures_state_v1",
+    azhe: { left: 0.11, right: 0.35, top: 0.1, bottom: 0.98 }
+  },
+  {
+    unitId: "plant_material_transport",
+    folder: "prototype-plant-material-transport",
+    storageKey: "bioquest_plant_material_transport_state_v1",
+    azhe: { left: 0.11, right: 0.36, top: 0.1, bottom: 0.98 }
   }
 ];
 
@@ -204,8 +222,61 @@ async function auditUnit(browser, baseUrl, unit, viewport) {
   });
   page.on("pageerror", (error) => pageErrors.push(error.message));
   await page.goto(`${baseUrl}/${unit.folder}/index.html`, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector(".bq-brief-scene-stage .bq-brief-scene-image");
+  await page.waitForSelector(".bq-brief-scene-stage");
+  if (unit.missingSceneAllowed) {
+    await page.waitForSelector(".bq-brief-scene-stage .bq-brief-scene-missing");
+  } else {
+    await page.waitForSelector(".bq-brief-scene-stage .bq-brief-scene-image");
+  }
   await page.waitForSelector(".bq-brief-scene-stage .bq-brief-student-avatar");
+
+  if (unit.missingSceneAllowed) {
+    const metrics = await page.locator(".bq-brief-scene-stage").evaluate((scene) => {
+      const sceneBox = scene.getBoundingClientRect();
+      const avatar = scene.querySelector(".bq-brief-student-avatar");
+      const avatarBox = avatar?.getBoundingClientRect();
+      const caption = scene.parentElement.querySelector(".bq-brief-scene-caption, .brief-copy-panel");
+      const captionBox = caption?.getBoundingClientRect();
+      return {
+        sceneRatio: sceneBox.width / sceneBox.height,
+        missingCount: scene.querySelectorAll(".bq-brief-scene-missing").length,
+        sceneImageCount: scene.querySelectorAll(".bq-brief-scene-image").length,
+        avatarNaturalWidth: avatar?.naturalWidth || 0,
+        avatarSrc: avatar?.getAttribute("src") || "",
+        avatarInsideScene: Boolean(avatarBox && avatarBox.top >= sceneBox.top - 1 && avatarBox.bottom <= sceneBox.bottom + 1),
+        captionAfterScene: captionBox ? captionBox.top >= sceneBox.bottom - 1 : true,
+        legacySlotCount: scene.parentElement.querySelectorAll(".student-avatar-slot:not(.bq-brief-legacy-avatar), .brief-title-avatar-card:not(.bq-brief-legacy-avatar), .title-avatar-brief:not(.bq-brief-legacy-avatar)").length,
+        owlCount: scene.parentElement.querySelectorAll(".owl-frame, .owl-panel, .bq-report-assistant").length,
+        mentorCardCount: scene.parentElement.querySelectorAll(".mentor-card, .mentorCard").length,
+        horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth)
+      };
+    });
+    assert.ok(Math.abs(metrics.sceneRatio - 16 / 9) < 0.06, `${unit.unitId} missing-scene stage should stay 16:9: ${JSON.stringify(metrics)}`);
+    assert.equal(metrics.missingCount, 1, `${unit.unitId} must show one controlled missing-scene state`);
+    assert.equal(metrics.sceneImageCount, 0, `${unit.unitId} must not request a nonexistent briefing image`);
+    assert.ok(metrics.avatarNaturalWidth > 0, `${unit.unitId} avatar must load`);
+    assert.match(metrics.avatarSrc, /^\.\.\/shared-assets\/title-avatars\//, `${unit.unitId} avatar path should normalize`);
+    assert.equal(metrics.avatarInsideScene, true, `${unit.unitId} avatar should stay inside stage`);
+    assert.equal(metrics.captionAfterScene, true, `${unit.unitId} text/caption should be under scene`);
+    assert.equal(metrics.legacySlotCount, 0, `${unit.unitId} should not keep visible old avatar slot/card`);
+    assert.equal(metrics.owlCount, 0, `${unit.unitId} brief should not include owl`);
+    assert.equal(metrics.mentorCardCount, 0, `${unit.unitId} brief should not include extra mentor card`);
+    assert.equal(metrics.horizontalOverflow, 0, `${unit.unitId} should not overflow horizontally`);
+    assert.deepEqual(imageErrors, [], `${unit.unitId} no image 404 expected`);
+    assert.deepEqual(consoleErrors, [], `${unit.unitId} no console errors expected`);
+    assert.deepEqual(pageErrors, [], `${unit.unitId} no page errors expected`);
+    fs.mkdirSync(artifactDir, { recursive: true });
+    const basename = `${unit.unitId}-${viewport.width}x${viewport.height}`;
+    fs.writeFileSync(path.join(artifactDir, `${basename}-metrics.json`), JSON.stringify(metrics, null, 2));
+    await page.screenshot({ path: path.join(artifactDir, `${basename}.png`) });
+    await context.close();
+    return {
+      unitId: unit.unitId,
+      viewport: `${viewport.width}x${viewport.height}`,
+      missingScene: unit.missingSceneHook,
+      ratio: null
+    };
+  }
 
   const metrics = await page.locator(".bq-brief-scene-stage").evaluate((scene, azhe) => {
     function alphaBBox(image) {
