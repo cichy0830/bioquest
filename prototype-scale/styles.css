@@ -354,13 +354,7 @@ textarea { min-height: 96px; resize: vertical; }
 .scale-segment-row { display: grid; grid-template-columns: repeat(2, minmax(100px, 180px)); justify-content: center; gap: 0; }
 .scale-segment-row span { display: grid; gap: 5px; color: var(--teal-dark); font-weight: 900; text-align: center; }
 .scale-segment-row b { height: 6px; border-inline: 2px solid #174f56; background: #174f56; }
-.compare-evidence { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.compare-evidence div { display: grid; gap: 4px; min-width: 0; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; text-align: center; }
 .question-data-card { margin: 12px 0; padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: #f7fbfa; }
-.question-data-card dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; }
-.question-data-card dl div { padding: 12px; border-radius: 8px; background: #fff; text-align: center; }
-.question-data-card dt { color: var(--muted); font-size: 13px; font-weight: 800; }
-.question-data-card dd { margin: 5px 0 0; color: var(--teal-dark); font-size: 22px; font-weight: 900; }
 .sortable-item small { display: block; margin-top: 4px; color: var(--teal-dark); font-weight: 900; }
 .double-scale { display:flex; width: min(62%, 280px); margin: 0 auto 18px; }
 .double-scale span { flex:1; height:6px; background:#194f58; }
@@ -396,6 +390,5 @@ textarea { min-height: 96px; resize: vertical; }
   .actions { display:grid; grid-template-columns:1fr; }
   .scale-brief-scene .scene-copy { width: 100%; }
   .compare-micrographs { grid-template-columns: 1fr; }
-  .compare-evidence, .question-data-card dl { grid-template-columns: 1fr; }
   .scale-evidence-strip { align-items: stretch; }
 }
