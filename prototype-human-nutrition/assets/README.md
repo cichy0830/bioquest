@@ -1,12 +1,14 @@
 # 人體如何獲得養分素材接線
 
-目前學生端使用 CSS/HTML 場景、資料卡與共用貓頭鷹 fallback，不假裝未交付素材已完成。
+目前已接入使用者核准素材：
 
-視覺素材核准後，請依 `app.js` 的 `assets` hook 補入：
+- `human-nutrition-briefing-azhe-wide.webp`：2026-07-16 已核准 safe briefing scene，簡報頁使用。
+- `human-nutrition-entry-wide.webp`：2026-07-18 已核准無人物背景，一般頁底層背景使用。
+- `owl-human-nutrition-prep-report.webp`：2026-07-18 已核准第二階段 prep/report owl。
 
-- `human-nutrition-briefing-azhe-wide`
+仍待視覺素材核准後接線的 hook：
+
 - `human-nutrition-briefing-azhe-mobile`
-- `human-nutrition-entry-wide`
 - `human-nutrition-digestive-map`
 - `human-nutrition-enzyme-cards`
 - `human-nutrition-villi-evidence`

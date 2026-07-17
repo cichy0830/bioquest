@@ -1,12 +1,13 @@
 # 刺激與反應素材接線
 
-目前 U20 只使用 CSS/HTML fallback，不引用待審素材，也不產生不存在圖片請求。
+目前已接入使用者核准素材：
 
-待視覺素材核准後可接入的穩定 hook：
+- `stimulus-response-briefing-azhe-wide.webp`：2026-07-18 已核准 safe briefing scene，簡報頁使用。
+- `stimulus-response-entry-wide.webp`：2026-07-18 已核准無人物背景，一般頁底層背景使用。
 
-- `stimulus-response-briefing-azhe-wide`
+仍待視覺素材核准後接線的 hook：
+
 - `stimulus-response-briefing-azhe-mobile`
-- `stimulus-response-entry-wide`
 - `stimulus-response-role-cards`
 - `stimulus-response-pathway-flow`
 - `stimulus-response-reaction-time`

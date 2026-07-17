@@ -1,12 +1,13 @@
 # 人體的循環系統素材接線
 
-目前 U19 只使用 CSS/HTML fallback，不引用待審素材，也不產生不存在圖片請求。
+目前已接入使用者核准素材：
 
-待視覺素材核准後可接入的穩定 hook：
+- `human-circulation-briefing-azhe-wide.webp`：2026-07-18 已核准 safe briefing scene，簡報頁使用。
+- `human-circulation-entry-wide.webp`：2026-07-18 已核准無人物背景，一般頁底層背景使用。
 
-- `human-circulation-briefing-azhe-wide`
+仍待視覺素材核准後接線的 hook：
+
 - `human-circulation-briefing-azhe-mobile`
-- `human-circulation-entry-wide`
 - `human-circulation-route-map-base`
 - `human-circulation-lung-exchange-visual`
 - `human-circulation-tissue-exchange-visual`

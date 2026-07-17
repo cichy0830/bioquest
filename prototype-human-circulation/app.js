@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260718-human-circulation-ready-v1";
+const VERSION = "20260718-u18-u20-assets-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -31,9 +31,9 @@ const assets = {
   owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   // Visual team handoff names stay documented below; only set real WebP paths after approval.
-  briefingSceneHook: "",
+  briefingSceneHook: "assets/human-circulation-briefing-azhe-wide.webp",
   briefingSceneMobileHook: "",
-  ambientBackgroundHook: "human-circulation-entry-wide",
+  ambientBackgroundHook: "assets/human-circulation-entry-wide.webp",
   questionRouteMap: "human-circulation-route-map-base",
   questionLungExchange: "human-circulation-lung-exchange-visual",
   questionTissueExchange: "human-circulation-tissue-exchange-visual",

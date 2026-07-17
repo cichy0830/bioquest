@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260718-cardiovascular-components-ready-v1";
+const VERSION = "20260718-u18-u20-assets-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -26,21 +26,21 @@ const mission = {
 const assets = {
   mentorFallback: "../shared-assets/mentor-feedback/mentor-feedback-stable.webp",
   owlLogin: "../shared-assets/login/bioquest-login-cover-wide.webp",
-  owlPrep: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
-  owlReport: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
+  owlPrep: "assets/owl-cardiovascular-components-prep-report.webp",
+  owlReport: "assets/owl-cardiovascular-components-prep-report.webp",
   owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   // Visual team handoff names stay documented below; only set real WebP paths after approval.
-  briefingSceneHook: "",
+  briefingSceneHook: "assets/cardiovascular-components-briefing-azhe-wide.webp",
   briefingSceneMobileHook: "",
-  ambientBackgroundHook: "cardiovascular-components-entry-wide",
+  ambientBackgroundHook: "assets/cardiovascular-components-entry-wide.webp",
   questionHeartMap: "cardiovascular-components-heart-map",
   questionVesselCompare: "cardiovascular-components-vessel-compare",
   questionBloodComponents: "cardiovascular-components-blood-components",
   questionPulsePressure: "cardiovascular-components-pulse-pressure"
 };
 
-const badgeAsset = () => "";
+const badgeAsset = (id) => `../shared-assets/badges/cardiovascular_components/badge-cardiovascular_components-${id}.webp`;
 const reflectionRules = {
   conceptTerms: ["心血管", "心臟", "心房", "心室", "瓣膜", "血管", "動脈", "靜脈", "微血管", "血液", "血漿", "紅血球", "白血球", "血小板", "脈搏", "血壓", "幫浦", "單向", "防禦", "止血", "氧氣", "物質交換"],
   irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "午餐", "放假"],
@@ -63,7 +63,10 @@ const badges = [
   ["cardiovascular_components_flawless", "心血管零提示全對徽章", "全部答對且全程未使用提示。"],
   ["cardiovascular_components_reflection_reporter", "高品質心血管回報徽章", "回報品質達 discussion_question。"],
   ["retry_growth_cardiovascular_components", "再探心血管調度進步徽章", "再挑戰完整完成且正確率進步。"]
-].map(([id, name, condition]) => ({ id, name, condition, badge_image_path: badgeAsset(id), image_status: "pending" }));
+].map(([id, name, condition]) => {
+  const readyIds = new Set(["cardiovascular_components_entry", "cardiovascular_components_flawless"]);
+  return { id, name, condition, badge_image_path: badgeAsset(id), image_status: readyIds.has(id) ? "ready" : "pending" };
+});
 
 const sequenceSteps = [
   { id: "heart_contracts", label: "心臟收縮提供推動力量" },

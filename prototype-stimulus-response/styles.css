@@ -21,6 +21,7 @@ body {
   background:
     linear-gradient(120deg, rgba(246, 237, 218, .66), rgba(221, 241, 232, .68)),
     radial-gradient(circle at 82% 16%, rgba(232, 151, 67, .22), transparent 22%),
+    url("assets/stimulus-response-entry-wide.webp"),
     linear-gradient(135deg, #dcefe7, #b9d7cc 45%, #f3dcb6);
   background-attachment: fixed;
   background-size: cover;

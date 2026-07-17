@@ -55,9 +55,9 @@ appVersionOverrides.set("plant_material_transport", "20260718-u15-u17-assets-v1"
   appVersionOverrides.set(unitId, "20260718-u15-u17-assets-v1");
 });
 appVersionOverrides.set("plant_transport_structures", "20260717-u15u17-brief-scenes-v1");
-appVersionOverrides.set("cardiovascular_components", "20260718-cardiovascular-components-ready-v1");
-appVersionOverrides.set("human_circulation", "20260718-human-circulation-ready-v1");
-appVersionOverrides.set("stimulus_response", "20260718-stimulus-response-ready-v1");
+appVersionOverrides.set("cardiovascular_components", "20260718-u18-u20-assets-v1");
+appVersionOverrides.set("human_circulation", "20260718-u18-u20-assets-v1");
+appVersionOverrides.set("stimulus_response", "20260718-u18-u20-assets-v1");
 const sharedCacheOverrides = new Map();
 ["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit", "cell_structure", "cell_observation"].forEach((unitId) => {
   sharedCacheOverrides.set(unitId, "20260715-brief-scene-unified-u1u7-v1");
