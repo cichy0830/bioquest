@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260716-plant-material-transport-publish-v1";
+const VERSION = "20260718-u15-u17-assets-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -26,13 +26,14 @@ const mission = {
 const assets = {
   mentorFallback: "../shared-assets/mentor-feedback/mentor-feedback-stable.webp",
   owlLogin: "../shared-assets/login/bioquest-login-cover-wide.webp",
-  owlPrep: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
-  owlReport: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
+  owlPrep: "assets/owl-plant-material-transport-prep-report.webp",
+  owlReport: "assets/owl-plant-material-transport-prep-report.webp",
   owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "assets/plant-material-transport-briefing-azhe-wide.webp",
   briefingSceneMobileHook: "",
-  ambientBackgroundHook: "plant-material-transport-entry-wide",
+  ambientBackgroundHook: "assets/plant-material-transport-entry-wide.webp",
+  questionOverview: "assets/plant-material-transport-overview-visual.webp",
   questionWaterFlow: "plant-material-transport-root-to-leaf-water-flow",
   questionXylemPhloemRoutes: "plant-material-transport-xylem-phloem-routes",
   questionNutrientFlow: "plant-material-transport-leaf-to-sink-nutrient-flow",
@@ -63,7 +64,10 @@ const badges = [
   ["plant_material_transport_flawless", "植物體內運輸零提示全對徽章", "全部答對且全程未使用提示。"],
   ["plant_material_transport_reflection_reporter", "高品質運輸回報徽章", "回報品質達 discussion_question。"],
   ["retry_growth_plant_material_transport", "再探綠植調度進步徽章", "再挑戰完整完成且正確率進步。"]
-].map(([id, name, condition]) => ({ id, name, condition, badge_image_path: badgeAsset(id), image_status: "pending" }));
+].map(([id, name, condition]) => {
+  const readyIds = new Set(["plant_material_transport_entry", "xylem_upward_carrier", "phloem_nutrient_dispatcher", "plant_material_transport_flawless"]);
+  return { id, name, condition, badge_image_path: badgeAsset(id), image_status: readyIds.has(id) ? "ready" : "pending" };
+});
 
 const sequenceSteps = [
   { id: "soil_contact", label: "土壤中的水分接觸根毛" },
@@ -793,7 +797,7 @@ function renderQuestion(question) {
 function conceptLabel(concept) { return {transport_overview:"植物運輸總覽",water_mineral_absorption:"水分礦物吸收",xylem_upward_transport:"木質部上行運輸",phloem_nutrient_transport:"韌皮部養分運輸",transpiration_link:"蒸散與水分路徑",stomata_balance:"氣孔平衡判斷",evidence_interpretation:"資料證據判讀"}[concept] || concept; }
 
 function renderQuestionEvidence(qid) {
-  if (qid === "q01") return `<div class="evidence-card"><strong>整株植物運輸卡</strong><p>根、葉與其他部位會取得、製造、使用或儲存不同物質；請判斷是否需要體內運輸。</p></div>`;
+  if (qid === "q01") return `<div class="evidence-card"><strong>整株植物運輸卡</strong><p>根、葉與其他部位會取得、製造、使用或儲存不同物質；請判斷是否需要體內運輸。</p><figure class="question-asset"><img src="${assets.questionOverview}" alt="整株植物與根、莖、葉之間物質運輸情境示意"></figure></div>`;
   if (qid === "q03") return `<div class="evidence-card"><strong>來源分類卡</strong><p>水分、礦物質和糖類養分的來源不同；請完成每一列分類。</p></div>`;
   if (qid === "q04") return `<div class="evidence-card"><strong>有色水觀察卡</strong><p>有色水出現在莖與花瓣部分位置，只能支持和水分移動相關的有限推論。</p></div>`;
   if (qid === "q05" || qid === "q06" || qid === "q07" || qid === "q08") return `<div class="evidence-card"><strong>兩類運輸內容</strong><p>一類和根吸收的水分、礦物質相關；另一類和葉片製造的養分相關。</p></div>`;

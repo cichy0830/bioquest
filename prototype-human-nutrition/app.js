@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260714-human-nutrition-v1";
+const VERSION = "20260718-u15-u17-assets-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -26,13 +26,13 @@ const mission = {
 const assets = {
   mentorFallback: "../shared-assets/mentor-feedback/mentor-feedback-stable.webp",
   owlLogin: "../shared-assets/login/bioquest-login-cover-wide.webp",
-  owlPrep: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
-  owlReport: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
+  owlPrep: "assets/owl-human-nutrition-prep-report.webp",
+  owlReport: "assets/owl-human-nutrition-prep-report.webp",
   owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "assets/human-nutrition-briefing-azhe-wide.webp",
   briefingSceneMobileHook: "",
-  ambientBackgroundHook: "human-nutrition-entry-wide",
+  ambientBackgroundHook: "assets/human-nutrition-entry-wide.webp",
   questionDigestiveMap: "human-nutrition-digestive-map",
   questionEnzymeCards: "human-nutrition-enzyme-cards",
   questionVilliEvidence: "human-nutrition-villi-evidence"

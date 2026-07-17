@@ -50,10 +50,11 @@ appVersionOverrides.set("nutrients_energy", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("photosynthesis", "20260715-brief-scene-unified-u9u14-v1");
 appVersionOverrides.set("biological_organization", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("cell_transport", "20260717-badge-icon-cleanup-v1");
-appVersionOverrides.set("plant_material_transport", "20260716-plant-material-transport-publish-v1");
-["human_nutrition", "plant_transport_structures", "plant_material_transport"].forEach((unitId) => {
-  appVersionOverrides.set(unitId, "20260717-u15u17-brief-scenes-v1");
+appVersionOverrides.set("plant_material_transport", "20260718-u15-u17-assets-v1");
+["human_nutrition", "plant_material_transport"].forEach((unitId) => {
+  appVersionOverrides.set(unitId, "20260718-u15-u17-assets-v1");
 });
+appVersionOverrides.set("plant_transport_structures", "20260717-u15u17-brief-scenes-v1");
 appVersionOverrides.set("cardiovascular_components", "20260718-cardiovascular-components-ready-v1");
 appVersionOverrides.set("human_circulation", "20260718-human-circulation-ready-v1");
 appVersionOverrides.set("stimulus_response", "20260718-stimulus-response-ready-v1");
@@ -71,9 +72,10 @@ sharedCacheOverrides.set("cell_transport", "20260716-cell-transport-u8-ux-v1");
 sharedCacheOverrides.set("scale", "20260717-scale-user-review-v2");
 sharedCacheOverrides.set("biological_organization", "20260716-biological-organization-title-count-v1");
 sharedCacheOverrides.set("photosynthesis", "20260715-brief-scene-unified-u9u14-v1");
-["human_nutrition", "plant_transport_structures", "plant_material_transport"].forEach((unitId) => {
-  sharedCacheOverrides.set(unitId, "20260717-u15u17-brief-scenes-v1");
+["human_nutrition", "plant_material_transport"].forEach((unitId) => {
+  sharedCacheOverrides.set(unitId, "20260718-u15-u17-assets-v1");
 });
+sharedCacheOverrides.set("plant_transport_structures", "20260717-u15u17-brief-scenes-v1");
 sharedCacheOverrides.set("cardiovascular_components", "20260713-login-busy-v1");
 sharedCacheOverrides.set("human_circulation", "20260713-login-busy-v1");
 sharedCacheOverrides.set("stimulus_response", "20260713-login-busy-v1");
@@ -96,7 +98,12 @@ function badgeInventory(source, folder) {
     return { id: match[1], explicit };
   });
   if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components" || folder === "prototype-human-circulation" || folder === "prototype-stimulus-response")) {
-    return [...block.matchAll(/\["([^"]+)",\s*"[^"]+",\s*"[^"]+"\]/g)].map((match) => ({ id: match[1], imagePath: "", exists: false }));
+    const dynamicTemplate = source.match(/const badgeAsset = \(id\) => `([^`]+)`/)?.[1] || "";
+    return [...block.matchAll(/\["([^"]+)",\s*"[^"]+",\s*"[^"]+"\]/g)].map((match) => {
+      const imagePath = dynamicTemplate ? dynamicTemplate.replace("${id}", match[1]) : "";
+      const absolute = imagePath ? path.resolve(root, folder, imagePath) : "";
+      return { id: match[1], imagePath, exists: Boolean(absolute && fs.existsSync(absolute)) };
+    });
   }
   const dynamicTemplate = source.match(/const badgeAsset = \(id\) => `([^`]+)`/)?.[1] || "";
   return entries.map((entry) => {

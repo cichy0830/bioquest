@@ -24,9 +24,9 @@ const sharedVersionOverrides = new Map([
   ["nutrient_test", "20260717-nutrient-test-u12-fixes-v2"],
   ["enzymes", "20260718-enzymes-badges-v1"],
   ["photosynthesis", "20260715-brief-scene-unified-u9u14-v1"],
-  ["human_nutrition", "20260717-u15u17-brief-scenes-v1"],
+  ["human_nutrition", "20260718-u15-u17-assets-v1"],
   ["plant_transport_structures", "20260717-u15u17-brief-scenes-v1"],
-  ["plant_material_transport", "20260717-u15u17-brief-scenes-v1"],
+  ["plant_material_transport", "20260718-u15-u17-assets-v1"],
   ["cardiovascular_components", "20260713-login-busy-v1"],
   ["human_circulation", "20260713-login-busy-v1"],
   ["stimulus_response", "20260713-login-busy-v1"]
