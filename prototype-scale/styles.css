@@ -239,10 +239,6 @@ textarea { min-height: 96px; resize: vertical; }
 .choice-button.wrong { border-color: var(--red); background:#ffe8e8; }
 .selected-answer { color: var(--muted); font-size: 14px; font-weight: 800; }
 
-.question-visual { margin: 12px 0; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: #f7faf9; }
-.question-image-wrap { width: min(100%, 680px); margin: 0 auto; aspect-ratio: 16 / 9; }
-.question-image-wrap img { display: block; width: 100%; height: 100%; object-fit: contain; }
-.question-visual figcaption { padding: 10px 12px; color: var(--muted); font-size: 13px; font-weight: 800; }
 .data-table-wrap { margin: 12px 0; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
 .evidence-table { width: 100%; min-width: 520px; border-collapse: collapse; text-align: center; }
 .evidence-table caption { padding: 12px; color: var(--teal-dark); font-weight: 900; text-align: left; }
@@ -351,9 +347,6 @@ textarea { min-height: 96px; resize: vertical; }
 .owl-fallback { display: grid; place-items: center; width: min(210px, 60vw); aspect-ratio: 1; border: 6px solid rgba(22, 110, 118, .28); border-radius: 50%; color: #16545a; background: radial-gradient(circle at 50% 44%, #fff5c8 0 13%, #e4a950 14% 25%, #4e8391 26% 58%, #d6f3ef 59%); font-weight: 900; text-align: center; line-height: 1.45; box-shadow: 0 10px 24px rgba(17,77,85,.14); }
 .scale-prep-owl img + .owl-fallback { position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); }
 .scale-prep-owl .owl-fallback[hidden] { display: none !important; }
-.scale-visual { margin: 12px 0; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: linear-gradient(135deg, #f8fcfa, #e8f5f1); }
-.scale-sort-image img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #eff7f3; }
-.scale-question-image img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #eff7f3; }
 .scale-evidence-strip { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--line); background: #f7fbfa; color: #174f56; }
 .scale-evidence-strip strong { font-size: 20px; }
 .q09-evidence { display: grid; gap: 10px; }
@@ -368,18 +361,7 @@ textarea { min-height: 96px; resize: vertical; }
 .question-data-card dl div { padding: 12px; border-radius: 8px; background: #fff; text-align: center; }
 .question-data-card dt { color: var(--muted); font-size: 13px; font-weight: 800; }
 .question-data-card dd { margin: 5px 0 0; color: var(--teal-dark); font-size: 22px; font-weight: 900; }
-.question-data-card figcaption { margin-top: 10px; color: var(--muted); font-size: 13px; font-weight: 800; }
 .sortable-item small { display: block; margin-top: 4px; color: var(--teal-dark); font-weight: 900; }
-.scale-visual > div { min-height: 150px; }
-.scale-visual figcaption { padding: 10px 12px; color: var(--muted); font-size: 13px; font-weight: 800; }
-.unit-ruler { display: grid; grid-template-columns: repeat(4, 1fr); align-items: end; gap: 8px; padding: 26px; background: repeating-linear-gradient(90deg, transparent 0 23px, rgba(19,93,100,.18) 23px 25px); }
-.unit-ruler span { display: grid; min-height: 70px; place-items: center; border-bottom: 5px solid #1b6970; color: #18575d; font-weight: 900; background: rgba(255,255,255,.54); }
-.tool-silhouettes { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 20px; }
-.tool-silhouettes span { display: grid; place-items: center; width: 84px; aspect-ratio: 1; border: 5px solid #27787d; border-radius: 50%; color: #15535a; background: #f9efc9; font-weight: 900; }
-.micro-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 22px; background: linear-gradient(90deg, rgba(74,146,115,.12) 1px, transparent 1px), linear-gradient(rgba(74,146,115,.12) 1px, transparent 1px), #eef6df; background-size: 38px 32px; }
-.cell-shape { display: block; min-height: 42px; border: 2px solid #629663; border-radius: 8px; background: rgba(188,221,145,.55); }
-.scale-line { display:inline-block; width:92px; height:5px; margin-right:7px; vertical-align:middle; background:#194f58; }
-.scale-cell { width: min(62%, 280px); height: 76px; margin: 26px auto 12px; border: 4px solid #629663; border-radius: 50%; background: rgba(188,221,145,.44); }
 .double-scale { display:flex; width: min(62%, 280px); margin: 0 auto 18px; }
 .double-scale span { flex:1; height:6px; background:#194f58; }
 .double-scale span + span { border-left:2px solid #fff; }

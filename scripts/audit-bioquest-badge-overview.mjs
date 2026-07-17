@@ -17,7 +17,7 @@ const sharedVersionOverrides = new Map([
   ["prototype-cell-observation", "20260716-cell-observation-guest-local-v1"],
   ["prototype-cell-transport", "20260716-cell-transport-u8-ux-v1"],
   ["prototype-biological-organization", "20260716-biological-organization-title-count-v1"],
-  ["prototype-scale", "20260716-scale-prep-fallback-v3"],
+  ["prototype-scale", "20260717-scale-badge-summary-v1"],
   ["prototype-nutrients-energy", "20260715-title-avatar-card-v1"],
   ["prototype-nutrient-test", "20260715-title-avatar-card-v1"],
   ["prototype-enzymes", "20260715-title-avatar-card-v1"],

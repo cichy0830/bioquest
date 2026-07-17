@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260716-scale-qa-fixes-v1";
+const VERSION = "20260717-scale-badge-summary-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -29,12 +29,7 @@ const assets = {
   owlResult: "../shared-assets/assistants/owl-bioquest-result.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "assets/bg-scale-briefing-azhe-wide.webp",
-  ambientBackgroundHook: "assets/bg-scale-ambient-wide.webp",
-  sortCardsHook: "assets/scale-size-level-cards.webp",
-  unitCardsHook: "assets/scale-unit-match-cards.webp",
-  toolCardsHook: "assets/scale-observation-tool-cards.webp",
-  micrographHook: "assets/scale-bar-micrograph.webp",
-  imageCompareHook: "assets/scale-image-vs-actual-visual.webp"
+  ambientBackgroundHook: "assets/bg-scale-ambient-wide.webp"
 };
 
 const badgeAsset = (id) => `../shared-assets/badges/scale/badge-scale-${id}.webp`;
@@ -450,16 +445,6 @@ function attachLogin() {
   });
 }
 
-function scaleFallbackVisual(type, assetHook) {
-  const common = `class="scale-visual ${type}" data-question-image-hook="${assetHook || ""}" data-asset-status="pending"`;
-  if (type === "micrograph-100") return `<figure ${common}><div class="micro-grid"><span class="cell-shape"></span><span class="cell-shape"></span><span class="cell-shape"></span><span class="cell-shape"></span></div><figcaption><span class="scale-line"></span> 100 μm</figcaption></figure>`;
-  if (type === "scale-bar-50") return `<figure ${common}><div class="scale-cell"></div><div class="double-scale"><span></span><span></span></div><figcaption>每一段標尺代表 50 μm</figcaption></figure>`;
-  if (type === "compare-bars") return `<figure ${common}><div class="compare-micrographs"><div><span class="cell-shape"></span><b>甲：20 μm</b></div><div><span class="cell-shape"></span><b>乙：100 μm</b></div></div><figcaption>比較時請使用標尺，而不是只看畫面大小。</figcaption></figure>`;
-  if (type === "magnification-data") return `<figure ${common}><div class="math-card"><span>影像長度</span><strong>20 mm</strong><span>放大倍率</span><strong>10 倍</strong></div><figcaption>以題目提供的影像長度與倍率做簡單估算。</figcaption></figure>`;
-  if (type === "screen-zoom") return `<figure ${common}><div class="screen-compare"><span class="small-cell"></span><span class="large-cell"></span></div><figcaption>影像顯示尺寸可能改變；請判斷實物大小的證據。</figcaption></figure>`;
-  if (type === "tool-station") return `<figure ${common}><div class="tool-silhouettes"><span>尺</span><span>鏡</span><span>顯</span></div><figcaption>先看觀察對象的大小與觀察目的，再選工具。</figcaption></figure>`;
-  return `<figure ${common}><div class="unit-ruler"><span>m</span><span>cm</span><span>mm</span><span>μm</span></div><figcaption>先統一單位，再比較實際大小。</figcaption></figure>`;
-}
 function selectedClass(question, option) {
   const selected = state.answers[question.id] === option.id;
   const checked = state.checkedWrong[question.id];
@@ -468,34 +453,15 @@ function selectedClass(question, option) {
   return selected ? " selected" : "";
 }
 function renderQuestionImage(question) {
-  const hooks = {
-    "unit-grid": assets.unitCardsHook,
-    "tool-station": assets.toolCardsHook,
-    "micrograph-100": assets.micrographHook,
-    "scale-bar-50": assets.micrographHook,
-    "compare-bars": assets.imageCompareHook,
-    "screen-zoom": assets.imageCompareHook,
-    "magnification-data": assets.imageCompareHook
-  };
-  const captions = {
-    "unit-grid": "圖卡只提供觀察線索；請依題目選擇適合的單位。",
-    "tool-station": "先看觀察對象的大小與目的，再判斷適合的工具。",
-    "micrograph-100": "觀察圖中的尺度線索，再判斷它代表的觀察情境。",
-    "scale-bar-50": "以題目提供的標尺資料判讀，不只看圖像顯示大小。",
-    "compare-bars": "比較顯微圖時，要把標尺與倍率資料一起納入判斷。",
-    "screen-zoom": "圖像顯示可以被放大；請分開判斷圖像與實物。",
-    "magnification-data": "以題目提供的影像長度與倍率做簡單估算。"
-  };
-  const hook = hooks[question.visual];
   if (question.id === "q12") {
-    return `<figure class="question-data-card" aria-label="倍率估算資料"><dl><div><dt>影像長度</dt><dd>20 mm</dd></div><div><dt>放大倍率</dt><dd>10 倍</dd></div></dl><figcaption>以上是本題計算資料，不需從圖片量測。</figcaption></figure>`;
+    return `<figure class="question-data-card" aria-label="倍率估算資料"><dl><div><dt>影像長度</dt><dd>20 mm</dd></div><div><dt>放大倍率</dt><dd>10 倍</dd></div></dl></figure>`;
   }
   const evidence = {
-    q08: `<div class="scale-evidence-strip" role="group" aria-label="顯微影像標尺資料"><span>圖中標尺代表</span><strong>100 μm</strong></div>`,
+    q08: `<div class="scale-evidence-strip" role="group" aria-label="規則排列小格狀構造與一百微米標尺資料"><span>資料卡</span><strong>規則排列的小格狀構造；標尺為 100 μm</strong></div>`,
     q09: `<div class="scale-evidence-strip q09-evidence" role="group" aria-label="兩段比例尺，每段五十微米，目標細胞約跨兩段"><div class="scale-segment-row"><span><b></b>50 μm</span><span><b></b>50 μm</span></div><p>目標細胞長度約跨 2 段等長標尺</p></div>`,
     q11: `<div class="scale-evidence-strip compare-evidence" role="group" aria-label="兩張同尺寸圖像的標尺資料"><div><span>甲圖標尺</span><strong>20 μm</strong></div><div><span>乙圖標尺</span><strong>100 μm</strong></div></div>`
   }[question.id] || "";
-  return question.visual ? `<figure class="question-visual scale-question-image" data-question-image-hook="${hook}" data-asset-status="ready"><img src="${hook}" alt="尺度任務觀察圖">${evidence}<figcaption>${captions[question.visual]}</figcaption></figure>` : "";
+  return evidence ? `<section class="question-data-card" aria-label="尺度資料卡">${evidence}</section>` : "";
 }
 function renderChoiceQuestion(qid) {
   const question = questionById(qid);
@@ -506,7 +472,6 @@ function renderChoiceQuestion(qid) {
 function renderSequenceQuestion() {
   const order = ensureSequence();
   return `<div class="question-card"><h3>依題卡提供的實際大小，由大到小拖曳排序。</h3><p class="field-help">每張卡都有固定參考值；可拖曳卡片，手機可使用上移 / 下移按鈕。</p>
-    <figure class="question-visual scale-sort-image" data-question-image-hook="${assets.sortCardsHook}" data-asset-status="ready"><img src="${assets.sortCardsHook}" alt="背包、葉片、螞蟻、米粒與細胞的尺度排序圖卡"><figcaption>圖片只協助辨識物件；排序依據是下方 DOM 題卡的固定實際大小。</figcaption></figure>
     <div class="sortable-list">${order.map((id, index) => {
       const step = sequenceSteps.find((item) => item.id === id);
       return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><div><strong>${step.label}</strong><small>${step.reference}</small></div><div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`;
@@ -516,9 +481,7 @@ function renderClassifyQuestion(qid) {
   const config = classifyQuestions[qid];
   const orderedItems = optionOrder(`${qid}_classify_items`, config.items.map((item) => item.id)).map((id) => config.items.find((item) => item.id === id)).filter(Boolean);
   const orderedBuckets = optionOrder(`${qid}_classify_options`, config.options.map((option) => option.id)).map((id) => config.options.find((option) => option.id === id)).filter(Boolean);
-  const hook = qid === "q02" ? assets.unitCardsHook : assets.toolCardsHook;
-  const visualCaption = qid === "q02" ? "物件大小不同，適合用的單位也不同。" : "工具選擇要配合觀察對象的尺度與目的。";
-  return `<div class="question-card" data-question-id="${qid}" data-question-image-hook="${hook}"><h3>${config.prompt}</h3><figure class="question-visual scale-question-image" data-asset-status="ready"><img src="${hook}" alt="尺度任務分類圖卡"><figcaption>${visualCaption}</figcaption></figure><p class="field-help">分類題：請完成每一列，選後會直接顯示已選答案。</p><div class="classify-list">${orderedItems.map((item) => {
+  return `<div class="question-card" data-question-id="${qid}"><h3>${config.prompt}</h3><p class="field-help">分類題：請完成每一列，選後會直接顯示已選答案。</p><div class="classify-list">${orderedItems.map((item) => {
     const selected = state.answers[qid]?.[item.id] || "";
     return `<div class="classify-row" data-classify-id="${item.id}"><strong>${item.label}</strong><label>選擇<select data-classify-question="${qid}" data-classify-item="${item.id}"><option value="">請選擇</option>${orderedBuckets.map((option) => `<option value="${option.id}" ${selected === option.id ? "selected" : ""}>${option.label}</option>`).join("")}</select></label><p class="selected-answer">${selected ? `已選：${config.options.find((option) => option.id === selected)?.label || ""}` : "尚未選擇"}</p></div>`;
   }).join("")}</div>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;

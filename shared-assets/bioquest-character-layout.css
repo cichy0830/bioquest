@@ -713,6 +713,11 @@ body[data-unit-id="plant_material_transport"] .bq-brief-scene-stage {
   line-height: 1;
 }
 
+.bq-unit-badge-missing[hidden],
+.bq-unit-badge-thumb[hidden] + .bq-unit-badge-missing[hidden] {
+  display: none !important;
+}
+
 .bq-unit-badge-empty {
   color: #587077;
   font-size: 12px;
