@@ -59,7 +59,7 @@ const units = [
   { title: "植物體內物質的運輸", unitId: "plant_material_transport", status: "ready", sequence: 17, summary: "正式順序第十七單元。已完成來源端學生原型骨架，含水分與礦物質、葉製造養分、木質部與韌皮部、蒸散作用、氣孔與資料證據判讀。", tags: ["正式原型", "植物運輸", "木質部", "韌皮部", "來源可測"], url: "prototype-plant-material-transport/?v=20260717-u15u17-brief-scenes-v1" },
   { title: "人體心血管系統的組成", unitId: "cardiovascular_components", status: "ready", sequence: 18, summary: "正式順序第十八單元。手機優先功能原型已可測試，含心臟、血管、血液成分、脈搏血壓與合作流程排序；正式視覺素材待核准後接線。", tags: ["可測試", "心血管", "血液", "後台驗證"], url: "prototype-cardiovascular-components/?v=20260718-cardiovascular-components-ready-v1" },
   { title: "人體的循環系統", unitId: "human_circulation", status: "ready", sequence: 19, summary: "正式順序第十九單元。手機優先功能原型已可測試，含體循環、肺循環、含氧量變化、微血管交換與組織液/淋巴基礎；正式視覺素材待核准後接線。", tags: ["可測試", "循環", "體循環", "肺循環", "後台驗證"], url: "prototype-human-circulation/?v=20260718-human-circulation-ready-v1" },
-  { title: "刺激與反應", unitId: "stimulus_response", status: "planned", sequence: 20, summary: "受器、動器、刺激、反應與訊息傳遞。", tags: ["刺激", "反應"] },
+  { title: "刺激與反應", unitId: "stimulus_response", status: "ready", sequence: 20, summary: "正式順序第二十單元。手機優先功能原型已可測試，含刺激/反應辨識、受器與動器、基本流程、反應時間資料判讀與公平測量。", tags: ["可測試", "刺激", "反應", "受器", "反應時間"], url: "prototype-stimulus-response/?v=20260718-stimulus-response-ready-v1" },
   { title: "神經系統", unitId: "nervous_system", status: "planned", sequence: 21, summary: "神經元、中樞神經、周圍神經與反射。", tags: ["神經", "反射"] },
   { title: "內分泌系統", unitId: "endocrine_system", status: "planned", sequence: 22, summary: "激素、腺體與協調調節。", tags: ["內分泌", "激素"] },
   { title: "行為與感應", unitId: "behavior_sensing", status: "planned", sequence: 23, summary: "動物行為、植物感應與環境刺激。", tags: ["行為", "感應"] },

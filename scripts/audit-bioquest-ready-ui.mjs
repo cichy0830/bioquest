@@ -25,7 +25,8 @@ const units = [
   ["plant_transport_structures", "prototype-plant-transport-structures"],
   ["plant_material_transport", "prototype-plant-material-transport"],
   ["cardiovascular_components", "prototype-cardiovascular-components"],
-  ["human_circulation", "prototype-human-circulation"]
+  ["human_circulation", "prototype-human-circulation"],
+  ["stimulus_response", "prototype-stimulus-response"]
 ];
 
 const layoutJsPath = path.join(root, "shared-assets", "bioquest-character-layout.js");
@@ -55,6 +56,7 @@ appVersionOverrides.set("plant_material_transport", "20260716-plant-material-tra
 });
 appVersionOverrides.set("cardiovascular_components", "20260718-cardiovascular-components-ready-v1");
 appVersionOverrides.set("human_circulation", "20260718-human-circulation-ready-v1");
+appVersionOverrides.set("stimulus_response", "20260718-stimulus-response-ready-v1");
 const sharedCacheOverrides = new Map();
 ["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit", "cell_structure", "cell_observation"].forEach((unitId) => {
   sharedCacheOverrides.set(unitId, "20260715-brief-scene-unified-u1u7-v1");
@@ -74,6 +76,7 @@ sharedCacheOverrides.set("photosynthesis", "20260715-brief-scene-unified-u9u14-v
 });
 sharedCacheOverrides.set("cardiovascular_components", "20260713-login-busy-v1");
 sharedCacheOverrides.set("human_circulation", "20260713-login-busy-v1");
+sharedCacheOverrides.set("stimulus_response", "20260713-login-busy-v1");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -92,7 +95,7 @@ function badgeInventory(source, folder) {
     const explicit = match[2].match(/badge_image_path:\s*["']([^"']+)["']/)?.[1] || "";
     return { id: match[1], explicit };
   });
-  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components" || folder === "prototype-human-circulation")) {
+  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components" || folder === "prototype-human-circulation" || folder === "prototype-stimulus-response")) {
     return [...block.matchAll(/\["([^"]+)",\s*"[^"]+",\s*"[^"]+"\]/g)].map((match) => ({ id: match[1], imagePath: "", exists: false }));
   }
   const dynamicTemplate = source.match(/const badgeAsset = \(id\) => `([^`]+)`/)?.[1] || "";
