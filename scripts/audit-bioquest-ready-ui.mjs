@@ -41,7 +41,7 @@ appVersionOverrides.set("cell_structure", "20260715-cell-structure-achievement-a
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
-appVersionOverrides.set("enzymes", "20260718-enzymes-flow-fixes-v1");
+appVersionOverrides.set("enzymes", "20260718-enzymes-substrate-wording-v1");
 appVersionOverrides.set("nutrient_test", "20260717-nutrient-test-u12-fixes-v2");
 appVersionOverrides.set("scale", "20260717-scale-user-review-v2");
 appVersionOverrides.set("nutrients_energy", "20260717-badge-icon-cleanup-v1");
@@ -61,7 +61,7 @@ sharedCacheOverrides.set("cell_observation", "20260716-cell-observation-guest-lo
 ["scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
   sharedCacheOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
-sharedCacheOverrides.set("enzymes", "20260718-enzymes-flow-fixes-v1");
+sharedCacheOverrides.set("enzymes", "20260718-enzymes-substrate-wording-v1");
 sharedCacheOverrides.set("nutrient_test", "20260717-nutrient-test-u12-fixes-v2");
 sharedCacheOverrides.set("cell_transport", "20260716-cell-transport-u8-ux-v1");
 sharedCacheOverrides.set("scale", "20260717-scale-user-review-v2");

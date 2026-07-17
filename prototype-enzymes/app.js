@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260718-enzymes-flow-fixes-v1";
+const VERSION = "20260718-enzymes-substrate-wording-v1";
 const QUESTION_VERSION = "20260711-enzymes-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -39,10 +39,10 @@ const assets = {
 
 const badgeAsset = (id) => `../shared-assets/badges/enzymes/badge-enzymes-${id}.webp`;
 const reflectionRules = {
-  conceptTerms: ["酵素", "受質", "專一性", "促進反應", "反應速率", "可重複作用", "不被消耗", "溫度", "酸鹼值", "pH", "消化酵素", "澱粉酶", "蛋白酶", "脂肪酶", "消化", "資料判讀", "反應條件", "反應速度"],
+  conceptTerms: ["酵素", "受質", "作用對象", "專一性", "促進反應", "反應速率", "可重複作用", "不被消耗", "溫度", "酸鹼值", "pH", "消化酵素", "澱粉酶", "蛋白酶", "脂肪酶", "消化", "資料判讀", "反應條件", "反應速度"],
   irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "減肥", "身材", "酵素飲", "保健食品"],
   lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
-  copiedDirections: ["酵素如何促進生物體內反應", "酵素專一性和受質配對", "酵素為什麼可以重複作用", "溫度過高為什麼不一定更快", "酸鹼值如何影響酵素作用", "消化酵素和養分分解的關係", "如何用資料判讀酵素作用"]
+  copiedDirections: ["酵素如何促進生物體內反應", "酵素專一性和作用對象配對", "酵素為什麼可以重複作用", "溫度過高為什麼不一定更快", "酸鹼值如何影響酵素作用", "消化酵素和養分分解的關係", "如何用資料判讀酵素作用"]
 };
 
 const readyBadgeIds = new Set([
@@ -58,7 +58,7 @@ const readyBadgeIds = new Set([
 const badges = [
   { id: "enzymes_entry", name: "酵素研究入門徽章", condition: "完成生命反應加速任務。" },
   { id: "enzyme_function_booster", name: "反應促進理解徽章", condition: "酵素功能與反應角色題組達 85% 以上。" },
-  { id: "enzyme_specificity_matcher", name: "酵素專一配對徽章", condition: "酵素與受質配對題組達 85% 以上。" },
+  { id: "enzyme_specificity_matcher", name: "酵素專一配對徽章", condition: "酵素與作用對象配對題組達 85% 以上。" },
   { id: "enzyme_reusable_guardian", name: "可重複作用徽章", condition: "酵素反應前後本質通常不變的題組達 85% 以上。" },
   { id: "condition_effect_reader", name: "條件影響判讀徽章", condition: "溫度與酸鹼值資料判讀題組達 85% 以上。" },
   { id: "digestion_context_connector", name: "消化情境連結徽章", condition: "消化情境與養分分解題組達 85% 以上。" },
@@ -70,7 +70,7 @@ const badges = [
 ].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id), image_status: readyBadgeIds.has(badge.id) ? "ready" : "pending" }));
 
 const sequenceSteps = [
-  { id: "enzyme_substrate", label: "確認資料測的是哪個酵素與受質" },
+  { id: "enzyme_substrate", label: "確認資料測的是哪個酵素與作用對象" },
   { id: "condition", label: "確認改變的是溫度或酸鹼值" },
   { id: "compare", label: "比較不同條件下的反應速率或產物量" },
   { id: "trend", label: "找出作用較強與較弱的條件" },
@@ -89,7 +89,7 @@ const questions = [
   { id: "q10", section: "checkpoint3", concept: "digestion_context", answer: "digest_specific", prompt: "唾液中的澱粉酶可以協助澱粉分解。這最能說明酵素和消化作用的哪個關係？", hint: "注意酵素與養分的配對，以及消化時物質變小的方向。", misconception: "enzyme_replaces_digestion", options: [{ id: "digest_specific", text: "消化酵素可協助特定養分分解成較小物質" }, { id: "replace_organs", text: "酵素會取代所有消化器官" }, { id: "starch_lipid", text: "澱粉酶主要分解脂質" }, { id: "none", text: "消化作用和酵素完全無關" }] },
   { id: "q11", section: "checkpoint3", concept: "digestion_context", answer: "protease", prompt: "若食物中主要含蛋白質，較可能需要哪一類消化酵素協助分解？", hint: "先看食物中主要養分，再找名稱或功能較相配的酵素。", misconception: "no_specificity", options: [{ id: "protease", text: "蛋白酶" }, { id: "amylase", text: "澱粉酶" }, { id: "lipase", text: "脂肪酶" }, { id: "chloroplast", text: "葉綠體" }] },
   { id: "q12", section: "checkpoint3", concept: "reaction_direction_boundary", answer: "not_only_breakdown", prompt: "有同學說：「酵素都只會做分解作用，沒有其他功能。」哪個修正較合理？", hint: "先分清楚消化分解是本單元的例子，不代表所有酵素功能都只限於分解。", misconception: "all_enzymes_only_breakdown", options: [{ id: "not_only_breakdown", text: "消化情境常見分解例子，但生物體內酵素也可促進其他類型反應" }, { id: "mouth_only", text: "酵素都只存在口腔" }, { id: "starch_only", text: "酵素一定只分解澱粉" }, { id: "color_only", text: "酵素只負責把食物變色" }] },
-  { id: "q13", section: "checkpoint3", concept: "enzyme_function", answer: "not_energy", prompt: "有同學說：「酵素就是身體的能量，吃越多酵素反應就一定越快。」哪個修正較合理？", hint: "先看酵素在反應中扮演的角色，再想反應是否還需要合適對象和條件。", misconception: "enzyme_as_energy", options: [{ id: "not_energy", text: "酵素是促進反應的物質，不是能量本身；反應快慢還和受質與環境條件有關" }, { id: "calories", text: "酵素等於熱量" }, { id: "no_nutrients", text: "酵素越多就不需要養分" }, { id: "any_condition", text: "所有酵素都能在任何條件下作用" }] },
+  { id: "q13", section: "checkpoint3", concept: "enzyme_function", answer: "not_energy", prompt: "有同學說：「酵素就是身體的能量，吃越多酵素反應就一定越快。」哪個修正較合理？", hint: "先看酵素在反應中扮演的角色，再想反應是否還需要合適對象和條件。", misconception: "enzyme_as_energy", options: [{ id: "not_energy", text: "酵素是促進反應的物質，不是能量本身；反應快慢還和作用對象與環境條件有關" }, { id: "calories", text: "酵素等於熱量" }, { id: "no_nutrients", text: "酵素越多就不需要養分" }, { id: "any_condition", text: "所有酵素都能在任何條件下作用" }] },
   { id: "q14", section: "checkpoint3", concept: "ph_effect", answer: "different_conditions", prompt: "有同學說：「只要是酵素，都喜歡同一個溫度和同一個酸鹼值。」哪個修正較合理？", hint: "比較不同酵素時，不要先假設條件都一樣；可從資料或作用位置找線索。", misconception: "same_ph_for_all", options: [{ id: "different_conditions", text: "不同酵素可能有不同適合條件，需要看資料或作用位置判斷" }, { id: "acid_only", text: "所有酵素都只適合酸性" }, { id: "hot_only", text: "所有酵素都只適合高溫" }, { id: "color_only", text: "酸鹼值只影響顏色不影響作用" }] }
 ];
 
@@ -478,8 +478,8 @@ function evidenceTable(caption, headers, rows) {
 function renderQuestionEvidence(qid) {
   if (qid === "q05") return evidenceTable("溫度與反應速率資料", ["溫度", "反應速率"], [["10 度", "很慢"], ["25 度", "中等"], ["37 度", "最快"], ["70 度", "幾乎沒有作用"]]);
   if (qid === "q07") return evidenceTable("酸鹼值與作用情形資料", ["酸鹼值", "作用情形"], [["pH 2", "強"], ["pH 7", "弱"], ["pH 10", "弱"]]);
-  if (qid === "q09") return evidenceTable("資料判讀任務卡", ["欄位", "需要辨認的線索"], [["研究對象", "酵素與受質"], ["改變條件", "溫度或酸鹼值"], ["結果資料", "反應速率或產物量"]]);
-  if (qid === "q13") return `<section class="question-evidence qualitative-note"><strong>概念邊界提醒</strong><p>酵素在反應中是促進者；判讀反應快慢仍需同時考慮受質與環境條件，不能把單一因素當成全部原因。</p></section>`;
+  if (qid === "q09") return evidenceTable("資料判讀任務卡", ["欄位", "需要辨認的線索"], [["研究對象", "酵素與作用對象"], ["改變條件", "溫度或酸鹼值"], ["結果資料", "反應速率或產物量"]]);
+  if (qid === "q13") return `<section class="question-evidence qualitative-note"><strong>概念邊界提醒</strong><p>酵素在反應中是促進者；判讀反應快慢仍需同時考慮作用對象與環境條件，不能把單一因素當成全部原因。</p></section>`;
   return "";
 }
 function renderChoiceQuestion(qid) {
@@ -488,7 +488,7 @@ function renderChoiceQuestion(qid) {
 }
 function renderSequenceQuestion() {
   const order = ensureSequence();
-  return `<div class="question-card" data-question-id="q09"><h3>判讀一組酵素活性資料時，拖曳整理較合理的思考流程。</h3><p class="field-help">排序題：可拖曳卡片；手機可使用上移 / 下移按鈕。重點是先辨認資料內容，再比較趨勢並形成結論。</p>${renderQuestionEvidence("q09")}<div class="sortable-list">${order.map((id, index) => { const step = sequenceSteps.find((item) => item.id === id); return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><strong>${step.label}</strong><div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`; }).join("")}</div>${state.hints.q09 ? `<div class="feedback warn">先確認酵素與受質，再確認改變條件，接著比較資料趨勢；最後才用證據形成結論。</div>` : ""}${state.checkedWrong.q09 ? `<div class="feedback bad">順序仍可調整；先整理資料在測什麼與改變什麼，再比較結果。</div>` : ""}</div>`;
+  return `<div class="question-card" data-question-id="q09"><h3>判讀一組酵素活性資料時，拖曳整理較合理的思考流程。</h3><p class="field-help">排序題：可拖曳卡片；手機可使用上移 / 下移按鈕。重點是先辨認資料內容，再比較趨勢並形成結論。</p>${renderQuestionEvidence("q09")}<div class="sortable-list">${order.map((id, index) => { const step = sequenceSteps.find((item) => item.id === id); return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><strong>${step.label}</strong><div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`; }).join("")}</div>${state.hints.q09 ? `<div class="feedback warn">先確認酵素與作用對象，再確認改變條件，接著比較資料趨勢；最後才用證據形成結論。</div>` : ""}${state.checkedWrong.q09 ? `<div class="feedback bad">順序仍可調整；先整理資料在測什麼與改變什麼，再比較結果。</div>` : ""}</div>`;
 }
 function renderClassifyQuestion(qid) {
   const config = classifyQuestions[qid];
@@ -497,7 +497,7 @@ function renderClassifyQuestion(qid) {
   return `<div class="question-card" data-question-id="${qid}"><h3>${config.prompt}</h3><p class="field-help">配對題：請完成每一列；選後會直接顯示已選答案。先看酵素名稱與作用對象的關係。</p><div class="classify-list">${items.map((item) => { const selected = state.answers[qid]?.[item.id] || ""; return `<div class="classify-row"><strong>${item.label}</strong><label>選擇<select data-classify-question="${qid}" data-classify-item="${item.id}"><option value="">請選擇</option>${options.map((option) => `<option value="${option.id}" ${selected === option.id ? "selected" : ""}>${option.label}</option>`).join("")}</select></label><p class="selected-answer">${selected ? `已選：${config.options.find((option) => option.id === selected)?.label || ""}` : "尚未選擇"}</p></div>`; }).join("")}</div>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
 }
 function renderBrief() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務簡報</p><h2>生命反應加速任務</h2><div class="brief-scene enzymes-brief-scene" data-briefing-scene-hook="${assets.briefingSceneHook}"><div class="scene-copy"><div class="student-avatar-slot"><img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}';"></div><h3>為什麼同一種反應有時快、有時慢？</h3><p>生命反應研究站的資料顯示，酵素、受質與環境條件會一起影響反應。你要從配對、資料與生活情境中找出合理解釋。</p></div></div><div class="mission-hud"><div><span>任務區</span><strong>生命反應研究站</strong></div><div><span>重點</span><strong>專一性與條件</strong></div><div><span>原則</span><strong>用資料判讀</strong></div></div><div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務簡報</p><h2>生命反應加速任務</h2><div class="brief-scene enzymes-brief-scene" data-briefing-scene-hook="${assets.briefingSceneHook}"><div class="scene-copy"><div class="student-avatar-slot"><img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}';"></div><h3>為什麼同一種反應有時快、有時慢？</h3><p>生命反應研究站的資料顯示，酵素、酵素作用的對象（稱為受質）與環境條件會一起影響反應。你要從配對、資料與生活情境中找出合理解釋。</p></div></div><div class="mission-hud"><div><span>任務區</span><strong>生命反應研究站</strong></div><div><span>重點</span><strong>專一性與條件</strong></div><div><span>原則</span><strong>用資料判讀</strong></div></div><div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
 }
 function renderScan() {
   return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的判斷線索</h2><div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>酵素能促進反應，但不是能量本身；先看作用對象是否配對，再看溫度、酸鹼值與資料趨勢。</p></div><div class="card-grid"><div class="concept-card"><strong>反應角色</strong><p>酵素可促進生物體內反應，反應後通常不被消耗。</p></div><div class="concept-card"><strong>專一性</strong><p>不同酵素通常有較適合的作用對象。</p></div><div class="concept-card"><strong>條件影響</strong><p>溫度與酸鹼值要看適合範圍，不是越高或越極端越好。</p></div><div class="concept-card"><strong>資料判讀</strong><p>先確認研究對象與改變條件，再比較多筆資料形成結論。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div><div class="owl-frame enzymes-prep-owl"><img src="${assets.owlPrep}" alt="酵素任務提醒貓頭鷹"></div></div>`;
@@ -669,7 +669,7 @@ function misconceptionText(tag) {
   const map = {
     enzyme_as_energy: "建議再確認酵素是促進反應的物質，不是能量本身。",
     enzyme_consumed: "建議再區分促進反應與被反應消耗；酵素通常可重複作用。",
-    no_specificity: "建議再整理酵素與受質的配對：不同酵素通常有較適合的作用對象。",
+    no_specificity: "建議再確認酵素通常只適合特定作用對象，不是對所有物質都有效。",
     hotter_always_better: "建議再回到溫度資料的最高與下降趨勢，不把溫度越高當成固定規則。",
     same_ph_for_all: "建議再用酸鹼值資料或作用位置判斷，不假設所有酵素適合相同條件。",
     enzyme_replaces_digestion: "建議再確認酵素協助特定反應，不能取代整個消化與吸收過程。",
