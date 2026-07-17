@@ -3,7 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260711-enzymes-v1";
+const VERSION = "20260718-enzymes-flow-fixes-v1";
+const QUESTION_VERSION = "20260711-enzymes-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -27,7 +28,7 @@ const mission = {
 const ENZYME_ASSET_BASE = ["..", "shared-assets", "units", "enzymes"].join("/");
 const assets = {
   mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
+  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
   owlPrep: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   owlResult: "../shared-assets/assistants/owl-bioquest-result.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
@@ -44,6 +45,16 @@ const reflectionRules = {
   copiedDirections: ["酵素如何促進生物體內反應", "酵素專一性和受質配對", "酵素為什麼可以重複作用", "溫度過高為什麼不一定更快", "酸鹼值如何影響酵素作用", "消化酵素和養分分解的關係", "如何用資料判讀酵素作用"]
 };
 
+const readyBadgeIds = new Set([
+  "enzymes_entry",
+  "enzyme_function_booster",
+  "enzyme_specificity_matcher",
+  "enzyme_reusable_guardian",
+  "condition_effect_reader",
+  "digestion_context_connector",
+  "enzyme_data_interpreter",
+  "enzyme_misconception_reviser"
+]);
 const badges = [
   { id: "enzymes_entry", name: "酵素研究入門徽章", condition: "完成生命反應加速任務。" },
   { id: "enzyme_function_booster", name: "反應促進理解徽章", condition: "酵素功能與反應角色題組達 85% 以上。" },
@@ -56,7 +67,7 @@ const badges = [
   { id: "enzymes_flawless", name: "酵素零提示全對徽章", condition: "全部答對且全程未使用提示。" },
   { id: "enzymes_reflection_reporter", name: "高品質酵素回報徽章", condition: "回報品質達 discussion_question。" },
   { id: "retry_growth_enzymes", name: "再探酵素進步徽章", condition: "再挑戰完整完成且正確率進步。" }
-].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id), image_status: "pending" }));
+].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id), image_status: readyBadgeIds.has(badge.id) ? "ready" : "pending" }));
 
 const sequenceSteps = [
   { id: "enzyme_substrate", label: "確認資料測的是哪個酵素與受質" },
@@ -172,6 +183,37 @@ function parseArray(value) {
   if (!value) return [];
   try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
 }
+function deepFreeze(value) {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
+  Object.keys(value).forEach((key) => deepFreeze(value[key]));
+  return Object.freeze(value);
+}
+function updateBadgeOverviewBridge() {
+  if (!state.student) {
+    delete window.__BIOQUEST_BADGE_OVERVIEW_STATE__;
+    delete window.__BIOQUEST_BADGE_OVERVIEW_PROGRESS__;
+    return;
+  }
+  const progress = clone(state.student.progress || {});
+  const snapshot = {
+    unit_id: mission.unit_id,
+    backend_status: state.backend_status || "",
+    submitted_at: state.submitted_at || "",
+    student: {
+      student_id: state.student.student_id || "",
+      profile_gender: state.student.profile_gender || "",
+      current_title_id: state.student.current_title_id || progress.current_title_id || "",
+      current_title: state.student.current_title || progress.current_title || "",
+      title_avatar_path: state.student.title_avatar_path || progress.title_avatar_path || "",
+      is_guest: Boolean(state.student.is_guest),
+      progress
+    },
+    progress,
+    student_progress: progress
+  };
+  window.__BIOQUEST_BADGE_OVERVIEW_STATE__ = deepFreeze(snapshot);
+  window.__BIOQUEST_BADGE_OVERVIEW_PROGRESS__ = deepFreeze(clone(progress));
+}
 function latestLocalAttempt() {
   if (!state.student) return null;
   return studentAttempts(state.student.student_id)
@@ -185,9 +227,20 @@ function cumulativeBadgeIds(current = []) {
   return [...new Set([...(state.cumulative_badges || []), ...local, ...current])];
 }
 function applyBackendProgress(progress = {}) {
+  if (!progress || typeof progress !== "object") return;
   state.cumulative_badges = parseArray(progress.badges_json || progress.badges || state.cumulative_badges);
   state.cumulative_total_exp = Number(progress.total_exp ?? progress.total_credited_exp ?? state.cumulative_total_exp ?? 0);
   state.completed_unit_count = Number(progress.completed_unit_count ?? state.completed_unit_count ?? 0);
+  if (state.student) {
+    const previous = state.student.progress || {};
+    state.student.progress = { ...previous, ...progress };
+    state.student.current_title_id = progress.current_title_id || state.student.current_title_id || "";
+    state.student.current_title = progress.current_title || state.student.current_title || "";
+    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path || "";
+    state.student.profile_gender = progress.profile_gender || state.student.profile_gender || "";
+    state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
+  }
+  updateBadgeOverviewBridge();
 }
 function pendingQueue() {
   try { return JSON.parse(localStorage.getItem(pendingQueueKey)) || []; } catch { return []; }
@@ -343,6 +396,23 @@ async function login(id) {
   }
   window.BioQuestLoginUX?.begin({ guest: id === "guest" });
   await window.BioQuestLoginUX?.paint();
+  if (id === "guest") {
+    state = clone(defaultState);
+    state.student = { ...roster.guest, progress: {} };
+    state.remote_completed_attempts = studentAttempts("guest").length;
+    state.attempt_type = state.remote_completed_attempts > 0 ? "retry" : "first";
+    state.started_at = new Date().toISOString();
+    state.attempt_id = `guest_${mission.unit_id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    state.attempt_session_id = state.attempt_id;
+    state.attempt_session_token = "guest_local_session";
+    state.question_version = QUESTION_VERSION;
+    state.backend_status = "local_guest";
+    unlock("brief", "rules", "achievements");
+    ensureSequence();
+    saveState();
+    setScreen("brief");
+    return;
+  }
   let student = null;
   let completed = 0;
   let remoteProgress = {};
@@ -364,7 +434,7 @@ async function login(id) {
     return;
   }
   state = clone(defaultState);
-  state.student = { ...student };
+  state.student = { ...student, progress: remoteProgress };
   state.remote_completed_attempts = completed;
   state.attempt_type = serverSession.attempt_type || (completed > 0 ? "retry" : "first");
   state.started_at = serverSession.issued_at;
@@ -458,6 +528,12 @@ function allRequiredAnswered() {
 }
 async function markHint(qid) {
   if (state.hints[qid]) return true;
+  if (state.student?.is_guest) {
+    state.hints[qid] = true;
+    state.checkedWrong[qid] = true;
+    state.session_error = "";
+    return true;
+  }
   try {
     await postBackendAction("hintEvent", {
       student_id: state.student.student_id,
@@ -610,7 +686,7 @@ function renderReview() {
 
 function renderReflection() {
   const reflection = state.answers.reflection || {};
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下希望老師課堂再解釋的部分</h2><div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；只複製方向、無關玩笑或敷衍句不會取得高 EXP。具體且與酵素功能、專一性、可重複作用、溫度、酸鹼值、消化或資料判讀相關的疑問，才可能取得回報 EXP，正式分數由後台重算。</p></div><div class="form-grid"><label>我最能掌握的一項酵素概念是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label><label>我還不確定酵素的作用對象、環境條件或資料趨勢中的哪一部分？<textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea></label><label>選一個希望老師課堂解釋的方向，並用自己的話補充<textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label><label>信心分數<span class="field-help">5 分代表我能自己說明本單元重點概念。</span><select id="confidenceScore">${[1,2,3,4,5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label></div><div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div>${owlPanel("../shared-assets/characters/owl-bioquest-report-reminder.webp")}</div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下希望老師課堂再解釋的部分</h2><div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；只複製方向、無關玩笑或敷衍句不會取得高 EXP。具體且與酵素功能、專一性、可重複作用、溫度、酸鹼值、消化或資料判讀相關的疑問，才可能取得回報 EXP，正式分數由後台重算。</p></div><div class="form-grid"><label>我最能掌握的一項酵素概念是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label><label>我還不確定酵素的作用對象、環境條件或資料趨勢中的哪一部分？<textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea></label><label>選一個希望老師課堂解釋的方向，並用自己的話補充<textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label><label>信心分數<span class="field-help">5 分代表我能自己說明本單元重點概念。</span><select id="confidenceScore">${[1,2,3,4,5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label></div><div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div></div>`;
 }
 
 function buildBackendPayload(attempt) {
@@ -625,14 +701,51 @@ function buildBackendPayload(attempt) {
     confidence_score: attempt.confidence_score, reflection_quality: attempt.reflection_quality, reflection_quality_candidate: attempt.reflection_quality_candidate, reflection_exp_reason: attempt.reflection_exp_reason, reflection_review_status: attempt.reflection_review_status, reflection_original_text: attempt.reflection_original_text, reflection_normalized_text: attempt.reflection_normalized_text, reflection_similarity_score: attempt.reflection_similarity_score, reflection_similarity_source: attempt.reflection_similarity_source, reflection_copied_direction_flag: attempt.reflection_copied_direction_flag, reflection_irrelevant_flag: attempt.reflection_irrelevant_flag, reflection_low_effort_flag: attempt.reflection_low_effort_flag, reflection_examples_checked: attempt.reflection_examples_checked, reflection_frontend_only: true, teacher_attention_needed: attempt.teacher_attention_needed, student_question: attempt.student_question,
     badges_json: JSON.stringify(attempt.badges), existing_badges_json: JSON.stringify(cumulativeBadgeIds()), cumulative_badges_candidate_json: JSON.stringify(attempt.cumulative_badges_candidate),
     enzyme_function_score: scoreForConcept(attempt, "enzyme_function"), enzyme_reusable_score: scoreForConcept(attempt, "enzyme_reusable"), enzyme_specificity_score: scoreForConcept(attempt, "enzyme_specificity"), condition_effect_score: scoreForConcept(attempt, "temperature_effect", "ph_effect"), digestion_context_score: scoreForConcept(attempt, "digestion_context"), enzyme_data_interpretation_score: scoreForConcept(attempt, "data_interpretation"), reaction_direction_boundary_score: scoreForConcept(attempt, "reaction_direction_boundary"), enzyme_misconceptions_json: JSON.stringify(attempt.misconceptions),
-    misconceptions_json: JSON.stringify(attempt.misconceptions), raw_answers_json: JSON.stringify(attempt.raw_answers), badge_eval_json: JSON.stringify(badges.map((badge) => ({ badge_id: badge.id, earned_candidate: attempt.badges.includes(badge.id), badge_image_path: badge.badge_image_path }))),
-    question_logs: qids.map((qid) => ({ question_id: `${mission.unit_id}_${qid}`, skill_tag: questionConcept(qid), is_correct: isCorrect(qid), used_hint: Boolean(state.hints[qid]), attempt_answer: JSON.stringify(answerFor(qid)), correct_answer: JSON.stringify(correctFor(qid)), exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept", exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total) }))
+    misconceptions_json: JSON.stringify(attempt.misconceptions), raw_answers_json: JSON.stringify(attempt.raw_answers), badge_eval_json: JSON.stringify(badges.map((badge) => ({ badge_id: badge.id, earned_candidate: attempt.badges.includes(badge.id), badge_image_path: badge.image_status === "ready" ? badge.badge_image_path : "" }))),
+    question_logs: qids.map((qid) => {
+      const answer = answerFor(qid);
+      const questionType = qid === "q09" ? "sequence" : multiSelectQuestions[qid] ? "set" : classifyQuestions[qid] ? "mapping" : "choice";
+      const checkpointId = sectionMap.checkpoint1.includes(qid) ? "checkpoint1" : sectionMap.checkpoint2.includes(qid) ? "checkpoint2" : "checkpoint3";
+      return {
+        student_id: attempt.student.student_id,
+        student_name: attempt.student.student_name,
+        unit_id: mission.unit_id,
+        unit_title: mission.unit_title,
+        checkpoint_id: checkpointId,
+        question_id: `${mission.unit_id}_${qid}`,
+        question_type: questionType,
+        concept_id: questionConcept(qid),
+        skill_tag: questionConcept(qid),
+        is_correct: isCorrect(qid),
+        used_hint: Boolean(state.hints[qid]),
+        hint_used: Boolean(state.hints[qid]),
+        attempt_answer: JSON.stringify(answer),
+        answer_json: JSON.stringify(answer),
+        correct_answer: JSON.stringify(correctFor(qid)),
+        misconception_tag: isCorrect(qid) ? "" : questionMisconception(qid),
+        exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept",
+        exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total)
+      };
+    })
   };
 }
 
 function renderAchievements() {
-  const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : []; const litIds = cumulativeBadgeIds(currentBadges);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>酵素研究徽章牆</h2><div class="score-grid"><div class="score-box"><span>累積徽章</span><strong>${litIds.length}</strong></div><div class="score-box"><span>累積 EXP</span><strong>${state.cumulative_total_exp || 0}</strong></div><div class="score-box"><span>已完成單元</span><strong>${state.completed_unit_count || 0}</strong></div></div><div class="badge-grid">${badges.map((badge) => { const lit = litIds.includes(badge.id); const gold = badge.id === "enzymes_flawless"; const visual = badge.image_status === "ready" ? `<img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}">` : `<span class="bq-badge-asset-pending" aria-label="${badge.name}素材待補">徽章素材待補</span>`; return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}">${visual}<strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`; }).join("")}</div><p class="muted">未取得徽章維持灰階，取得後亮燈；正式圖片落地後會依 badge_id 自動串接。</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
+  const status = submissionStatus();
+  const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : [];
+  const litIds = status === "verified" ? cumulativeBadgeIds(currentBadges) : currentBadges;
+  const result = state.result || calculateResult();
+  const scoreCopy = status === "verified"
+    ? { a: ["累積徽章", litIds.length], b: ["累積 EXP", state.cumulative_total_exp || 0], c: ["已完成站數", state.completed_unit_count || 0] }
+    : status === "guest"
+      ? { a: ["本單元候選徽章", currentBadges.length], b: ["本次預估 EXP", Math.min(result.attempt_total_exp || 0, UNIT_EXP_CAP)], c: ["正式累積狀態", "guest 不列入"] }
+      : { a: ["本單元候選徽章", currentBadges.length], b: ["本次預估 EXP", Math.min(result.attempt_total_exp || 0, UNIT_EXP_CAP)], c: ["正式累積狀態", "待後台確認"] };
+  const note = status === "verified"
+    ? "未取得徽章維持灰階，取得後亮燈；同一徽章在累積收藏只計一次。"
+    : status === "guest"
+      ? "guest 測試只顯示本次候選徽章，不列入正式累積。"
+      : "本次候選徽章待後台確認後，才會寫入正式累積。";
+  return `<div class="wide-layout"><div class="panel" data-bq-unit-achievements="enzymes"><p class="eyebrow">成就亮燈</p><h2>酵素研究徽章牆</h2><div class="score-grid"><div class="score-box"><span>${scoreCopy.a[0]}</span><strong>${scoreCopy.a[1]}</strong></div><div class="score-box"><span>${scoreCopy.b[0]}</span><strong>${scoreCopy.b[1]}</strong></div><div class="score-box"><span>${scoreCopy.c[0]}</span><strong>${scoreCopy.c[1]}</strong></div></div><div class="badge-grid">${badges.map((badge) => { const lit = litIds.includes(badge.id); const gold = badge.id === "enzymes_flawless"; const visual = badge.image_status === "ready" ? `<img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}">` : `<span class="bq-badge-asset-pending" aria-label="${badge.name}素材待補">徽章素材待補</span>`; return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.image_status === "ready" ? badge.badge_image_path : ""}">${visual}<strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`; }).join("")}</div><p class="muted">${note}</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
 }
 
 function renderRules() {
@@ -699,6 +812,9 @@ function scoreForConcept(attempt, ...concepts) {
   return total ? Math.round((correct / total) * 100) : 0;
 }
 async function submitAttemptToBackend(attempt) {
+  if (attempt.student?.is_guest || state.student?.is_guest || state.backend_status === "local_guest") {
+    return { ok: true, verification_status: "local_guest" };
+  }
   const payload = buildBackendPayload(attempt);
   const body = new URLSearchParams();
   body.set("payload", JSON.stringify(payload));
@@ -712,7 +828,7 @@ function isSessionFailure(error) {
   return /attempt_session|attempt_id_mismatch|question_version_mismatch|retry_previous_attempt_stale/.test(String(error?.message || error));
 }
 function pendingVerificationResult(result) {
-  return { ...result, verification_status: "pending_network", badges: [], completion_exp: 0, concept_exp: 0, revision_exp: 0, question_exp: 0, mastery_exp: 0, retry_exp: 0, attempt_total_exp: 0, unit_credited_exp: 0, credited_delta: 0, no_hint_perfect: false };
+  return { ...result, verification_status: "pending_network", credited_delta: 0 };
 }
 function attachReflection() {
   document.querySelector("#submitMission").addEventListener("click", async (event) => {
@@ -737,11 +853,16 @@ function attachReflection() {
     state.submitted_at = new Date().toISOString();
     let attempt = buildAttempt();
     try {
-      const response = await submitAttemptToBackend(attempt);
-      state.backend_status = response.verification_status === "server_verified" ? "submitted_verified" : "pending_verification";
-      if (response.verified_attempt) state.result = { ...state.result, ...response.verified_attempt };
-      applyBackendProgress(response.student_progress || response.progress || {});
-      attempt = { ...attempt, ...state.result, backend_status: state.backend_status, backend_attempt_id: response.attempt_id || attempt.attempt_id };
+      if (state.student?.is_guest || state.backend_status === "local_guest") {
+        state.backend_status = "guest_local";
+        attempt = { ...attempt, ...state.result, backend_status: state.backend_status };
+      } else {
+        const response = await submitAttemptToBackend(attempt);
+        state.backend_status = response.verification_status === "server_verified" ? "submitted_verified" : "pending_verification";
+        if (response.verified_attempt) state.result = { ...state.result, ...response.verified_attempt };
+        applyBackendProgress(response.student_progress || response.progress || {});
+        attempt = { ...attempt, ...state.result, backend_status: state.backend_status, backend_attempt_id: response.attempt_id || attempt.attempt_id };
+      }
     } catch (error) {
       if (isSessionFailure(error)) {
         window.alert("任務憑證已失效或本次 session 不再有效，請重新登入並從頭完成。");
@@ -756,22 +877,44 @@ function attachReflection() {
       savePending(buildBackendPayload(attempt));
     }
     saveAttempt(attempt);
-    state.remote_completed_attempts = Number(state.remote_completed_attempts || 0) + 1;
+    state.remote_completed_attempts = Number(state.remote_completed_attempts || 0) + (state.student?.is_guest ? 0 : 1);
     unlock("result", "achievements");
     saveState();
     setScreen("result");
   });
 }
+function submissionStatus() {
+  if (state.student?.is_guest || state.backend_status === "guest_local" || state.backend_status === "local_guest") return "guest";
+  if (state.submitted_at && state.backend_status !== "submitted_verified") return "pending";
+  return "verified";
+}
+function resultStatusNotice(result) {
+  const status = submissionStatus();
+  const attemptExp = Math.min(result.attempt_total_exp || 0, UNIT_EXP_CAP);
+  if (status === "guest") return `<div class="feedback warn">guest 測試：本次預估 ${attemptExp}/${UNIT_EXP_CAP} EXP，不列入正式累積。</div>`;
+  if (status === "pending") {
+    const detail = state.backend_status === "pending_local" ? "後台暫時無法寫入，本次提交已保留在本機待補送佇列。" : "本次資料正在等待後台確認。";
+    return `<div class="feedback warn">${detail}本次預估 ${attemptExp}/${UNIT_EXP_CAP} EXP，待後台確認。</div>`;
+  }
+  return `<div class="feedback good">本次任務已提交，作答結果已鎖定；後台已回傳正式認列資料。</div>`;
+}
 function renderResult() {
   const result = state.result || calculateResult();
+  const status = submissionStatus();
   const notice = state.lockNotice ? `<div class="feedback warn">${state.lockNotice}</div>` : "";
-  const backendNotice = state.backend_status === "pending_local" ? `<div class="feedback warn">後台暫時無法寫入，本機已保留原始作答；在後台驗證完成前不認列 EXP 或徽章。若憑證過期，請重新登入。</div>` : state.backend_status === "submitted_verified" ? `<div class="feedback good">本次任務已由後台驗證並鎖定。</div>` : `<div class="feedback warn">本次資料仍待後台驗證，暫不新增認列 EXP 或徽章。</div>`;
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>提交後本次作答已鎖定</h2>${notice}${backendNotice}
-    <div class="score-grid"><div class="score-box"><span>本次取得</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>本單元認列</span><strong>${result.unit_credited_exp} EXP</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
+  const creditedLabel = status === "verified" ? "本單元正式認列" : "認列狀態";
+  const creditedValue = status === "verified" ? `${result.unit_credited_exp} EXP` : status === "guest" ? "guest 不累積" : "待後台確認";
+  const recognitionCopy = status === "verified"
+    ? "本次取得是這次挑戰的原始表現；本單元正式認列會保留最高表現並受 500 EXP 上限限制。"
+    : status === "guest"
+      ? `guest 測試：本次預估 ${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)}/${UNIT_EXP_CAP} EXP，不列入正式累積。請使用學生學號登入，才會送交後台確認。`
+      : `本次預估 ${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)}/${UNIT_EXP_CAP} EXP，待後台確認；確認完成前，這些數字只代表本次作答預覽。`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>提交後本次作答已鎖定</h2>${notice}${resultStatusNotice(result)}
+    <div class="score-grid"><div class="score-box"><span>${status === "verified" ? "本次取得" : "本次預估"}</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>${creditedLabel}</span><strong>${creditedValue}</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
     <div class="card-grid">
       <div class="story-panel"><strong>EXP 明細</strong><p>完成 ${result.completion_exp}｜直接答對 ${result.concept_exp}｜提示後修正 ${result.revision_exp}｜回報 ${result.question_exp}｜精熟 ${result.mastery_exp}｜再挑戰 ${result.retry_exp}</p></div>
-      <div class="story-panel"><strong>本次與認列差異</strong><p>本次取得是這次挑戰的原始表現；本單元認列會保留最高表現並受 500 EXP 上限限制。</p></div>
-      <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">前台候選 ${result.question_exp_candidate || 0} EXP；正式回報 EXP 以後台重算為準。</p></div>
+      <div class="story-panel"><strong>${status === "verified" ? "本次與正式累積差異" : "本次預估狀態"}</strong><p>${recognitionCopy}</p></div>
+      <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">${status === "verified" ? `後台正式認列 ${result.question_exp} EXP。` : `前台候選 ${result.question_exp_candidate || 0} EXP，待後台重算。`}</p></div>
     </div>
     <div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
 }
@@ -806,7 +949,11 @@ function render() {
     achievements: renderAchievements,
     rules: renderRules
   };
+  updateBadgeOverviewBridge();
+  screen.dataset.bioquestScreen = state.screen;
   screen.innerHTML = views[state.screen]();
+  window.BioQuestCharacterLayout?.enhance?.({ force: true });
+  screen.dataset.bioquestScreen = state.screen;
   attachEvents();
 }
 
