@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260716-cardiovascular-components-v1";
+const VERSION = "20260718-cardiovascular-components-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -40,7 +40,7 @@ const assets = {
   questionPulsePressure: "cardiovascular-components-pulse-pressure"
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/cardiovascular_components/badge-cardiovascular_components-${id}.webp`;
+const badgeAsset = () => "";
 const reflectionRules = {
   conceptTerms: ["心血管", "心臟", "心房", "心室", "瓣膜", "血管", "動脈", "靜脈", "微血管", "血液", "血漿", "紅血球", "白血球", "血小板", "脈搏", "血壓", "幫浦", "單向", "防禦", "止血", "氧氣", "物質交換"],
   irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "午餐", "放假"],
@@ -67,10 +67,9 @@ const badges = [
 
 const sequenceSteps = [
   { id: "heart_contracts", label: "心臟收縮提供推動力量" },
-  { id: "blood_enters_vessels", label: "血液被推入血管中流動" },
-  { id: "arteries_veins_connect", label: "動脈與靜脈負責連接不同部位的血流方向" },
-  { id: "capillary_exchange", label: "微血管附近進行物質交換" },
-  { id: "blood_components_carry", label: "血液成分協助攜帶氧氣、養分、廢物或防禦相關物質" }
+  { id: "blood_enters_vessels", label: "血液在血管中流動" },
+  { id: "blood_components_carry", label: "血液成分在流動中攜帶氧氣、養分、廢物等物質" },
+  { id: "capillary_exchange", label: "微血管附近有利血液和組織進行物質交換" }
 ];
 const correctSequence = sequenceSteps.map((step) => step.id);
 
@@ -89,7 +88,7 @@ const questions = [
   {id:"cardiovascular_components_q12",section:"checkpoint3",concept:"white_platelets_plasma",type:"mapping",prompt:"請將下列情境與較相關的血液成分配對。",hint:"先看題目中的功能詞：防禦、止血、液體運輸。",misconception:"blood_cell_function_confusion",items:[{id:"defense_case",label:"身體防禦"},{id:"wound_clotting",label:"傷口止血"},{id:"liquid_environment",label:"運送養分和廢物的液體環境"}],choices:[{id:"white_blood_cell",text:"白血球"},{id:"platelet",text:"血小板"},{id:"plasma",text:"血漿"}],answer:{defense_case:"white_blood_cell",wound_clotting:"platelet",liquid_environment:"plasma"}},
   {id:"cardiovascular_components_q13",section:"checkpoint3",concept:"pulse_blood_pressure",type:"choice",answer:"heartbeat_vessel_pulse",prompt:"手腕摸到的脈搏，最直接和下列哪一項活動有關？",hint:"想想脈搏是一下一下的搏動感，和哪個器官規律收縮最相關。",misconception:"pulse_pressure_confusion",options:[{id:"heartbeat_vessel_pulse",text:"心臟跳動造成血管搏動"},{id:"stomach_digestion",text:"胃消化食物"},{id:"bone_growth",text:"骨骼長高"},{id:"alveoli_make_rbc",text:"肺泡製造紅血球"}]},
   {id:"cardiovascular_components_q14",section:"checkpoint3",concept:"pulse_blood_pressure",type:"choice",answer:"pressure_on_vessel_wall",prompt:"血壓的基礎意義較接近下列哪一項？",hint:"注意「壓」這個字，想想血液在血管中流動時會對血管壁造成什麼。",misconception:"pulse_pressure_confusion",options:[{id:"pressure_on_vessel_wall",text:"血液對血管壁的壓力"},{id:"blood_sugar_taste",text:"血液中糖分的味道"},{id:"rbc_color_depth",text:"紅血球的顏色深淺"},{id:"wbc_fixed_count",text:"白血球的數量一定值"}]},
-  {id:"cardiovascular_components_q15",section:"checkpoint3",concept:"cardiovascular_overview",type:"sequence",prompt:"請拖曳排序卡，排出心血管系統完成物質運送的基礎合作流程。",hint:"先看推動來源，再看通道與交換位置，最後連到血液成分攜帶功能。",misconception:"heart_only_system",steps:sequenceSteps,answer:correctSequence}
+  {id:"cardiovascular_components_q15",section:"checkpoint3",concept:"cardiovascular_overview",type:"sequence",prompt:"請拖曳排序卡，依「推動 → 流動與攜帶 → 交換」的基礎關係整理心血管系統如何合作。這不是體循環或肺循環的路徑題。",hint:"先找推動來源，再想血液在流動時會做什麼，最後找最利於交換的位置。",misconception:"heart_only_system",steps:sequenceSteps,answer:correctSequence}
 ];
 
 const questionMap = Object.fromEntries(questions.map((question) => [question.id, question]));
@@ -1102,7 +1101,7 @@ function renderApp() {
   screen.innerHTML = `${state.notice ? `<div class="notice">${escapeHtml(state.notice)}</div>` : ""}${(views[state.screen] || renderLogin)()}`;
   updateNav();
   bindScreenEvents();
-  if (typeof window !== "undefined" && window.BioQuestCharacterLayout?.enhance) window.BioQuestCharacterLayout.enhance();
+  if (typeof window !== "undefined" && window.BioQuestCharacterLayout?.enhance) window.BioQuestCharacterLayout.enhance({ force: true });
 }
 
 function updateNav() {

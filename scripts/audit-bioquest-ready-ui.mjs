@@ -23,7 +23,8 @@ const units = [
   ["photosynthesis", "prototype-photosynthesis"],
   ["human_nutrition", "prototype-human-nutrition"],
   ["plant_transport_structures", "prototype-plant-transport-structures"],
-  ["plant_material_transport", "prototype-plant-material-transport"]
+  ["plant_material_transport", "prototype-plant-material-transport"],
+  ["cardiovascular_components", "prototype-cardiovascular-components"]
 ];
 
 const layoutJsPath = path.join(root, "shared-assets", "bioquest-character-layout.js");
@@ -50,6 +51,7 @@ appVersionOverrides.set("plant_material_transport", "20260716-plant-material-tra
 ["human_nutrition", "plant_transport_structures", "plant_material_transport"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260717-u15u17-brief-scenes-v1");
 });
+appVersionOverrides.set("cardiovascular_components", "20260718-cardiovascular-components-ready-v1");
 const sharedCacheOverrides = new Map();
 ["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit", "cell_structure", "cell_observation"].forEach((unitId) => {
   sharedCacheOverrides.set(unitId, "20260715-brief-scene-unified-u1u7-v1");
@@ -66,6 +68,7 @@ sharedCacheOverrides.set("photosynthesis", "20260715-brief-scene-unified-u9u14-v
 ["human_nutrition", "plant_transport_structures", "plant_material_transport"].forEach((unitId) => {
   sharedCacheOverrides.set(unitId, "20260717-u15u17-brief-scenes-v1");
 });
+sharedCacheOverrides.set("cardiovascular_components", "20260713-login-busy-v1");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -84,7 +87,7 @@ function badgeInventory(source, folder) {
     const explicit = match[2].match(/badge_image_path:\s*["']([^"']+)["']/)?.[1] || "";
     return { id: match[1], explicit };
   });
-  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport")) {
+  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components")) {
     return [...block.matchAll(/\["([^"]+)",\s*"[^"]+",\s*"[^"]+"\]/g)].map((match) => ({ id: match[1], imagePath: "", exists: false }));
   }
   const dynamicTemplate = source.match(/const badgeAsset = \(id\) => `([^`]+)`/)?.[1] || "";
@@ -228,11 +231,12 @@ const lifeStyles = fs.readFileSync(path.join(root, "prototype-life-world", "styl
 assert(lifeStyles.includes("background: rgba(255, 255, 255, 0.74);"), "life_world background trial panel opacity missing");
 
 const reportPath = path.join(root, "04_網頁模板", "全站角色與徽章接線盤點.md");
+fs.mkdirSync(path.dirname(reportPath), { recursive: true });
 const rows = audit.map((item) => `| \`${item.unitId}\` | shared wide/mobile | shared 5-state | shared report owl | shared result hero | ${item.badgeReady}/${item.badgeExpected} | ${item.badgeMissing.length ? item.badgeMissing.map((id) => `\`${id}\``).join("、") : "完整"} |`).join("\n");
 const report = `# 全站角色與徽章接線盤點
 
-更新日期：2026-07-11  
-適用範圍：入口目前標示 ready 的第 1–17 單元
+更新日期：2026-07-18
+適用範圍：入口目前標示 ready 的第 1–18 單元
 
 | unit_id | login cover | feedback | report | result | 徽章圖 | 缺圖 badge_id |
 |---|---|---|---|---|---:|---|
