@@ -5,6 +5,7 @@ const vm = require("node:vm");
 
 const appPath = path.resolve(__dirname, "../app.js");
 const appSource = fs.readFileSync(appPath, "utf8");
+const styleSource = fs.readFileSync(path.resolve(__dirname, "../styles.css"), "utf8");
 const storage = new Map();
 
 function element() {
@@ -68,7 +69,7 @@ const context = {
 };
 
 vm.createContext(context);
-vm.runInContext(`${appSource}\n;globalThis.__nutrientTest = { getState: () => state, setState: (next) => { state = next; }, calculateResult, allRequiredAnswered, isLockedScreen, mission, assets, badges, questions, classifyQuestions, multiSelectQuestions, correctSequence, sectionMap };`, context);
+vm.runInContext(`${appSource}\n;globalThis.__nutrientTest = { getState: () => state, setState: (next) => { state = next; }, calculateResult, allRequiredAnswered, isLockedScreen, evaluateReflectionQuality, mission, assets, badges, questions, classifyQuestions, multiSelectQuestions, correctSequence, sectionMap, renderQuestionEvidence, renderQuestionImage, renderSequenceQuestion, renderMultiSelect };`, context);
 
 const api = context.__nutrientTest;
 const state = api.getState();
@@ -85,7 +86,7 @@ assert.equal(api.allRequiredAnswered(), true);
 const perfect = api.calculateResult();
 assert.equal(perfect.total, 14);
 assert.equal(perfect.correct, 14);
-assert.equal(perfect.attempt_total_exp, 500);
+assert.equal(perfect.attempt_total_exp, 460);
 assert.ok(perfect.badges.includes("nutrient_test_flawless"));
 
 state.hints.q09 = true;
@@ -104,10 +105,29 @@ assert.equal(api.isLockedScreen("achievements"), false);
   api.assets.owlPrep,
   api.assets.iodineStarchColorHook,
   api.assets.biuretProteinColorHook,
-  api.assets.benedictSafetyObservationHook,
-  api.assets.lipidOilSpotHook,
-  api.assets.controlEvidenceBoardHook
+  api.assets.lipidOilSpotHook
 ].forEach((relativePath) => assert.equal(fs.existsSync(path.resolve(__dirname, "..", relativePath)), true, relativePath));
+
+const canonicalAnswers = Object.fromEntries(api.questions.map((question) => [question.id, question.answer]));
+assert.deepEqual(canonicalAnswers, {
+  q02: "starch_possible", q03: "glucose_possible", q04: "protein_possible", q05: "lipid_possible",
+  q06: "starch_not_supported", q07: "starch_protein", q08: "iodine_starch", q11: "comparison_basis",
+  q12: "positive_negative", q13: "target_limit", q14: "heat_required"
+});
+assert.equal(JSON.stringify(api.correctSequence), JSON.stringify(["label", "reagent", "safe_heat", "observe", "compare"]));
+assert.equal(JSON.stringify(api.multiSelectQuestions.q10.answers), JSON.stringify(["goggles", "away", "hot", "water_bath"]));
+assert.equal(appSource.includes("benedict-glucose-safety-water-bath.png"), false);
+for (const qid of ["q03", "q09", "q10", "q14"]) {
+  const rendered = qid === "q09" ? api.renderSequenceQuestion() : qid === "q10" ? api.renderMultiSelect(qid) : api.renderQuestionEvidence(qid);
+  assert.equal(rendered.includes("<img"), false, `${qid} must use a non-operational text card`);
+  assert.match(rendered, /已完成觀察紀錄/);
+}
+assert.match(api.renderQuestionEvidence("q06"), /未知樣品[\s\S]*未呈藍黑色[\s\S]*已知含澱粉樣品[\s\S]*清水比較/);
+assert.match(api.renderQuestionEvidence("q07"), /碘液紀錄[\s\S]*本氏液紀錄[\s\S]*蛋白質檢測紀錄[\s\S]*脂質線索紀錄/);
+assert.match(api.renderQuestionEvidence("q08"), /四張候選資料卡/);
+assert.equal(api.classifyQuestions.q01.image, undefined);
+assert.match(styleSource, /\.evidence-table\s*\{[^}]*overflow-x:\s*auto/s);
+assert.match(styleSource, /@media \(max-width: 560px\)/);
 
 assert.equal(api.badges.length, 11);
 api.badges.forEach((badge) => {

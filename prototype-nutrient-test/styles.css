@@ -22,7 +22,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
   background:
     linear-gradient(120deg, rgba(235, 249, 247, 0.88), rgba(237, 242, 248, 0.9)),
-    url("assets/bg-nutrient-test-entry-wide.png"),
+    url("assets/bg-nutrient-test-entry-wide.webp"),
     repeating-linear-gradient(90deg, rgba(34, 126, 138, .06) 0 1px, transparent 1px 46px),
     repeating-linear-gradient(0deg, rgba(216, 155, 50, .05) 0 1px, transparent 1px 46px);
   background-size: cover, cover, auto, auto;
@@ -106,7 +106,7 @@ h1, h2, h3, p { margin-top: 0; }
   border-radius: 8px;
   background:
     linear-gradient(90deg, rgba(5, 49, 61, .74), rgba(5, 49, 61, .08) 48%, rgba(255,255,255,.04)),
-    url("assets/bg-nutrient-test-briefing-azhe-wide.png");
+    linear-gradient(135deg, rgba(216, 245, 238, .92), rgba(255, 245, 220, .72));
   background-size: cover;
   background-position: center;
 }
@@ -116,26 +116,7 @@ h1, h2, h3, p { margin-top: 0; }
 .brief-scene::after {
   content: none;
 }
-.scene-copy {
-  position: relative;
-  z-index: 1;
-  margin-right: auto;
-  width: min(42%, 420px);
-  padding: 28px;
-  color: #f7ffff;
-  background: linear-gradient(90deg, rgba(5,49,61,.72), rgba(5,49,61,.12));
-}
-.scene-copy .student-avatar-slot {
-  display: grid;
-  place-items: center;
-  width: 118px;
-  height: 118px;
-  margin-bottom: 16px;
-  border: 1px solid rgba(16,152,166,.25);
-  border-radius: 50%;
-  background: rgba(255,255,255,.76);
-}
-.scene-copy .student-avatar-slot img { width: 94%; height: 94%; object-fit: contain; }
+.scene-copy { display: none; }
 
 .transport-scene-art { position:absolute; inset:0 auto 0 0; width:55%; overflow:hidden; pointer-events:none; }
 .membrane-line { position:absolute; left:52%; top:10%; width:12px; height:80%; border:2px dashed rgba(238,252,246,.78); border-radius:999px; background:rgba(12,71,82,.45); }
@@ -172,18 +153,7 @@ h1, h2, h3, p { margin-top: 0; }
 .asset-strip img, .wide-asset img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; object-position: center; }
 .asset-strip figcaption, .wide-asset figcaption { padding: 10px 12px; color: var(--muted); font-size: 13px; font-weight: 800; }
 
-.mentor-card {
-  display: grid;
-  grid-template-columns: minmax(112px,140px) minmax(0,1fr);
-  gap: 14px;
-  align-items: center;
-  margin: 18px 0;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(226,248,247,.92), rgba(255,244,214,.88));
-}
-.mentor-avatar, .owl-frame {
+.owl-frame {
   display: grid;
   place-items: end center;
   overflow: visible;
@@ -191,11 +161,9 @@ h1, h2, h3, p { margin-top: 0; }
   border-radius: 8px;
   background: linear-gradient(180deg, rgba(16,152,166,.18), rgba(216,155,50,.14));
 }
-.mentor-avatar img, .owl-frame img { width: auto; height: 100%; max-width: 100%; object-fit: contain; object-position: center bottom; }
+.owl-frame img { width: auto; height: 100%; max-width: 100%; object-fit: contain; object-position: center bottom; }
 .owl-frame { min-height: 420px; padding: 20px; border: 1px solid rgba(68,132,99,.22); background: linear-gradient(180deg, rgba(255,255,255,.7), rgba(231,246,241,.62)); box-shadow: var(--shadow); }
 .owl-frame img { width: 100%; max-width: 340px; max-height: 420px; }
-.mentor-copy span { display:block; color: var(--teal-dark); font-size:13px; font-weight:900; }
-.mentor-copy strong { display:block; margin: 3px 0 6px; font-size:18px; }
 
 .story-panel, .feedback, .question-card, .token-card, .match-field, .concept-card {
   padding: 14px;
@@ -394,18 +362,22 @@ textarea { min-height: 96px; resize: vertical; }
 .nutrition-data-table [role="row"] > * { padding: 9px 11px; border-radius: 7px; background: #fff; }
 .nutrition-data-table b { color: var(--teal-dark); text-align: right; }
 
-/* The mentor scene is restricted to briefing; all other screens use the ambient background. */
 .nutrient-test-brief-scene {
-  background:
-    radial-gradient(circle at 78% 28%, rgba(255, 224, 138, .7) 0 4%, transparent 4.5%),
-    linear-gradient(90deg, rgba(6, 48, 61, .84), rgba(12, 106, 116, .42) 52%, rgba(214, 244, 237, .06)),
-    url("assets/bg-nutrient-test-briefing-azhe-wide.png") !important;
-  background-size: auto, auto, cover !important;
-  background-position: center !important;
+  aspect-ratio: 16 / 9;
+  min-height: 0;
+  background: rgba(245, 252, 250, .78);
 }
-.nutrient-test-brief-scene .scene-copy { width: min(62%, 620px); }
+.nutrient-test-brief-scene .bq-brief-scene-image {
+  object-fit: contain;
+  background: rgba(245, 252, 250, .72);
+}
+.nutrient-test-brief-scene .bq-brief-student-avatar {
+  --bq-brief-avatar-height: 88%;
+  --bq-brief-avatar-left: 9%;
+  --bq-brief-avatar-bottom: 2%;
+}
 .asset-note { margin-top: 14px; font-size: 13px; color: rgba(245,255,253,.8); }
-.scale-prep-owl { min-height: 280px; position: relative; overflow: hidden; }
+.nutrient-test-prep-owl { min-height: 280px; position: relative; overflow: hidden; margin: 12px 0 16px; }
 .owl-fallback { display: grid; place-items: center; width: min(210px, 60vw); aspect-ratio: 1; border: 6px solid rgba(22, 110, 118, .28); border-radius: 50%; color: #16545a; background: radial-gradient(circle at 50% 44%, #fff5c8 0 13%, #e4a950 14% 25%, #4e8391 26% 58%, #d6f3ef 59%); font-weight: 900; text-align: center; line-height: 1.45; box-shadow: 0 10px 24px rgba(17,77,85,.14); }
 .scale-prep-owl img + .owl-fallback { position: absolute; inset: 50% auto auto 50%; transform: translate(-50%, -50%); }
 .scale-visual { margin: 12px 0; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: linear-gradient(135deg, #f8fcfa, #e8f5f1); }
@@ -457,11 +429,8 @@ textarea { min-height: 96px; resize: vertical; }
   .main-stage { padding: 14px; }
   .mission-layout, .mission-hud, .score-grid, .card-grid, .choice-grid, .token-grid, .microscope-layout, .transport-layout, .cell-change-strip { grid-template-columns: 1fr; }
   .hero-panel { min-height: auto; }
-  .brief-scene { min-height: 520px; }
-  .brief-scene { background-position: 58% center; }
-  .scene-copy { width: 100%; padding: 22px; padding-top: 58%; color: #12343b; background: linear-gradient(0deg, rgba(255,255,255,.94), rgba(255,255,255,.08)); }
-  .mentor-card, .classify-row { grid-template-columns: 1fr; }
-  .mentor-avatar { min-height: 230px; height: min(62vw, 320px); place-items: center; }
+  .brief-scene { min-height: 0; }
+  .classify-row { grid-template-columns: 1fr; }
   .owl-frame { min-height: 260px; }
   .sortable-item { grid-template-columns: 34px minmax(0,1fr); }
   .sequence-move-buttons { grid-column:1 / -1; }
@@ -469,7 +438,11 @@ textarea { min-height: 96px; resize: vertical; }
   .badge-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .asset-strip { grid-template-columns: 1fr; }
   .actions { display:grid; grid-template-columns:1fr; }
-  .nutrient-test-brief-scene .scene-copy { width: 100%; }
+  .nutrient-test-brief-scene .bq-brief-student-avatar {
+    --bq-brief-avatar-height: 86%;
+    --bq-brief-avatar-left: 5%;
+    --bq-brief-avatar-bottom: 1%;
+  }
   .compare-micrographs { grid-template-columns: 1fr; }
   .compare-evidence, .question-data-card dl { grid-template-columns: 1fr; }
   .scale-evidence-strip { align-items: stretch; }
