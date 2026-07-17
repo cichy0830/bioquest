@@ -53,7 +53,10 @@ const readyBadgeIds = new Set([
   "condition_effect_reader",
   "digestion_context_connector",
   "enzyme_data_interpreter",
-  "enzyme_misconception_reviser"
+  "enzyme_misconception_reviser",
+  "enzymes_flawless",
+  "enzymes_reflection_reporter",
+  "retry_growth_enzymes"
 ]);
 const badges = [
   { id: "enzymes_entry", name: "酵素研究入門徽章", condition: "完成生命反應加速任務。" },
