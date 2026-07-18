@@ -188,6 +188,13 @@ const allUnits = [
     storageKey: "bioquest_asexual_reproduction_state_v1",
     missingSceneAllowed: true,
     missingSceneHook: "asexual-reproduction-briefing-azhe-wide.webp"
+  },
+  {
+    unitId: "sexual_reproduction",
+    folder: "prototype-sexual-reproduction",
+    storageKey: "bioquest_sexual_reproduction_state_v1",
+    missingSceneAllowed: true,
+    missingSceneHook: "sexual-reproduction-briefing-azhe-wide.webp"
   }
 ];
 

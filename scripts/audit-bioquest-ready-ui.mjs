@@ -34,7 +34,8 @@ const units = [
   ["excretion_water_homeostasis", "prototype-excretion-water-homeostasis"],
   ["temperature_glucose_homeostasis", "prototype-temperature-glucose-homeostasis"],
   ["cell_division", "prototype-cell-division"],
-  ["asexual_reproduction", "prototype-asexual-reproduction"]
+  ["asexual_reproduction", "prototype-asexual-reproduction"],
+  ["sexual_reproduction", "prototype-sexual-reproduction"]
 ];
 
 const layoutJsPath = path.join(root, "shared-assets", "bioquest-character-layout.js");
@@ -74,6 +75,7 @@ appVersionOverrides.set("excretion_water_homeostasis", "20260718-excretion-water
 appVersionOverrides.set("temperature_glucose_homeostasis", "20260718-temperature-glucose-homeostasis-v1");
 appVersionOverrides.set("cell_division", "20260718-cell-division-v1");
 appVersionOverrides.set("asexual_reproduction", "20260718-asexual-reproduction-v1");
+appVersionOverrides.set("sexual_reproduction", "20260718-sexual-reproduction-v1");
 const sharedCacheOverrides = new Map();
 ["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit", "cell_structure", "cell_observation"].forEach((unitId) => {
   sharedCacheOverrides.set(unitId, "20260715-brief-scene-unified-u1u7-v1");
@@ -103,6 +105,7 @@ sharedCacheOverrides.set("excretion_water_homeostasis", "20260713-login-busy-v1"
 sharedCacheOverrides.set("temperature_glucose_homeostasis", "20260713-login-busy-v1");
 sharedCacheOverrides.set("cell_division", "20260713-login-busy-v1");
 sharedCacheOverrides.set("asexual_reproduction", "20260713-login-busy-v1");
+sharedCacheOverrides.set("sexual_reproduction", "20260713-login-busy-v1");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -121,7 +124,7 @@ function badgeInventory(source, folder) {
     const explicit = match[2].match(/badge_image_path:\s*["']([^"']+)["']/)?.[1] || "";
     return { id: match[1], explicit };
   });
-  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components" || folder === "prototype-human-circulation" || folder === "prototype-stimulus-response" || folder === "prototype-nervous-system" || folder === "prototype-endocrine-system" || folder === "prototype-behavior-sensing" || folder === "prototype-respiration-homeostasis" || folder === "prototype-excretion-water-homeostasis" || folder === "prototype-temperature-glucose-homeostasis" || folder === "prototype-cell-division" || folder === "prototype-asexual-reproduction")) {
+  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components" || folder === "prototype-human-circulation" || folder === "prototype-stimulus-response" || folder === "prototype-nervous-system" || folder === "prototype-endocrine-system" || folder === "prototype-behavior-sensing" || folder === "prototype-respiration-homeostasis" || folder === "prototype-excretion-water-homeostasis" || folder === "prototype-temperature-glucose-homeostasis" || folder === "prototype-cell-division" || folder === "prototype-asexual-reproduction" || folder === "prototype-sexual-reproduction")) {
     const dynamicTemplate = source.match(/const badgeAsset = \(id\) => `([^`]+)`/)?.[1] || "";
     return [...block.matchAll(/\[\s*["']([^"']+)["']\s*,\s*["'][^"']+["']\s*,\s*["'][^"']+["']\s*\]/g)].map((match) => {
       const imagePath = dynamicTemplate ? dynamicTemplate.replace("${id}", match[1]) : "";

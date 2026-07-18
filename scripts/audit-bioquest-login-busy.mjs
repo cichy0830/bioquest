@@ -70,7 +70,7 @@ function loginFunctionName(source) {
 
 assert(start >= 0 && end > start, "portal units block missing");
 const units = Function(`${portal.slice(start, end)}; return units;`)().filter((unit) => unit.status === "ready" && unit.url);
-assert(units.length === 28, `expected 28 ready units, found ${units.length}`);
+assert(units.length === 29, `expected 29 ready units, found ${units.length}`);
 
 const helper = fs.readFileSync(path.join(root, "shared-assets", "bioquest-character-layout.js"), "utf8");
 for (const token of [
