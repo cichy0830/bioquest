@@ -26,7 +26,8 @@ const units = [
   ["plant_material_transport", "prototype-plant-material-transport"],
   ["cardiovascular_components", "prototype-cardiovascular-components"],
   ["human_circulation", "prototype-human-circulation"],
-  ["stimulus_response", "prototype-stimulus-response"]
+  ["stimulus_response", "prototype-stimulus-response"],
+  ["nervous_system", "prototype-nervous-system"]
 ];
 
 const layoutJsPath = path.join(root, "shared-assets", "bioquest-character-layout.js");
@@ -58,6 +59,7 @@ appVersionOverrides.set("plant_transport_structures", "20260717-u15u17-brief-sce
 appVersionOverrides.set("cardiovascular_components", "20260718-u18-u20-assets-v1");
 appVersionOverrides.set("human_circulation", "20260718-u18-u20-assets-v1");
 appVersionOverrides.set("stimulus_response", "20260718-u18-u20-assets-v1");
+appVersionOverrides.set("nervous_system", "20260718-nervous-system-ready-v1");
 const sharedCacheOverrides = new Map();
 ["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit", "cell_structure", "cell_observation"].forEach((unitId) => {
   sharedCacheOverrides.set(unitId, "20260715-brief-scene-unified-u1u7-v1");
@@ -79,6 +81,7 @@ sharedCacheOverrides.set("plant_transport_structures", "20260717-u15u17-brief-sc
 sharedCacheOverrides.set("cardiovascular_components", "20260713-login-busy-v1");
 sharedCacheOverrides.set("human_circulation", "20260713-login-busy-v1");
 sharedCacheOverrides.set("stimulus_response", "20260713-login-busy-v1");
+sharedCacheOverrides.set("nervous_system", "20260713-login-busy-v1");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -97,7 +100,7 @@ function badgeInventory(source, folder) {
     const explicit = match[2].match(/badge_image_path:\s*["']([^"']+)["']/)?.[1] || "";
     return { id: match[1], explicit };
   });
-  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components" || folder === "prototype-human-circulation" || folder === "prototype-stimulus-response")) {
+  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components" || folder === "prototype-human-circulation" || folder === "prototype-stimulus-response" || folder === "prototype-nervous-system")) {
     const dynamicTemplate = source.match(/const badgeAsset = \(id\) => `([^`]+)`/)?.[1] || "";
     return [...block.matchAll(/\["([^"]+)",\s*"[^"]+",\s*"[^"]+"\]/g)].map((match) => {
       const imagePath = dynamicTemplate ? dynamicTemplate.replace("${id}", match[1]) : "";
@@ -251,7 +254,7 @@ const rows = audit.map((item) => `| \`${item.unitId}\` | shared wide/mobile | sh
 const report = `# 全站角色與徽章接線盤點
 
 更新日期：2026-07-18
-適用範圍：入口目前標示 ready 的第 1–18 單元
+適用範圍：入口目前標示 ready 的第 1–${audit.length} 單元
 
 | unit_id | login cover | feedback | report | result | 徽章圖 | 缺圖 badge_id |
 |---|---|---|---|---|---:|---|

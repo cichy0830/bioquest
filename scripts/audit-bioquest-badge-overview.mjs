@@ -27,7 +27,8 @@ const sharedVersionOverrides = new Map([
   ["prototype-plant-material-transport", "20260718-u15-u17-assets-v1"],
   ["prototype-cardiovascular-components", "20260713-login-busy-v1"],
   ["prototype-human-circulation", "20260713-login-busy-v1"],
-  ["prototype-stimulus-response", "20260713-login-busy-v1"]
+  ["prototype-stimulus-response", "20260713-login-busy-v1"],
+  ["prototype-nervous-system", "20260713-login-busy-v1"]
 ]);
 const readyUnits = [
   "prototype-life-world",
@@ -49,7 +50,8 @@ const readyUnits = [
   "prototype-plant-material-transport",
   "prototype-cardiovascular-components",
   "prototype-human-circulation",
-  "prototype-stimulus-response"
+  "prototype-stimulus-response",
+  "prototype-nervous-system"
 ];
 
 function assert(condition, message) {

@@ -29,7 +29,8 @@ const sharedVersionOverrides = new Map([
   ["plant_material_transport", "20260718-u15-u17-assets-v1"],
   ["cardiovascular_components", "20260713-login-busy-v1"],
   ["human_circulation", "20260713-login-busy-v1"],
-  ["stimulus_response", "20260713-login-busy-v1"]
+  ["stimulus_response", "20260713-login-busy-v1"],
+  ["nervous_system", "20260713-login-busy-v1"]
 ]);
 
 function assert(condition, message) {
@@ -40,7 +41,7 @@ assert(start >= 0 && end > start, "portal units block missing");
 const units = Function(`${portal.slice(start, end)}; return units;`)();
 const readyUnits = units.filter((unit) => unit.status === "ready" && unit.url);
 
-assert(readyUnits.length === 20, `expected 20 ready units, found ${readyUnits.length}`);
+assert(readyUnits.length === 21, `expected 21 ready units, found ${readyUnits.length}`);
 assert(portal.includes("第 ${unit.sequence} 站｜${unit.title}"), "portal card must render station and formal title");
 assert(!portal.includes("第 ${unit.sequence} 單元"), "portal card must not render old unit wording");
 readyUnits.forEach((unit) => {
