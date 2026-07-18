@@ -153,6 +153,13 @@ const allUnits = [
     storageKey: "bioquest_behavior_sensing_state_v1",
     missingSceneAllowed: true,
     missingSceneHook: "behavior-sensing-briefing-azhe-wide.webp"
+  },
+  {
+    unitId: "respiration_homeostasis",
+    folder: "prototype-respiration-homeostasis",
+    storageKey: "bioquest_respiration_homeostasis_state_v1",
+    missingSceneAllowed: true,
+    missingSceneHook: "respiration-homeostasis-briefing-azhe-wide.webp"
   }
 ];
 

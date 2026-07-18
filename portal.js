@@ -63,7 +63,7 @@ const units = [
   { title: "神經系統", unitId: "nervous_system", status: "ready", sequence: 21, summary: "正式順序第二十一單元。手機優先功能原型已可測試，含神經元與神經、中樞/周圍神經、三類神經元分工、反射路徑與腦脊髓迷思修正。", tags: ["可測試", "神經", "中樞", "反射", "後台驗證"], url: "prototype-nervous-system/?v=20260718-nervous-system-ready-v1" },
   { title: "內分泌系統", unitId: "endocrine_system", status: "ready", sequence: 22, summary: "激素、腺體、血液運送、目標器官與血糖調節。", tags: ["內分泌", "激素"], url: "prototype-endocrine-system/?v=20260718-endocrine-system-ready-v1" },
   { title: "行為與感應", unitId: "behavior_sensing", status: "ready", sequence: 23, summary: "正式順序第二十三單元。手機優先功能原型已可測試，含動物行為功能、趨性、向性、植物感應運動、睡眠運動與單元邊界判讀。", tags: ["可測試", "行為", "感應", "趨性", "向性"], url: "prototype-behavior-sensing/?v=20260718-behavior-sensing-ready-v1" },
-  { title: "呼吸與氣體的恆定", unitId: "respiration_homeostasis", status: "planned", sequence: 24, summary: "呼吸構造、氣體交換與恆定。", tags: ["呼吸", "恆定"] },
+  { title: "呼吸與氣體的恆定", unitId: "respiration_homeostasis", status: "ready", sequence: 24, summary: "正式順序第二十四單元。手機優先功能原型已可測試，含呼吸與細胞利用氧氣、空氣進入肺泡路徑、肺泡氣體交換、吸氣呼氣胸腔變化與活動時氣體恆定判讀。", tags: ["可測試", "呼吸", "氣體交換", "恆定", "肺泡"], url: "prototype-respiration-homeostasis/?v=20260718-respiration-homeostasis-v1" },
   { title: "排泄與水分的恆定", unitId: "excretion_water_homeostasis", status: "planned", sequence: 25, summary: "排泄、腎臟、水分調節與代謝廢物。", tags: ["排泄", "水分"] },
   { title: "體溫與血糖的恆定", unitId: "temperature_glucose_homeostasis", status: "planned", sequence: 26, summary: "體溫調節、血糖調節與負回饋概念。", tags: ["體溫", "血糖"] },
   { title: "細胞的分裂", unitId: "cell_division", status: "planned", sequence: 27, summary: "細胞分裂、染色體複製與生長修補。", tags: ["細胞分裂"] },
