@@ -15,6 +15,32 @@ const navButtons = typeof document !== "undefined" ? [...document.querySelectorA
 const studentMini = typeof document !== "undefined" ? document.querySelector("#studentMini") : null;
 const LOCK_MESSAGE = "本次任務已提交，作答結果已鎖定；若要再挑戰，請重新登入並從頭完成。";
 const LOCKED_SCREENS_AFTER_SUBMIT = new Set(["brief", "scan", "checkpoint1", "checkpoint2", "checkpoint3", "review", "reflection"]);
+const RESULT_STATUS_COPY = {
+  guest: {
+    summaryLabel: "guest 測試預估",
+    creditLabel: "正式累積狀態",
+    creditValue: "不列入正式累積",
+    noticeClass: "warn",
+    lead: "guest 測試：本次預估 {exp}/500 EXP，不列入正式累積。",
+    detail: "這次結果只供老師或學生試看流程，不會寫入 Google Sheet，也不更新正式徽章或稱號進度。"
+  },
+  pending: {
+    summaryLabel: "本次預估",
+    creditLabel: "後台確認狀態",
+    creditValue: "待後台確認",
+    noticeClass: "warn",
+    lead: "本次預估 {exp}/500 EXP，待後台確認。",
+    detail: "確認完成前，這些數字只代表本次作答預覽；不作為已確認結果或累積進度。"
+  },
+  verified: {
+    summaryLabel: "本次取得",
+    creditLabel: "本單元正式認列",
+    creditValue: "{credit} EXP",
+    noticeClass: "good",
+    lead: "後台已回傳正式認列資料。",
+    detail: "本次取得是這次挑戰的原始表現；本單元正式認列會保留最高表現並受 500 EXP 上限限制。"
+  }
+};
 
 const mission = {
   unit_id: "photosynthesis",
@@ -1015,15 +1041,17 @@ function renderReflection() {
 
 function renderResult() {
   const result = state.result || scoreAttempt();
+  const statusCopy = resultStatusCopy(result);
   return `
     <div class="stack result-stack">
       <section class="panel result-panel">
         <p class="eyebrow">任務結算</p>
         <h2>綠葉養分製造任務結算</h2>
         <p class="lock-note">提交後本次作答已鎖定；若要再挑戰，請重新登入並從頭完成。</p>
+        <div class="feedback ${statusCopy.noticeClass}">${statusCopy.lead}</div>
         <div class="exp-summary">
-          <strong>${result.unit_credited_exp} / ${UNIT_EXP_CAP} EXP</strong>
-          <span>本次取得：${result.attempt_exp}｜本單元認列：${result.unit_credited_exp}</span>
+          <strong>${statusCopy.summaryValue}</strong>
+          <span>${statusCopy.summaryLabel}：${result.attempt_exp}｜${statusCopy.creditLabel}：${statusCopy.creditValue}</span>
         </div>
         <div class="ledger-grid">
           ${ledgerRow("完成任務", result.completion_exp)}
@@ -1034,6 +1062,7 @@ function renderResult() {
           ${ledgerRow("再挑戰補分", result.retry_exp)}
           ${ledgerRow("總計", result.unit_credited_exp)}
         </div>
+        <p class="muted">${statusCopy.detail}</p>
         <div class="button-row">
           <button class="primary" data-next="achievements">查看成就</button>
           <button class="secondary" data-next="rules">查看規則</button>
@@ -1044,35 +1073,44 @@ function renderResult() {
   `;
 }
 
+function resultMode(result = state.result || {}) {
+  const status = String(result.verification_status || "").toLowerCase();
+  if (state.student?.is_guest || status === "local_guest") return "guest";
+  if (status.includes("server_verified") || status === "verified") return "verified";
+  return "pending";
+}
+
+function resultStatusCopy(result = state.result || scoreAttempt()) {
+  const mode = resultMode(result);
+  const copy = RESULT_STATUS_COPY[mode] || RESULT_STATUS_COPY.pending;
+  const attemptExp = Number(result.attempt_exp ?? result.unit_credited_exp ?? 0) || 0;
+  const creditExp = Number(result.unit_credited_exp ?? attemptExp) || 0;
+  return {
+    ...copy,
+    summaryValue: mode === "verified" ? `${creditExp} / ${UNIT_EXP_CAP} EXP` : `${attemptExp} / ${UNIT_EXP_CAP} EXP`,
+    lead: copy.lead.replace("{exp}", String(attemptExp)).replace("{credit}", String(creditExp)),
+    creditValue: copy.creditValue.replace("{exp}", String(attemptExp)).replace("{credit}", String(creditExp))
+  };
+}
+
 function ledgerRow(label, value) {
   return `<article><span>${label}</span><strong>${Number(value || 0)}</strong></article>`;
 }
 
 function renderAchievements() {
   const result = state.result || scoreAttempt();
-  const titleInfo = titleAndProgress(state.student, result.unit_credited_exp);
   return `
     <div class="stack achievements-stack">
-      <section class="panel title-card">
-        <p class="eyebrow">全冊稱號</p>
-        <div class="title-card-content">
-          <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
-          <div>
-            <h2>${escapeHtml(titleInfo.current.title)}</h2>
-            <p>${titleInfo.totalExp} EXP｜稱號進度 ${titleInfo.progressPercent}%</p>
-            <p>${titleInfo.next ? `距離 ${titleInfo.next.title} 還差 ${titleInfo.remaining} EXP` : "已達最高稱號，後續 EXP 仍會累積。"}</p>
-          </div>
-        </div>
-      </section>
-      ${renderBadgeWall(result.earned_badges)}
+      ${renderBadgeWall(result.earned_badges, { unitAchievements: true })}
     </div>
   `;
 }
 
-function renderBadgeWall(earned = []) {
+function renderBadgeWall(earned = [], options = {}) {
   const earnedSet = new Set(earned);
-  return `<section class="panel">
-    <p class="eyebrow">徽章收藏牆</p>
+  const unitAttributes = options.unitAchievements ? ` data-bq-unit-achievements="${mission.unit_id}"` : "";
+  return `<section class="panel"${unitAttributes}>
+    <p class="eyebrow">${options.unitAchievements ? "本單元成就" : "徽章收藏牆"}</p>
     <h2>本單元 11 枚徽章</h2>
     <div class="badge-wall">
       ${badges.map((badge) => `
