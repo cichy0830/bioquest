@@ -27,7 +27,8 @@ const units = [
   ["cardiovascular_components", "prototype-cardiovascular-components"],
   ["human_circulation", "prototype-human-circulation"],
   ["stimulus_response", "prototype-stimulus-response"],
-  ["nervous_system", "prototype-nervous-system"]
+  ["nervous_system", "prototype-nervous-system"],
+  ["endocrine_system", "prototype-endocrine-system"]
 ];
 
 const layoutJsPath = path.join(root, "shared-assets", "bioquest-character-layout.js");
@@ -60,6 +61,7 @@ appVersionOverrides.set("cardiovascular_components", "20260718-ag-visual-fixes-v
 appVersionOverrides.set("human_circulation", "20260718-ag-visual-fixes-v1");
 appVersionOverrides.set("stimulus_response", "20260718-ag-visual-fixes-v1");
 appVersionOverrides.set("nervous_system", "20260718-nervous-system-ready-v1");
+appVersionOverrides.set("endocrine_system", "20260718-endocrine-system-ready-v1");
 const sharedCacheOverrides = new Map();
 ["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit", "cell_structure", "cell_observation"].forEach((unitId) => {
   sharedCacheOverrides.set(unitId, "20260715-brief-scene-unified-u1u7-v1");
@@ -82,6 +84,7 @@ sharedCacheOverrides.set("cardiovascular_components", "20260718-ag-visual-fixes-
 sharedCacheOverrides.set("human_circulation", "20260718-ag-visual-fixes-v1");
 sharedCacheOverrides.set("stimulus_response", "20260718-ag-visual-fixes-v1");
 sharedCacheOverrides.set("nervous_system", "20260713-login-busy-v1");
+sharedCacheOverrides.set("endocrine_system", "20260713-login-busy-v1");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -100,7 +103,7 @@ function badgeInventory(source, folder) {
     const explicit = match[2].match(/badge_image_path:\s*["']([^"']+)["']/)?.[1] || "";
     return { id: match[1], explicit };
   });
-  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components" || folder === "prototype-human-circulation" || folder === "prototype-stimulus-response" || folder === "prototype-nervous-system")) {
+  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components" || folder === "prototype-human-circulation" || folder === "prototype-stimulus-response" || folder === "prototype-nervous-system" || folder === "prototype-endocrine-system")) {
     const dynamicTemplate = source.match(/const badgeAsset = \(id\) => `([^`]+)`/)?.[1] || "";
     return [...block.matchAll(/\["([^"]+)",\s*"[^"]+",\s*"[^"]+"\]/g)].map((match) => {
       const imagePath = dynamicTemplate ? dynamicTemplate.replace("${id}", match[1]) : "";

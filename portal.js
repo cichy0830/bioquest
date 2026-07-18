@@ -61,7 +61,7 @@ const units = [
   { title: "人體的循環系統", unitId: "human_circulation", status: "ready", sequence: 19, summary: "正式順序第十九單元。手機優先功能原型已可測試，含體循環、肺循環、含氧量變化、微血管交換與組織液/淋巴基礎；正式視覺素材待核准後接線。", tags: ["可測試", "循環", "體循環", "肺循環", "後台驗證"], url: "prototype-human-circulation/?v=20260718-ag-visual-fixes-v1" },
   { title: "刺激與反應", unitId: "stimulus_response", status: "ready", sequence: 20, summary: "正式順序第二十單元。手機優先功能原型已可測試，含刺激/反應辨識、受器與動器、基本流程、反應時間資料判讀與公平測量。", tags: ["可測試", "刺激", "反應", "受器", "反應時間"], url: "prototype-stimulus-response/?v=20260718-ag-visual-fixes-v1" },
   { title: "神經系統", unitId: "nervous_system", status: "ready", sequence: 21, summary: "正式順序第二十一單元。手機優先功能原型已可測試，含神經元與神經、中樞/周圍神經、三類神經元分工、反射路徑與腦脊髓迷思修正。", tags: ["可測試", "神經", "中樞", "反射", "後台驗證"], url: "prototype-nervous-system/?v=20260718-nervous-system-ready-v1" },
-  { title: "內分泌系統", unitId: "endocrine_system", status: "planned", sequence: 22, summary: "激素、腺體與協調調節。", tags: ["內分泌", "激素"] },
+  { title: "內分泌系統", unitId: "endocrine_system", status: "ready", sequence: 22, summary: "激素、腺體、血液運送、目標器官與血糖調節。", tags: ["內分泌", "激素"], url: "prototype-endocrine-system/?v=20260718-endocrine-system-ready-v1" },
   { title: "行為與感應", unitId: "behavior_sensing", status: "planned", sequence: 23, summary: "動物行為、植物感應與環境刺激。", tags: ["行為", "感應"] },
   { title: "呼吸與氣體的恆定", unitId: "respiration_homeostasis", status: "planned", sequence: 24, summary: "呼吸構造、氣體交換與恆定。", tags: ["呼吸", "恆定"] },
   { title: "排泄與水分的恆定", unitId: "excretion_water_homeostasis", status: "planned", sequence: 25, summary: "排泄、腎臟、水分調節與代謝廢物。", tags: ["排泄", "水分"] },

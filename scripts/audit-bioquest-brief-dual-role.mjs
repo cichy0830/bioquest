@@ -139,6 +139,13 @@ const allUnits = [
     folder: "prototype-stimulus-response",
     storageKey: "bioquest_stimulus_response_state_v1",
     azhe: { left: 0.06, right: 0.32, top: 0.12, bottom: 0.96 }
+  },
+  {
+    unitId: "endocrine_system",
+    folder: "prototype-endocrine-system",
+    storageKey: "bioquest_endocrine_system_state_v1",
+    missingSceneAllowed: true,
+    missingSceneHook: "endocrine-system-briefing-azhe-wide.webp"
   }
 ];
 
