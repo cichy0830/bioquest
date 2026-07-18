@@ -174,6 +174,13 @@ const allUnits = [
     storageKey: "bioquest_temperature_glucose_homeostasis_state_v1",
     missingSceneAllowed: true,
     missingSceneHook: "temperature-glucose-homeostasis-briefing-azhe-wide.webp"
+  },
+  {
+    unitId: "cell_division",
+    folder: "prototype-cell-division",
+    storageKey: "bioquest_cell_division_state_v1",
+    missingSceneAllowed: true,
+    missingSceneHook: "cell-division-briefing-azhe-wide.webp"
   }
 ];
 
