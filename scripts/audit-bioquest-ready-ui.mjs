@@ -272,7 +272,10 @@ assert(cellStructureStyles.includes("border: 2px solid transparent") && cellStru
 const lifeStyles = fs.readFileSync(path.join(root, "prototype-life-world", "styles.css"), "utf8");
 assert(lifeStyles.includes("background: rgba(255, 255, 255, 0.74);"), "life_world background trial panel opacity missing");
 
-const reportPath = path.join(root, "04_網頁模板", "全站角色與徽章接線盤點.md");
+const isPublishRoot = path.basename(root) === "bioquest" && path.basename(path.dirname(root)) === "_publish";
+const reportPath = isPublishRoot
+  ? path.join(process.env.TMPDIR || "/tmp", "bioquest-ready-ui-publish-report.md")
+  : path.join(root, "04_網頁模板", "全站角色與徽章接線盤點.md");
 fs.mkdirSync(path.dirname(reportPath), { recursive: true });
 const rows = audit.map((item) => `| \`${item.unitId}\` | shared wide/mobile | shared 5-state | shared report owl | shared result hero | ${item.badgeReady}/${item.badgeExpected} | ${item.badgeMissing.length ? item.badgeMissing.map((id) => `\`${id}\``).join("、") : "完整"} |`).join("\n");
 const report = `# 全站角色與徽章接線盤點
