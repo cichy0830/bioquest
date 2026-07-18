@@ -160,6 +160,13 @@ const allUnits = [
     storageKey: "bioquest_respiration_homeostasis_state_v1",
     missingSceneAllowed: true,
     missingSceneHook: "respiration-homeostasis-briefing-azhe-wide.webp"
+  },
+  {
+    unitId: "excretion_water_homeostasis",
+    folder: "prototype-excretion-water-homeostasis",
+    storageKey: "bioquest_excretion_water_homeostasis_state_v1",
+    missingSceneAllowed: true,
+    missingSceneHook: "excretion-water-homeostasis-briefing-azhe-wide.webp"
   }
 ];
 
