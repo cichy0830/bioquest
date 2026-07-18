@@ -244,6 +244,15 @@ function sourceAuditPanel() {
   const answerLogs = state.data.questionLogs.filter((log) => latestIds.has(String(log.attempt_id)) && (log.answer_json || log.attempt_answer));
   const verified = latestSelectedAttempts().filter((attempt) => String(attempt.verification_status) === "server_verified").length;
   const selectedUnitReady = !unitFilter.value || state.data.canonicalUnitIds.includes(String(unitFilter.value));
+  const attemptsCount = numberValue(counts.attempts, state.data.attempts.length);
+  const questionLogCount = numberValue(counts.question_logs, state.data.questionLogs.length);
+  const progressCount = numberValue(counts.student_progress, state.data.studentProgress.length);
+  const reviewCount = numberValue(counts.teacher_reviews, state.data.teacherReviews.length);
+  const writeStatus = attemptsCount > 0 && questionLogCount > 0 && progressCount > 0
+    ? { label: "已有學生作答寫入", className: "good", note: "Attempts、QuestionLogs 與 StudentProgress 均有實際資料。" }
+    : attemptsCount > 0
+      ? { label: "作答資料不完整", className: "warn", note: "已有 Attempts，但逐題或進度資料不足，請檢查 Apps Script 部署與表頭。" }
+      : { label: "尚未看到作答寫入", className: "warn", note: "目前沒有正式學生 Attempts；請先確認學生已完成提交或篩選條件。" };
   const warning = latestIds.size && !answerLogs.length
     ? '<p class="data-alert">目前部署沒有回傳逐題答案，選答率不會以推測或假資料代替。請重新部署教師儀表板 v3。</p>'
     : "";
@@ -252,20 +261,23 @@ function sourceAuditPanel() {
     <div class="audit-grid">
       <p><span>來源</span><strong>${escapeHtml(state.data.dataSource === "google_sheet" ? "Google Sheet / Apps Script" : state.data.dataSource || "未標記")}</strong></p>
       <p><span>資料產生時間</span><strong>${formatDate(state.data.generatedAt)}</strong></p>
-      <p><span>API Attempts</span><strong>${numberValue(counts.attempts, state.data.attempts.length)}</strong></p>
-      <p><span>API QuestionLogs</span><strong>${numberValue(counts.question_logs, state.data.questionLogs.length)}</strong></p>
+      <p><span>API Attempts</span><strong>${attemptsCount}</strong></p>
+      <p><span>API QuestionLogs</span><strong>${questionLogCount}</strong></p>
+      <p><span>API StudentProgress</span><strong>${progressCount}</strong></p>
+      <p><span>API TeacherReview</span><strong>${reviewCount}</strong></p>
       <p><span>本篩選最新作答</span><strong>${latestIds.size}</strong></p>
       <p><span>後端正式驗證</span><strong>${verified}</strong></p>
       <p><span>所選單元正解註冊</span><strong>${selectedUnitReady ? "已完成" : "尚未完成"}</strong></p>
+      <p><span>作答寫入狀態</span><strong><span class="pill ${writeStatus.className}">${writeStatus.label}</span></strong></p>
     </div>
-    <p class="muted">完成率、正確率與診斷預設只取每位學生在所選單元的最新有效完整挑戰；guest、歷史未驗證與待驗證提交不納入。</p>${selectedUnitReady ? "" : '<p class="data-alert">所選單元尚未加入後端正解註冊，因此目前提交只能保存為待驗證，不會納入正式正確率與迷思統計。</p>'}${warning}
+    <p class="muted">${escapeHtml(writeStatus.note)}完成率、正確率與診斷預設只取每位學生在所選單元的最新有效完整挑戰；guest、歷史未驗證與待驗證提交不納入。</p>${selectedUnitReady ? "" : '<p class="data-alert">所選單元尚未加入後端正解註冊，因此目前提交只能保存為待驗證，不會納入正式正確率與迷思統計。</p>'}${warning}
   </article>`;
 }
 
 function renderUnitView() {
   const rows = studentUnitRows();
   if (!rows.length) {
-    viewRoot.innerHTML = emptyState("沒有名冊資料", "請確認 Students 工作表、班級欄位及 active 狀態。");
+    viewRoot.innerHTML = sourceAuditPanel() + emptyState("沒有名冊資料", "請確認 Students 工作表、班級欄位及 active 狀態。");
     return;
   }
   const completed = rows.filter((row) => row.completed);

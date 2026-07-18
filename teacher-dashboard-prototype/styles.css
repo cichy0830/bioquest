@@ -49,14 +49,19 @@ input, select { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px so
 .tabs { display: flex; gap: 8px; margin: 16px 0; overflow-x: auto; }
 .tabs button.active { color: var(--teal-dark); border-color: rgba(15,143,138,.42); background: #dff5f1; }
 
-.view-root, .grid { display: grid; gap: 14px; }
+.view-root, .grid { display: grid; gap: 14px; min-width: 0; }
+.view-root > *,
+.grid > *,
+.panel {
+  min-width: 0;
+}
 .summary-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .two-col { grid-template-columns: minmax(0, 1.3fr) minmax(300px, .7fr); }
 .panel { padding: 16px; }
 .metric span, .muted { color: var(--muted); }
 .metric strong { display: block; margin-top: 6px; font-size: 28px; }
 .metric p { margin-bottom: 0; }
-.table-wrap { overflow-x: auto; }
+.table-wrap { max-width: 100%; overflow-x: auto; }
 table { width: 100%; min-width: 860px; border-collapse: collapse; }
 th, td { padding: 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
 th { color: var(--muted); font-size: 13px; }
