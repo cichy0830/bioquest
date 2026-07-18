@@ -146,6 +146,13 @@ const allUnits = [
     storageKey: "bioquest_endocrine_system_state_v1",
     missingSceneAllowed: true,
     missingSceneHook: "endocrine-system-briefing-azhe-wide.webp"
+  },
+  {
+    unitId: "behavior_sensing",
+    folder: "prototype-behavior-sensing",
+    storageKey: "bioquest_behavior_sensing_state_v1",
+    missingSceneAllowed: true,
+    missingSceneHook: "behavior-sensing-briefing-azhe-wide.webp"
   }
 ];
 
