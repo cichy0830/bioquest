@@ -995,11 +995,6 @@ function renderReflection() {
           <button class="secondary" data-next="review">回到回饋整理</button>
         </div>
       </section>
-      <aside class="panel owl-panel bq-report-assistant">
-        <img src="${assets.owlReport}" alt="貓頭鷹助理提醒" onerror="this.src='../shared-assets/characters/owl-bioquest-report-reminder.webp'">
-        <h3>回報方向</h3>
-        <p>可以從消化道與消化腺、食物流向、器官功能、消化與吸收差異、酵素與膽汁、小腸絨毛或血液運送中選一個方向。</p>
-      </aside>
     </div>
   `;
 }
@@ -1206,6 +1201,7 @@ if (typeof window !== "undefined") {
     buildBackendPayload,
     evaluateReflection,
     titleAvatarPath,
+    renderBrief,
     renderQuestionEvidence,
     renderCheckpoint,
     renderReview,

@@ -121,6 +121,24 @@ const allUnits = [
     folder: "prototype-plant-material-transport",
     storageKey: "bioquest_plant_material_transport_state_v1",
     azhe: { left: 0.11, right: 0.36, top: 0.1, bottom: 0.98 }
+  },
+  {
+    unitId: "cardiovascular_components",
+    folder: "prototype-cardiovascular-components",
+    storageKey: "bioquest_cardiovascular_components_state_v1",
+    azhe: { left: 0.24, right: 0.50, top: 0.12, bottom: 0.94 }
+  },
+  {
+    unitId: "human_circulation",
+    folder: "prototype-human-circulation",
+    storageKey: "bioquest_human_circulation_state_v1",
+    azhe: { left: 0.10, right: 0.30, top: 0.13, bottom: 0.95 }
+  },
+  {
+    unitId: "stimulus_response",
+    folder: "prototype-stimulus-response",
+    storageKey: "bioquest_stimulus_response_state_v1",
+    azhe: { left: 0.06, right: 0.32, top: 0.12, bottom: 0.96 }
   }
 ];
 

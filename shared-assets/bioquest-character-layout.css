@@ -263,6 +263,23 @@ body[data-unit-id="plant_material_transport"] .bq-brief-scene-stage {
   --bq-brief-avatar-max-height: 94%;
 }
 
+body[data-unit-id="human_circulation"] .bq-brief-scene-stage,
+body[data-unit-id="stimulus_response"] .bq-brief-scene-stage {
+  --bq-brief-avatar-left: 74%;
+  --bq-brief-avatar-bottom: 0.5%;
+  --bq-brief-avatar-height: 93%;
+  --bq-brief-avatar-max-width: 30%;
+  --bq-brief-avatar-max-height: 98%;
+}
+
+body[data-unit-id="cardiovascular_components"] .bq-brief-scene-stage {
+  --bq-brief-avatar-left: 74%;
+  --bq-brief-avatar-bottom: 0.5%;
+  --bq-brief-avatar-height: 93%;
+  --bq-brief-avatar-max-width: 30%;
+  --bq-brief-avatar-max-height: 96%;
+}
+
 .bq-brief-scene-stage::before,
 .bq-brief-scene-stage::after {
   content: none !important;

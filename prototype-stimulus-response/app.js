@@ -766,25 +766,19 @@ function renderLogin() {
 }
 
 function renderBrief() {
-  const titleInfo = titleAndProgress();
-  const sceneAttrs = `${assets.briefingSceneHook ? ` data-asset-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
+  const sceneAttrs = `${assets.briefingSceneHook ? ` data-briefing-scene-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
+  const sceneMedia = `<picture class="bq-brief-scene-media">${assets.briefingSceneMobileHook ? `<source media="(max-width: 680px)" srcset="${assets.briefingSceneMobileHook}">` : ""}<img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="阿澤老師在刺激與反應任務場景中引導學生"></picture>`;
   return `
     <div class="wide-layout">
       <section class="panel hero-panel brief-hero">
-        <div class="brief-scene stimulus-response-brief-scene"${sceneAttrs}>
-          <div class="scene-copy">
-            <p class="eyebrow">${mission.mission_area}</p>
-            <h2>${mission.mission_title}</h2>
-            <p>反應控制室收到多筆事件紀錄。請判斷哪些是刺激、哪些是反應，並追蹤受器、訊息協調與動器如何串成基礎流程。</p>
-          </div>
-          <div class="title-avatar-brief">
-            <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
-            <div>
-              <span>目前稱號</span>
-              <strong>${escapeHtml(titleInfo.current.title)}</strong>
-              <p>${titleInfo.totalExp} EXP</p>
-            </div>
-          </div>
+        <figure class="brief-scene stimulus-response-brief-scene bq-brief-scene-stage" data-bq-brief-dual-role="true"${sceneAttrs}>
+          ${sceneMedia}
+          <img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'">
+        </figure>
+        <div class="scene-copy bq-brief-scene-caption">
+          <p class="eyebrow">${mission.mission_area}</p>
+          <h2>${mission.mission_title}</h2>
+          <p>反應控制室收到多筆事件紀錄。請判斷哪些是刺激、哪些是反應，並追蹤受器、訊息協調與動器如何串成基礎流程。</p>
         </div>
         <div class="button-row">
           <button class="primary" data-next="scan">查看進關卡提醒</button>

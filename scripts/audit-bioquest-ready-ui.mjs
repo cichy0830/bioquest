@@ -51,14 +51,14 @@ appVersionOverrides.set("nutrients_energy", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("photosynthesis", "20260715-brief-scene-unified-u9u14-v1");
 appVersionOverrides.set("biological_organization", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("cell_transport", "20260717-badge-icon-cleanup-v1");
-appVersionOverrides.set("plant_material_transport", "20260718-u15-u17-assets-v1");
+appVersionOverrides.set("plant_material_transport", "20260718-ag-visual-fixes-v1");
 ["human_nutrition", "plant_material_transport"].forEach((unitId) => {
-  appVersionOverrides.set(unitId, "20260718-u15-u17-assets-v1");
+  appVersionOverrides.set(unitId, "20260718-ag-visual-fixes-v1");
 });
 appVersionOverrides.set("plant_transport_structures", "20260717-u15u17-brief-scenes-v1");
-appVersionOverrides.set("cardiovascular_components", "20260718-u18-u20-assets-v1");
-appVersionOverrides.set("human_circulation", "20260718-u18-u20-assets-v1");
-appVersionOverrides.set("stimulus_response", "20260718-u18-u20-assets-v1");
+appVersionOverrides.set("cardiovascular_components", "20260718-ag-visual-fixes-v1");
+appVersionOverrides.set("human_circulation", "20260718-ag-visual-fixes-v1");
+appVersionOverrides.set("stimulus_response", "20260718-ag-visual-fixes-v1");
 appVersionOverrides.set("nervous_system", "20260718-nervous-system-ready-v1");
 const sharedCacheOverrides = new Map();
 ["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit", "cell_structure", "cell_observation"].forEach((unitId) => {
@@ -75,12 +75,12 @@ sharedCacheOverrides.set("scale", "20260717-scale-user-review-v2");
 sharedCacheOverrides.set("biological_organization", "20260716-biological-organization-title-count-v1");
 sharedCacheOverrides.set("photosynthesis", "20260715-brief-scene-unified-u9u14-v1");
 ["human_nutrition", "plant_material_transport"].forEach((unitId) => {
-  sharedCacheOverrides.set(unitId, "20260718-u15-u17-assets-v1");
+  sharedCacheOverrides.set(unitId, "20260718-ag-visual-fixes-v1");
 });
 sharedCacheOverrides.set("plant_transport_structures", "20260717-u15u17-brief-scenes-v1");
-sharedCacheOverrides.set("cardiovascular_components", "20260713-login-busy-v1");
-sharedCacheOverrides.set("human_circulation", "20260713-login-busy-v1");
-sharedCacheOverrides.set("stimulus_response", "20260713-login-busy-v1");
+sharedCacheOverrides.set("cardiovascular_components", "20260718-ag-visual-fixes-v1");
+sharedCacheOverrides.set("human_circulation", "20260718-ag-visual-fixes-v1");
+sharedCacheOverrides.set("stimulus_response", "20260718-ag-visual-fixes-v1");
 sharedCacheOverrides.set("nervous_system", "20260713-login-busy-v1");
 
 function assert(condition, message) {

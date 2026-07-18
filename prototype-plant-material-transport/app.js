@@ -797,7 +797,7 @@ function renderQuestion(question) {
 function conceptLabel(concept) { return {transport_overview:"植物運輸總覽",water_mineral_absorption:"水分礦物吸收",xylem_upward_transport:"木質部上行運輸",phloem_nutrient_transport:"韌皮部養分運輸",transpiration_link:"蒸散與水分路徑",stomata_balance:"氣孔平衡判斷",evidence_interpretation:"資料證據判讀"}[concept] || concept; }
 
 function renderQuestionEvidence(qid) {
-  if (qid === "q01") return `<div class="evidence-card"><strong>整株植物運輸卡</strong><p>根、葉與其他部位會取得、製造、使用或儲存不同物質；請判斷是否需要體內運輸。</p><figure class="question-asset"><img src="${assets.questionOverview}" alt="整株植物與根、莖、葉之間物質運輸情境示意"></figure></div>`;
+  if (qid === "q01") return `<div class="evidence-card"><strong>整株植物情境卡</strong><p>根、葉與其他部位會取得、製造、使用或儲存不同物質；請根據部位與物質來源，判斷植物可能需要哪種功能。</p><figure class="question-asset"><img src="${assets.questionOverview}" alt="整株植物示意圖，呈現根、莖、葉與其他部位的位置關係，供學生觀察不同部位。"></figure></div>`;
   if (qid === "q03") return `<div class="evidence-card"><strong>來源分類卡</strong><p>水分、礦物質和糖類養分的來源不同；請完成每一列分類。</p></div>`;
   if (qid === "q04") return `<div class="evidence-card"><strong>有色水觀察卡</strong><p>有色水出現在莖與花瓣部分位置，只能支持和水分移動相關的有限推論。</p></div>`;
   if (qid === "q05" || qid === "q06" || qid === "q07" || qid === "q08") return `<div class="evidence-card"><strong>兩類運輸內容</strong><p>一類和根吸收的水分、礦物質相關；另一類和葉片製造的養分相關。</p></div>`;
@@ -941,11 +941,6 @@ function renderReflection() {
           <button class="secondary" data-next="review">回到回饋整理</button>
         </div>
       </section>
-      <aside class="panel owl-panel bq-report-assistant">
-        <img src="${assets.owlReport}" alt="貓頭鷹助理提醒" onerror="this.src='../shared-assets/characters/owl-bioquest-report-reminder.webp'">
-        <h3>回報方向</h3>
-        <p>可以從水分與礦物質、木質部、韌皮部、葉製造養分、蒸散作用、氣孔或資料判讀中選一個方向。</p>
-      </aside>
     </div>
   `;
 }
@@ -1149,6 +1144,7 @@ if (typeof window !== "undefined") {
     buildBackendPayload,
     evaluateReflection,
     titleAvatarPath,
+    renderBrief,
     renderQuestionEvidence,
     renderCheckpoint,
     renderReview,
