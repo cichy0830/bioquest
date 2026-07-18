@@ -60,9 +60,8 @@ appVersionOverrides.set("photosynthesis", "20260718-photosynthesis-qa-v1");
 appVersionOverrides.set("biological_organization", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("cell_transport", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("plant_material_transport", "20260718-ag-visual-fixes-v1");
-["human_nutrition", "plant_material_transport"].forEach((unitId) => {
-  appVersionOverrides.set(unitId, "20260718-ag-visual-fixes-v1");
-});
+appVersionOverrides.set("human_nutrition", "20260719-human-nutrition-qa-v1");
+appVersionOverrides.set("plant_material_transport", "20260718-ag-visual-fixes-v1");
 appVersionOverrides.set("plant_transport_structures", "20260717-u15u17-brief-scenes-v1");
 appVersionOverrides.set("cardiovascular_components", "20260718-ag-visual-fixes-v1");
 appVersionOverrides.set("human_circulation", "20260718-ag-visual-fixes-v1");
@@ -90,9 +89,8 @@ sharedCacheOverrides.set("cell_transport", "20260716-cell-transport-u8-ux-v1");
 sharedCacheOverrides.set("scale", "20260717-scale-user-review-v2");
 sharedCacheOverrides.set("biological_organization", "20260716-biological-organization-title-count-v1");
 sharedCacheOverrides.set("photosynthesis", "20260718-photosynthesis-qa-v1");
-["human_nutrition", "plant_material_transport"].forEach((unitId) => {
-  sharedCacheOverrides.set(unitId, "20260718-ag-visual-fixes-v1");
-});
+sharedCacheOverrides.set("human_nutrition", "20260719-human-nutrition-qa-v1");
+sharedCacheOverrides.set("plant_material_transport", "20260718-ag-visual-fixes-v1");
 sharedCacheOverrides.set("plant_transport_structures", "20260717-u15u17-brief-scenes-v1");
 sharedCacheOverrides.set("cardiovascular_components", "20260718-ag-visual-fixes-v1");
 sharedCacheOverrides.set("human_circulation", "20260718-ag-visual-fixes-v1");
