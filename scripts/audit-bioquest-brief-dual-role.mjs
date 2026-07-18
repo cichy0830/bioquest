@@ -167,6 +167,13 @@ const allUnits = [
     storageKey: "bioquest_excretion_water_homeostasis_state_v1",
     missingSceneAllowed: true,
     missingSceneHook: "excretion-water-homeostasis-briefing-azhe-wide.webp"
+  },
+  {
+    unitId: "temperature_glucose_homeostasis",
+    folder: "prototype-temperature-glucose-homeostasis",
+    storageKey: "bioquest_temperature_glucose_homeostasis_state_v1",
+    missingSceneAllowed: true,
+    missingSceneHook: "temperature-glucose-homeostasis-briefing-azhe-wide.webp"
   }
 ];
 

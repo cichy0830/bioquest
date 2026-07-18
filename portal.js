@@ -65,7 +65,7 @@ const units = [
   { title: "行為與感應", unitId: "behavior_sensing", status: "ready", sequence: 23, summary: "正式順序第二十三單元。手機優先功能原型已可測試，含動物行為功能、趨性、向性、植物感應運動、睡眠運動與單元邊界判讀。", tags: ["可測試", "行為", "感應", "趨性", "向性"], url: "prototype-behavior-sensing/?v=20260718-behavior-sensing-ready-v1" },
   { title: "呼吸與氣體的恆定", unitId: "respiration_homeostasis", status: "ready", sequence: 24, summary: "正式順序第二十四單元。手機優先功能原型已可測試，含呼吸與細胞利用氧氣、空氣進入肺泡路徑、肺泡氣體交換、吸氣呼氣胸腔變化與活動時氣體恆定判讀。", tags: ["可測試", "呼吸", "氣體交換", "恆定", "肺泡"], url: "prototype-respiration-homeostasis/?v=20260718-respiration-homeostasis-v1" },
   { title: "排泄與水分的恆定", unitId: "excretion_water_homeostasis", status: "ready", sequence: 25, summary: "正式順序第二十五單元。手機優先功能原型已可測試，含排泄與排遺、代謝廢物、含氮廢物、泌尿系統、尿液路徑、水分收支與資料判讀。", tags: ["可測試", "排泄", "泌尿系統", "水分恆定", "資料判讀"], url: "prototype-excretion-water-homeostasis/?v=20260718-excretion-water-homeostasis-v1" },
-  { title: "體溫與血糖的恆定", unitId: "temperature_glucose_homeostasis", status: "planned", sequence: 26, summary: "體溫調節、血糖調節與負回饋概念。", tags: ["體溫", "血糖"] },
+  { title: "體溫與血糖的恆定", unitId: "temperature_glucose_homeostasis", status: "ready", sequence: 26, summary: "正式順序第二十六單元。手機優先功能原型已可測試，含恆定、負回饋、內溫/外溫、體溫調節、流汗水分、血糖調節與資料判讀。", tags: ["可測試", "體溫", "血糖", "恆定", "負回饋"], url: "prototype-temperature-glucose-homeostasis/?v=20260718-temperature-glucose-homeostasis-v1" },
   { title: "細胞的分裂", unitId: "cell_division", status: "planned", sequence: 27, summary: "細胞分裂、染色體複製與生長修補。", tags: ["細胞分裂"] },
   { title: "無性生殖", unitId: "asexual_reproduction", status: "planned", sequence: 28, summary: "分裂生殖、出芽生殖、營養繁殖等。", tags: ["生殖"] },
   { title: "有性生殖", unitId: "sexual_reproduction", status: "planned", sequence: 29, summary: "配子、受精、胚胎發育與親代子代差異。", tags: ["受精", "配子"] },
