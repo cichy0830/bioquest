@@ -34,7 +34,8 @@ const sharedVersionOverrides = new Map([
   ["prototype-respiration-homeostasis", "20260713-login-busy-v1"],
   ["prototype-excretion-water-homeostasis", "20260713-login-busy-v1"],
   ["prototype-temperature-glucose-homeostasis", "20260713-login-busy-v1"],
-  ["prototype-cell-division", "20260713-login-busy-v1"]
+  ["prototype-cell-division", "20260713-login-busy-v1"],
+  ["prototype-asexual-reproduction", "20260713-login-busy-v1"]
 ]);
 const readyUnits = [
   "prototype-life-world",
@@ -63,7 +64,8 @@ const readyUnits = [
   "prototype-respiration-homeostasis",
   "prototype-excretion-water-homeostasis",
   "prototype-temperature-glucose-homeostasis",
-  "prototype-cell-division"
+  "prototype-cell-division",
+  "prototype-asexual-reproduction"
 ];
 
 function assert(condition, message) {

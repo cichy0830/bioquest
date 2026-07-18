@@ -181,6 +181,13 @@ const allUnits = [
     storageKey: "bioquest_cell_division_state_v1",
     missingSceneAllowed: true,
     missingSceneHook: "cell-division-briefing-azhe-wide.webp"
+  },
+  {
+    unitId: "asexual_reproduction",
+    folder: "prototype-asexual-reproduction",
+    storageKey: "bioquest_asexual_reproduction_state_v1",
+    missingSceneAllowed: true,
+    missingSceneHook: "asexual-reproduction-briefing-azhe-wide.webp"
   }
 ];
 

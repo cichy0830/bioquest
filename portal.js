@@ -67,7 +67,7 @@ const units = [
   { title: "排泄與水分的恆定", unitId: "excretion_water_homeostasis", status: "ready", sequence: 25, summary: "正式順序第二十五單元。手機優先功能原型已可測試，含排泄與排遺、代謝廢物、含氮廢物、泌尿系統、尿液路徑、水分收支與資料判讀。", tags: ["可測試", "排泄", "泌尿系統", "水分恆定", "資料判讀"], url: "prototype-excretion-water-homeostasis/?v=20260718-excretion-water-homeostasis-v1" },
   { title: "體溫與血糖的恆定", unitId: "temperature_glucose_homeostasis", status: "ready", sequence: 26, summary: "正式順序第二十六單元。手機優先功能原型已可測試，含恆定、負回饋、內溫/外溫、體溫調節、流汗水分、血糖調節與資料判讀。", tags: ["可測試", "體溫", "血糖", "恆定", "負回饋"], url: "prototype-temperature-glucose-homeostasis/?v=20260718-temperature-glucose-homeostasis-v1" },
   { title: "細胞的分裂", unitId: "cell_division", status: "ready", sequence: 27, summary: "正式順序第二十七單元。手機優先功能原型已可測試，含新細胞來源、生長修補、染色體與 DNA、先複製再分配、母細胞/子細胞、根尖證據與單元邊界。", tags: ["可測試", "細胞分裂", "染色體", "生長修補", "邊界"], url: "prototype-cell-division/?v=20260718-cell-division-v1" },
-  { title: "無性生殖", unitId: "asexual_reproduction", status: "planned", sequence: 28, summary: "分裂生殖、出芽生殖、營養繁殖等。", tags: ["生殖"] },
+  { title: "無性生殖", unitId: "asexual_reproduction", status: "ready", sequence: 28, summary: "正式順序第二十八單元。手機優先功能原型已可測試，含無性生殖定義、親代來源、後代相似、常見方式、營養繁殖流程、優點限制與 U27/U29 邊界。", tags: ["可測試", "無性生殖", "出芽", "營養繁殖", "邊界"], url: "prototype-asexual-reproduction/?v=20260718-asexual-reproduction-v1" },
   { title: "有性生殖", unitId: "sexual_reproduction", status: "planned", sequence: 29, summary: "配子、受精、胚胎發育與親代子代差異。", tags: ["受精", "配子"] },
   { title: "蛋的觀察", unitId: "egg_observation", status: "planned", sequence: 30, summary: "卵的構造、胚胎發育與觀察判讀。", tags: ["觀察", "生殖"] },
   { title: "花的觀察", unitId: "flower_observation", status: "planned", sequence: 31, summary: "花的構造、授粉、受精與果實種子形成。", tags: ["花", "植物"] },
