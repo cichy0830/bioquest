@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260718-u18-u20-assets-v1";
+const VERSION = "20260720-stimulus-response-readiness-v1";
 const QUESTION_VERSION = "20260718-stimulus-response-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -106,18 +106,6 @@ const sections = {
   checkpoint3: ["stimulus_response_q09", "stimulus_response_q10", "stimulus_response_q11", "stimulus_response_q12", "stimulus_response_q13", "stimulus_response_q14"]
 };
 const requiredQuestionIds = questions.map((question) => question.id);
-
-const titleLevels = [
-  { id: "trainee_investigator", need: 0, title: "見習調查員" },
-  { id: "life_observer", need: 500, title: "生命觀察員" },
-  { id: "ecology_recorder", need: 1500, title: "生態記錄員" },
-  { id: "concept_solver", need: 3000, title: "概念解謎者" },
-  { id: "micro_explorer", need: 5200, title: "微觀探索者" },
-  { id: "systems_investigator", need: 8000, title: "系統調查員" },
-  { id: "life_researcher", need: 11800, title: "生命研究員" },
-  { id: "bioquest_expert", need: 16700, title: "BioQuest 專家" },
-  { id: "bioquest_guardian", need: 23400, title: "生命祕境守護者" }
-];
 
 function createEmptyState() {
   return {
@@ -266,24 +254,6 @@ function titleAvatarPath(student = state.student) {
   if (rawPath.startsWith("../") || rawPath.startsWith("http")) return rawPath;
   if (rawPath.startsWith("shared-assets/")) return `../${rawPath}`;
   return fallback;
-}
-
-function titleAndProgress(student = state.student, localGain = 0) {
-  const remoteTotal = Number(student?.progress?.total_exp ?? student?.total_exp);
-  const localTotal = loadAttempts()
-    .filter((attempt) => attempt.student_id === student?.student_id && attempt.unit_id !== mission.unit_id)
-    .reduce((sum, attempt) => sum + Number(attempt.unit_credited_exp || 0), 0) + Number(localGain || 0);
-  const explicitLevel = titleLevels.find((level) => level.id === (student?.current_title_id || student?.progress?.current_title_id));
-  const totalExp = Math.max(Number.isFinite(remoteTotal) ? remoteTotal : 0, localTotal, explicitLevel?.need || 0);
-  const current = titleLevels.filter((level) => totalExp >= level.need).at(-1) || titleLevels[0];
-  const next = titleLevels.find((level) => level.need > totalExp) || null;
-  return {
-    totalExp,
-    current,
-    next,
-    remaining: next ? Math.max(0, next.need - totalExp) : 0,
-    progressPercent: Math.min(100, Math.round((totalExp / 23400) * 100))
-  };
 }
 
 async function requestBackend(params) {
@@ -700,6 +670,28 @@ function applyBackendSubmitResponse(response, localResult) {
   };
 }
 
+function updateBadgeOverviewBridge() {
+  if (typeof window === "undefined") return;
+  if (!state.student) {
+    delete window.__BIOQUEST_BADGE_OVERVIEW_STATE__;
+    return;
+  }
+  const progress = state.student.progress || state.student.student_progress || {};
+  window.__BIOQUEST_BADGE_OVERVIEW_STATE__ = {
+    student: {
+      ...state.student,
+      progress,
+      student_progress: progress,
+      is_guest: Boolean(state.student.is_guest),
+      title_avatar_path: state.student.title_avatar_path || progress.title_avatar_path || "",
+      current_title_id: state.student.current_title_id || progress.current_title_id || "",
+      current_title: state.student.current_title || progress.current_title || ""
+    },
+    progress,
+    student_progress: progress
+  };
+}
+
 async function submitMission() {
   if (!requiredQuestionIds.every((id) => questionAnswered(questionMap[id]))) {
     state.notice = "請先完成所有必答題，再提交任務。";
@@ -820,10 +812,12 @@ function conceptLabel(concept) { return {stimulus_definition:"刺激辨識",resp
 function renderQuestionEvidence(qid) {
   if (["stimulus_response_q01", "stimulus_response_q02", "stimulus_response_q03", "stimulus_response_q04"].includes(qid)) return `<div class="evidence-card"><strong>情境拆解卡</strong><p>先找「被感受到的變化」，再找「生物做出的動作或生理變化」。</p></div>`;
   if (qid === "stimulus_response_q07") return `<div class="evidence-card"><strong>流程排序卡</strong><p>排序題請拖曳卡片；手機可用上移 / 下移。提示只協助判斷流程角色，不直接列答案。</p></div>`;
-  if (["stimulus_response_q05", "stimulus_response_q06", "stimulus_response_q08"].includes(qid)) return `<div class="evidence-card"><strong>角色分類卡</strong><p>受器負責接收刺激，動器負責產生反應；同一情境可拆成變化、接收、執行與結果。</p></div>`;
-  if (["stimulus_response_q10", "stimulus_response_q11", "stimulus_response_q12"].includes(qid)) return `<div class="evidence-card evidence-table"><strong>反應時間資料</strong><table><thead><tr><th>測量</th><th>反應時間</th></tr></thead><tbody><tr><td>第一次</td><td>0.42 秒</td></tr><tr><td>第二次</td><td>0.31 秒</td></tr></tbody></table></div>`;
-  if (["stimulus_response_q13", "stimulus_response_q14"].includes(qid)) return `<div class="evidence-card"><strong>測量設計提醒</strong><p>比較某個因素時，測量方式要盡量一致，並避免只用一次結果下大結論。</p></div>`;
-  if (qid === "stimulus_response_q09") return `<div class="evidence-card"><strong>快速反應提醒</strong><p>有些反應可能很快發生，不一定都先經過完整的有意識思考。</p></div>`;
+  if (["stimulus_response_q05", "stimulus_response_q06", "stimulus_response_q08"].includes(qid)) return `<div class="evidence-card"><strong>情境角色閱讀</strong><p>先判斷這張卡是在問：環境或體內變化、接收變化的構造、執行動作的構造，還是最後出現的反應；不要只看器官名稱猜答案。</p></div>`;
+  if (qid === "stimulus_response_q09") return `<div class="evidence-card"><strong>情境先後提醒</strong><p>比較強光、熱物或突然聲音情境中，身體反應和完整思考之間的先後是否都相同。</p></div>`;
+  if (qid === "stimulus_response_q10") return `<div class="evidence-card"><strong>測量紀錄</strong><p>這張卡記錄某個事件出現到學生完成動作之間的時間間隔；請判斷題目要你辨識的是哪一種測量概念。</p></div>`;
+  if (qid === "stimulus_response_q11") return `<div class="evidence-card evidence-table"><strong>測量紀錄</strong><table><thead><tr><th>測量</th><th>時間</th></tr></thead><tbody><tr><td>第一次</td><td>0.42 秒</td></tr><tr><td>第二次</td><td>0.31 秒</td></tr></tbody></table></div>`;
+  if (qid === "stimulus_response_q12") return "";
+  if (["stimulus_response_q13", "stimulus_response_q14"].includes(qid)) return `<div class="evidence-card"><strong>測量設計閱讀</strong><p>比較某個因素時，先看測量方式是否一致、資料是否只有一次，以及是否只改變一個主要條件。</p></div>`;
   return "";
 }
 
@@ -1019,7 +1013,7 @@ function creditStatusText(result) {
     return {
       status: "guest",
       resultLine: `guest 測試：本次預估 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，不列入正式累積`,
-      note: "正式累積、完成單元與全冊徽章需使用學生帳號登入並經後台確認。"
+      note: "正式認列 / 累積增量 0；正式累積、完成單元與全冊徽章需使用學生帳號登入並經後台確認。"
     };
   }
   if (status === "server_verified" || status === "server_verified_credited") {
@@ -1032,27 +1026,14 @@ function creditStatusText(result) {
   return {
     status: "pending",
     resultLine: `本次預估 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，待後台確認`,
-    note: "本次資料已保留為待確認狀態，完成後台同步後才會更新正式累積。"
+    note: "正式認列 / 累積增量 0；本次資料已保留為待確認狀態，完成後台同步後才會更新正式累積。"
   };
 }
 
 function renderAchievements() {
   const result = state.result || scoreAttempt();
-  const titleInfo = titleAndProgress(state.student, result.unit_credited_exp);
-  const credit = creditStatusText(result);
   return `
     <div class="stack achievements-stack">
-      <section class="panel title-card">
-        <p class="eyebrow">全冊稱號</p>
-        <div class="title-card-content">
-          <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
-          <div>
-            <h2>${escapeHtml(titleInfo.current.title)}</h2>
-            <p>${credit.status === "verified" ? `${titleInfo.totalExp} EXP｜稱號進度 ${titleInfo.progressPercent}%` : credit.resultLine}</p>
-            <p>${credit.status === "verified" ? (titleInfo.next ? `距離 ${titleInfo.next.title} 還差 ${titleInfo.remaining} EXP` : "已達最高稱號，後續 EXP 仍會累積。") : credit.note}</p>
-          </div>
-        </div>
-      </section>
       ${renderBadgeWall(result.earned_badges)}
     </div>
   `;
@@ -1060,9 +1041,9 @@ function renderAchievements() {
 
 function renderBadgeWall(earned = []) {
   const earnedSet = new Set(earned);
-  return `<section class="panel">
+  return `<section class="panel" data-bq-unit-achievements="${mission.unit_id}">
     <p class="eyebrow">徽章收藏牆</p>
-    <h2>本單元 14 枚徽章</h2>
+    <h2>本單元 ${badges.length} 枚徽章</h2>
     <div class="badge-wall">
       ${badges.map((badge) => `
         <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
@@ -1098,6 +1079,7 @@ function renderRules() {
 
 function renderApp() {
   if (!screen) return;
+  updateBadgeOverviewBridge();
   const views = {
     login: renderLogin,
     brief: renderBrief,

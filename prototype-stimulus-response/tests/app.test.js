@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-stimulus-response/app.js" });
 const api = context.window.__stimulus_responseTest;
 
-assert.equal(api.VERSION, "20260718-u18-u20-assets-v1");
+assert.equal(api.VERSION, "20260720-stimulus-response-readiness-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-stimulus-response-ready-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -41,6 +41,8 @@ assert.equal(api.questions.length, 14);
 assert.equal(api.badges.length, 15);
 assert(source.includes("BioQuestLoginUX?.begin"));
 assert(fs.readFileSync(path.join(root, "styles.css"), "utf8").includes("正式徽章素材待接"));
+assert(!source.includes("function titleAndProgress"), "local title progress calculator must stay removed");
+assert(!source.includes("titleAndProgress("), "achievements must not use localGain/result EXP to calculate title");
 
 const Q = (n) => `stimulus_response_q${String(n).padStart(2, "0")}`;
 const answers = {
@@ -109,8 +111,18 @@ assert(api.questions.find((question) => question.id === Q(7)).steps.length === 5
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(3)).analysis_group, "stimulus_response_identification");
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(12)).analysis_group, "reaction_time_reasoning");
 assert(api.renderCheckpoint("checkpoint2").includes("上移"));
+assert.equal(api.renderQuestionEvidence(Q(12)), "", "q12 evidence card should be removed");
+assert(!api.renderQuestionEvidence(Q(5)).includes("受器負責接收刺激"), "q05 evidence must not give direct role definitions");
+assert(!api.renderQuestionEvidence(Q(9)).includes("不一定都先經過"), "q09 evidence must not leak the answer direction");
+assert(!api.renderQuestionEvidence(Q(10)).includes("反應時間"), "q10 evidence must avoid naming the answer concept");
+assert.equal(api.assets.briefingSceneHook, ["assets", "stimulus-response-briefing-azhe-wide.webp"].join("/"));
+assert.equal(api.assets.ambientBackgroundHook, ["assets", "stimulus-response-entry-wide.webp"].join("/"));
 assert(!api.renderReflection().includes("bq-report-assistant"));
 assert(fs.readFileSync(path.join(root, "index.html"), "utf8").includes("data-report-owl-src"));
 assert(api.renderResult().includes("提交後本次作答已鎖定"));
-assert(api.renderAchievements().includes("學生稱號角色"));
+assert(api.renderResult().includes("正式認列 / 累積增量 0"));
+assert(api.renderAchievements().includes('data-bq-unit-achievements="stimulus_response"'));
+assert(api.renderAchievements().includes("本單元 15 枚徽章"));
+assert(!api.renderAchievements().includes("學生稱號角色"));
+assert(!api.renderAchievements().includes("全冊稱號"));
 console.log("prototype-stimulus-response app regression passed");

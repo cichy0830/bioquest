@@ -49,7 +49,7 @@ try {
     });
     page.on("dialog", (dialog) => dialog.accept());
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260718-stimulus-response-ready-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260720-stimulus-response-readiness-v1`);
     await page.locator("#guestBtn").click();
     await page.locator('[data-next="scan"]').click();
     assert.equal(await page.locator(".prep-owl-hero").count(), 1, "prep owl hero missing");
@@ -70,6 +70,7 @@ try {
     await page.locator('[data-section-next="checkpoint2"]').click();
     await answerChoice(page, Q(9), "not_always_conscious");
     await answerChoice(page, Q(10), "reaction_time");
+    assert.equal(await page.locator(`[data-question-id="${Q(12)}"] .evidence-card`).count(), 0, "q12 should not render an evidence card");
     await answerChoice(page, Q(11), "second_shorter");
     await answerChoice(page, Q(12), "practice_possible");
     await answerChoice(page, Q(13), "controlled_repeated");
@@ -82,6 +83,8 @@ try {
     assert(await page.locator(".result-panel").textContent().then((text) => text.includes("460 / 500 EXP")), "blank reflection guest result should be 460/500");
     await page.locator('[data-next="achievements"]').click();
     await page.locator(".achievements-stack").waitFor();
+    assert.equal(await page.locator("[data-bq-unit-achievements] .badge").count(), 15, "all 15 unit badges should render before shared title");
+    assert.equal(await page.locator(".bq-title-avatar-card").count(), 1, "shared title avatar should be exactly one");
     assert.equal(await page.locator(".bq-all-unit-badge-overview").count(), 1, "whole-book overview missing");
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "achievement horizontal overflow");
     assert.deepEqual(failedImages, [], "image requests should not fail");
