@@ -1,7 +1,10 @@
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
 
+const VERSION = "20260721-microscope-use-server-verified-v1";
+const QUESTION_VERSION = "20260720-microscope-use-canonical-v1";
+
 const roster = {
-  guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
+  guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", profile_gender: "neutral", is_guest: true }
 };
 
 const mission = {
@@ -17,7 +20,6 @@ const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
 const DIRECT_RAW_MAX = 527;
 const REVISION_RAW_MAX = 315;
-const MICROSCOPE_VERSION = "20260714-microscope-paramecium-v3";
 const titleProgressRules = window.BioQuestTitleProgress;
 const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
 const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
@@ -25,14 +27,14 @@ const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
 const microscopeVisualAssets = {
   mentorPrimary: "assets/mentor-life-world-azhe.webp",
   mentorFallback: "assets/mentor-life-world-azhe.webp",
-  briefingSceneWide: `assets/bg-microscope-use-briefing-azhe-wide.webp?v=${MICROSCOPE_VERSION}`,
-  briefingSceneMobile: `assets/bg-microscope-use-briefing-azhe-mobile.webp?v=${MICROSCOPE_VERSION}`,
-  diagramParts: `assets/microscope-parts-interactive.webp?v=${MICROSCOPE_VERSION}`,
-  onionLowPower: `assets/img-microscope-onion-low-power.webp?v=${MICROSCOPE_VERSION}`,
-  onionHighPower: `assets/img-microscope-onion-high-power.webp?v=${MICROSCOPE_VERSION}`,
-  parameciumViewLeft: `assets/img-microscope-paramecium-view-left.webp?v=${MICROSCOPE_VERSION}`,
-  parameciumViewCenter: `assets/img-microscope-paramecium-view-center.webp?v=${MICROSCOPE_VERSION}`,
-  parameciumViewRight: `assets/img-microscope-paramecium-view-right.webp?v=${MICROSCOPE_VERSION}`,
+  briefingSceneWide: `assets/bg-microscope-use-briefing-azhe-wide.webp?v=${VERSION}`,
+  briefingSceneMobile: `assets/bg-microscope-use-briefing-azhe-mobile.webp?v=${VERSION}`,
+  diagramParts: `assets/microscope-parts-interactive.webp?v=${VERSION}`,
+  onionLowPower: `assets/img-microscope-onion-low-power.webp?v=${VERSION}`,
+  onionHighPower: `assets/img-microscope-onion-high-power.webp?v=${VERSION}`,
+  parameciumViewLeft: `assets/img-microscope-paramecium-view-left.webp?v=${VERSION}`,
+  parameciumViewCenter: `assets/img-microscope-paramecium-view-center.webp?v=${VERSION}`,
+  parameciumViewRight: `assets/img-microscope-paramecium-view-right.webp?v=${VERSION}`,
   owlHooks: {
     opening: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
     scan: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
@@ -44,7 +46,7 @@ const microscopeVisualAssets = {
   }
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/microscope_use/badge-microscope_use-${id}.webp`;
+const badgeAsset = (id) => `../shared-assets/badges/microscope_use/badge-microscope_use-${id}.webp?v=${VERSION}`;
 const unitBadgeCatalog = [
   { id: "microscope_use_entry", name: "微觀校準入門徽章", condition: "完成微觀視野校準任務。" },
   { id: "microscope_parts_identifier", name: "顯微鏡部位功能徽章", condition: "顯微鏡部位與功能辨識關卡達 85% 以上。" },
@@ -66,6 +68,13 @@ const defaultState = {
   screen: "login",
   student: null,
   attempt_type: "first",
+  attempt_id: "",
+  attempt_session_id: "",
+  attempt_session_token: "",
+  previous_attempt_id: "",
+  question_version: QUESTION_VERSION,
+  verification_mode: "",
+  remote_completed_attempts: 0,
   started_at: null,
   completedScreens: ["login", "rules"],
   activeToken: null,
@@ -84,6 +93,7 @@ const defaultState = {
     checkpoint4Hints: {},
     reflection: {}
   },
+  hintEventStatus: {},
   optionOrders: {},
   result: null,
   submitted_at: null,
@@ -269,7 +279,7 @@ const checkpoint3Choices = [
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey));
-    return saved ? { ...structuredClone(defaultState), ...saved } : structuredClone(defaultState);
+    return saved ? { ...structuredClone(defaultState), ...saved, question_version: QUESTION_VERSION } : structuredClone(defaultState);
   } catch {
     return structuredClone(defaultState);
   }
@@ -291,6 +301,24 @@ function saveAttempt(attempt) {
   const attempts = getAttempts();
   attempts.push(attempt);
   localStorage.setItem(attemptsKey, JSON.stringify(attempts));
+}
+
+function uid(prefix) {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+async function postBackendAction(action, payload) {
+  const body = new URLSearchParams();
+  body.set("payload", JSON.stringify({ action, ...payload }));
+  const response = await fetch(`${BACKEND_URL}?action=${encodeURIComponent(action)}&unit_id=${encodeURIComponent(mission.unit_id)}&_=${Date.now()}`, {
+    method: "POST",
+    body,
+    cache: "no-store"
+  });
+  if (!response.ok) throw new Error(`backend_${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || `${action}_failed`);
+  return data;
 }
 
 function studentAttempts(studentId) {
@@ -356,12 +384,12 @@ function renderNav() {
     studentMini.innerHTML = `<p class="muted">尚未登入</p><p class="muted">可用測試學號 S70101 或 guest</p>`;
     return;
   }
-  const attempts = studentAttempts(state.student.student_id);
+  const attempts = state.remote_completed_attempts ?? studentAttempts(state.student.student_id).length;
   studentMini.innerHTML = `
     <p><strong>${state.student.student_name}</strong></p>
     <p>${state.student.class_name} 班 ${state.student.seat_no} 號</p>
     <p class="muted">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</p>
-    <p class="muted">完成紀錄：${attempts.length} 筆</p>
+    <p class="muted">完成紀錄：${attempts} 筆</p>
   `;
 }
 
@@ -545,15 +573,15 @@ function attachLogin() {
 
 async function fetchStudentStatus(id) {
   const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}&unit_id=${encodeURIComponent(mission.unit_id)}&_=${Date.now()}`;
-  const response = await fetch(url, { cache: "no-store" });
+  const response = await fetch(url, { method: "GET", cache: "no-store" });
   if (!response.ok) throw new Error(`backend_${response.status}`);
   return response.json();
 }
 
 function normalizeBackendStudent(data, id) {
-  if (!data?.ok || !data.student) return null;
+  if (!data?.ok || !data.student) throw new Error(data?.error || "student_not_found");
   const source = data.student;
-  if (String(source.student_id || "") !== String(id)) return null;
+  if (String(source.student_id || "") !== String(id)) throw new Error("student_not_found");
   const progress = data.progress || data.student_progress || source.progress || {};
   return {
     student_id: source.student_id || id,
@@ -571,42 +599,79 @@ function normalizeBackendStudent(data, id) {
   };
 }
 
+async function startAttemptSession(studentId) {
+  return postBackendAction("startAttempt", {
+    student_id: studentId,
+    unit_id: mission.unit_id,
+    question_version: QUESTION_VERSION
+  });
+}
+
+function beginLocalGuestAttempt() {
+  const attemptId = uid("microscope_use_guest_attempt");
+  state = {
+    ...structuredClone(defaultState),
+    student: { ...roster.guest, is_guest: true },
+    attempt_type: studentAttempts("guest").length > 0 ? "retry" : "first",
+    remote_completed_attempts: studentAttempts("guest").length,
+    attempt_id: attemptId,
+    attempt_session_id: `guest_session_${attemptId}`,
+    attempt_session_token: `guest_${attemptId}`,
+    previous_attempt_id: "",
+    question_version: QUESTION_VERSION,
+    verification_mode: "local_guest",
+    started_at: new Date().toISOString(),
+    completedScreens: ["login", "brief", "rules", "achievements"],
+    optionOrders: {}
+  };
+  saveState();
+  setScreen("brief");
+}
+
 async function login(id) {
   const message = document.querySelector("#loginMessage");
   if (!id) {
-    message.innerHTML = `<span class="pill warn">請輸入學號。</span>`;
+    message.innerHTML = `<span class="pill warn">請先輸入學號。</span>`;
     return;
   }
-  window.BioQuestLoginUX?.begin({ guest: id === "guest" });
+  const useGuest = id === "guest";
+  window.BioQuestLoginUX?.begin({ guest: useGuest });
+  message.innerHTML = `<span class="pill">${useGuest ? "正在建立老師測試模式……" : "正在連接 BioQuest 學習後台，請稍候……"}</span>`;
   await window.BioQuestLoginUX?.paint();
-  let student = null;
-  let completedAttempts = 0;
-  if (id === "guest") {
-    student = roster.guest;
-    completedAttempts = studentAttempts(student.student_id).length;
-  } else {
-    try {
-      const data = await fetchStudentStatus(id);
-      student = normalizeBackendStudent(data, id);
-      if (!student) {
-        message.innerHTML = `<span class="pill warn">${data?.error === "student_not_found" ? "查無此學號，請確認後重試。" : "後台回傳的學生資料不完整，尚未登入。"}</span>`;
-        return;
-      }
-      completedAttempts = Number(data.attempt_status?.completed_attempt_count ?? data.completed_attempts ?? 0);
-    } catch (error) {
-      message.innerHTML = `<span class="pill warn">後台目前無法連線，尚未登入。請檢查網路後重試，或通知老師。</span>`;
-      return;
-    }
+  if (useGuest) {
+    beginLocalGuestAttempt();
+    return;
   }
-  const attempts = studentAttempts(student.student_id);
-  state = structuredClone(defaultState);
-  state.student = { ...student, is_guest: Boolean(student.is_guest) };
-  state.attempt_type = (completedAttempts || attempts.length) > 0 ? "retry" : "first";
-  state.started_at = new Date().toISOString();
-  state.optionOrders = {};
-  unlock("brief", "rules", "achievements");
-  saveState();
-  setScreen("brief");
+  try {
+    const data = await fetchStudentStatus(id);
+    const student = normalizeBackendStudent(data, id);
+    const startData = await startAttemptSession(student.student_id);
+    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== QUESTION_VERSION) {
+      throw new Error("backend_registry_not_ready");
+    }
+    state = structuredClone(defaultState);
+    state.student = { ...student, is_guest: false };
+    state.attempt_type = startData.attempt_type || data.attempt_type || "first";
+    state.remote_completed_attempts = Number(data.attempt_status?.completed_attempt_count ?? data.completed_attempts ?? student.completed_attempts ?? 0);
+    state.attempt_id = startData.attempt_id;
+    state.attempt_session_id = startData.attempt_session_id || "";
+    state.attempt_session_token = startData.attempt_session_token;
+    state.previous_attempt_id = startData.previous_attempt_id || "";
+    state.question_version = QUESTION_VERSION;
+    state.verification_mode = startData.verification_mode;
+    state.started_at = startData.issued_at || new Date().toISOString();
+    state.optionOrders = {};
+    unlock("brief", "rules", "achievements");
+    saveState();
+    setScreen("brief");
+  } catch (error) {
+    state = structuredClone(defaultState);
+    saveState();
+    window.BioQuestLoginUX?.end?.();
+    message.innerHTML = error.message === "backend_registry_not_ready"
+      ? `<span class="pill warn">後台版本尚未更新，請通知老師。</span>`
+      : `<span class="pill warn">後台目前無法連線或查無此學號，尚未登入。請檢查網路後重試或通知老師。</span>`;
+  }
 }
 
 function renderBrief() {
@@ -742,6 +807,7 @@ function selectPartTarget(partId) {
     return;
   }
   markMatchHintUsed("checkpoint1", "parts", target.id);
+  markHintForQuestion("parts");
   state.activePart = target.id;
   saveState();
   render();
@@ -1028,6 +1094,7 @@ function attachCheckpointHandlers() {
       state.answers[group][field][select.dataset.id] = select.value;
       const shouldRevealHint = Boolean(item && select.value && select.value !== item.answer);
       const didRevealHint = shouldRevealHint ? markMatchHintUsed(group, field, item.id) : false;
+      if (didRevealHint) markHintForQuestion(field);
       const row = select.closest(".sequence-item");
       row?.classList.toggle("has-selection", Boolean(select.value));
       const selectedLine = row?.querySelector(".selected-answer");
@@ -1058,7 +1125,10 @@ function attachCheckpointHandlers() {
       const id = button.dataset.id;
       state.answers[group][id] = button.dataset.value;
       const item = findQuestion(id);
-      if (item && button.dataset.value !== item.answer) state.answers[`${group}Hints`][id] = true;
+      if (item && button.dataset.value !== item.answer) {
+        state.answers[`${group}Hints`][id] = true;
+        markHintForQuestion(id);
+      }
       saveState();
       render();
     });
@@ -1091,6 +1161,7 @@ function attachCheckpointHandlers() {
       } else {
         state.answers[`${group}Hints`][id] = true;
       }
+      markHintForQuestion(id);
       saveState();
       render();
     });
@@ -1100,6 +1171,65 @@ function attachCheckpointHandlers() {
 
 function findQuestion(id) {
   return [...checkpoint1Choices, ...checkpoint2Choices, storageQuestion, ...checkpoint3Choices].find((item) => item.id === id);
+}
+
+const canonicalQuestionMeta = {
+  q01: { local_id: "parts", type: "mapping", checkpoint_id: "checkpoint1", skill_tag: "microscope_parts", misconception_tag: "microscope_part_confusion" },
+  q02: { local_id: "functions", type: "mapping", checkpoint_id: "checkpoint1", skill_tag: "microscope_function", misconception_tag: "microscope_function_confusion" },
+  q03: { local_id: "fine_focus", type: "choice", checkpoint_id: "checkpoint1", skill_tag: "focus_adjustment", misconception_tag: "coarse_focus_at_high_power" },
+  q04: { local_id: "too_dark", type: "choice", checkpoint_id: "checkpoint1", skill_tag: "light_adjustment", misconception_tag: "brightness_uncontrolled" },
+  q05: { local_id: "sequence", type: "sequence", checkpoint_id: "checkpoint2", skill_tag: "low_to_high_operation", misconception_tag: "high_power_first" },
+  q06: { local_id: "high_power_first", type: "choice", checkpoint_id: "checkpoint2", skill_tag: "low_high_power", misconception_tag: "high_power_always_better" },
+  q07: { local_id: "high_power_focus", type: "choice", checkpoint_id: "checkpoint2", skill_tag: "focus_adjustment", misconception_tag: "coarse_focus_at_high_power" },
+  q08: { local_id: "carry_scope", type: "choice", checkpoint_id: "checkpoint2", skill_tag: "microscope_handling", misconception_tag: "one_hand_carry" },
+  q09: { local_id: "storage_steps", type: "set", checkpoint_id: "checkpoint2", skill_tag: "microscope_cleanup", misconception_tag: "cleanup_order_confusion" },
+  q10: { local_id: "magnification_400", type: "choice", checkpoint_id: "checkpoint3", skill_tag: "magnification_calculation", misconception_tag: "add_magnification" },
+  q11: { local_id: "magnification_add", type: "choice", checkpoint_id: "checkpoint3", skill_tag: "magnification_calculation", misconception_tag: "add_magnification" },
+  q12: { local_id: "slide_right", type: "choice", checkpoint_id: "checkpoint3", skill_tag: "field_movement", misconception_tag: "slide_image_same_direction" },
+  q13: { local_id: "center_right", type: "choice", checkpoint_id: "checkpoint3", skill_tag: "field_movement", misconception_tag: "slide_image_same_direction" },
+  q14: { local_id: "high_power_change", type: "choice", checkpoint_id: "checkpoint3", skill_tag: "low_high_power", misconception_tag: "magnification_no_tradeoff" },
+  q15: { local_id: "high_power_better", type: "choice", checkpoint_id: "checkpoint3", skill_tag: "observation_strategy", misconception_tag: "high_power_always_better" }
+};
+
+const canonicalQuestionByLocalId = Object.fromEntries(Object.entries(canonicalQuestionMeta).map(([qid, meta]) => [meta.local_id, qid]));
+
+function canonicalQuestionId(localId) {
+  if (!localId) return "";
+  if (/^q\d+$/.test(localId)) return localId;
+  return canonicalQuestionByLocalId[localId] || "";
+}
+
+async function markHintForQuestion(localId) {
+  const qid = canonicalQuestionId(localId);
+  if (!qid) return true;
+  if (!state.hintEventStatus) state.hintEventStatus = {};
+  if (state.hintEventStatus[qid] === "sent") return true;
+  state.hintEventStatus[qid] = state.student?.is_guest ? "sent" : "pending";
+  saveState();
+  if (state.student?.is_guest) return true;
+  return flushHintEvents([qid]);
+}
+
+async function flushHintEvents(ids = Object.keys(state.hintEventStatus || {})) {
+  if (state.student?.is_guest) return true;
+  const pending = ids.filter((qid) => state.hintEventStatus?.[qid] !== "sent");
+  for (const qid of pending) {
+    try {
+      await postBackendAction("hintEvent", {
+        student_id: state.student.student_id,
+        unit_id: mission.unit_id,
+        attempt_id: state.attempt_id,
+        attempt_session_token: state.attempt_session_token,
+        question_id: `${mission.unit_id}_${qid}`,
+        question_version: QUESTION_VERSION
+      });
+      state.hintEventStatus[qid] = "sent";
+    } catch (error) {
+      state.hintEventStatus[qid] = "failed";
+    }
+  }
+  saveState();
+  return Object.values(state.hintEventStatus || {}).every((status) => status === "sent");
 }
 
 function validateCheckpoint1() {
@@ -1403,6 +1533,12 @@ function buildAttempt() {
     mission,
     attempt_type: state.attempt_type,
     attempt_no: studentAttempts(state.student.student_id).length + 1,
+    attempt_id: state.attempt_id,
+    attempt_session_id: state.attempt_session_id,
+    attempt_session_token: state.attempt_session_token,
+    previous_attempt_id: state.previous_attempt_id,
+    question_version: QUESTION_VERSION,
+    verification_mode: state.verification_mode,
     started_at: state.started_at,
     submitted_at: state.submitted_at || now,
     completion_status: "complete",
@@ -1412,6 +1548,197 @@ function buildAttempt() {
     uncertain_concept: state.answers.reflection.uncertain_concept,
     student_question: state.answers.reflection.student_question,
     raw_answers: state.answers
+  };
+}
+
+function sequenceRawAnswer() {
+  const sequence = state.answers.checkpoint2.sequence || {};
+  return sequenceSteps
+    .filter((step) => Number(sequence[step.id]) > 0)
+    .sort((a, b) => Number(sequence[a.id]) - Number(sequence[b.id]))
+    .map((step) => step.id);
+}
+
+function canonicalRawAnswers() {
+  return {
+    q01: { ...(state.answers.checkpoint1.parts || {}) },
+    q02: { ...(state.answers.checkpoint1.functions || {}) },
+    q03: state.answers.checkpoint1.fine_focus || "",
+    q04: state.answers.checkpoint1.too_dark || "",
+    q05: sequenceRawAnswer(),
+    q06: state.answers.checkpoint2.high_power_first || "",
+    q07: state.answers.checkpoint2.high_power_focus || "",
+    q08: state.answers.checkpoint2.carry_scope || "",
+    q09: [...(state.answers.checkpoint2.storage_steps || [])],
+    q10: state.answers.checkpoint3.magnification_400 || "",
+    q11: state.answers.checkpoint3.magnification_add || "",
+    q12: state.answers.checkpoint3.slide_right || "",
+    q13: state.answers.checkpoint3.center_right || "",
+    q14: state.answers.checkpoint3.high_power_change || "",
+    q15: state.answers.checkpoint3.high_power_better || ""
+  };
+}
+
+function formatCanonicalAnswer(value) {
+  if (Array.isArray(value)) return value.join("、");
+  if (value && typeof value === "object") return Object.entries(value).map(([key, answer]) => `${key}:${answer}`).join("；");
+  return String(value || "");
+}
+
+function legacyHintUsedForCanonical(qid) {
+  const meta = canonicalQuestionMeta[qid];
+  const local = meta?.local_id || "";
+  if (qid === "q01") return Boolean(state.answers.checkpoint1Hints.parts);
+  if (qid === "q02") return Boolean(state.answers.checkpoint1Hints.functions);
+  if (["q03", "q04"].includes(qid)) return Boolean(state.answers.checkpoint1Hints[local]);
+  if (qid === "q05") return Boolean(state.answers.checkpoint2Hints.sequence);
+  if (["q06", "q07", "q08", "q09"].includes(qid)) return Boolean(state.answers.checkpoint2Hints[local]);
+  if (["q10", "q11", "q12", "q13", "q14", "q15"].includes(qid)) return Boolean(state.answers.checkpoint3Hints[local]);
+  return false;
+}
+
+function canonicalQuestionLogs(rawAnswers) {
+  return Object.keys(canonicalQuestionMeta).map((qid) => {
+    const meta = canonicalQuestionMeta[qid];
+    const answer = rawAnswers[qid];
+    const usedHint = Boolean(state.hintEventStatus?.[qid]) || legacyHintUsedForCanonical(qid);
+    return {
+      question_id: `${mission.unit_id}_${qid}`,
+      unit_id: mission.unit_id,
+      student_id: state.student.student_id,
+      question_version: QUESTION_VERSION,
+      question_type: meta.type,
+      checkpoint_id: meta.checkpoint_id,
+      concept_id: meta.skill_tag,
+      skill_tag: meta.skill_tag,
+      misconception_tag: meta.misconception_tag,
+      attempt_answer: formatCanonicalAnswer(answer),
+      answer_json: JSON.stringify(answer),
+      used_hint: usedHint,
+      hint_used: usedHint
+    };
+  });
+}
+
+function badgeEvalForPayload() {
+  return unitBadgeCatalog.map((badge) => ({
+    badge_id: badge.id,
+    badge_name: badge.name,
+    badge_image_path: badge.badge_image_path.split("?")[0].replace(/^\.\.\//, "")
+  }));
+}
+
+function buildBackendPayload(attempt) {
+  const rawAnswers = canonicalRawAnswers();
+  const logs = canonicalQuestionLogs(rawAnswers);
+  return {
+    action: "submitAttempt",
+    attempt_id: attempt.attempt_id || state.attempt_id,
+    attempt_session_id: attempt.attempt_session_id || state.attempt_session_id,
+    attempt_session_token: attempt.attempt_session_token || state.attempt_session_token,
+    previous_attempt_id: attempt.previous_attempt_id || state.previous_attempt_id,
+    question_version: QUESTION_VERSION,
+    student_id: attempt.student.student_id,
+    student_name: attempt.student.student_name,
+    class_name: attempt.student.class_name,
+    seat_no: attempt.student.seat_no,
+    unit_id: attempt.mission.unit_id,
+    unit_title: attempt.mission.unit_title,
+    attempt_type: attempt.attempt_type,
+    started_at: attempt.started_at,
+    submitted_at: attempt.submitted_at,
+    total_questions: attempt.total,
+    correct: attempt.correct,
+    accuracy: attempt.accuracy,
+    hints_used: attempt.hint_used ? 1 : 0,
+    correct_without_hint: attempt.correct_without_hint,
+    corrected_after_hint: attempt.corrected_after_hint,
+    completion_exp: attempt.completion_exp,
+    concept_exp: attempt.concept_exp,
+    revision_exp: attempt.revision_exp,
+    question_exp: attempt.question_exp,
+    mastery_exp: attempt.mastery_exp,
+    retry_exp: attempt.retry_exp,
+    attempt_total_exp: attempt.attempt_total_exp,
+    unit_credited_exp: attempt.unit_credited_exp,
+    credited_delta: attempt.credited_delta,
+    confidence_score: attempt.confidence_score,
+    reflection_quality: attempt.reflection_quality,
+    reflection_review_status: attempt.reflection_review_status,
+    teacher_attention_needed: attempt.teacher_attention_needed,
+    student_question: attempt.student_question,
+    confident_concept: attempt.confident_concept,
+    uncertain_concept: attempt.uncertain_concept,
+    raw_answers: rawAnswers,
+    raw_answers_json: JSON.stringify(rawAnswers),
+    question_logs: logs,
+    badge_eval_json: JSON.stringify(badgeEvalForPayload()),
+    client_summary: {
+      total_questions: attempt.total,
+      correct: attempt.correct,
+      accuracy: attempt.accuracy,
+      attempt_total_exp: attempt.attempt_total_exp,
+      unit_credited_exp: attempt.unit_credited_exp
+    }
+  };
+}
+
+async function submitAttemptToBackend(attempt) {
+  if (attempt.student?.is_guest) return { ok: true, verification_status: "local_guest" };
+  const body = new URLSearchParams();
+  body.set("payload", JSON.stringify(buildBackendPayload(attempt)));
+  const response = await fetch(`${BACKEND_URL}?action=submitAttempt`, {
+    method: "POST",
+    body,
+    cache: "no-store"
+  });
+  if (!response.ok) throw new Error(`backend_${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || "backend_submit_failed");
+  return data;
+}
+
+function applyBackendSubmitResponse(response, localResult) {
+  if (!response || response.ok === false) return localResult;
+  const progress = response.student_progress || response.progress || null;
+  if (progress && state.student) {
+    state.student.progress = progress;
+    state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
+    state.student.current_title_id = progress.current_title_id || state.student.current_title_id;
+    state.student.current_title = progress.current_title || state.student.current_title;
+    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path;
+    state.student.title_avatar_variant = progress.title_avatar_variant || state.student.title_avatar_variant;
+  }
+  const verified = response.verified_attempt || response.attempt || null;
+  if (!verified) {
+    return {
+      ...localResult,
+      verification_status: response.verification_status || "pending_backend",
+      backend_response: response
+    };
+  }
+  return {
+    ...localResult,
+    ...verified,
+    total: Number(verified.total_questions ?? localResult.total),
+    correct: Number(verified.correct ?? localResult.correct),
+    correct_without_hint: Number(verified.correct_without_hint ?? localResult.correct_without_hint),
+    corrected_after_hint: Number(verified.corrected_after_hint ?? localResult.corrected_after_hint),
+    hint_used: Number(verified.hints_used ?? localResult.hint_used),
+    concept_exp: Number(verified.concept_exp ?? localResult.concept_exp),
+    revision_exp: Number(verified.revision_exp ?? localResult.revision_exp),
+    question_exp: Number(verified.question_exp ?? localResult.question_exp),
+    mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
+    retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
+    attempt_total_exp: Number(verified.attempt_total_exp ?? localResult.attempt_total_exp),
+    total_exp: Number(verified.attempt_total_exp ?? localResult.total_exp),
+    unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
+    credited_delta: Number(verified.credited_delta ?? localResult.credited_delta),
+    no_hint_perfect: Boolean(verified.no_hint_perfect),
+    badges: Array.isArray(verified.badges) ? verified.badges : localResult.badges,
+    verification_status: verified.verification_status || response.verification_status || "server_verified",
+    hint_verification_status: verified.hint_verification_status || response.hint_verification_status || "",
+    backend_response: response
   };
 }
 
@@ -1506,11 +1833,16 @@ function renderReflection() {
 }
 
 function attachReflection() {
-  document.querySelector("#submitMission").addEventListener("click", () => {
+  document.querySelector("#submitMission").addEventListener("click", async (event) => {
     if (state.submitted_at) {
       setScreen("result");
       return;
     }
+    const confirmed = window.confirm("提交後會進行結算，本次作答不能再修改；若要再挑戰，請重新登入並從頭完成。確定要提交任務嗎？");
+    if (!confirmed) return;
+    const button = event.currentTarget;
+    button.disabled = true;
+    button.textContent = "送出中...";
     state.answers.reflection = {
       confident_concept: document.querySelector("#confidentConcept").value.trim(),
       uncertain_concept: document.querySelector("#uncertainConcept").value.trim(),
@@ -1519,16 +1851,69 @@ function attachReflection() {
     };
     Object.assign(state.answers.reflection, evaluateReflectionQuality(state.answers.reflection));
     state.result = calculateResult();
-    state.submitted_at = new Date().toISOString();
-    saveAttempt(buildAttempt());
-    unlock("result", "achievements");
-    saveState();
-    setScreen("result");
+    try {
+      const hintSynced = await flushHintEvents();
+      if (!hintSynced && !state.student?.is_guest) {
+        throw new Error("hint_event_sync_failed");
+      }
+      state.submitted_at = new Date().toISOString();
+      let attempt = buildAttempt();
+      const response = await submitAttemptToBackend(attempt);
+      state.result = state.student?.is_guest
+        ? { ...state.result, verification_status: "local_guest" }
+        : applyBackendSubmitResponse(response, state.result);
+      attempt = buildAttempt();
+      saveAttempt(attempt);
+      state.remote_completed_attempts = Number(state.remote_completed_attempts || 0) + 1;
+      unlock("result", "achievements");
+      saveState();
+      setScreen("result");
+    } catch (error) {
+      state.submitted_at = null;
+      button.disabled = false;
+      button.textContent = "提交任務";
+      saveState();
+      const warning = document.createElement("div");
+      warning.className = "feedback warn";
+      warning.textContent = error.message === "hint_event_sync_failed"
+        ? "提示紀錄尚未同步成功，請稍後再提交，避免後台誤判零提示。"
+        : "目前無法寫入後台，請稍後再按一次提交任務。";
+      button.closest(".actions").after(warning);
+    }
   });
 }
 
 function renderResult() {
   const result = state.result?.section_stats ? state.result : calculateResult();
+  const verificationStatus = state.student?.is_guest ? "local_guest" : (result.verification_status || state.verification_mode || "pending_backend");
+  const isVerified = verificationStatus === "server_verified";
+  const isGuest = verificationStatus === "local_guest";
+  const summaryCopy = isGuest
+    ? {
+      totalLabel: "guest 本次預估 EXP",
+      creditLabel: "正式認列 EXP",
+      deltaLabel: "正式累積增量",
+      creditValue: "不列入",
+      deltaValue: "+0",
+      note: `guest 測試：本次預估 ${result.attempt_total_exp}/${UNIT_EXP_CAP} EXP，不列入正式累積。`
+    }
+    : isVerified
+      ? {
+        totalLabel: "本次取得 EXP",
+        creditLabel: "本單元正式認列 EXP",
+        deltaLabel: "本次新增認列",
+        creditValue: `${result.unit_credited_exp}/${result.unit_exp_cap}`,
+        deltaValue: `+${result.credited_delta}`,
+        note: `後台已完成 server_verified 重算；本單元正式認列 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，本次新增認列 +${result.credited_delta}。`
+      }
+      : {
+        totalLabel: "本次預估 EXP",
+        creditLabel: "正式認列 EXP",
+        deltaLabel: "正式累積增量",
+        creditValue: "待確認",
+        deltaValue: "+0",
+        note: `本次預估 ${result.attempt_total_exp}/${UNIT_EXP_CAP} EXP，待後台確認；完成確認前不列入正式累積。`
+      };
   const expRows = [
     { title: "完成任務", detail: "完整提交本次預習檢核", value: result.completion_exp },
     { title: "直接答對", detail: `未使用提示直接答對 ${result.correct_without_hint} 題，直接答對池最高 ${DIRECT_EXP_POOL} EXP。`, value: result.concept_exp },
@@ -1547,14 +1932,14 @@ function renderResult() {
           <p>${state.lockNotice || "本次任務已提交，作答結果已鎖定；若要再挑戰，請重新登入並從頭完成。"}</p>
         </div>
         <div class="score-grid">
-          <div class="score-box"><span>本次取得 EXP</span><strong>${result.attempt_total_exp}</strong></div>
-          <div class="score-box"><span>本單元認列 EXP</span><strong>${result.unit_credited_exp}/${result.unit_exp_cap}</strong></div>
-          <div class="score-box"><span>本次新增認列</span><strong>+${result.credited_delta}</strong></div>
-          <div class="score-box"><span>答對項目</span><strong>${result.correct}/${result.total}</strong></div>
+          <div class="score-box"><span>${summaryCopy.totalLabel}</span><strong>${result.attempt_total_exp}</strong></div>
+          <div class="score-box"><span>${summaryCopy.creditLabel}</span><strong>${summaryCopy.creditValue}</strong></div>
+          <div class="score-box"><span>${summaryCopy.deltaLabel}</span><strong>${summaryCopy.deltaValue}</strong></div>
+          <div class="score-box"><span>答對題數</span><strong>${result.correct}/${result.total}</strong></div>
         </div>
         <div class="story-panel highlight">
-          <strong>本次取得 vs 本單元認列</strong>
-          <p>本次取得 EXP 是這次完整挑戰的表現分數；本單元認列 EXP 會取你在本單元歷次完整挑戰中的最高分，且最多 ${UNIT_EXP_CAP} EXP。再挑戰可以補進步，但不會讓本單元超過零提示全對的上限。</p>
+          <strong>${isVerified ? "正式認列完成" : isGuest ? "guest 測試結果" : "等待後台確認"}</strong>
+          <p>${summaryCopy.note}</p>
         </div>
         <h3>各關表現</h3>
         <div class="result-table">
@@ -1592,7 +1977,40 @@ function aggregateStudent() {
 
 function renderBadgeCatalog(earnedBadges) {
   const earned = new Set(earnedBadges || []);
-  return `<div class="badge-grid">${unitBadgeCatalog.map((badge) => `<div class="badge ${earned.has(badge.name) ? "earned" : "locked"}" data-badge-id="${badge.id}"><img src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div>`;
+  return `<div class="badge-grid">${unitBadgeCatalog.map((badge) => {
+    const isEarned = earned.has(badge.name) || earned.has(badge.id);
+    return `
+      <div class="badge ${isEarned ? "earned" : "locked"}" data-badge-id="${badge.id}" data-badge-image-hook="${badge.badge_image_path}">
+        <div class="badge-visual ${badge.id === "microscope_use_flawless" ? "gold" : ""}">
+          <img src="${badge.badge_image_path}" alt="${badge.name}">
+        </div>
+        <strong>${badge.name}</strong>
+        <p>${badge.condition}</p>
+      </div>
+    `;
+  }).join("")}</div>`;
+}
+
+function updateBadgeOverviewBridge() {
+  if (typeof window === "undefined") return;
+  if (!state.student) {
+    delete window.__BIOQUEST_BADGE_OVERVIEW_STATE__;
+    return;
+  }
+  const progress = state.student.progress || state.student.student_progress || {};
+  window.__BIOQUEST_BADGE_OVERVIEW_STATE__ = {
+    student: {
+      ...state.student,
+      progress,
+      student_progress: progress,
+      is_guest: Boolean(state.student.is_guest),
+      title_avatar_path: state.student.title_avatar_path || progress.title_avatar_path || "",
+      current_title_id: state.student.current_title_id || progress.current_title_id || "",
+      current_title: state.student.current_title || progress.current_title || ""
+    },
+    progress,
+    student_progress: progress
+  };
 }
 
 function titleForExp(exp) {
@@ -1619,25 +2037,10 @@ function titleForExp(exp) {
 function renderAchievements() {
   if (!state.student) return renderLogin();
   const aggregate = aggregateStudent();
-  const title = titleForExp(aggregate.totalExp);
-  const progress = titleProgressRules?.progressPercent(aggregate.totalExp) ?? Math.min(100, (aggregate.totalExp / TITLE_PROGRESS_CAP) * 100);
   const unitBadges = [...new Set([...aggregate.badges, ...(state.result?.badges || [])])];
   return `
     <div class="wide-layout">
-      <div class="panel">
-        <p class="eyebrow">累積成就</p>
-        <h2>${state.student.student_name}</h2>
-        <p class="lead">${state.student.class_name} 班 ${state.student.seat_no} 號｜目前稱號：${title.current}</p>
-        <div class="score-grid">
-          <div class="score-box"><span>累積認列 EXP</span><strong>${aggregate.totalExp}</strong></div>
-          <div class="score-box"><span>亮起徽章</span><strong>${aggregate.badges.length}</strong></div>
-          <div class="score-box"><span>已認列單元</span><strong>${aggregate.completedUnits}</strong></div>
-        </div>
-        <h3>下一稱號：${title.next}${title.remaining ? `｜還差 ${title.remaining} EXP` : ""}</h3>
-        <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
-        <p class="muted">稱號進度 ${aggregate.totalExp >= TITLE_PROGRESS_CAP ? 100 : Math.floor(progress * 10) / 10}%｜稱號進度以 ${TITLE_PROGRESS_CAP.toLocaleString()} EXP 封頂；全冊理論仍可累積 ${FULL_BOOK_EXP_MAX.toLocaleString()} EXP，達最高稱號後 EXP 繼續累積。</p>
-      </div>
-      <div class="panel">
+      <div class="panel" data-bq-unit-achievements="true">
         <p class="eyebrow">本單元成就</p>
         <h3>微觀視野校準任務</h3>
         ${renderBadgeCatalog(unitBadges)}
@@ -1724,8 +2127,33 @@ function render() {
     achievements: renderAchievements,
     rules: renderRules
   };
+  updateBadgeOverviewBridge();
+  screen.dataset.bioquestScreen = state.screen;
   screen.innerHTML = renderers[state.screen]();
   attachCurrentScreen();
+  window.BioQuestCharacterLayout?.enhance?.({ force: true });
 }
 
 render();
+
+if (typeof window !== "undefined") {
+  window.__microscopeUseTest = {
+    VERSION,
+    QUESTION_VERSION,
+    mission,
+    unitBadgeCatalog,
+    defaultState,
+    state: () => state,
+    setState: (next) => { state = { ...structuredClone(defaultState), ...next, question_version: QUESTION_VERSION }; },
+    canonicalRawAnswers,
+    canonicalQuestionLogs,
+    buildBackendPayload,
+    submitAttemptToBackend,
+    calculateResult,
+    evaluateReflectionQuality,
+    applyBackendSubmitResponse,
+    renderResult,
+    renderAchievements,
+    renderBadgeCatalog
+  };
+}

@@ -51,6 +51,7 @@ const appVersionOverrides = new Map();
 appVersionOverrides.set("life_world", "20260720-life-world-server-verified-v1");
 appVersionOverrides.set("scientific_method", "20260721-scientific-method-server-verified-v1");
 appVersionOverrides.set("lab_intro", "20260721-lab-intro-server-verified-v1");
+appVersionOverrides.set("microscope_use", "20260721-microscope-use-server-verified-v1");
 appVersionOverrides.set("cell_observation", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("cell_structure", "20260715-cell-structure-achievement-avatar-v1");
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
@@ -226,7 +227,7 @@ const audit = units.map(([unitId, folder]) => {
     `app.js?v=${expectedAppVersion}`
   ]) assert(index.includes(marker), `${unitId} index hook missing: ${marker}`);
   if (unitId === "microscope_use") {
-    assert(index.includes("styles.css?v=20260714-microscope-paramecium-v3"), "microscope_use style cache bust missing");
+    assert(index.includes("styles.css?v=20260721-microscope-use-server-verified-v1"), "microscope_use style cache bust missing");
   }
   if (unitId === "cell_structure") {
     assert(index.includes("styles.css?v=20260715-cell-structure-achievement-avatar-v1"), "cell_structure style cache bust missing");
@@ -265,7 +266,14 @@ assert(!labApp.slice(labApp.indexOf("function renderReflection()"), labApp.index
 const microscopeApp = fs.readFileSync(path.join(root, "prototype-microscope-use", "app.js"), "utf8");
 const microscopeStyles = fs.readFileSync(path.join(root, "prototype-microscope-use", "styles.css"), "utf8");
 assert(!microscopeApp.includes("林安安") && !microscopeApp.includes("陳柏宇") && !microscopeApp.includes("許若晴"), "microscope_use must not keep formal local roster names");
-assert(microscopeApp.includes("fetchStudentStatus(id)") && microscopeApp.includes("後台目前無法連線，尚未登入"), "microscope_use official login backend handling missing");
+assert(
+  microscopeApp.includes("fetchStudentStatus(id)")
+  && microscopeApp.includes("startAttemptSession(student.student_id)")
+  && microscopeApp.includes('startData.verification_mode !== "server_verified"')
+  && microscopeApp.includes("backend_registry_not_ready")
+  && microscopeApp.includes("cache: \"no-store\""),
+  "microscope_use official login backend handling missing"
+);
 assert(microscopeApp.includes("function selectPartTarget(partId)") && microscopeApp.includes("尚有 ${remaining} 個部位未辨識"), "microscope_use target completion blocking missing");
 assert(microscopeApp.includes('input type="range" min="-1" max="1" step="1"'), "microscope_use field slider must be left/center/right");
 assert(microscopeApp.includes("低倍洋蔥表皮") && microscopeApp.includes("高倍洋蔥表皮"), "microscope_use onion low/high comparison text missing");

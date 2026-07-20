@@ -34,7 +34,7 @@ const units = [
     sequence: 4,
     summary: "正式順序第四單元。已完成學生端靜態原型，含部位功能、低倍到高倍操作、倍率視野與搬運收納安全。",
     tags: ["正式原型", "顯微鏡", "已可測試"],
-    url: "prototype-microscope-use/?v=20260715-brief-scene-unified-u1u7-v1&title=20260720-title-next-progress-v1"
+    url: "prototype-microscope-use/?v=20260721-microscope-use-server-verified-v1&title=20260720-title-next-progress-v1"
   },
   {
     title: "生物體的基本單位",
