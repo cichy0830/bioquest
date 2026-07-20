@@ -25,7 +25,7 @@ const sharedVersionOverrides = new Map([
   ["prototype-human-nutrition", "20260719-human-nutrition-qa-v1"],
   ["prototype-plant-transport-structures", "20260720-plant-transport-structures-extension-v2"],
   ["prototype-plant-material-transport", "20260720-plant-material-transport-canonical-v1"],
-  ["prototype-cardiovascular-components", "20260718-ag-visual-fixes-v1"],
+  ["prototype-cardiovascular-components", "20260720-cardiovascular-components-converge-v1"],
   ["prototype-human-circulation", "20260718-ag-visual-fixes-v1"],
   ["prototype-stimulus-response", "20260718-ag-visual-fixes-v1"],
   ["prototype-nervous-system", "20260713-login-busy-v1"],
