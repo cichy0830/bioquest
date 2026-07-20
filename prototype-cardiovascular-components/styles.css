@@ -156,13 +156,14 @@ textarea { resize: vertical; min-height: 116px; }
 .bq-brief-scene-stage.brief-scene {
   min-height: 0;
   padding: 0;
-  background: rgba(7, 48, 55, 0.82);
-  background-image: none;
-  background-size: auto;
-  background-position: center;
+  background-color: #0b3037 !important;
+  background-image: url("assets/cardiovascular-components-briefing-azhe-wide.webp") !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
 }
 .bq-brief-scene-stage .bq-brief-scene-media {
-  z-index: 1;
+  z-index: 2;
 }
 .bq-brief-scene-stage .bq-brief-scene-image {
   display: block;
