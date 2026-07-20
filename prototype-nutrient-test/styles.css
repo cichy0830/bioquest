@@ -357,11 +357,6 @@ textarea { min-height: 96px; resize: vertical; }
   object-fit: contain;
   background: rgba(245, 252, 250, .72);
 }
-.nutrient-test-brief-scene .bq-brief-student-avatar {
-  --bq-brief-avatar-height: 88%;
-  --bq-brief-avatar-left: 9%;
-  --bq-brief-avatar-bottom: 2%;
-}
 .asset-note { margin-top: 14px; font-size: 13px; color: rgba(245,255,253,.8); }
 .nutrient-test-prep-owl { min-height: 280px; position: relative; overflow: hidden; margin: 12px 0 16px; }
 .owl-fallback { display: grid; place-items: center; width: min(210px, 60vw); aspect-ratio: 1; border: 6px solid rgba(22, 110, 118, .28); border-radius: 50%; color: #16545a; background: radial-gradient(circle at 50% 44%, #fff5c8 0 13%, #e4a950 14% 25%, #4e8391 26% 58%, #d6f3ef 59%); font-weight: 900; text-align: center; line-height: 1.45; box-shadow: 0 10px 24px rgba(17,77,85,.14); }
@@ -418,11 +413,6 @@ textarea { min-height: 96px; resize: vertical; }
   .badge-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .asset-strip { grid-template-columns: 1fr; }
   .actions { display:grid; grid-template-columns:1fr; }
-  .nutrient-test-brief-scene .bq-brief-student-avatar {
-    --bq-brief-avatar-height: 86%;
-    --bq-brief-avatar-left: 5%;
-    --bq-brief-avatar-bottom: 1%;
-  }
   .compare-micrographs { grid-template-columns: 1fr; }
   .compare-evidence, .question-data-card dl { grid-template-columns: 1fr; }
   .scale-evidence-strip { align-items: stretch; }
