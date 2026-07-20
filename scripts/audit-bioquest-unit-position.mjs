@@ -28,7 +28,7 @@ const sharedVersionOverrides = new Map([
   ["plant_transport_structures", "20260720-plant-transport-structures-extension-v2"],
   ["plant_material_transport", "20260720-plant-material-transport-badges-v1"],
   ["cardiovascular_components", "20260720-cardiovascular-components-brief-visible-v2"],
-  ["human_circulation", "20260720-human-circulation-qa-fixes-v2"],
+  ["human_circulation", "20260720-human-circulation-achievement-order-v3"],
   ["stimulus_response", "20260718-ag-visual-fixes-v1"],
   ["nervous_system", "20260713-login-busy-v1"],
   ["endocrine_system", "20260713-login-busy-v1"],
@@ -39,6 +39,9 @@ const sharedVersionOverrides = new Map([
   ["cell_division", "20260713-login-busy-v1"],
   ["asexual_reproduction", "20260713-login-busy-v1"],
   ["sexual_reproduction", "20260713-login-busy-v1"]
+]);
+const sharedIndexHookOverrides = new Map([
+  ["human_circulation", "20260720-human-circulation-achievement-order-v3"]
 ]);
 
 function assert(condition, message) {
@@ -69,7 +72,7 @@ for (const unit of readyUnits) {
   assert(index.includes(`data-unit-id="${unit.unitId}"`), `${folder} unit id mismatch`);
   assert(index.includes(`data-unit-sequence="${unit.sequence}"`), `${folder} sequence missing or mismatched`);
   assert(index.includes(`data-unit-title="${unit.title}"`), `${folder} formal title missing or mismatched`);
-  const expectedSharedVersion = "20260720-title-next-progress-v1";
+  const expectedSharedVersion = sharedIndexHookOverrides.get(unit.unitId) || "20260720-title-next-progress-v1";
   assert(index.includes(`bioquest-character-layout.css?v=${expectedSharedVersion}`), `${folder} shared CSS cache bust missing`);
   assert(index.includes(`bioquest-character-layout.js?v=${expectedSharedVersion}`), `${folder} shared JS cache bust missing`);
   assert(!/\b1-\d\b/.test(index), `${folder} must not contain chapter numbering`);

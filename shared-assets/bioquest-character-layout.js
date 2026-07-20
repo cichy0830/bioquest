@@ -149,10 +149,11 @@
     if (!progress || typeof progress !== "object") return false;
     const source = String(progress.source || progress.verification_status || "").toLowerCase();
     const applied = progress.progress_applied === true || String(progress.progress_applied || "").toLowerCase() === "true";
+    if (["pending", "pending_backend", "local_guest", "guest", "unavailable_for_guest"].includes(source)) return false;
     return source === "server_verified"
       || source === "last_verified_snapshot"
       || applied
-      || progress.unit_badge_summary_json !== undefined;
+      || (!source && progress.unit_badge_summary_json !== undefined);
   }
 
   function normalizeBadgeImagePath(path, unitId) {
@@ -545,7 +546,6 @@
     const unitPanel = panels.find((panel) => [...panel.querySelectorAll("h2, h3, .eyebrow")].some((heading) => heading.textContent.includes("本單元成就")))
       || panels.find((panel) => panel.querySelector(".badge-grid, .badge-wall") && !panel.matches("[data-bq-badge-overview]"));
     if (!unitPanel) return;
-    ensureAchievementTitleAvatar(unitPanel);
     const overviewPanels = panels.filter((panel) => panel.matches("[data-bq-badge-overview]") || [...panel.querySelectorAll("h2, h3, .eyebrow")].some((heading) => heading.textContent.includes("全部任務徽章")));
     let overviewPanel = overviewPanels[0];
     if (!overviewPanel) {
@@ -553,7 +553,9 @@
       overviewPanel.className = "panel";
     }
     overviewPanels.slice(1).forEach((panel) => panel.remove());
-    unitPanel.insertAdjacentElement("afterend", overviewPanel);
+    const titleCard = ensureAchievementTitleAvatar(root, unitPanel);
+    unitPanel.insertAdjacentElement("afterend", titleCard);
+    titleCard.insertAdjacentElement("afterend", overviewPanel);
     overviewPanel.dataset.bqBadgeOverview = "true";
     overviewPanel.classList.add("bq-all-unit-badge-overview");
     setHtml(overviewPanel, renderWholeBookBadgeOverview());
@@ -678,21 +680,24 @@
     return card;
   }
 
-  function ensureAchievementTitleAvatar(unitPanel) {
-    let card = unitPanel.querySelector(":scope > .bq-title-avatar-card, :scope > .title-avatar-card.achievements");
+  function ensureAchievementTitleAvatar(root, unitPanel) {
+    const existingCards = [...root.querySelectorAll(".bq-title-avatar-card, .title-avatar-card.achievements")];
+    let card = existingCards[0] || null;
     const student = readStoredStudent();
     const rendered = createAchievementTitleAvatarCard(student);
     if (!card) {
       card = rendered;
-      const heading = unitPanel.querySelector("h2, h3");
-      if (heading) heading.insertAdjacentElement("afterend", card);
-      else unitPanel.prepend(card);
-      return;
+    } else {
+      card.classList.add("bq-title-avatar-card", "title-avatar-card", "achievements");
+      setHtml(card, rendered.innerHTML);
+      card.dataset.bqTitleAvatarCard = "true";
+      card.dataset.titleAvatarPath = rendered.dataset.titleAvatarPath;
     }
-    card.classList.add("bq-title-avatar-card", "title-avatar-card", "achievements");
-    setHtml(card, rendered.innerHTML);
-    card.dataset.bqTitleAvatarCard = "true";
-    card.dataset.titleAvatarPath = rendered.dataset.titleAvatarPath;
+    existingCards.filter((item) => item !== card).forEach((item) => item.remove());
+    if (card.closest("[data-bq-unit-achievements]") || card.parentElement !== root) {
+      unitPanel.insertAdjacentElement("afterend", card);
+    }
+    return card;
   }
 
   function readStoredStudent() {

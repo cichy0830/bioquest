@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260720-human-circulation-qa-fixes-v2";
+const VERSION = "20260720-human-circulation-achievement-order-v3";
 const QUESTION_VERSION = "20260718-human-circulation-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;

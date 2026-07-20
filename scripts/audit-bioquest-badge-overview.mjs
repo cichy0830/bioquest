@@ -26,7 +26,7 @@ const sharedVersionOverrides = new Map([
   ["prototype-plant-transport-structures", "20260720-plant-transport-structures-extension-v2"],
   ["prototype-plant-material-transport", "20260720-plant-material-transport-badges-v1"],
   ["prototype-cardiovascular-components", "20260720-cardiovascular-components-brief-visible-v2"],
-  ["prototype-human-circulation", "20260720-human-circulation-qa-fixes-v2"],
+  ["prototype-human-circulation", "20260720-human-circulation-achievement-order-v3"],
   ["prototype-stimulus-response", "20260718-ag-visual-fixes-v1"],
   ["prototype-nervous-system", "20260713-login-busy-v1"],
   ["prototype-endocrine-system", "20260713-login-busy-v1"],
@@ -37,6 +37,9 @@ const sharedVersionOverrides = new Map([
   ["prototype-cell-division", "20260713-login-busy-v1"],
   ["prototype-asexual-reproduction", "20260713-login-busy-v1"],
   ["prototype-sexual-reproduction", "20260713-login-busy-v1"]
+]);
+const sharedIndexHookOverrides = new Map([
+  ["prototype-human-circulation", "20260720-human-circulation-achievement-order-v3"]
 ]);
 const readyUnits = [
   "prototype-life-world",
@@ -100,7 +103,7 @@ for (const token of [
 for (const folder of readyUnits) {
   const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
   const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
-  const expectedSharedVersion = "20260720-title-next-progress-v1";
+  const expectedSharedVersion = sharedIndexHookOverrides.get(folder) || "20260720-title-next-progress-v1";
   assert(index.includes(`bioquest-character-layout.css?v=${expectedSharedVersion}`), `${folder}: shared CSS cache not updated`);
   assert(index.includes(`bioquest-character-layout.js?v=${expectedSharedVersion}`), `${folder}: shared JS cache not updated`);
   assert(!app.includes("aggregate.badges.map"), `${folder}: legacy whole-book badge renderer still expands aggregate.badges`);
