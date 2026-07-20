@@ -7,7 +7,7 @@ const units = [
     summary: "正式順序第一單元。已完成學生端靜態原型，含生命現象、生物/非生物、環境條件、EXP 與徽章。",
     tags: ["正式原型", "生命現象", "已可測試"],
     aliases: ["多采多姿的生命世界"],
-    url: "prototype-life-world/?v=20260715-brief-scene-unified-u1u7-v1&title=20260720-title-next-progress-v1"
+    url: "prototype-life-world/?v=20260720-life-world-server-verified-v1&title=20260720-title-next-progress-v1"
   },
   {
     title: "探究自然的科學方法",

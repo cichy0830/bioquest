@@ -3,6 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
+const VERSION = "20260720-life-world-server-verified-v1";
+const QUESTION_VERSION = "20260720-life-world-canonical-v1";
 
 const mission = {
   unit_id: "life_world",
@@ -62,15 +64,15 @@ const DIRECT_RAW_MAX = 405;
 const REVISION_RAW_MAX = 225;
 
 const unitBadgeCatalog = [
-  { id: "life_world_entry", name: "生命觀測入門徽章", condition: "完成生命訊號偵測任務。", badge_image_path: "assets/badges/life_world_entry.webp" },
-  { id: "living_evidence_detector", name: "生命證據偵測徽章", condition: "生物與非生物判斷關卡達 85% 以上。", badge_image_path: "assets/badges/life_world_living_evidence_detector.webp" },
-  { id: "life_phenomena_mapper", name: "生命現象配對徽章", condition: "生命現象配對關卡達 85% 以上。", badge_image_path: "assets/badges/life_world_life_phenomena_mapper.webp" },
-  { id: "survival_condition_guardian", name: "生存條件守門徽章", condition: "生存條件題組達 85% 以上。", badge_image_path: "assets/badges/life_world_survival_condition_guardian.webp" },
-  { id: "biosphere_observer", name: "生物圈觀察徽章", condition: "生物圈與環境關卡達 85% 以上。", badge_image_path: "assets/badges/life_world_biosphere_observer.webp" },
-  { id: "life_signal_flawless", name: "生命訊號零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。", badge_image_path: "assets/badges/life_world_life_signal_flawless.webp" },
-  { id: "misconception_reviser_life_world", name: "生命迷思修正徽章", condition: "至少 1 題使用提示後修正成功。", badge_image_path: "assets/badges/life_world_misconception_reviser.webp" },
-  { id: "retry_growth_life_world", name: "再探生命進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。位階低於零提示全對。", badge_image_path: "assets/badges/life_world_retry_growth.webp" },
-  { id: "reflection_reporter_life_world", name: "高品質回報候選徽章", condition: "回報內容能提出具體、可帶到課堂討論的本單元問題。", badge_image_path: "assets/badges/life_world_reflection_reporter.webp" }
+  { id: "life_world_entry", name: "生命觀測入門徽章", condition: "完成生命訊號偵測任務。", badge_image_path: `assets/badges/life_world_entry.webp?v=${VERSION}` },
+  { id: "living_evidence_detector", name: "生命證據偵測徽章", condition: "生物與非生物判斷關卡達 85% 以上。", badge_image_path: `assets/badges/life_world_living_evidence_detector.webp?v=${VERSION}` },
+  { id: "life_phenomena_mapper", name: "生命現象配對徽章", condition: "生命現象配對關卡達 85% 以上。", badge_image_path: `assets/badges/life_world_life_phenomena_mapper.webp?v=${VERSION}` },
+  { id: "survival_condition_guardian", name: "生存條件守門徽章", condition: "生存條件題組達 85% 以上。", badge_image_path: `assets/badges/life_world_survival_condition_guardian.webp?v=${VERSION}` },
+  { id: "biosphere_observer", name: "生物圈觀察徽章", condition: "生物圈與環境關卡達 85% 以上。", badge_image_path: `assets/badges/life_world_biosphere_observer.webp?v=${VERSION}` },
+  { id: "life_signal_flawless", name: "生命訊號零提示全對徽章", condition: "全部答對，且全程未使用提示。本單元最高表現徽章。", badge_image_path: `assets/badges/life_world_life_signal_flawless.webp?v=${VERSION}` },
+  { id: "misconception_reviser_life_world", name: "生命迷思修正徽章", condition: "至少 1 題使用提示後修正成功。", badge_image_path: `assets/badges/life_world_misconception_reviser.webp?v=${VERSION}` },
+  { id: "retry_growth_life_world", name: "再探生命進步徽章", condition: "再挑戰完整完成，且本次正確率高於前一次完整挑戰。位階低於零提示全對。", badge_image_path: `assets/badges/life_world_retry_growth.webp?v=${VERSION}` },
+  { id: "reflection_reporter_life_world", name: "高品質回報候選徽章", condition: "回報內容能提出具體、可帶到課堂討論的本單元問題。", badge_image_path: `assets/badges/life_world_reflection_reporter.webp?v=${VERSION}` }
 ];
 
 const storageKey = "bioquest_life_world_state_v1";
@@ -84,6 +86,13 @@ const defaultState = {
   student: null,
   attempt_type: "first",
   remote_completed_attempts: 0,
+  attempt_id: "",
+  attempt_session_id: "",
+  attempt_session_token: "",
+  previous_attempt_id: "",
+  question_version: QUESTION_VERSION,
+  verification_mode: "local_guest",
+  hintEventStatus: {},
   started_at: null,
   completedScreens: ["login", "rules"],
   activeToken: null,
@@ -133,7 +142,7 @@ function normalizeLockedScreen() {
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey));
-    return saved ? { ...structuredClone(defaultState), ...saved } : structuredClone(defaultState);
+    return saved ? { ...structuredClone(defaultState), ...saved, question_version: QUESTION_VERSION } : structuredClone(defaultState);
   } catch {
     return structuredClone(defaultState);
   }
@@ -155,6 +164,24 @@ function saveAttempt(attempt) {
   const attempts = getAttempts();
   attempts.push(attempt);
   localStorage.setItem(attemptsKey, JSON.stringify(attempts));
+}
+
+function uid(prefix = mission.unit_id) {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+async function postBackendAction(action, payload) {
+  const body = new URLSearchParams();
+  body.set("payload", JSON.stringify(payload));
+  const response = await fetch(`${BACKEND_URL}?action=${encodeURIComponent(action)}`, {
+    method: "POST",
+    body,
+    cache: "no-store"
+  });
+  if (!response.ok) throw new Error(`backend_${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || `${action}_failed`);
+  return data;
 }
 
 function studentAttempts(studentId) {
@@ -373,56 +400,96 @@ async function fetchStudentStatus(id) {
   return response.json();
 }
 
+function normalizeBackendStudent(remote, fallbackId) {
+  if (!remote?.ok || !remote.student) throw new Error(remote?.error || "student_not_found");
+  const remoteProgress = remote.progress || remote.student_progress || {};
+  const student = {
+    ...remote.student,
+    progress: remoteProgress,
+    current_title_id: remoteProgress.current_title_id || remote.student.current_title_id,
+    current_title: remoteProgress.current_title || remote.student.current_title,
+    title_avatar_variant: remoteProgress.title_avatar_variant || remote.student.title_avatar_variant,
+    title_avatar_path: remoteProgress.title_avatar_path || remote.student.title_avatar_path,
+    total_exp: remoteProgress.total_exp ?? remote.student.total_exp,
+    completed_attempts: Number(remote.completed_attempts || remoteProgress.completed_attempts || remote.student.completed_attempts || 0),
+    is_guest: remote.student.student_id === "guest" || String(remote.student.is_guest).toUpperCase() === "TRUE"
+  };
+  if (student.is_guest && fallbackId !== "guest") throw new Error("student_not_found");
+  return student;
+}
+
+async function startAttemptSession(studentId) {
+  return postBackendAction("startAttempt", {
+    student_id: studentId,
+    unit_id: mission.unit_id,
+    question_version: QUESTION_VERSION
+  });
+}
+
+function beginLocalGuestAttempt() {
+  const attemptId = uid("life_world_guest_attempt");
+  state = {
+    ...structuredClone(defaultState),
+    student: { ...roster.guest, is_guest: true },
+    attempt_type: studentAttempts("guest").length > 0 ? "retry" : "first",
+    remote_completed_attempts: studentAttempts("guest").length,
+    attempt_id: attemptId,
+    attempt_session_id: `guest_session_${attemptId}`,
+    attempt_session_token: `guest_${attemptId}`,
+    previous_attempt_id: "",
+    question_version: QUESTION_VERSION,
+    verification_mode: "local_guest",
+    started_at: new Date().toISOString(),
+    completedScreens: ["login", "brief", "rules", "achievements"],
+    optionOrders: {}
+  };
+  saveState();
+  setScreen("brief");
+}
+
 async function login(id) {
   const message = document.querySelector("#loginMessage");
   if (!id) {
     message.innerHTML = `<span class="pill warn">請先輸入學號。</span>`;
     return;
   }
-  window.BioQuestLoginUX?.begin({ guest: id === "guest" });
+  const useGuest = id === "guest";
+  window.BioQuestLoginUX?.begin({ guest: useGuest });
   await window.BioQuestLoginUX?.paint();
-  message.innerHTML = `<span class="pill">正在連接 BioQuest 學習後台，請稍候……</span>`;
-  let student = null;
-  let attemptType = "first";
-  let completedAttempts = 0;
+  if (useGuest) {
+    beginLocalGuestAttempt();
+    return;
+  }
   try {
     const remote = await fetchStudentStatus(id);
-    if (!remote.ok) {
-      message.innerHTML = `<span class="pill warn">查無此學號，請重新輸入。</span>`;
-      return;
+    const student = normalizeBackendStudent(remote, id);
+    const startData = await startAttemptSession(student.student_id);
+    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== QUESTION_VERSION) {
+      throw new Error("backend_registry_not_ready");
     }
-    const remoteProgress = remote.progress || remote.student_progress || {};
-    student = {
-      ...remote.student,
-      progress: remoteProgress,
-      current_title_id: remoteProgress.current_title_id || remote.student.current_title_id,
-      current_title: remoteProgress.current_title || remote.student.current_title,
-      title_avatar_variant: remoteProgress.title_avatar_variant || remote.student.title_avatar_variant,
-      title_avatar_path: remoteProgress.title_avatar_path || remote.student.title_avatar_path,
-      total_exp: remoteProgress.total_exp ?? remote.student.total_exp,
-      is_guest: remote.student.student_id === "guest" || String(remote.student.is_guest).toUpperCase() === "TRUE"
-    };
-    attemptType = remote.attempt_type || "first";
-    completedAttempts = Number(remote.completed_attempts || 0);
+    state = structuredClone(defaultState);
+    state.student = { ...student, is_guest: false };
+    state.attempt_type = startData.attempt_type || remote.attempt_type || "first";
+    state.remote_completed_attempts = Number(remote.completed_attempts || student.completed_attempts || 0);
+    state.attempt_id = startData.attempt_id;
+    state.attempt_session_id = startData.attempt_session_id || "";
+    state.attempt_session_token = startData.attempt_session_token;
+    state.previous_attempt_id = startData.previous_attempt_id || "";
+    state.question_version = QUESTION_VERSION;
+    state.verification_mode = startData.verification_mode;
+    state.started_at = startData.issued_at || new Date().toISOString();
+    state.optionOrders = {};
+    unlock("brief", "rules", "achievements");
+    saveState();
+    setScreen("brief");
   } catch (error) {
-    if (id !== "guest") {
-      message.innerHTML = `<span class="pill warn">後台目前無法連線，尚未登入。請檢查網路後重試或通知老師。</span>`;
-      return;
-    }
-    student = roster.guest;
-    completedAttempts = studentAttempts(student.student_id).length;
-    attemptType = completedAttempts > 0 ? "retry" : "first";
-    message.innerHTML = `<span class="pill warn">guest 已切換為本機測試模式，不列入正式統計。</span>`;
+    state = structuredClone(defaultState);
+    saveState();
+    window.BioQuestLoginUX?.end?.();
+    message.innerHTML = error.message === "backend_registry_not_ready"
+      ? `<span class="pill warn">後台版本尚未更新，請通知老師。</span>`
+      : `<span class="pill warn">後台目前無法連線或查無此學號，尚未登入。請檢查網路後重試或通知老師。</span>`;
   }
-  state = structuredClone(defaultState);
-  state.student = { ...student, is_guest: Boolean(student.is_guest) };
-  state.attempt_type = attemptType;
-  state.remote_completed_attempts = completedAttempts;
-  state.started_at = new Date().toISOString();
-  state.optionOrders = {};
-  unlock("brief", "rules", "achievements");
-  saveState();
-  setScreen("brief");
 }
 
 function renderBrief() {
@@ -557,6 +624,83 @@ const misconceptionQuestions = [
   { id: "cloud_growth", concept_id: "growth_development", prompt: "有同學說：「雲會變大，所以雲是生物。」哪個判斷較合理？", options: ["變大不一定是生長，還要看是否有其他生命現象", "雲會變大所以一定是生物", "只要會移動就一定是生物", "雲會下雨所以會生殖"], answer: "變大不一定是生長，還要看是否有其他生命現象", hint: "先分辨物質聚集造成變大，和生物體生長是否相同。", misconception: "growth_confusion" },
   { id: "best_evidence", concept_id: "living_nonliving_evidence", prompt: "判斷一個物體是否為生物時，下列哪個策略最可靠？", options: ["綜合多個生命現象與生存條件證據", "只看它會不會動", "只看它有沒有綠色", "只看它是否在水裡"], answer: "綜合多個生命現象與生存條件證據", hint: "單一外觀線索容易誤判，試著同時看多種生命現象。", misconception: "movement_equals_life" }
 ];
+
+const canonicalQuestionByLocalId = {
+  classify: "q01",
+  remote_car: "q02",
+  livingstone: "q03",
+  metabolism: "q04",
+  growth: "q05",
+  response: "q06",
+  reproduction: "q07",
+  plant_response: "q08",
+  aquarium_resources: "q09",
+  biosphere_meaning: "q10",
+  warm_wet: "q11",
+  cactus: "q12",
+  polar_bear: "q12",
+  leaf_butterfly: "q12",
+  inch_worm: "q12",
+  adaptation: "q12",
+  cloud_growth: "q13",
+  best_evidence: "q14"
+};
+
+const canonicalQuestionMeta = {
+  q01: { local_id: "classify", type: "mapping", checkpoint_id: "life_signal_scan", skill_tag: "living_nonliving_evidence", misconception_tag: "movement_equals_life" },
+  q02: { local_id: "remote_car", type: "choice", checkpoint_id: "life_signal_scan", skill_tag: "living_nonliving_evidence", misconception_tag: "movement_equals_life" },
+  q03: { local_id: "livingstone", type: "choice", checkpoint_id: "life_signal_scan", skill_tag: "growth_development", misconception_tag: "no_movement_not_life" },
+  q04: { local_id: "metabolism", type: "choice", checkpoint_id: "life_process_match", skill_tag: "life_phenomena", misconception_tag: "life_phenomena_confusion" },
+  q05: { local_id: "growth", type: "choice", checkpoint_id: "life_process_match", skill_tag: "life_phenomena", misconception_tag: "life_phenomena_confusion" },
+  q06: { local_id: "response", type: "choice", checkpoint_id: "life_process_match", skill_tag: "life_phenomena", misconception_tag: "life_phenomena_confusion" },
+  q07: { local_id: "reproduction", type: "choice", checkpoint_id: "life_process_match", skill_tag: "life_phenomena", misconception_tag: "life_phenomena_confusion" },
+  q08: { local_id: "plant_response", type: "choice", checkpoint_id: "life_process_match", skill_tag: "life_phenomena", misconception_tag: "plants_do_not_respond" },
+  q09: { local_id: "aquarium_resources", type: "set", checkpoint_id: "habitat_resources", skill_tag: "survival_conditions", misconception_tag: "single_condition_enough" },
+  q10: { local_id: "biosphere_meaning", type: "choice", checkpoint_id: "habitat_resources", skill_tag: "biosphere_environment", misconception_tag: "biosphere_as_place_only" },
+  q11: { local_id: "warm_wet", type: "choice", checkpoint_id: "habitat_resources", skill_tag: "survival_conditions", misconception_tag: "environment_condition_confusion" },
+  q12: { local_id: "adaptation", type: "mapping", checkpoint_id: "survival_strategy", skill_tag: "adaptation_evidence", misconception_tag: "adaptation_as_preference" },
+  q13: { local_id: "cloud_growth", type: "choice", checkpoint_id: "survival_strategy", skill_tag: "living_nonliving_evidence", misconception_tag: "size_change_equals_growth" },
+  q14: { local_id: "best_evidence", type: "choice", checkpoint_id: "survival_strategy", skill_tag: "evidence_based_judgment", misconception_tag: "single_clue_is_enough" }
+};
+
+function canonicalQuestionId(localId) {
+  if (!localId) return "";
+  if (/^q\d+$/.test(localId)) return localId;
+  return canonicalQuestionByLocalId[localId] || "";
+}
+
+async function markHintForQuestion(localId) {
+  const qid = canonicalQuestionId(localId);
+  if (!qid) return true;
+  if (!state.hintEventStatus) state.hintEventStatus = {};
+  if (state.hintEventStatus[qid] === "sent") return true;
+  state.hintEventStatus[qid] = state.student?.is_guest ? "sent" : "pending";
+  saveState();
+  if (state.student?.is_guest) return true;
+  return flushHintEvents([qid]);
+}
+
+async function flushHintEvents(ids = Object.keys(state.hintEventStatus || {})) {
+  if (state.student?.is_guest) return true;
+  const pending = ids.filter((qid) => state.hintEventStatus?.[qid] !== "sent");
+  for (const qid of pending) {
+    try {
+      await postBackendAction("hintEvent", {
+        student_id: state.student.student_id,
+        unit_id: mission.unit_id,
+        attempt_id: state.attempt_id,
+        attempt_session_token: state.attempt_session_token,
+        question_id: `${mission.unit_id}_${qid}`,
+        question_version: QUESTION_VERSION
+      });
+      state.hintEventStatus[qid] = "sent";
+    } catch (error) {
+      state.hintEventStatus[qid] = "failed";
+    }
+  }
+  saveState();
+  return Object.values(state.hintEventStatus || {}).every((status) => status === "sent");
+}
 
 function checkpointShell(title, description, rows, nextId) {
   return `
@@ -727,7 +871,10 @@ function attachCheckpointHandlers() {
       const id = button.dataset.id;
       state.answers[group][id] = button.dataset.value;
       const item = findQuestion(id);
-      if (item && button.dataset.value !== item.answer) state.answers[`${group}Hints`][id] = true;
+      if (item && button.dataset.value !== item.answer) {
+        state.answers[`${group}Hints`][id] = true;
+        markHintForQuestion(id);
+      }
       saveState();
       render();
     });
@@ -737,6 +884,7 @@ function attachCheckpointHandlers() {
       state.answers[select.dataset.selectGroup][select.dataset.id] = select.value;
       const item = adaptationPairs.find((entry) => entry.id === select.dataset.id);
       if (item && select.value !== item.answer) state.answers[`${select.dataset.selectGroup}Hints`][select.dataset.id] = true;
+      if (item && select.value !== item.answer) markHintForQuestion(select.dataset.id);
       saveState();
       const field = select.closest(".match-field");
       const selectedAnswer = field?.querySelector(".selected-answer");
@@ -760,6 +908,7 @@ function attachCheckpointHandlers() {
       const group = button.dataset.group || button.dataset.hint;
       const id = button.dataset.id;
       state.answers[`${group}Hints`][id] = true;
+      markHintForQuestion(id);
       saveState();
       render();
     });
@@ -1071,6 +1220,12 @@ function buildAttempt() {
     mission,
     attempt_type: state.attempt_type,
     attempt_no: studentAttempts(state.student.student_id).length + 1,
+    attempt_id: state.attempt_id,
+    attempt_session_id: state.attempt_session_id,
+    attempt_session_token: state.attempt_session_token,
+    previous_attempt_id: state.previous_attempt_id,
+    question_version: QUESTION_VERSION,
+    verification_mode: state.verification_mode,
     started_at: state.started_at,
     submitted_at: state.submitted_at || now,
     completion_status: "complete",
@@ -1083,9 +1238,97 @@ function buildAttempt() {
   };
 }
 
-function buildBackendPayload(attempt) {
+function canonicalRawAnswers() {
   return {
-    attempt_id: `${mission.unit_id}_${attempt.student.student_id}_${Date.now()}`,
+    q01: { ...(state.answers.checkpoint1.classify || {}) },
+    q02: state.answers.checkpoint1.remote_car || "",
+    q03: state.answers.checkpoint1.livingstone || "",
+    q04: state.answers.checkpoint2.metabolism || "",
+    q05: state.answers.checkpoint2.growth || "",
+    q06: state.answers.checkpoint2.response || "",
+    q07: state.answers.checkpoint2.reproduction || "",
+    q08: state.answers.checkpoint2.plant_response || "",
+    q09: [...(state.answers.checkpoint3.aquarium_resources || [])],
+    q10: state.answers.checkpoint3.biosphere_meaning || "",
+    q11: state.answers.checkpoint3.warm_wet || "",
+    q12: {
+      cactus: state.answers.checkpoint4.cactus || "",
+      polar_bear: state.answers.checkpoint4.polar_bear || "",
+      leaf_butterfly: state.answers.checkpoint4.leaf_butterfly || "",
+      inch_worm: state.answers.checkpoint4.inch_worm || ""
+    },
+    q13: state.answers.checkpoint4.cloud_growth || "",
+    q14: state.answers.checkpoint4.best_evidence || ""
+  };
+}
+
+function formatCanonicalAnswer(value) {
+  if (Array.isArray(value)) return value.join("、");
+  if (value && typeof value === "object") return Object.entries(value).map(([key, answer]) => `${key}:${answer}`).join("；");
+  return String(value || "");
+}
+
+function canonicalQuestionLogs(rawAnswers) {
+  return Object.keys(canonicalQuestionMeta).map((qid) => {
+    const meta = canonicalQuestionMeta[qid];
+    const answer = rawAnswers[qid];
+    const usedHint = Boolean(state.hintEventStatus?.[qid]) || legacyHintUsedForCanonical(qid);
+    return {
+      question_id: `${mission.unit_id}_${qid}`,
+      unit_id: mission.unit_id,
+      student_id: state.student.student_id,
+      question_version: QUESTION_VERSION,
+      question_type: meta.type,
+      checkpoint_id: meta.checkpoint_id,
+      concept_id: meta.skill_tag,
+      skill_tag: meta.skill_tag,
+      misconception_tag: meta.misconception_tag,
+      attempt_answer: formatCanonicalAnswer(answer),
+      answer_json: JSON.stringify(answer),
+      used_hint: usedHint,
+      hint_used: usedHint
+    };
+  });
+}
+
+function legacyHintUsedForCanonical(qid) {
+  if (qid === "q01") return Boolean(state.answers.checkpoint1Hints.classify);
+  if (["q02", "q03"].includes(qid)) {
+    const local = canonicalQuestionMeta[qid].local_id;
+    return Boolean(state.answers.checkpoint1Hints[local]);
+  }
+  if (["q04", "q05", "q06", "q07", "q08"].includes(qid)) {
+    const local = canonicalQuestionMeta[qid].local_id;
+    return Boolean(state.answers.checkpoint2Hints[local]);
+  }
+  if (qid === "q09") return Boolean(state.answers.checkpoint3Hints.aquarium_resources);
+  if (["q10", "q11"].includes(qid)) {
+    const local = canonicalQuestionMeta[qid].local_id;
+    return Boolean(state.answers.checkpoint3Hints[local]);
+  }
+  if (qid === "q12") return adaptationPairs.some((item) => Boolean(state.answers.checkpoint4Hints[item.id]));
+  const local = canonicalQuestionMeta[qid]?.local_id;
+  return Boolean(local && state.answers.checkpoint4Hints[local]);
+}
+
+function badgeEvalForPayload() {
+  return unitBadgeCatalog.map((badge) => ({
+    badge_id: badge.id,
+    badge_name: badge.name,
+    badge_image_path: `prototype-life-world/${badge.badge_image_path.split("?")[0].replace(/\.png$/, ".webp")}`
+  }));
+}
+
+function buildBackendPayload(attempt) {
+  const rawAnswers = canonicalRawAnswers();
+  const logs = canonicalQuestionLogs(rawAnswers);
+  return {
+    action: "submitAttempt",
+    attempt_id: attempt.attempt_id || state.attempt_id,
+    attempt_session_id: attempt.attempt_session_id || state.attempt_session_id,
+    attempt_session_token: attempt.attempt_session_token || state.attempt_session_token,
+    previous_attempt_id: attempt.previous_attempt_id || state.previous_attempt_id,
+    question_version: QUESTION_VERSION,
     student_id: attempt.student.student_id,
     student_name: attempt.student.student_name,
     class_name: attempt.student.class_name,
@@ -1114,19 +1357,24 @@ function buildBackendPayload(attempt) {
     reflection_quality: attempt.reflection_quality,
     teacher_attention_needed: attempt.teacher_attention_needed,
     student_question: attempt.student_question,
-    question_logs: (attempt.section_stats || []).map((section, index) => ({
-      question_id: `${attempt.mission.unit_id}_section_${index + 1}`,
-      skill_tag: section.title,
-      is_correct: section.correct === section.total,
-      used_hint: section.corrected_after_hint > 0,
-      attempt_answer: `答對 ${section.correct}/${section.total}`,
-      correct_answer: "詳見單元題組",
-      exp_awarded: section.exp
-    }))
+    confident_concept: attempt.confident_concept,
+    uncertain_concept: attempt.uncertain_concept,
+    raw_answers: rawAnswers,
+    raw_answers_json: JSON.stringify(rawAnswers),
+    question_logs: logs,
+    badge_eval_json: JSON.stringify(badgeEvalForPayload()),
+    client_summary: {
+      total_questions: attempt.total,
+      correct: attempt.correct,
+      accuracy: attempt.accuracy,
+      attempt_total_exp: attempt.attempt_total_exp,
+      unit_credited_exp: attempt.unit_credited_exp
+    }
   };
 }
 
 async function submitAttemptToBackend(attempt) {
+  if (attempt.student?.is_guest) return { ok: true, verification_status: "local_guest" };
   const body = new URLSearchParams();
   body.set("payload", JSON.stringify(buildBackendPayload(attempt)));
   const response = await fetch(`${BACKEND_URL}?action=submitAttempt`, {
@@ -1137,6 +1385,50 @@ async function submitAttemptToBackend(attempt) {
   const data = await response.json();
   if (!data.ok) throw new Error(data.error || "backend_submit_failed");
   return data;
+}
+
+function applyBackendSubmitResponse(response, localResult) {
+  if (!response || response.ok === false) return localResult;
+  const progress = response.student_progress || response.progress || null;
+  if (progress && state.student) {
+    state.student.progress = progress;
+    state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
+    state.student.current_title_id = progress.current_title_id || state.student.current_title_id;
+    state.student.current_title = progress.current_title || state.student.current_title;
+    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path;
+    state.student.title_avatar_variant = progress.title_avatar_variant || state.student.title_avatar_variant;
+  }
+  const verified = response.verified_attempt || response.attempt || null;
+  if (!verified) {
+    return {
+      ...localResult,
+      verification_status: response.verification_status || "pending_backend",
+      backend_response: response
+    };
+  }
+  return {
+    ...localResult,
+    ...verified,
+    total: Number(verified.total_questions ?? localResult.total),
+    correct: Number(verified.correct ?? localResult.correct),
+    correct_without_hint: Number(verified.correct_without_hint ?? localResult.correct_without_hint),
+    corrected_after_hint: Number(verified.corrected_after_hint ?? localResult.corrected_after_hint),
+    hint_used: Number(verified.hints_used ?? localResult.hint_used),
+    concept_exp: Number(verified.concept_exp ?? localResult.concept_exp),
+    revision_exp: Number(verified.revision_exp ?? localResult.revision_exp),
+    question_exp: Number(verified.question_exp ?? localResult.question_exp),
+    mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
+    retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
+    attempt_total_exp: Number(verified.attempt_total_exp ?? localResult.attempt_total_exp),
+    total_exp: Number(verified.attempt_total_exp ?? localResult.total_exp),
+    unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
+    credited_delta: Number(verified.credited_delta ?? localResult.credited_delta),
+    no_hint_perfect: Boolean(verified.no_hint_perfect),
+    badges: Array.isArray(verified.badges) ? verified.badges : localResult.badges,
+    verification_status: verified.verification_status || response.verification_status || "server_verified",
+    hint_verification_status: verified.hint_verification_status || response.hint_verification_status || "",
+    backend_response: response
+  };
 }
 
 function misconceptionText(tag) {
@@ -1250,11 +1542,19 @@ function attachReflection() {
     };
     Object.assign(state.answers.reflection, evaluateReflectionQuality(state.answers.reflection));
     state.result = calculateResult();
-    const submittedAt = new Date().toISOString();
-    state.submitted_at = submittedAt;
-    const attempt = buildAttempt();
     try {
-      await submitAttemptToBackend(attempt);
+      const hintSynced = await flushHintEvents();
+      if (!hintSynced && !state.student?.is_guest) {
+        throw new Error("hint_event_sync_failed");
+      }
+      const submittedAt = new Date().toISOString();
+      state.submitted_at = submittedAt;
+      let attempt = buildAttempt();
+      const response = await submitAttemptToBackend(attempt);
+      state.result = state.student?.is_guest
+        ? { ...state.result, verification_status: "local_guest" }
+        : applyBackendSubmitResponse(response, state.result);
+      attempt = buildAttempt();
       saveAttempt(attempt);
       state.remote_completed_attempts = Number(state.remote_completed_attempts || 0) + 1;
       unlock("result", "achievements");
@@ -1267,7 +1567,9 @@ function attachReflection() {
       saveState();
       const warning = document.createElement("div");
       warning.className = "feedback warn";
-      warning.textContent = "目前無法寫入後台，請稍後再按一次提交任務。";
+      warning.textContent = error.message === "hint_event_sync_failed"
+        ? "提示紀錄尚未同步成功，請稍後再提交，避免後台誤判零提示。"
+        : "目前無法寫入後台，請稍後再按一次提交任務。";
       button.closest(".actions").after(warning);
     }
   });
@@ -1275,13 +1577,42 @@ function attachReflection() {
 
 function renderResult() {
   const result = state.result?.section_stats ? state.result : calculateResult();
+  const verificationStatus = state.student?.is_guest ? "local_guest" : (result.verification_status || state.verification_mode || "pending_backend");
+  const isVerified = verificationStatus === "server_verified";
+  const isGuest = verificationStatus === "local_guest";
+  const summaryCopy = isGuest
+    ? {
+      totalLabel: "guest 本次預估 EXP",
+      creditLabel: "正式認列 EXP",
+      deltaLabel: "正式累積增量",
+      creditValue: "不列入",
+      deltaValue: "+0",
+      note: `guest 測試：本次預估 ${result.attempt_total_exp}/${UNIT_EXP_CAP} EXP，不列入正式累積。`
+    }
+    : isVerified
+      ? {
+        totalLabel: "本次取得 EXP",
+        creditLabel: "本單元正式認列 EXP",
+        deltaLabel: "本次新增認列",
+        creditValue: `${result.unit_credited_exp}/${result.unit_exp_cap}`,
+        deltaValue: `+${result.credited_delta}`,
+        note: `後台已完成 server_verified 重算；本單元正式認列 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，本次新增認列 +${result.credited_delta}。`
+      }
+      : {
+        totalLabel: "本次預估 EXP",
+        creditLabel: "正式認列 EXP",
+        deltaLabel: "正式累積增量",
+        creditValue: "待確認",
+        deltaValue: "+0",
+        note: `本次預估 ${result.attempt_total_exp}/${UNIT_EXP_CAP} EXP，待後台確認；完成確認前不列入正式累積。`
+      };
   const expRows = [
     { title: "完成任務", detail: "完整提交本次預習檢核", value: result.completion_exp },
     { title: "直接答對", detail: `未使用提示直接答對 ${result.correct_without_hint} 題，直接答對池最高 ${DIRECT_EXP_POOL} EXP。`, value: result.concept_exp },
     { title: "提示後修正", detail: `使用提示後完成修正 ${result.corrected_after_hint} 題，修正池低於直接答對池。`, value: result.revision_exp },
     { title: "回報品質", detail: result.reflection_exp_reason || "空白可提交，但沒有回報 EXP。", value: result.question_exp },
     { title: "精熟表現", detail: result.no_hint_perfect ? "全部答對且全程未使用提示，取得最高精熟 EXP。" : result.perfect ? "全部答對，但曾使用提示，精熟 EXP 低於零提示全對。" : result.mastery_exp ? "正確率達 90% 以上，取得高表現精熟 EXP。" : "尚未達到精熟門檻。", value: result.mastery_exp },
-    { title: "再挑戰進步", detail: result.retry_improved ? `本次比前一次進步，取得進步補分；本單元認列仍最多 ${UNIT_EXP_CAP} EXP。` : state.attempt_type === "retry" ? "本次為再挑戰，但未高於前一次完整挑戰，不給進步補分。" : "首次挑戰不列入。", value: result.retry_exp }
+    { title: "再挑戰進步", detail: result.retry_improved ? `本次比前一次進步，取得進步補分；本單元最高仍為 ${UNIT_EXP_CAP} EXP。` : state.attempt_type === "retry" ? "本次為再挑戰，但未高於前一次完整挑戰，不給進步補分。" : "首次挑戰不列入。", value: result.retry_exp }
   ];
   return `
     <div class="mission-layout">
@@ -1293,14 +1624,14 @@ function renderResult() {
           <p>${state.lockNotice || "本次任務已提交，作答結果已鎖定；若要再挑戰，請重新登入並從頭完成。"}</p>
         </div>
         <div class="score-grid">
-          <div class="score-box"><span>本次取得 EXP</span><strong>${result.attempt_total_exp}</strong></div>
-          <div class="score-box"><span>本單元認列 EXP</span><strong>${result.unit_credited_exp}/${result.unit_exp_cap}</strong></div>
-          <div class="score-box"><span>本次新增認列</span><strong>+${result.credited_delta}</strong></div>
+          <div class="score-box"><span>${summaryCopy.totalLabel}</span><strong>${result.attempt_total_exp}</strong></div>
+          <div class="score-box"><span>${summaryCopy.creditLabel}</span><strong>${summaryCopy.creditValue}</strong></div>
+          <div class="score-box"><span>${summaryCopy.deltaLabel}</span><strong>${summaryCopy.deltaValue}</strong></div>
           <div class="score-box"><span>答對題數</span><strong>${result.correct}/${result.total}</strong></div>
         </div>
         <div class="story-panel highlight">
-          <strong>本次取得 vs 本單元認列</strong>
-          <p>本次取得 EXP 是這次完整挑戰的表現分數；本單元認列 EXP 會取你在本單元歷次完整挑戰中的最高分，且最多 ${UNIT_EXP_CAP} EXP。再挑戰可以補進步，但不會讓本單元超過零提示全對的上限。</p>
+          <strong>${isVerified ? "正式認列完成" : isGuest ? "guest 測試結果" : "等待後台確認"}</strong>
+          <p>${summaryCopy.note}</p>
         </div>
         <h3>各關表現</h3>
         <div class="result-table">
@@ -1336,6 +1667,28 @@ function aggregateStudent() {
   return { totalExp, badges, attempts, completedUnits: bestByUnit.size };
 }
 
+function updateBadgeOverviewBridge() {
+  if (typeof window === "undefined") return;
+  if (!state.student) {
+    delete window.__BIOQUEST_BADGE_OVERVIEW_STATE__;
+    return;
+  }
+  const progress = state.student.progress || state.student.student_progress || {};
+  window.__BIOQUEST_BADGE_OVERVIEW_STATE__ = {
+    student: {
+      ...state.student,
+      progress,
+      student_progress: progress,
+      is_guest: Boolean(state.student.is_guest),
+      title_avatar_path: state.student.title_avatar_path || progress.title_avatar_path || "",
+      current_title_id: state.student.current_title_id || progress.current_title_id || "",
+      current_title: state.student.current_title || progress.current_title || ""
+    },
+    progress,
+    student_progress: progress
+  };
+}
+
 function badgeFallbackIcon(badge) {
   if (badge.id === "life_signal_flawless") return "★";
   if (badge.id.includes("retry")) return "↗";
@@ -1346,7 +1699,7 @@ function badgeFallbackIcon(badge) {
 function renderBadgeCatalog(earnedBadges) {
   const earned = new Set(earnedBadges || []);
   return `<div class="badge-grid">${unitBadgeCatalog.map((badge) => {
-    const isEarned = earned.has(badge.name);
+    const isEarned = earned.has(badge.name) || earned.has(badge.id);
     const imageMarkup = badge.badge_image_path
       ? `<img src="${badge.badge_image_path}" alt="${badge.name}">`
       : `<span aria-hidden="true">${badgeFallbackIcon(badge)}</span>`;
@@ -1553,8 +1906,32 @@ function render() {
     achievements: renderAchievements,
     rules: renderRules
   };
+  updateBadgeOverviewBridge();
+  screen.dataset.bioquestScreen = state.screen;
   screen.innerHTML = renderers[state.screen]();
   attachCurrentScreen();
+  window.BioQuestCharacterLayout?.enhance?.({ force: true });
 }
 
-render();
+if (typeof window !== "undefined") {
+  window.__lifeWorldTest = {
+    VERSION,
+    QUESTION_VERSION,
+    mission,
+    unitBadgeCatalog,
+    defaultState,
+    state: () => state,
+    setState: (next) => { state = { ...structuredClone(defaultState), ...next, question_version: QUESTION_VERSION }; },
+    canonicalRawAnswers,
+    canonicalQuestionLogs,
+    buildBackendPayload,
+    calculateResult,
+    evaluateReflectionQuality,
+    applyBackendSubmitResponse,
+    renderResult,
+    renderAchievements,
+    renderBadgeCatalog
+  };
+}
+
+if (screen) render();

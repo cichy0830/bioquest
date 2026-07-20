@@ -48,6 +48,7 @@ const backendConfigVersion = "20260713-backend-endpoint-v1";
 const appCacheVersion = "20260715-badge-overview-v2";
 const sharedTitleProgressVersion = "20260720-title-next-progress-v1";
 const appVersionOverrides = new Map();
+appVersionOverrides.set("life_world", "20260720-life-world-server-verified-v1");
 appVersionOverrides.set("cell_observation", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("cell_structure", "20260715-cell-structure-achievement-avatar-v1");
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
