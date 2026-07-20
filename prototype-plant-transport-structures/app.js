@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260714-plant-transport-structures-canonical-v1";
+const VERSION = "20260720-plant-transport-structures-extension-v2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -52,13 +52,14 @@ const mission = {
 const assets = {
   mentorFallback: "../shared-assets/mentor-feedback/mentor-feedback-stable.webp",
   owlLogin: "../shared-assets/login/bioquest-login-cover-wide.webp",
-  owlPrep: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
-  owlReport: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
+  owlPrep: "assets/owl-plant-transport-structures-prep-report.webp",
+  owlReport: "assets/owl-plant-transport-structures-prep-report.webp",
   owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "assets/plant-transport-structures-briefing-azhe-wide.webp",
   briefingSceneMobileHook: "",
   ambientBackgroundHook: "plant-transport-structures-entry-wide",
+  evidenceOverview: "assets/plant-transport-structures-evidence-overview.webp",
   questionRootHair: "plant-transport-structures-root-hair",
   questionVascularBundle: "plant-transport-structures-vascular-bundle",
   questionXylemPhloem: "plant-transport-structures-xylem-phloem",
@@ -73,9 +74,22 @@ const reflectionRules = {
   copiedDirections: ["根毛吸收水分與礦物質", "根、莖、葉和維管束的關係", "木質部和韌皮部運輸什麼", "葉脈和運輸的關係", "蒸散作用與水分運輸", "形成層與莖增粗", "根吸收的物質和葉片製造的養分"]
 };
 
+const readyBadgeIds = new Set(["plant_transport_structures_entry", "plant_transport_structures_flawless"]);
 const badges = [
-  ["plant_transport_structures_entry", "綠植管線入門徽章", "完成綠植管線辨識任務。"], ["transport_need_mapper", "植物運輸需求徽章", "能判斷植物需要運輸構造。"], ["root_hair_absorber", "根毛吸收徽章", "能連結根毛與吸收。"], ["vascular_bundle_mapper", "維管束管線徽章", "能判讀維管束。"], ["xylem_water_mineral_carrier", "木質部運水徽章", "能判斷木質部運輸內容。"], ["phloem_nutrient_carrier", "韌皮部運養分徽章", "能判斷韌皮部運輸內容。"], ["leaf_vein_connector", "葉脈運輸徽章", "能判讀葉脈運輸功能。"], ["transpiration_basic_linker", "蒸散連結徽章", "能整理水分運輸流程。"], ["cambium_basic_identifier", "形成層入門徽章", "能低階辨識形成層。"], ["plant_transport_structure_interpreter", "構造判讀徽章", "能整理植物運輸構造。"], ["plant_transport_misconception_reviser", "植物運輸迷思修正徽章", "提示後修正植物運輸概念。"], ["plant_transport_structures_flawless", "植物運輸零提示全對徽章", "全部答對且全程未使用提示。"], ["plant_transport_reflection_reporter", "高品質植物運輸回報徽章", "回報品質達 discussion_question。"], ["retry_growth_plant_transport_structures", "再探綠植管線進步徽章", "再挑戰完整完成且正確率進步。"]
-].map(([id, name, condition]) => ({ id, name, condition, badge_image_path: badgeAsset(id), image_status: "pending" }));
+  ["plant_transport_structures_entry", "綠植管線入門徽章", "完成綠植管線辨識任務。"],
+  ["transport_need_mapper", "植物運輸需求徽章", "能判斷植物需要運輸構造。"],
+  ["root_hair_absorber", "根毛吸收徽章", "能連結根毛與吸收。"],
+  ["vascular_bundle_mapper", "維管束管線徽章", "能判讀維管束。"],
+  ["xylem_water_mineral_carrier", "木質部運水徽章", "能判斷木質部運輸內容。"],
+  ["phloem_nutrient_carrier", "韌皮部運養分徽章", "能判斷韌皮部運輸內容。"],
+  ["leaf_vein_connector", "葉脈運輸徽章", "能判讀葉脈運輸功能。"],
+  ["transpiration_basic_linker", "蒸散連結徽章", "能整理水分運輸流程。"],
+  ["plant_transport_structure_interpreter", "構造判讀徽章", "能整理植物運輸構造。"],
+  ["plant_transport_misconception_reviser", "植物運輸迷思修正徽章", "提示後修正植物運輸概念。"],
+  ["plant_transport_structures_flawless", "植物運輸零提示全對徽章", "全部答對且全程未使用提示。"],
+  ["plant_transport_reflection_reporter", "高品質植物運輸回報徽章", "回報品質達 discussion_question。"],
+  ["retry_growth_plant_transport_structures", "再探綠植管線進步徽章", "再挑戰完整完成且正確率進步。"]
+].map(([id, name, condition]) => ({ id, name, condition, badge_image_path: badgeAsset(id), image_status: readyBadgeIds.has(id) ? "ready" : "pending" }));
 
 const sequenceSteps = [
   { id: "soil_contact", label: "土壤中的水分與礦物質接觸根毛" }, { id: "root_hair_absorption", label: "根毛吸收水分與礦物質" }, { id: "xylem_upward_transport", label: "木質部把水分與礦物質往莖和葉運送" }, { id: "water_reaches_leaf", label: "水分到達葉片" }, { id: "transpiration_from_stoma", label: "部分水分經氣孔散失形成蒸散作用" }
@@ -103,9 +117,10 @@ const questionMap = Object.fromEntries(questions.map((question) => [question.id,
 const sections = {
   checkpoint1: ["q01", "q02", "q03", "q04"],
   checkpoint2: ["q05", "q06", "q07", "q08"],
-  checkpoint3: ["q09", "q10", "q11", "q12", "q13", "q14"]
+  checkpoint3: ["q09", "q10", "q11", "q13", "q14"]
 };
-const requiredQuestionIds = questions.map((question) => question.id);
+const directQuestions = questions.filter((question) => question.id !== "q12");
+const requiredQuestionIds = directQuestions.map((question) => question.id);
 
 const titleLevels = [
   { id: "trainee_investigator", need: 0, title: "見習調查員" },
@@ -574,7 +589,6 @@ function badgeIdsForScore(logs, reflection, retryExp, flawless) {
   if (passed(["q05", "q07", "q13", "q14"])) earned.push("phloem_nutrient_carrier");
   if (passed(["q03", "q08"])) earned.push("leaf_vein_connector");
   if (passed(["q09", "q10"])) earned.push("transpiration_basic_linker");
-  if (passed(["q12"])) earned.push("cambium_basic_identifier");
   if (passed(["q03", "q05", "q11"])) earned.push("plant_transport_structure_interpreter");
   if (correctedCore) earned.push("plant_transport_misconception_reviser");
   if (flawless) earned.push("plant_transport_structures_flawless");
@@ -776,7 +790,7 @@ function renderBrief() {
 }
 
 function renderScan() {
-  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入綠植運輸管線站前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚根吸收、木質部運水與韌皮部運養分。</h3><p>根毛增加接觸面積；維管束連接根、莖與葉；葉脈也包含運輸構造。</p></div></div><div class="concept-grid"><article><strong>根毛</strong><p>協助吸收水分與礦物質。</p></article><article><strong>維管束</strong><p>在根、莖、葉之間形成運輸管線。</p></article><article><strong>木質部與韌皮部</strong><p>分別連結水分礦物質與葉片製造的養分。</p></article><article><strong>蒸散</strong><p>從土壤、根、木質部到葉片的水分路徑。</p></article></div><button class="primary" data-next="checkpoint1">開始綠植管線辨識</button></section></div>`;
+  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入綠植運輸管線站前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚根吸收、木質部運水與韌皮部運養分。</h3><p>根毛增加接觸面積；維管束連接根、莖與葉；葉脈也包含運輸構造。</p></div></div><figure class="prep-overview-figure"><img src="${assets.evidenceOverview}" alt="植物運輸構造概念總覽圖" onerror="this.closest('.prep-overview-figure').hidden=true"><figcaption>概念總覽圖僅供進入關卡前建立情境；作答仍以題幹與選項為準。</figcaption></figure><div class="concept-grid"><article><strong>根毛</strong><p>協助吸收水分與礦物質。</p></article><article><strong>維管束</strong><p>在根、莖、葉之間形成運輸管線。</p></article><article><strong>木質部與韌皮部</strong><p>分別連結水分礦物質與葉片製造的養分。</p></article><article><strong>蒸散</strong><p>從土壤、根、木質部到葉片的水分路徑。</p></article></div><button class="primary" data-next="checkpoint1">開始綠植管線辨識</button></section></div>`;
 }
 
 function renderCheckpoint(section) {
@@ -802,12 +816,8 @@ function renderQuestion(question) {
 function conceptLabel(concept) { return {transport_need:"植物運輸需求",root_hair_absorption:"根毛吸收",vascular_bundle:"維管束",stem_transport_support:"莖的運輸構造",xylem_phloem_roles:"木質部與韌皮部",xylem_function:"木質部",phloem_function:"韌皮部",leaf_vein_transport:"葉脈運輸",transpiration_basic:"蒸散與水分路徑",cambium_basic:"形成層"}[concept] || concept; }
 
 function renderQuestionEvidence(qid) {
-  if (qid === "q01" || qid === "q04") return `<div class="evidence-card"><strong>運輸構造觀察卡</strong><p>植物不同部位需要交換水分、礦物質與養分；請依構造與位置判斷。</p></div>`;
   if (qid === "q03") return `<div class="evidence-card"><strong>根、莖、葉線索卡</strong><p>根接觸土壤、莖連接上下部位、葉片有葉脈；請完成每一列配對。</p></div>`;
-  if (qid === "q05" || qid === "q06" || qid === "q07") return `<div class="evidence-card"><strong>兩類運輸內容</strong><p>一類和根吸收的水分、礦物質相關；另一類和葉片製造的養分相關。</p></div>`;
   if (qid === "q08") return `<div class="evidence-card"><strong>葉脈觀察卡</strong><p>葉脈會連接葉片內外的運輸構造；請判斷它不只是外觀紋路的原因。</p></div>`;
-  if (qid === "q09" || qid === "q10") return `<div class="evidence-card"><strong>水分路徑資料卡</strong><p>從土壤、根毛、木質部到葉片；排序題可拖曳，手機可用上移／下移。</p></div>`;
-  if (qid === "q11" || qid === "q12") return `<div class="evidence-card"><strong>莖構造判讀卡</strong><p>觀察成束的管線與莖增粗的低階線索，再判斷相關構造。</p></div>`;
   return "";
 }
 
@@ -946,6 +956,10 @@ function renderReflection() {
 function renderResult() {
   const result = state.result || scoreAttempt();
   const statusCopy = resultStatusCopy(result);
+  const mode = resultMode(result);
+  const estimatedTotal = Number(result.attempt_exp ?? result.unit_credited_exp ?? 0) || 0;
+  const officialTotal = mode === "verified" ? Number(result.unit_credited_exp ?? estimatedTotal) || 0 : 0;
+  const officialDelta = mode === "verified" ? Number(result.exp_delta ?? result.credited_delta ?? officialTotal) || 0 : 0;
   return `
     <div class="stack result-stack">
       <section class="panel result-panel">
@@ -964,7 +978,8 @@ function renderResult() {
           ${ledgerRow("回報 EXP", result.reflection_exp)}
           ${ledgerRow("精熟 EXP", result.mastery_exp)}
           ${ledgerRow("再挑戰補分", result.retry_exp)}
-          ${ledgerRow("總計", result.unit_credited_exp)}
+          ${ledgerRow(mode === "verified" ? "正式認列總計" : "本次預估明細總計", mode === "verified" ? officialTotal : estimatedTotal)}
+          ${ledgerRow("正式認列／累積增量", officialDelta)}
         </div>
         <p class="muted">${statusCopy.detail}</p>
         <div class="button-row">
@@ -1018,7 +1033,7 @@ function renderBadgeWall(earned = [], options = {}) {
     : `<img src="${badge.badge_image_path}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('asset-missing'); this.remove();">`;
   return `<section class="panel"${unitAttributes}>
     <p class="eyebrow">${options.unitAchievements ? "本單元成就" : "徽章收藏牆"}</p>
-    <h2>本單元 14 枚徽章</h2>
+    <h2>本單元 13 枚徽章</h2>
     <div class="badge-wall">
       ${badges.map((badge) => `
         <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
@@ -1148,6 +1163,8 @@ if (typeof window !== "undefined") {
     assets,
     badges,
     questions,
+    directQuestions,
+    requiredQuestionIds,
     state: () => state,
     setState: (next) => { state = { ...createEmptyState(), ...next }; },
     createEmptyState,

@@ -12,7 +12,7 @@ try {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
     const page = await browser.newPage({ viewport });
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260714-plant-transport-structures-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260720-plant-transport-structures-extension-v2`);
     await page.locator("#guestBtn").click();
     await page.locator('[data-next="scan"]').click();
     const prep = page.locator(".prep-owl-hero");
@@ -24,7 +24,7 @@ try {
     await page.evaluate(() => {
       const api = window.__plant_transport_structuresTest;
       const answers = {};
-      for (const question of api.questions) {
+      for (const question of api.directQuestions) {
         if (question.type === "choice") answers[question.id] = question.answer;
         if (question.type === "mapping") answers[question.id] = question.answer;
         if (question.type === "sequence") answers[`${question.id}_sequence`] = question.answer;
@@ -44,6 +44,46 @@ try {
     assert.equal(await page.locator(".bq-feedback-mentor img:visible").count(), 1, "review shared mentor should be visible exactly once");
     assert.equal(await page.locator(".mentor-card img:visible").count(), 0, "legacy review mentor should be removed");
     assert.equal(await page.locator("body").evaluate((body) => body.textContent.includes("養分轉運線索") || body.textContent.includes("進入血液")), false, "human nutrition copy leaked into U16");
+    for (const mode of ["guest", "pending", "verified"]) {
+      await page.evaluate((modeName) => {
+        const api = window.__plant_transport_structuresTest;
+        const current = api.state();
+        const result = api.scoreAttempt();
+        api.setState({
+          ...current,
+          screen: "result",
+          student: modeName === "guest"
+            ? { student_id: "guest", student_name: "老師測試帳號", is_guest: true }
+            : { student_id: "S99999", student_name: "測試學生", is_guest: false },
+          result: {
+            ...result,
+            verification_status: modeName === "verified" ? "server_verified" : (modeName === "guest" ? "local_guest" : "pending_backend"),
+            attempt_exp: 500,
+            unit_credited_exp: modeName === "verified" ? 500 : 0,
+            exp_delta: modeName === "verified" ? 500 : 0
+          }
+        });
+        api.renderApp();
+      }, mode);
+      const text = await page.locator("body").innerText();
+      if (mode === "verified") {
+        assert.ok(text.includes("正式認列總計"), "verified result should show formal total");
+        assert.ok(text.includes("本單元正式認列"), "verified result should show formal credit label");
+      } else {
+        assert.ok(text.includes("本次預估明細總計"), `${mode} result should show estimated ledger total`);
+        assert.ok(text.includes("正式認列／累積增量"), `${mode} result should show formal delta zero row`);
+        assert.equal(text.includes("本單元認列"), false, `${mode} result should not show formal recognized copy`);
+      }
+    }
+    await page.evaluate(() => {
+      const api = window.__plant_transport_structuresTest;
+      const current = api.state();
+      api.setState({ ...current, screen: "checkpoint3" });
+      api.renderApp();
+    });
+    assert.equal(await page.locator('[data-question-id="q12"]').count(), 0, "q12 extension should not be active checkpoint content");
+    assert.equal(await page.locator('[data-question-id="q09"] .evidence-card').count(), 0, "q09 should not show a text evidence card");
+    assert.equal(await page.locator('[data-question-id="q11"] .evidence-card').count(), 0, "q11 should not show the legacy text evidence card");
     await page.evaluate(() => {
       const api = window.__plant_transport_structuresTest;
       const current = api.state();
