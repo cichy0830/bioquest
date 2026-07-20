@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260720-photosynthesis-badges-v1";
+const VERSION = "20260720-photosynthesis-badge-cache-v2";
 const QUESTION_VERSION = "20260720-photosynthesis-user-review-v2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -67,7 +67,7 @@ const assets = {
   questionVariableControl: "assets/img-photosynthesis-variable-control.webp"
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/photosynthesis/badge-photosynthesis-${id}.webp`;
+const badgeAsset = (id) => `../shared-assets/badges/photosynthesis/badge-photosynthesis-${id}.webp?v=${VERSION}`;
 const reflectionRules = {
   conceptTerms: ["光合作用", "二氧化碳", "水", "光", "光能", "葡萄糖", "養分", "氧氣", "葉綠體", "葉片", "氣孔", "葉脈", "澱粉", "碘液", "氣泡", "變因", "對照", "控制變因", "呼吸作用"],
   irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "午餐", "放假"],

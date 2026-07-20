@@ -57,7 +57,7 @@ appVersionOverrides.set("enzymes", "20260720-enzymes-user-review-v2");
 appVersionOverrides.set("nutrient_test", "20260720-nutrient-test-starch-glucose-only-v2");
 appVersionOverrides.set("scale", "20260717-scale-user-review-v2");
 appVersionOverrides.set("nutrients_energy", "20260717-badge-icon-cleanup-v1");
-appVersionOverrides.set("photosynthesis", "20260720-photosynthesis-badges-v1");
+appVersionOverrides.set("photosynthesis", "20260720-photosynthesis-badge-cache-v2");
 appVersionOverrides.set("biological_organization", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("cell_transport", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("plant_material_transport", "20260720-plant-material-transport-badges-v1");
@@ -127,14 +127,16 @@ function badgeInventory(source, folder) {
     const dynamicTemplate = source.match(/const badgeAsset = \(id\) => `([^`]+)`/)?.[1] || "";
     return [...block.matchAll(/\[\s*["']([^"']+)["']\s*,\s*["'][^"']+["']\s*,\s*["'][^"']+["']\s*\]/g)].map((match) => {
       const imagePath = dynamicTemplate ? dynamicTemplate.replace("${id}", match[1]) : "";
-      const absolute = imagePath ? path.resolve(root, folder, imagePath) : "";
+      const filePath = imagePath.split(/[?#]/)[0];
+      const absolute = filePath ? path.resolve(root, folder, filePath) : "";
       return { id: match[1], imagePath, exists: Boolean(absolute && fs.existsSync(absolute)) };
     });
   }
   const dynamicTemplate = source.match(/const badgeAsset = \(id\) => `([^`]+)`/)?.[1] || "";
   return entries.map((entry) => {
     const imagePath = entry.explicit || dynamicTemplate.replace("${id}", entry.id);
-    const absolute = imagePath ? path.resolve(root, folder, imagePath) : "";
+    const filePath = imagePath.split(/[?#]/)[0];
+    const absolute = filePath ? path.resolve(root, folder, filePath) : "";
     return { ...entry, imagePath, exists: Boolean(absolute && fs.existsSync(absolute)) };
   });
 }
