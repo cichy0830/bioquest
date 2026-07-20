@@ -11,7 +11,7 @@ const version = "20260715-title-avatar-card-v1";
 const versionOverrides = new Map([
   ["scale", "20260716-scale-prep-fallback-v3"],
   ["nutrients_energy", "20260717-nutrients-energy-u11-fixes-v3"],
-  ["nutrient_test", "20260717-nutrient-test-u12-fixes-v2"]
+  ["nutrient_test", "20260720-nutrient-test-starch-glucose-only-v2"]
 ]);
 const units = [
   { unitId: "cell_transport", folder: "prototype-cell-transport", storageKey: "bioquest_cell_transport_state_v1" },

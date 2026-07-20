@@ -3,8 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260717-nutrient-test-u12-fixes-v2";
-const QUESTION_VERSION = "20260711-nutrient-test-v1";
+const VERSION = "20260720-nutrient-test-starch-glucose-only-v2";
+const QUESTION_VERSION = "20260720-nutrient-test-starch-glucose-only-v2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -31,17 +31,15 @@ const assets = {
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "assets/bg-nutrient-test-briefing-azhe-wide.webp",
   ambientBackgroundHook: "assets/bg-nutrient-test-entry-wide.webp",
-  iodineStarchColorHook: "assets/iodine-starch-color-cards.webp",
-  biuretProteinColorHook: "assets/biuret-protein-color-cards.webp",
-  lipidOilSpotHook: "assets/lipid-oil-spot-cards.webp"
+  iodineStarchColorHook: "assets/iodine-starch-color-cards.webp"
 };
 
 const badgeAsset = (id) => `../shared-assets/badges/nutrient_test/badge-nutrient_test-${id}.webp`;
 const reflectionRules = {
-  conceptTerms: ["養分檢測", "試劑", "碘液", "澱粉", "本氏液", "葡萄糖", "蛋白質", "雙縮脲", "脂質", "蘇丹", "油斑", "加熱", "顏色變化", "藍黑色", "紫色", "紅橘色", "對照組", "試管", "樣品", "未變色", "實驗安全", "資料判讀", "證據"],
+  conceptTerms: ["養分檢測", "試劑", "碘液", "澱粉", "本氏液", "葡萄糖", "加熱", "顏色變化", "藍黑色", "藍色", "橙紅色", "對照組", "比較基準", "試管", "樣品", "未變色", "實驗安全", "資料判讀", "證據", "證據限制"],
   irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "我喜歡炸雞", "減肥", "身材"],
   lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
-  copiedDirections: ["碘液和本氏液的檢測目標差異", "本氏液加熱後的顏色變化", "蛋白質檢測的紫色反應", "脂質油斑或染色線索", "對照組為什麼能作為比較基準", "檢測結果的證據限制", "加熱與試管安全"]
+  copiedDirections: ["試劑選擇", "顏色變化", "本氏液安全", "對照組", "證據限制", "碘液和本氏液的檢測目標差異", "本氏液加熱後的顏色變化", "對照組為什麼能作為比較基準", "檢測結果的證據限制", "加熱與試管安全"]
 };
 
 const badges = [
@@ -58,36 +56,26 @@ const badges = [
   { id: "retry_growth_nutrient_test", name: "再探檢測進步徽章", condition: "再挑戰完整完成且正確率進步。" }
 ].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id) }));
 
-const sequenceSteps = [
-  { id: "label", label: "辨認紀錄中的樣品與比較組標示" },
-  { id: "reagent", label: "確認紀錄註明的檢測資料類型" },
-  { id: "safe_heat", label: "確認安全條件已由老師完成並記錄" },
-  { id: "observe", label: "讀取完成觀察後的顏色現象" },
-  { id: "compare", label: "將現象和比較組一起解讀" }
-];
-const correctSequence = ["label", "reagent", "safe_heat", "observe", "compare"];
-
 const questions = [
-  { id: "q02", section: "checkpoint1", concept: "starch_iodine_test", answer: "starch_possible", prompt: "資料卡顯示：樣品接觸碘液後呈藍黑色。這個結果最能支持哪一項判斷？", hint: "先想碘液常用來追蹤哪一類和主食、麵粉有關的養分。", misconception: "iodine_benedict_confusion", visual: "iodine", options: [{ id: "starch_possible", text: "樣品可能含澱粉" }, { id: "glucose_certain", text: "樣品一定含葡萄糖" }, { id: "protein_certain", text: "樣品一定含蛋白質" }, { id: "all_absent", text: "樣品完全沒有其他養分" }] },
-  { id: "q03", section: "checkpoint1", concept: "glucose_benedict_test", answer: "glucose_possible", prompt: "老師提供的完成觀察紀錄中，本氏液安全加熱後由藍色轉為橙紅色。這最能支持什麼？", hint: "注意「本氏液」和「完成加熱觀察」兩個線索，再回到它追蹤的養分。", misconception: "benedict_no_heat", visual: "benedict", options: [{ id: "glucose_possible", text: "樣品可能含葡萄糖" }, { id: "starch_certain", text: "樣品一定含澱粉" }, { id: "lipid_certain", text: "樣品一定含脂質" }, { id: "all_nutrients", text: "所有養分都很多" }] },
-  { id: "q04", section: "checkpoint1", concept: "protein_biuret_test", answer: "protein_possible", prompt: "蛋白質檢測資料卡出現紫色反應。哪個判斷較合理？", hint: "比較資料卡的原始顏色與觀察後顏色，再回到題目指定的檢測目標。", misconception: "protein_method_confusion", visual: "biuret", options: [{ id: "protein_possible", text: "樣品可能含蛋白質" }, { id: "water_only", text: "樣品可能只含水" }, { id: "starch_purple", text: "紫色代表澱粉" }, { id: "no_heat", text: "紫色代表本氏液沒有加熱" }] },
-  { id: "q05", section: "checkpoint2", concept: "lipid_test", answer: "lipid_possible", prompt: "在相同紙材、樣品量與觀察時間下，樣品留下持續可見的透明油斑；另一份完成紀錄呈現指定染色線索。這較適合支持什麼？", hint: "先確認透明痕跡是在相同材料與觀察條件下比較，而且能持續存在；不要把任何透明或潮濕痕跡都當成同一證據。", misconception: "lipid_overgeneralization", visual: "lipid", options: [{ id: "lipid_possible", text: "樣品可能含脂質" }, { id: "starch_certain", text: "樣品一定含澱粉" }, { id: "glucose_certain", text: "樣品一定含葡萄糖" }, { id: "no_protein", text: "樣品完全不含蛋白質" }] },
+  { id: "q02", section: "checkpoint1", concept: "starch_iodine_test", answer: "starch_possible", prompt: "某樣品滴入碘液後變成藍黑色。這個結果最能支持哪一項判斷？", hint: "回想碘液常用來尋找哪一類和米飯、麵粉較相關的養分。", misconception: "iodine_benedict_confusion", visual: "iodine", options: [{ id: "starch_possible", text: "樣品可能含澱粉" }, { id: "glucose_certain", text: "樣品一定含葡萄糖" }, { id: "all_absent", text: "樣品完全沒有其他養分" }, { id: "all_test", text: "碘液可檢測所有養分" }] },
+  { id: "q03", section: "checkpoint1", concept: "glucose_benedict_test", answer: "glucose_possible", prompt: "某樣品加入本氏液，依老師提供的完成安全加熱觀察紀錄，由藍色轉為橙紅色。這個結果最能支持哪一項判斷？", hint: "注意題目中的本氏液、完成安全加熱觀察與顏色由藍色改變。", misconception: "benedict_no_heat", visual: "benedict", options: [{ id: "glucose_possible", text: "樣品可能含葡萄糖" }, { id: "starch_certain", text: "樣品一定含澱粉" }, { id: "no_nutrients", text: "樣品完全沒有其他養分" }, { id: "all_nutrients", text: "只要變色就代表所有養分都很多" }] },
   { id: "q06", section: "checkpoint2", concept: "color_change_evidence", answer: "starch_not_supported", prompt: "某樣品的碘液紀錄沒有出現藍黑色。哪個解讀較合理？", hint: "先問碘液原本檢測哪一個目標，再判斷沒有變色代表哪個範圍的證據不足。", misconception: "no_change_no_nutrients", visual: "iodine", options: [{ id: "starch_not_supported", text: "這次檢測未支持含澱粉，不能直接說沒有任何養分" }, { id: "no_nutrients", text: "樣品完全沒有任何養分" }, { id: "glucose_large", text: "樣品一定含大量葡萄糖" }, { id: "all_test", text: "碘液可檢測所有養分" }] },
-  { id: "q07", section: "checkpoint2", concept: "evidence_limit", answer: "starch_protein", prompt: "未知樣品紀錄：碘液藍黑色；本氏液完成加熱後仍藍色；蛋白質檢測紫色；脂質線索不明顯。哪個結論較合理？", hint: "一次看一個檢測目標，再合併支持的證據；不要把一項結果擴大到所有養分。", misconception: "color_all_nutrients", visual: "control", options: [{ id: "starch_protein", text: "目前證據支持可能含澱粉與蛋白質" }, { id: "all_nutrients", text: "目前證據支持含所有養分" }, { id: "starch_means_glucose", text: "只要有澱粉就一定有葡萄糖" }, { id: "none", text: "脂質線索不明顯，所以沒有任何養分" }] },
-  { id: "q08", section: "checkpoint2", concept: "starch_iodine_test", answer: "iodine_starch", prompt: "老師要判讀麵粉水是否有澱粉的證據，哪一張檢測資料卡最直接相關？", hint: "題目目標是澱粉，先找和澱粉最直接相關的檢測線索。", misconception: "iodine_benedict_confusion", visual: "iodine", options: [{ id: "iodine_starch", text: "碘液與藍黑色變化的比較資料" }, { id: "benedict_without_context", text: "沒有加熱條件的本氏液資料" }, { id: "paper_only", text: "只看紙張是否有油斑" }, { id: "appearance", text: "只看樣品外觀顏色" }] },
+  { id: "q07", section: "checkpoint2", concept: "evidence_limit", answer: "starch_supported_glucose_not_supported", prompt: "某未知樣品紀錄：碘液變藍黑色；本氏液完成安全加熱觀察後仍呈藍色。哪個結論較合理？", hint: "一次看一個檢測目標，再把支持或未支持的證據合併；不要把一項結果擴大到所有養分。", misconception: "color_all_nutrients", visual: "control", options: [{ id: "starch_supported_glucose_not_supported", text: "目前證據支持可能含澱粉，但沒有支持含葡萄糖" }, { id: "all_nutrients", text: "目前證據支持含所有養分" }, { id: "starch_means_glucose", text: "只要有澱粉就一定有葡萄糖" }, { id: "none", text: "本氏液仍藍色代表樣品沒有任何養分" }] },
+  { id: "q08", section: "checkpoint2", concept: "starch_iodine_test", answer: "iodine_starch", prompt: "老師想快速檢查麵粉水中是否含澱粉，應優先選哪一種檢測？", hint: "題目目標是澱粉，先找和澱粉最直接相關的檢測方法。", misconception: "iodine_benedict_confusion", visual: "iodine", options: [{ id: "iodine_starch", text: "使用碘液觀察是否出現藍黑色" }, { id: "appearance", text: "只看外觀是否白色" }, { id: "benedict_without_context", text: "使用本氏液但不看完成加熱後結果" }, { id: "smell", text: "只用聞味道判斷" }] },
   { id: "q11", section: "checkpoint3", concept: "control_group", answer: "comparison_basis", prompt: "在養分檢測資料中加入已知樣品或清水作比較，主要目的較接近哪一項？", hint: "先找未知樣品單獨紀錄時還缺少哪一種判斷依據，再看其他資料能補足什麼缺口。", misconception: "control_unnecessary", visual: "control", options: [{ id: "comparison_basis", text: "提供比較基準，幫助判斷未知樣品的變化" }, { id: "more_steps", text: "讓紀錄看起來比較多步驟" }, { id: "replace_unknown", text: "取代未知樣品" }, { id: "all_positive", text: "讓所有樣品都變成陽性" }] },
   { id: "q12", section: "checkpoint3", concept: "control_group", answer: "positive_negative", prompt: "若要判讀碘液的澱粉證據，哪個比較設計較合理？", hint: "想想哪兩種資料能讓你比較「有目標養分」和「沒有目標養分」的差別。", misconception: "control_unnecessary", visual: "control", options: [{ id: "positive_negative", text: "用已知含澱粉樣品和清水作比較" }, { id: "one_unknown", text: "只看未知樣品一次" }, { id: "mix_all", text: "把所有資料混成一組" }, { id: "no_record", text: "不記錄原本顏色" }] },
-  { id: "q13", section: "checkpoint3", concept: "evidence_limit", answer: "target_limit", prompt: "有同學說：『顏色越深，代表這個食物所有養分都越多。』哪個修正較合理？", hint: "這份紀錄是定性線索。先確認它只追蹤哪個目標，以及不同資料是否在相同條件下取得。", misconception: "color_all_nutrients", visual: "control", options: [{ id: "target_limit", text: "顏色深淺要先回到該檢測目標，不能直接代表所有養分" }, { id: "all_protein", text: "顏色越深一定代表蛋白質越多" }, { id: "no_control", text: "只要顏色深就不用比較" }, { id: "same_meaning", text: "所有試劑的顏色意義都一樣" }] },
-  { id: "q14", section: "checkpoint3", concept: "glucose_benedict_test", answer: "heat_required", prompt: "有同學說：『本氏液滴進樣品就能馬上判斷葡萄糖，不需要加熱。』哪個修正較合理？", hint: "先檢查完成觀察紀錄是否具備判讀所需條件；條件不完整時，顏色資料能否直接支持結論？", misconception: "benedict_no_heat", visual: "benedict", options: [{ id: "heat_required", text: "本氏液檢測葡萄糖通常需在安全加熱後觀察顏色變化" }, { id: "iodine_target", text: "本氏液主要檢測澱粉" }, { id: "all_positive", text: "加熱會讓所有樣品一定陽性" }, { id: "all_test", text: "本氏液可以檢測所有養分" }] }
+  { id: "q13", section: "checkpoint3", concept: "evidence_limit", answer: "target_limit", prompt: "有同學說：「某項檢測顏色變化越深，就代表這個食物各種養分都越多。」哪個修正較合理？", hint: "先問這個試劑檢測的是哪一個目標，再決定結果能支持到哪個範圍。", misconception: "color_all_nutrients", visual: "control", options: [{ id: "target_limit", text: "顏色深淺要先回到該檢測目標，不能直接代表各種養分" }, { id: "glucose_deeper", text: "顏色越深一定代表葡萄糖越多" }, { id: "no_control", text: "只要顏色深就不用對照組" }, { id: "same_meaning", text: "所有檢測顏色意義都一樣" }] },
+  { id: "q14", section: "checkpoint3", concept: "glucose_benedict_test", answer: "heat_required", prompt: "有同學說：「本氏液只要滴進樣品就能馬上判斷葡萄糖，不需要看完成加熱後的結果。」哪個修正較合理？", hint: "先確認題幹中的判讀條件是否已完整，再決定能不能下結論。", misconception: "benedict_no_heat", visual: "benedict", options: [{ id: "heat_required", text: "本氏液檢測葡萄糖通常需完成安全加熱觀察後再判讀顏色變化" }, { id: "iodine_target", text: "本氏液檢測澱粉" }, { id: "all_positive", text: "加熱會讓所有樣品一定陽性" }, { id: "all_test", text: "本氏液可以檢測所有養分" }] }
 ];
 
 const multiSelectQuestions = {
   q10: {
-    prompt: "下列哪些是本氏液加熱檢測資料中需要注意的安全原則？",
+    prompt: "下列哪些是閱讀本氏液完成安全加熱觀察紀錄時，較需要注意的安全原則？",
+    concept: "benedict_safety",
     hint: "看到加熱與試管時，先想眼睛、燙傷、液體噴濺與試管口方向。",
     misconception: "unsafe_heating",
-    options: [{ id: "goggles", text: "依老師規範使用護目鏡" }, { id: "away", text: "試管口不朝向自己或同學" }, { id: "hot", text: "避免直接用手碰剛加熱的器材" }, { id: "water_bath", text: "依老師指定的安全方式完成加熱觀察" }, { id: "toward_people", text: "把試管口對準同學方便觀察" }, { id: "smell", text: "邊加熱邊靠近聞氣味" }],
-    answers: ["goggles", "away", "hot", "water_bath"],
+    options: [{ id: "goggles", text: "依老師規範使用護目鏡" }, { id: "away", text: "試管口不朝向自己或同學" }, { id: "hot", text: "避免直接碰觸熱試管" }, { id: "teacher_safe_method", text: "依老師指定的安全方式完成加熱觀察" }, { id: "toward_people", text: "把試管口對準同學方便觀察" }, { id: "smell", text: "靠近聞氣味" }],
+    answers: ["goggles", "away", "hot", "teacher_safe_method"],
     evidence: "completed_observation"
   }
 };
@@ -97,16 +85,27 @@ const classifyQuestions = {
     prompt: "請將檢測方法與主要檢測目標配對。每一列都要選擇。",
     hint: "先想每一種檢測方法最常被用來追蹤哪一類養分；不要只看顏色。",
     misconception: "iodine_benedict_confusion",
-    options: [{ id: "starch", label: "澱粉" }, { id: "glucose", label: "葡萄糖" }, { id: "protein", label: "蛋白質" }, { id: "lipid", label: "脂質" }],
-    items: [{ id: "iodine", label: "碘液資料卡", answer: "starch" }, { id: "benedict", label: "本氏液完成加熱資料卡", answer: "glucose" }, { id: "biuret", label: "蛋白質檢測資料卡", answer: "protein" }, { id: "lipid_test", label: "蘇丹／油斑資料卡", answer: "lipid" }]
+    options: [{ id: "starch", label: "澱粉" }, { id: "glucose", label: "葡萄糖" }],
+    items: [{ id: "iodine", label: "碘液資料卡", answer: "starch" }, { id: "benedict", label: "本氏液完成安全加熱觀察資料卡", answer: "glucose" }]
   }
 };
 
 const sectionMap = {
-  checkpoint1: ["q01", "q02", "q03", "q04"],
-  checkpoint2: ["q05", "q06", "q07", "q08"],
-  checkpoint3: ["q09", "q10", "q11", "q12", "q13", "q14"]
+  checkpoint1: ["q01", "q02", "q03"],
+  checkpoint2: ["q06", "q07", "q08", "q13"],
+  checkpoint3: ["q10", "q11", "q12", "q14"]
 };
+function requiredQuestionIds() {
+  return [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
+}
+function activeRawAnswers() {
+  const answers = {};
+  requiredQuestionIds().forEach((qid) => {
+    answers[qid] = state.answers[qid];
+  });
+  answers.reflection = state.answers.reflection || {};
+  return answers;
+}
 
 const defaultState = {
   screen: "login",
@@ -126,7 +125,7 @@ const defaultState = {
   completed_unit_count: 0,
   started_at: null,
   completedScreens: ["login", "rules"],
-  answers: { q01: {}, q09_sequence: [], q10: [], reflection: {} },
+  answers: { q01: {}, q10: [], reflection: {} },
   hints: {},
   checkedWrong: {},
   interactions: {},
@@ -138,8 +137,6 @@ const defaultState = {
 };
 
 let state = loadState();
-let draggedSequenceId = null;
-
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
 function questionById(id) { return questions.find((question) => question.id === id); }
 function loadState() {
@@ -267,13 +264,6 @@ function orderedOptions(question) {
     .map((id) => question.options.find((option) => option.id === id))
     .filter(Boolean);
 }
-function ensureSequence() {
-  if (!state.answers.q09_sequence?.length) {
-    state.answers.q09_sequence = optionOrder("q09_sequence", sequenceSteps.map((step) => step.id));
-    saveState();
-  }
-  return state.answers.q09_sequence;
-}
 
 function unlock(...screens) {
   screens.forEach((item) => {
@@ -396,7 +386,6 @@ async function login(id) {
     state.question_version = QUESTION_VERSION;
     state.backend_status = "local_guest";
     unlock("brief", "rules", "achievements");
-    ensureSequence();
     saveState();
     setScreen("brief");
     return;
@@ -436,7 +425,6 @@ async function login(id) {
   state.remote_previous_accuracy = remoteAccuracy === null || remoteAccuracy === undefined || remoteAccuracy === "" ? null : Number.isFinite(Number(remoteAccuracy)) ? Number(remoteAccuracy) : null;
   applyBackendProgress(remoteProgress);
   unlock("brief", "rules", "achievements");
-  ensureSequence();
   saveState();
   setScreen("brief");
 }
@@ -463,9 +451,7 @@ function assetFigure(src, alt, caption) {
 }
 function renderQuestionImage(question) {
   const map = {
-    q02: [assets.iodineStarchColorHook, "題目現象比較圖", "請配合題幹與完成紀錄判讀；圖卡本身不代表結論。"],
-    q04: [assets.biuretProteinColorHook, "題目顏色比較圖", "比較觀察前後的顏色資料，再判斷證據範圍。"],
-    q05: [assets.lipidOilSpotHook, "題目現象比較圖", "比較相同材料與觀察條件下的完成紀錄。"]
+    q02: [assets.iodineStarchColorHook, "題目現象比較圖", "請配合題幹與完成紀錄判讀；圖卡本身不代表結論。"]
   };
   const row = map[question.id];
   return row ? assetFigure(row[0], row[1], row[2]) : "";
@@ -488,11 +474,9 @@ function renderQuestionEvidence(qid) {
     ]);
   }
   if (qid === "q07") {
-    return evidenceTable("未知樣品四項完成觀察", ["資料卡", "完成觀察"], [
+    return evidenceTable("未知樣品完成觀察", ["資料卡", "完成觀察"], [
       ["碘液紀錄", "呈藍黑色"],
-      ["本氏液紀錄", "老師完成必要條件後仍為藍色"],
-      ["蛋白質檢測紀錄", "呈紫色"],
-      ["脂質線索紀錄", "未見明顯線索"]
+      ["本氏液紀錄", "老師完成必要條件後仍為藍色"]
     ]);
   }
   if (qid === "q08") {
@@ -501,13 +485,6 @@ function renderQuestionEvidence(qid) {
       ["乙", "檢測液資料，但必要條件未完整記錄"],
       ["丙", "紙張觀察紀錄"],
       ["丁", "樣品原本外觀"]
-    ]);
-  }
-  if (["q11", "q12"].includes(qid)) {
-    return evidenceTable("比較資料配置", ["資料角色", "紀錄狀態"], [
-      ["未知樣品", "待判讀"],
-      ["已知樣品", "完成紀錄"],
-      ["基準樣品", "完成紀錄"]
     ]);
   }
   if (qid === "q13") {
@@ -525,10 +502,6 @@ function renderMultiSelect(qid) {
   const order = optionOrder(`${qid}_multi`, config.options.map((option) => option.id)).map((id) => config.options.find((option) => option.id === id));
   return `<div class="question-card multi-select-card" data-question-id="${qid}"><div class="question-mode-banner"><strong>可複選</strong><span>請選出所有符合的選項</span></div><h3>${config.prompt}</h3>${completedObservationCard("安全欄位記錄護具、試管口方向、高溫器材與老師指定條件；請只判斷風險原則。")}<div class="choice-grid">${order.map((option) => `<button class="choice-button ${selected.includes(option.id) ? "selected" : ""}" data-multi="${qid}" data-value="${option.id}" aria-pressed="${selected.includes(option.id)}">${option.text}</button>`).join("")}</div><p class="selected-answer">${selected.length ? `已選：${selected.map((id) => config.options.find((option) => option.id === id)?.text).filter(Boolean).join("、")}` : "尚未選擇"}</p>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
 }
-function renderSequenceQuestion() {
-  const order = ensureSequence();
-  return `<div class="question-card" data-question-id="q09"><h3>閱讀老師已完成的觀察紀錄摘要，拖曳整理資料判讀順序。</h3><p class="field-help">排序題：可拖曳卡片；手機可使用上移 / 下移按鈕。只整理紀錄欄位的閱讀順序，不是實驗操作流程。</p>${completedObservationCard("紀錄已由老師完成，包含多類可讀欄位；請先判斷每張卡是在辨認資料、確認判讀條件、讀取現象，還是協助比較證據。")}<div class="sortable-list">${order.map((id, index) => { const step = sequenceSteps.find((item) => item.id === id); return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><strong>${step.label}</strong><div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`; }).join("")}</div>${state.hints.q09 ? `<div class="feedback warn">先把每張卡的功能分清楚：有些用來確認資料來源，有些用來確認判讀條件，有些才是觀察與比較。請想想哪些資訊必須在形成結論前先看。</div>` : ""}${state.checkedWrong.q09 ? `<div class="feedback bad">順序仍可調整；請重新整理讀取完成紀錄與比較證據的邏輯。</div>` : ""}</div>`;
-}
 function renderClassifyQuestion(qid) {
   const config = classifyQuestions[qid];
   const items = optionOrder(`${qid}_items`, config.items.map((item) => item.id)).map((id) => config.items.find((item) => item.id === id));
@@ -545,14 +518,13 @@ function renderBrief() {
     <div class="mission-hud"><div><span>任務區</span><strong>生命補給實驗站</strong></div><div><span>重點</span><strong>檢測證據</strong></div><div><span>原則</span><strong>安全與比較</strong></div></div><div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
 }
 function renderScan() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的證據線索</h2><div class="owl-frame nutrient-test-prep-owl"><img src="${assets.owlPrep}" alt="養分檢測提醒貓頭鷹"></div><div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>不同資料卡只追蹤特定養分；有加熱線索先判斷安全；顏色變化要和比較組一起看；單一結果不能代表完整營養分析。</p></div><div class="card-grid"><div class="concept-card"><strong>檢測目標</strong><p>先辨認資料卡要追蹤的是澱粉、葡萄糖、蛋白質或脂質。</p></div><div class="concept-card"><strong>安全線索</strong><p>看到加熱與試管時，先注意護目鏡、試管口方向與燙傷風險。</p></div><div class="concept-card"><strong>比較基準</strong><p>未知樣品要和陽性、陰性或清水資料一起判讀。</p></div><div class="concept-card"><strong>證據範圍</strong><p>結果只支持特定養分是否可能存在，不替代完整分析。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的證據線索</h2><div class="owl-frame nutrient-test-prep-owl"><img src="${assets.owlPrep}" alt="養分檢測提醒貓頭鷹"></div><div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>本單元只判讀澱粉與葡萄糖檢測資料；有本氏液與加熱線索時先確認安全原則，顏色變化要和比較基準一起看。</p></div><div class="card-grid"><div class="concept-card"><strong>檢測目標</strong><p>碘液連到澱粉；本氏液完成安全加熱觀察後，可判讀葡萄糖線索。</p></div><div class="concept-card"><strong>安全線索</strong><p>看到本氏液與加熱紀錄時，先注意護目鏡、試管口方向與燙傷風險。</p></div><div class="concept-card"><strong>比較基準</strong><p>未知樣品要和已知樣品或清水資料一起判讀。</p></div><div class="concept-card"><strong>證據範圍</strong><p>結果只支持特定養分是否可能存在，不替代完整分析。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div></div>`;
 }
-function renderCheckpoint1() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>試劑目標與顏色證據</h2><div class="question-grid">${renderClassifyQuestion("q01")}${["q02","q03","q04"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`; }
-function renderCheckpoint2() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>樣品結果與證據範圍</h2><div class="question-grid">${["q05","q06","q07","q08"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`; }
-function renderCheckpoint3() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>安全、對照與資料判讀</h2><div class="question-grid">${renderSequenceQuestion()}${renderMultiSelect("q10")}${["q11","q12","q13","q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`; }
+function renderCheckpoint1() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>試劑目標與顏色證據</h2><div class="question-grid">${renderClassifyQuestion("q01")}${["q02","q03"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`; }
+function renderCheckpoint2() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>樣品結果與證據範圍</h2><div class="question-grid">${["q06","q07","q08","q13"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`; }
+function renderCheckpoint3() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>安全、對照與資料判讀</h2><div class="question-grid">${renderMultiSelect("q10")}${["q11","q12","q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`; }
 
 function isCorrect(qid) {
-  if (qid === "q09") return ensureSequence().join("|") === correctSequence.join("|");
   if (multiSelectQuestions[qid]) {
     const selected = [...(state.answers[qid] || [])].sort();
     const expected = [...multiSelectQuestions[qid].answers].sort();
@@ -562,14 +534,13 @@ function isCorrect(qid) {
   return state.answers[qid] === questionById(qid).answer;
 }
 function isAnswered(qid) {
-  if (qid === "q09") return Boolean(state.interactions.q09) && ensureSequence().length === correctSequence.length;
   if (multiSelectQuestions[qid]) return Boolean(state.interactions[qid]) && (state.answers[qid] || []).length > 0;
   if (classifyQuestions[qid]) return classifyQuestions[qid].items.every((item) => Boolean(state.answers[qid]?.[item.id]));
   return Boolean(state.answers[qid]);
 }
 
 function allRequiredAnswered() {
-  return [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].every(isAnswered);
+  return requiredQuestionIds().every(isAnswered);
 }
 async function markHint(qid) {
   if (state.hints[qid]) return true;
@@ -624,18 +595,6 @@ async function checkSection(section) {
   saveState();
   setScreen(next);
 }
-function moveSequence(id, dir) {
-  const order = ensureSequence(); const index = order.indexOf(id); const next = index + dir;
-  if (index < 0 || next < 0 || next >= order.length) return;
-  [order[index], order[next]] = [order[next], order[index]];
-  state.answers.q09_sequence = order; state.interactions.q09 = true; saveState(); render();
-}
-function dropSequence(targetId) {
-  if (!draggedSequenceId || draggedSequenceId === targetId) return;
-  const order = ensureSequence().filter((id) => id !== draggedSequenceId);
-  order.splice(order.indexOf(targetId), 0, draggedSequenceId);
-  state.answers.q09_sequence = order; state.interactions.q09 = true; draggedSequenceId = null; saveState(); render();
-}
 
 function attachQuestionEvents() {
   document.querySelectorAll("[data-choice]").forEach((button) => button.addEventListener("click", async () => {
@@ -657,8 +616,6 @@ function attachQuestionEvents() {
     if (select.value && item && select.value !== item.answer && !await markHint(qid)) return;
     saveState(); render();
   }));
-  document.querySelectorAll("[data-move]").forEach((button) => button.addEventListener("click", () => moveSequence(button.dataset.move, Number(button.dataset.dir))));
-  document.querySelectorAll(".sortable-item").forEach((item) => { item.addEventListener("dragstart", () => { draggedSequenceId = item.dataset.sequenceId; }); item.addEventListener("dragover", (event) => event.preventDefault()); item.addEventListener("drop", (event) => { event.preventDefault(); dropSequence(item.dataset.sequenceId); }); });
   const checkButton = document.querySelector("#checkSection");
   if (checkButton) checkButton.addEventListener("click", async () => checkSection(checkButton.dataset.section));
 }
@@ -667,22 +624,20 @@ function evaluateReflectionQuality(reflection) {
   return window.BioQuestReflectionQuality.evaluate(reflection, reflectionRules);
 }
 function questionConcept(qid) {
-  if (qid === "q01") return "starch_iodine_test";
-  if (qid === "q09") return "heating_safety";
-  if (qid === "q10") return "heating_safety";
+  if (qid === "q01") return "reagent_target_match";
+  if (multiSelectQuestions[qid]) return multiSelectQuestions[qid].concept || "unknown";
   return questionById(qid)?.concept || "unknown";
 }
 function questionMisconception(qid) {
   if (multiSelectQuestions[qid]) return multiSelectQuestions[qid].misconception;
   if (classifyQuestions[qid]) return classifyQuestions[qid].misconception;
-  if (qid === "q09") return "unsafe_heating";
   return questionById(qid)?.misconception || "unknown";
 }
 
 function calculateResult() {
-  const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
+  const qids = requiredQuestionIds();
   const total = qids.length; const correctIds = qids.filter(isCorrect); const correct = correctIds.length;
-  const hintUsed = Object.values(state.hints).filter(Boolean).length;
+  const hintUsed = qids.filter((qid) => state.hints[qid]).length;
   const correctWithoutHint = correctIds.filter((qid) => !state.hints[qid]).length;
   const correctedAfterHint = correctIds.filter((qid) => state.hints[qid]).length;
   const directExp = Math.round(DIRECT_EXP_POOL * (correctWithoutHint / total));
@@ -699,12 +654,12 @@ function calculateResult() {
   const sectionStats = [sectionStat("試劑目標與顏色證據", sectionMap.checkpoint1), sectionStat("樣品結果與證據範圍", sectionMap.checkpoint2), sectionStat("安全、對照與資料判讀", sectionMap.checkpoint3)];
   const misconceptions = [...new Set(qids.filter((qid) => !isCorrect(qid) || state.hints[qid]).map(questionMisconception))];
   const earned = completionExp ? ["nutrient_test_entry"] : [];
-  if (["q01","q02","q03","q04"].every(isCorrect)) earned.push("reagent_nutrient_matcher");
-  if (["q02","q03","q04","q05"].every(isCorrect)) earned.push("color_change_interpreter");
-  if (["q09","q10","q14"].every(isCorrect)) earned.push("heating_safety_keeper");
+  if (["q01","q02","q03","q08"].every(isCorrect)) earned.push("reagent_nutrient_matcher");
+  if (["q02","q03","q06","q07"].every(isCorrect)) earned.push("color_change_interpreter");
+  if (["q10","q14"].every(isCorrect)) earned.push("heating_safety_keeper");
   if (["q11","q12"].every(isCorrect)) earned.push("control_group_designer");
   if (["q06","q07","q13"].every(isCorrect)) earned.push("test_data_evidence_reader");
-  if (["q05","q06","q07","q08"].every(isCorrect)) earned.push("sample_result_classifier");
+  if (["q06","q07","q08"].every(isCorrect)) earned.push("sample_result_classifier");
   if (qids.some((qid) => isCorrect(qid) && state.hints[qid])) earned.push("nutrient_test_misconception_reviser");
   if (accuracy === 1 && hintUsed === 0) earned.push("nutrient_test_flawless");
   if (reflectionEval.reflection_quality === "discussion_question" && reflectionEval.reflection_review_status === "server_recalculated") earned.push("nutrient_test_reflection_reporter");
@@ -720,8 +675,6 @@ function misconceptionText(tag) {
     no_change_no_nutrients: "建議再確認未變色只代表該檢測未支持目標養分，不代表樣品沒有所有養分。",
     control_unnecessary: "建議再理解對照組：比較基準能幫助判讀未知樣品，不是多餘步驟。",
     unsafe_heating: "建議再留意加熱與試管安全：護目鏡、試管口方向與避免碰觸高溫器材。",
-    lipid_overgeneralization: "建議再確認脂質證據要看指定染色或油斑線索，不能只靠外觀猜測。",
-    protein_method_confusion: "建議再整理蛋白質檢測的紫色或紫紅色線索，避免和其他資料卡混淆。"
   };
   return map[tag] || "建議再把檢測目標、比較基準、安全條件與證據範圍連在一起檢查。";
 }
@@ -737,9 +690,9 @@ function renderReflection() {
 }
 
 function buildBackendPayload(attempt) {
-  const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
-  const answerFor = (qid) => qid === "q09" ? state.answers.q09_sequence : state.answers[qid];
-  const correctFor = (qid) => qid === "q09" ? correctSequence : multiSelectQuestions[qid] ? multiSelectQuestions[qid].answers : classifyQuestions[qid] ? Object.fromEntries(classifyQuestions[qid].items.map((item) => [item.id, item.answer])) : questionById(qid).answer;
+  const qids = requiredQuestionIds();
+  const answerFor = (qid) => state.answers[qid];
+  const correctFor = (qid) => multiSelectQuestions[qid] ? multiSelectQuestions[qid].answers : classifyQuestions[qid] ? Object.fromEntries(classifyQuestions[qid].items.map((item) => [item.id, item.answer])) : questionById(qid).answer;
   return {
     attempt_id: attempt.attempt_id, student_id: attempt.student.student_id, student_name: attempt.student.student_name, class_name: attempt.student.class_name, seat_no: attempt.student.seat_no, unit_id: mission.unit_id, unit_title: mission.unit_title,
     attempt_type: attempt.attempt_type, attempt_type_candidate: attempt.attempt_type_candidate, attempt_no_candidate: attempt.attempt_no, attempt_session_id: attempt.attempt_session_id, attempt_session_token: attempt.attempt_session_token, question_version: attempt.question_version, started_from_login: attempt.started_from_login, previous_attempt_id: attempt.previous_attempt_id, retry_validation_status: attempt.retry_validation_status,
@@ -747,11 +700,11 @@ function buildBackendPayload(attempt) {
     total_questions: attempt.total, correct: attempt.correct, accuracy: attempt.accuracy, hints_used: attempt.hint_used, correct_without_hint: attempt.correct_without_hint, corrected_after_hint: attempt.corrected_after_hint, completion_exp: attempt.completion_exp, concept_exp: attempt.concept_exp, revision_exp: attempt.revision_exp, question_exp: attempt.question_exp, mastery_exp: attempt.mastery_exp, retry_exp: attempt.retry_exp, attempt_total_exp: attempt.attempt_total_exp, unit_credited_exp: attempt.unit_credited_exp, credited_delta: attempt.credited_delta,
     confidence_score: attempt.confidence_score, reflection_quality: attempt.reflection_quality, reflection_quality_candidate: attempt.reflection_quality_candidate, reflection_exp_reason: attempt.reflection_exp_reason, reflection_review_status: attempt.reflection_review_status, reflection_original_text: attempt.reflection_original_text, reflection_normalized_text: attempt.reflection_normalized_text, reflection_similarity_score: attempt.reflection_similarity_score, reflection_similarity_source: attempt.reflection_similarity_source, reflection_copied_direction_flag: attempt.reflection_copied_direction_flag, reflection_irrelevant_flag: attempt.reflection_irrelevant_flag, reflection_low_effort_flag: attempt.reflection_low_effort_flag, reflection_examples_checked: attempt.reflection_examples_checked, reflection_frontend_only: true, teacher_attention_needed: attempt.teacher_attention_needed, student_question: attempt.student_question,
     badges_json: JSON.stringify(attempt.badges), existing_badges_json: JSON.stringify(cumulativeBadgeIds()), cumulative_badges_candidate_json: JSON.stringify(attempt.cumulative_badges_candidate),
-    reagent_target_match_score: scoreForConcept(attempt, "starch_iodine_test", "glucose_benedict_test", "protein_biuret_test"), color_change_evidence_score: scoreForConcept(attempt, "starch_iodine_test", "glucose_benedict_test", "protein_biuret_test", "lipid_test"), heating_safety_score: scoreForConcept(attempt, "heating_safety"), control_group_score: scoreForConcept(attempt, "control_group"), evidence_limit_score: scoreForConcept(attempt, "evidence_limit"), sample_result_classification_score: Math.round((["q05","q06","q07","q08"].filter(isCorrect).length / 4) * 100),
+    reagent_target_match_score: scoreForConcept(attempt, "reagent_target_match", "starch_iodine_test", "glucose_benedict_test"), color_change_evidence_score: scoreForConcept(attempt, "starch_iodine_test", "glucose_benedict_test", "color_change_evidence"), heating_safety_score: scoreForConcept(attempt, "benedict_safety", "glucose_benedict_test"), control_group_score: scoreForConcept(attempt, "control_group"), evidence_limit_score: scoreForConcept(attempt, "evidence_limit"), sample_result_classification_score: Math.round((["q06","q07","q08"].filter(isCorrect).length / 3) * 100),
     misconceptions_json: JSON.stringify(attempt.misconceptions), raw_answers_json: JSON.stringify(attempt.raw_answers), badge_eval_json: JSON.stringify(badges.map((badge) => ({ badge_id: badge.id, earned_candidate: attempt.badges.includes(badge.id), badge_image_path: badge.badge_image_path }))),
     question_logs: qids.map((qid) => {
       const answer = answerFor(qid);
-      const questionType = qid === "q09" ? "sequence" : multiSelectQuestions[qid] ? "set" : classifyQuestions[qid] ? "mapping" : "choice";
+      const questionType = multiSelectQuestions[qid] ? "set" : classifyQuestions[qid] ? "mapping" : "choice";
       const checkpointId = sectionMap.checkpoint1.includes(qid) ? "checkpoint1" : sectionMap.checkpoint2.includes(qid) ? "checkpoint2" : "checkpoint3";
       return {
         student_id: attempt.student.student_id,
@@ -838,15 +791,15 @@ function buildAttempt() {
     started_at: state.started_at,
     submitted_at: state.submitted_at || now,
     completion_status: "complete",
-    required_answer_count: [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].length,
-    answered_required_count: [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].filter(isAnswered).length,
+    required_answer_count: requiredQuestionIds().length,
+    answered_required_count: requiredQuestionIds().filter(isAnswered).length,
     backend_status: state.backend_status,
     ...state.result,
     confidence_score: state.answers.reflection.confidence_score,
     confident_concept: state.answers.reflection.confident_concept,
     uncertain_concept: state.answers.reflection.uncertain_concept,
     student_question: state.answers.reflection.student_question,
-    raw_answers: state.answers,
+    raw_answers: activeRawAnswers(),
     payload_version: VERSION
   };
 }
