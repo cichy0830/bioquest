@@ -50,6 +50,7 @@ const sharedTitleProgressVersion = "20260720-title-next-progress-v1";
 const appVersionOverrides = new Map();
 appVersionOverrides.set("life_world", "20260720-life-world-server-verified-v1");
 appVersionOverrides.set("scientific_method", "20260721-scientific-method-server-verified-v1");
+appVersionOverrides.set("lab_intro", "20260721-lab-intro-server-verified-v1");
 appVersionOverrides.set("cell_observation", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("cell_structure", "20260715-cell-structure-achievement-avatar-v1");
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
@@ -256,7 +257,7 @@ assert(scientificStyles.includes(".prep-owl-hero"), "scientific_method prep owl 
 
 const labIndex = fs.readFileSync(path.join(root, "prototype-lab-entry", "index.html"), "utf8");
 const labApp = fs.readFileSync(path.join(root, "prototype-lab-entry", "app.js"), "utf8");
-assert(labIndex.includes('data-report-owl-src="assets/owl-lab-cleanup.png"'), "lab_intro report owl must use lab owl");
+assert(labIndex.includes('data-report-owl-src="assets/owl-lab-cleanup.webp"'), "lab_intro report owl must use lab owl");
 assert(labApp.includes("selectedLine.textContent = select.value ? `已選：${select.value}`"), "lab_intro match select immediate selected-answer update missing");
 assert(!labApp.slice(labApp.indexOf("function renderReview()"), labApp.indexOf("function renderReflection()")).includes("owlPanel("), "lab_intro feedback keeps duplicate owl");
 assert(!labApp.slice(labApp.indexOf("function renderReflection()"), labApp.indexOf("function attachReflection()")).includes("mentorCard("), "lab_intro report still has mentor card");

@@ -25,7 +25,7 @@ const units = [
     sequence: 3,
     summary: "正式順序第三單元。已完成學生端靜態原型，含器材功能、器材選用、安全情境、操作順序與實驗紀錄。",
     tags: ["正式原型", "實驗安全", "已可測試"],
-    url: "prototype-lab-entry/?v=20260715-brief-scene-unified-u1u7-v1&title=20260720-title-next-progress-v1"
+    url: "prototype-lab-entry/?v=20260721-lab-intro-server-verified-v1&title=20260720-title-next-progress-v1"
   },
   {
     title: "顯微鏡的使用",
