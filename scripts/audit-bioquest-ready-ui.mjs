@@ -54,7 +54,7 @@ appVersionOverrides.set("lab_intro", "20260721-lab-intro-server-verified-v1");
 appVersionOverrides.set("microscope_use", "20260721-microscope-use-server-verified-v1");
 appVersionOverrides.set("cell_basic_unit", "20260721-cell-basic-unit-readiness-v1");
 appVersionOverrides.set("cell_observation", "20260717-badge-icon-cleanup-v1");
-appVersionOverrides.set("cell_structure", "20260715-cell-structure-achievement-avatar-v1");
+appVersionOverrides.set("cell_structure", "20260721-cell-structure-server-verified-v1");
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
@@ -234,7 +234,7 @@ const audit = units.map(([unitId, folder]) => {
     assert(index.includes("styles.css?v=20260721-cell-basic-unit-readiness-v1"), "cell_basic_unit style cache bust missing");
   }
   if (unitId === "cell_structure") {
-    assert(index.includes("styles.css?v=20260715-cell-structure-achievement-avatar-v1"), "cell_structure style cache bust missing");
+    assert(index.includes("styles.css?v=20260721-cell-structure-server-verified-v1"), "cell_structure style cache bust missing");
   }
   if (unitId === "cell_observation") {
     assert(index.includes("styles.css?v=20260717-badge-icon-cleanup-v1"), "cell_observation style cache bust missing");
@@ -295,7 +295,15 @@ const cellStructureApp = fs.readFileSync(path.join(root, "prototype-cell-structu
 const cellStructureStyles = fs.readFileSync(path.join(root, "prototype-cell-structure", "styles.css"), "utf8");
 assert(cellStructureApp.includes("function selectStructureTarget(structureId)") && cellStructureApp.includes("尚有 ${remaining} 個構造未辨識"), "cell_structure structure target blocking missing");
 assert(cellStructureApp.includes("if (directPath.startsWith(\"shared-assets/\")) return `../${directPath}`;"), "cell_structure title avatar path normalization missing");
-assert(cellStructureApp.includes("async function fetchStudentStatus(id)") && cellStructureApp.includes("後台目前無法連線，尚未登入"), "cell_structure official login backend handling missing");
+assert(
+  cellStructureApp.includes("async function fetchStudentStatus(id)")
+  && cellStructureApp.includes("startAttemptSession(student.student_id)")
+  && cellStructureApp.includes('startData.verification_mode !== "server_verified"')
+  && cellStructureApp.includes("backend_registry_not_ready")
+  && cellStructureApp.includes("QUESTION_VERSION = \"20260720-cell-structure-canonical-v1\"")
+  && cellStructureApp.includes("canonicalQuestionLogs"),
+  "cell_structure official server_verified handling missing"
+);
 assert(cellStructureStyles.includes("border: 2px solid transparent") && cellStructureStyles.includes("box-shadow: none"), "cell_structure hotspot default must be transparent");
 
 const lifeStyles = fs.readFileSync(path.join(root, "prototype-life-world", "styles.css"), "utf8");

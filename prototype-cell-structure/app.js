@@ -3,7 +3,11 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
+const VERSION = "20260721-cell-structure-server-verified-v1";
+const QUESTION_VERSION = "20260720-cell-structure-canonical-v1";
 const UNIT_EXP_CAP = 500;
+const DIRECT_EXP_POOL = 220;
+const REVISION_EXP_POOL = 180;
 
 const mission = {
   mission_area: "微觀研究站",
@@ -19,7 +23,7 @@ const cellStructureSceneImages = {
 const titleProgressRules = window.BioQuestTitleProgress;
 const TITLE_PROGRESS_CAP = titleProgressRules?.titleProgressCap || 23400;
 const FULL_BOOK_EXP_MAX = titleProgressRules?.fullBookExpMax || 26000;
-const badgeAsset = (id) => `../shared-assets/badges/cell_structure/badge-cell_structure-${id}.webp`;
+const badgeAsset = (id) => `../shared-assets/badges/cell_structure/badge-cell_structure-${id}.webp?v=${VERSION}`;
 const cellStructureOwlAssets = {
   prep: "assets/owl-cell-structure-prep-scan.webp",
   report: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
@@ -39,6 +43,7 @@ const unitBadgeCatalog = [
 ].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id) }));
 
 const storageKey = "bioquest_cell_structure_state_v1";
+const attemptsKey = "bioquest_attempts_v1";
 const screen = document.querySelector("#screen");
 const navButtons = [...document.querySelectorAll("[data-nav]")];
 const studentMini = document.querySelector("#studentMini");
@@ -47,6 +52,13 @@ const defaultState = {
   screen: "login",
   student: null,
   attempt_type: "first",
+  attempt_id: "",
+  attempt_session_id: "",
+  attempt_session_token: "",
+  previous_attempt_id: "",
+  question_version: QUESTION_VERSION,
+  verification_mode: "",
+  remote_completed_attempts: 0,
   started_at: null,
   completedScreens: ["login", "rules"],
   answers: {
@@ -61,6 +73,7 @@ const defaultState = {
     reviewNotes: {},
     reflection: {}
   },
+  hintEventStatus: {},
   optionOrders: {},
   result: null,
   submitted_at: null,
@@ -101,7 +114,7 @@ function normalizeLockedScreen() {
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey));
-    return saved ? { ...structuredClone(defaultState), ...saved } : structuredClone(defaultState);
+    return saved ? { ...structuredClone(defaultState), ...saved, question_version: QUESTION_VERSION } : structuredClone(defaultState);
   } catch {
     return structuredClone(defaultState);
   }
@@ -113,7 +126,7 @@ function saveState() {
 
 function getAttempts() {
   try {
-    return JSON.parse(localStorage.getItem("bioquest_attempts_v1")) || [];
+    return JSON.parse(localStorage.getItem(attemptsKey)) || [];
   } catch {
     return [];
   }
@@ -122,7 +135,25 @@ function getAttempts() {
 function saveAttempt(attempt) {
   const attempts = getAttempts();
   attempts.push(attempt);
-  localStorage.setItem("bioquest_attempts_v1", JSON.stringify(attempts));
+  localStorage.setItem(attemptsKey, JSON.stringify(attempts));
+}
+
+function uid(prefix) {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+async function postBackendAction(action, payload) {
+  const body = new URLSearchParams();
+  body.set("payload", JSON.stringify({ action, ...payload }));
+  const response = await fetch(`${BACKEND_URL}?action=${encodeURIComponent(action)}&unit_id=${encodeURIComponent(mission.unit_id)}&_=${Date.now()}`, {
+    method: "POST",
+    body,
+    cache: "no-store"
+  });
+  if (!response.ok) throw new Error(`backend_${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || `${action}_failed`);
+  return data;
 }
 
 function shuffledCopy(items) {
@@ -186,11 +217,12 @@ function renderNav() {
   }
 
   const attempts = studentAttempts(state.student.student_id);
+  const completedAttempts = state.student.is_guest ? attempts.length : Number(state.remote_completed_attempts || state.student.completed_attempts || 0);
   studentMini.innerHTML = `
     <p><strong>${state.student.student_name}</strong></p>
     <p>${state.student.class_name} 班 ${state.student.seat_no} 號</p>
     <p class="muted">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</p>
-    <p class="muted">完成紀錄：${attempts.length} 筆</p>
+    <p class="muted">完成紀錄：${completedAttempts} 筆</p>
   `;
 }
 
@@ -304,7 +336,7 @@ function attachLogin() {
   document.querySelector("#guestButton").addEventListener("click", () => login("guest"));
   document.querySelector("#resetButton").addEventListener("click", () => {
     localStorage.removeItem(storageKey);
-    localStorage.removeItem("bioquest_attempts_v1");
+    localStorage.removeItem(attemptsKey);
     state = structuredClone(defaultState);
     render();
   });
@@ -312,14 +344,15 @@ function attachLogin() {
 
 async function fetchStudentStatus(id) {
   const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}&unit_id=${encodeURIComponent(mission.unit_id)}&_=${Date.now()}`;
-  const response = await fetch(url, { cache: "no-store" });
+  const response = await fetch(url, { method: "GET", cache: "no-store" });
   if (!response.ok) throw new Error(`backend_${response.status}`);
   return response.json();
 }
 
 function normalizeBackendStudent(data, id) {
-  if (!data?.ok || !data.student || String(data.student.student_id || "") !== String(id)) return null;
+  if (!data?.ok || !data.student) throw new Error(data?.error || "student_not_found");
   const source = data.student;
+  if (String(source.student_id || "") !== String(id)) throw new Error("student_not_found");
   const progress = data.progress || data.student_progress || source.progress || {};
   return {
     student_id: source.student_id,
@@ -330,51 +363,94 @@ function normalizeBackendStudent(data, id) {
     current_title_id: progress.current_title_id || source.current_title_id || "",
     current_title: progress.current_title || source.current_title || "",
     title_avatar_path: progress.title_avatar_path || source.title_avatar_path || "",
+    title_avatar_variant: progress.title_avatar_variant || source.title_avatar_variant || "",
     total_exp: progress.total_exp ?? source.total_exp,
+    completed_attempts: Number(data.attempt_status?.completed_attempt_count ?? data.completed_attempts ?? progress.completed_attempts ?? 0),
     progress,
     is_guest: false
   };
 }
 
-async function login(id) {
-  const message = document.querySelector("#loginMessage");
-  if (!id) {
-    message.innerHTML = `<span class="pill warn">查無此學號，請重新輸入。</span>`;
-    return;
-  }
-  window.BioQuestLoginUX?.begin({ guest: id === "guest" });
-  await window.BioQuestLoginUX?.paint();
-  let student;
-  let completedAttempts = 0;
-  if (id === "guest") {
-    student = roster.guest;
-    completedAttempts = studentAttempts(student.student_id).length;
-  } else {
-    try {
-      const data = await fetchStudentStatus(id);
-      student = normalizeBackendStudent(data, id);
-      if (!student) {
-        message.innerHTML = `<span class="pill warn">查無此學號或後台資料不完整，尚未登入。</span>`;
-        return;
-      }
-      completedAttempts = Number(data.attempt_status?.completed_attempt_count ?? data.completed_attempts ?? 0);
-    } catch {
-      message.innerHTML = `<span class="pill warn">後台目前無法連線，尚未登入。請檢查網路後重試或通知老師。</span>`;
-      return;
+async function startAttemptSession(studentId) {
+  return postBackendAction("startAttempt", {
+    student_id: studentId,
+    unit_id: mission.unit_id,
+    question_version: QUESTION_VERSION
+  });
+}
+
+function beginLocalGuestAttempt() {
+  const previousAttempts = studentAttempts("guest");
+  const attemptId = uid("cell_structure_guest_attempt");
+  state = {
+    ...structuredClone(defaultState),
+    student: { ...roster.guest, is_guest: true },
+    attempt_type: previousAttempts.length > 0 ? "retry" : "first",
+    remote_completed_attempts: previousAttempts.length,
+    attempt_id: attemptId,
+    attempt_session_id: `guest_session_${attemptId}`,
+    attempt_session_token: `guest_${attemptId}`,
+    previous_attempt_id: "",
+    question_version: QUESTION_VERSION,
+    verification_mode: "local_guest",
+    started_at: new Date().toISOString(),
+    optionOrders: {
+      structureOptions: shuffledCopy(structureOptions),
+      functionOptions: shuffledCopy(functionOptions)
     }
-  }
-  const attempts = studentAttempts(student.student_id);
-  state = structuredClone(defaultState);
-  state.student = { ...student, is_guest: Boolean(student.is_guest) };
-  state.attempt_type = (completedAttempts || attempts.length) > 0 ? "retry" : "first";
-  state.started_at = new Date().toISOString();
-  state.optionOrders = {
-    structureOptions: shuffledCopy(structureOptions),
-    functionOptions: shuffledCopy(functionOptions)
   };
   unlock("brief", "rules", "achievements");
   saveState();
   setScreen("brief");
+}
+
+async function login(id) {
+  const message = document.querySelector("#loginMessage");
+  if (!id) {
+    message.innerHTML = `<span class="pill warn">請先輸入學號。</span>`;
+    return;
+  }
+  const useGuest = id === "guest";
+  window.BioQuestLoginUX?.begin({ guest: useGuest });
+  message.innerHTML = `<span class="pill">${useGuest ? "正在建立老師測試模式……" : "正在連接 BioQuest 學習後台，請稍候……"}</span>`;
+  await window.BioQuestLoginUX?.paint();
+  if (useGuest) {
+    beginLocalGuestAttempt();
+    return;
+  }
+  try {
+    const data = await fetchStudentStatus(id);
+    const student = normalizeBackendStudent(data, id);
+    const startData = await startAttemptSession(student.student_id);
+    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== QUESTION_VERSION) {
+      throw new Error("backend_registry_not_ready");
+    }
+    state = structuredClone(defaultState);
+    state.student = { ...student, is_guest: false };
+    state.attempt_type = startData.attempt_type || data.attempt_type || "first";
+    state.remote_completed_attempts = Number(data.attempt_status?.completed_attempt_count ?? data.completed_attempts ?? student.completed_attempts ?? 0);
+    state.attempt_id = startData.attempt_id;
+    state.attempt_session_id = startData.attempt_session_id || "";
+    state.attempt_session_token = startData.attempt_session_token;
+    state.previous_attempt_id = startData.previous_attempt_id || "";
+    state.question_version = QUESTION_VERSION;
+    state.verification_mode = startData.verification_mode;
+    state.started_at = startData.issued_at || new Date().toISOString();
+    state.optionOrders = {
+      structureOptions: shuffledCopy(structureOptions),
+      functionOptions: shuffledCopy(functionOptions)
+    };
+    unlock("brief", "rules", "achievements");
+    saveState();
+    setScreen("brief");
+  } catch (error) {
+    state = structuredClone(defaultState);
+    saveState();
+    window.BioQuestLoginUX?.end?.();
+    message.innerHTML = error.message === "backend_registry_not_ready"
+      ? `<span class="pill warn">後台版本尚未更新，請通知老師。</span>`
+      : `<span class="pill warn">後台目前無法連線或查無此學號，尚未登入。請檢查網路後重試或通知老師。</span>`;
+  }
 }
 
 function renderBrief() {
@@ -696,6 +772,7 @@ function selectStructureTarget(structureId) {
   }
   if (!state.answers.checkpoint1Hints[target.id]) {
     state.answers.checkpoint1Hints[target.id] = true;
+    void markHintForQuestion("q01");
   }
   state.structureTargetResults[target.id] = {
     ...targetResult,
@@ -785,6 +862,7 @@ function attachSelectHandlers() {
         : checkpoint2Items.find((entry) => entry.id === select.dataset.id);
       if (item && select.value && select.value !== item.answer) {
         state.answers[`${select.dataset.group}Hints`][select.dataset.id] = true;
+        void markHintForQuestion(canonicalQuestionIdFromInteraction(select.dataset.group, select.dataset.id));
       }
       if (select.dataset.group === "checkpoint1" && item && select.value === item.answer) {
         state.structureTargetResults[item.id] = {
@@ -803,6 +881,7 @@ function attachSelectHandlers() {
   document.querySelectorAll(".hint-button").forEach((button) => {
     button.addEventListener("click", () => {
       state.answers[`${button.dataset.group}Hints`][button.dataset.id] = true;
+      void markHintForQuestion(canonicalQuestionIdFromInteraction(button.dataset.group, button.dataset.id));
       saveState();
       render();
     });
@@ -812,7 +891,7 @@ function attachSelectHandlers() {
 
 const checkpoint2Items = [
   { id: "nucleus", label: "細胞核", answer: "含有遺傳物質，控制細胞代謝作用" },
-  { id: "cytoplasm", label: "細胞質", answer: "細胞進行代謝作用的場所，內有各種胞器" },
+  { id: "cytoplasm", label: "細胞質", answer: "是許多代謝作用進行的場所，內有各種胞器" },
   { id: "mitochondria", label: "粒線體", answer: "利用養分進行呼吸作用，產生細胞所需能量" },
   { id: "vacuole", label: "液胞", answer: "儲存水分、養分或廢物" },
   { id: "membrane", label: "細胞膜", answer: "區隔細胞內外環境，控制物質進出" },
@@ -920,6 +999,13 @@ function attachCompareHandlers() {
 
 const misconceptionQuestions = [
   {
+    id: "vacuole",
+    question: "一位同學說：「液胞只存在植物細胞，動物細胞沒有液胞。」哪個修正較合理？",
+    options: ["動植物細胞都有液胞，但植物細胞常有較明顯的大型液胞", "液胞只存在植物細胞", "液胞只存在動物細胞", "液胞是控制物質進出的構造"],
+    answer: "動植物細胞都有液胞，但植物細胞常有較明顯的大型液胞",
+    hint: "回想液胞像細胞內的儲存囊泡，可儲存水分、養分或廢物；典型植物細胞圖常把它畫得較大型、較明顯。"
+  },
+  {
     id: "wall",
     question: "這個構造位在細胞膜外側，可以保護並支撐細胞形狀。它最可能是什麼？",
     options: ["細胞膜", "細胞壁", "細胞質", "粒線體"],
@@ -929,16 +1015,23 @@ const misconceptionQuestions = [
   {
     id: "chloroplast",
     question: "一位同學說：「只要是植物細胞，就一定有葉綠體。」你認為這句話需要修正嗎？",
-    options: ["不需要，所有植物細胞一定都有葉綠體。", "需要，葉綠體和光合作用有關，不是每一種植物細胞都一定有。", "不需要，因為葉綠體負責控制細胞代謝。", "需要，因為葉綠體只存在動物細胞。"],
-    answer: "需要，葉綠體和光合作用有關，不是每一種植物細胞都一定有。",
+    options: ["所有植物細胞一定都有葉綠體", "葉綠體和光合作用有關，不是每一種植物細胞都一定有", "葉綠體負責控制細胞代謝", "葉綠體只存在動物細胞"],
+    answer: "葉綠體和光合作用有關，不是每一種植物細胞都一定有",
     hint: "想想看，植物根部通常不進行光合作用，是否需要葉綠體？"
   },
   {
-    id: "cytoplasm",
-    question: "有人把細胞質想成「細胞裡沒有功能的空白區」。這個說法哪裡需要修正？",
-    options: ["細胞質內有各種胞器，也是許多代謝作用進行的場所。", "細胞質只存在植物細胞。", "細胞質負責保護細胞外側。", "細胞質只負責製造葡萄糖。"],
-    answer: "細胞質內有各種胞器，也是許多代謝作用進行的場所。",
-    hint: "細胞質中散布著許多胞器，並不是沒有功能的空間。"
+    id: "membrane",
+    question: "貓頭鷹助理掃描到一層薄膜，提示它能控制物質進出細胞。這層構造最可能是什麼？",
+    options: ["細胞膜", "細胞壁", "細胞質", "粒線體"],
+    answer: "細胞膜",
+    hint: "關鍵線索是「薄膜」與「控制物質進出」。"
+  },
+  {
+    id: "energy",
+    question: "下列哪一組功能配對較合理？",
+    options: ["粒線體：呼吸作用產生能量；葉綠體：光合作用製造葡萄糖", "粒線體：控制物質進出；葉綠體：支撐細胞", "粒線體：儲存廢物；葉綠體：控制代謝", "粒線體：保護細胞外側；葉綠體：儲存水分"],
+    answer: "粒線體：呼吸作用產生能量；葉綠體：光合作用製造葡萄糖",
+    hint: "先分辨「能量供應」與「光合作用製造養分」兩個任務。"
   }
 ];
 
@@ -985,6 +1078,7 @@ function attachChoiceHandlers() {
       const item = misconceptionQuestions.find((entry) => entry.id === button.dataset.choiceId);
       if (item && button.dataset.choice !== item.answer) {
         state.answers.checkpoint4Hints[button.dataset.choiceId] = true;
+        void markHintForQuestion(canonicalQuestionIdFromInteraction("checkpoint4", button.dataset.choiceId));
       }
       saveState();
       render();
@@ -993,6 +1087,7 @@ function attachChoiceHandlers() {
   document.querySelectorAll("[data-choice-hint]").forEach((button) => {
     button.addEventListener("click", () => {
       state.answers.checkpoint4Hints[button.dataset.choiceHint] = true;
+      void markHintForQuestion(canonicalQuestionIdFromInteraction("checkpoint4", button.dataset.choiceHint));
       saveState();
       render();
     });
@@ -1090,11 +1185,22 @@ function getConceptReview() {
   misconceptionQuestions.forEach((item) => {
     const selected = state.answers.checkpoint4[item.id];
     const usedHint = state.answers.checkpoint4Hints[item.id];
-    if (selected === item.answer && !usedHint) addStable(`mis_${item.id}`, item.id === "wall" ? "細胞膜與細胞壁的區分" : item.id === "chloroplast" ? "葉綠體不是所有植物細胞都有" : "細胞質不是空白區");
+    if (selected === item.answer && !usedHint) {
+      const stableTitleMap = {
+        vacuole: "液胞在動植物細胞中的差異",
+        wall: "細胞膜與細胞壁的區分",
+        chloroplast: "葉綠體不是所有植物細胞都有",
+        membrane: "細胞膜控制物質進出",
+        energy: "粒線體與葉綠體功能差異"
+      };
+      addStable(`mis_${item.id}`, stableTitleMap[item.id] || item.question);
+    }
     if (selected !== item.answer || usedHint) {
+      if (item.id === "vacuole") addRevisit("vacuole_plant_only", "液胞在動植物細胞中的差異", "建議再閱讀液胞：動物細胞與植物細胞都有液胞，植物細胞常有較大型、較明顯的液胞。", "從液胞在動植物細胞中的差異，寫出自己的問題。");
       if (item.id === "wall") addRevisit("membrane_wall", "細胞膜與細胞壁的區分", "建議再讀「控制物質進出」和「支撐保護」這兩個線索。", "從細胞膜和細胞壁的位置與功能差異，寫出自己的問題。");
       if (item.id === "chloroplast") addRevisit("chloroplast_generalization", "葉綠體與光合作用", "建議再讀葉綠體和光合作用的關係，並思考哪些植物細胞不一定有葉綠體。", "從葉綠體、光合作用和植物細胞種類，寫出自己的問題。");
-      if (item.id === "cytoplasm") addRevisit("cytoplasm_meaning", "細胞質的功能", "建議再讀細胞質中有胞器，也是許多代謝作用進行的場所。", "從細胞質和胞器的關係，寫出自己的問題。");
+      if (item.id === "membrane") addRevisit("membrane_function", "細胞膜控制物質進出", "建議再確認細胞膜的功能，不要只依位置判斷。", "從細胞膜控制物質進出的功能，寫出自己的問題。");
+      if (item.id === "energy") addRevisit("energy_organelle", "粒線體與葉綠體功能差異", "建議再整理粒線體和呼吸作用、葉綠體和光合作用的對應。", "從粒線體與葉綠體的功能差異，寫出自己的問題。");
     }
   });
 
@@ -1155,13 +1261,16 @@ function renderReview() {
 }
 
 function attachReflection() {
-  document.querySelector("#submitMission").addEventListener("click", () => {
+  document.querySelector("#submitMission").addEventListener("click", async (event) => {
     if (state.submitted_at) {
       setScreen("result");
       return;
     }
     const confirmed = window.confirm("提交後會進行結算，本次作答將鎖定，不能再修改；若要再挑戰，請重新登入並從頭完成。");
     if (!confirmed) return;
+    const button = event.currentTarget;
+    button.disabled = true;
+    button.textContent = "送出中...";
     state.answers.reflection = {
       confident_concept: document.querySelector("#confidentConcept").value.trim(),
       uncertain_concept: document.querySelector("#uncertainConcept").value.trim(),
@@ -1170,11 +1279,35 @@ function attachReflection() {
     };
     Object.assign(state.answers.reflection, evaluateReflectionQuality(state.answers.reflection));
     state.result = calculateResult();
-    state.submitted_at = new Date().toISOString();
-    saveAttempt(buildAttempt());
-    unlock("result", "achievements");
-    saveState();
-    setScreen("result");
+    try {
+      const hintSynced = await flushHintEvents();
+      if (!hintSynced && !state.student?.is_guest) {
+        throw new Error("hint_event_sync_failed");
+      }
+      state.submitted_at = new Date().toISOString();
+      let attempt = buildAttempt();
+      const response = await submitAttemptToBackend(attempt);
+      state.result = state.student?.is_guest
+        ? { ...state.result, verification_status: "local_guest" }
+        : applyBackendSubmitResponse(response, state.result);
+      attempt = buildAttempt();
+      saveAttempt(attempt);
+      state.remote_completed_attempts = Number(state.remote_completed_attempts || 0) + 1;
+      unlock("result", "achievements");
+      saveState();
+      setScreen("result");
+    } catch (error) {
+      state.submitted_at = null;
+      button.disabled = false;
+      button.textContent = "提交任務";
+      saveState();
+      const warning = document.createElement("div");
+      warning.className = "feedback warn";
+      warning.textContent = error.message === "hint_event_sync_failed"
+        ? "提示紀錄尚未同步成功，請稍後再提交，避免後台誤判零提示。"
+        : "目前無法寫入後台，請稍後再按一次提交任務。";
+      button.closest(".actions").after(warning);
+    }
   });
 }
 
@@ -1375,6 +1508,11 @@ function calculateResult() {
   const retryExp = state.attempt_type === "retry" ? 50 : 0;
   const reflectionLedgerCap = Math.min(UNIT_EXP_CAP, 460 + Math.min(40, Math.max(0, questionExp)));
   const totalExp = Math.min(reflectionLedgerCap, completionExp + conceptExp + revisionExp + questionExp + masteryExp + retryExp);
+  const previousBestCredited = state.student
+    ? studentAttempts(state.student.student_id).reduce((best, attempt) => Math.max(best, Number(attempt.unit_credited_exp ?? attempt.total_exp ?? 0)), 0)
+    : 0;
+  const unitCreditedExp = Math.min(UNIT_EXP_CAP, Math.max(previousBestCredited, totalExp));
+  const creditedDelta = Math.max(0, unitCreditedExp - previousBestCredited);
   const misconceptions = [...s1.misconceptions, ...s2.misconceptions, ...s3.misconceptions, ...s4.misconceptions];
   const membraneWallCorrect = state.answers.checkpoint4.wall === misconceptionQuestions.find((item) => item.id === "wall")?.answer;
   const energyFunctionCorrect = ["mitochondria", "chloroplast"].every((id) => state.answers.checkpoint2[id] === checkpoint2Items.find((item) => item.id === id)?.answer);
@@ -1382,16 +1520,18 @@ function calculateResult() {
   const noHintPerfect = correct === total && hintUsed === 0;
   const previousAccuracies = state.student ? studentAttempts(state.student.student_id).map((attempt) => Number(attempt.accuracy)).filter(Number.isFinite) : [];
   const retryImproved = state.attempt_type === "retry" && previousAccuracies.length > 0 && accuracy > Math.max(...previousAccuracies);
-  const badges = [unitBadgeCatalog[0].name];
-  if (s1.correct / s1.total >= 0.85) badges.push(unitBadgeCatalog[1].name);
-  if (s2.correct / s2.total >= 0.85) badges.push(unitBadgeCatalog[2].name);
-  if (s3.correct / s3.total >= 0.85) badges.push(unitBadgeCatalog[3].name);
-  if (membraneWallCorrect) badges.push(unitBadgeCatalog[4].name);
-  if (energyFunctionCorrect && chloroplastConceptCorrect) badges.push(unitBadgeCatalog[5].name);
-  if (noHintPerfect) badges.push(unitBadgeCatalog[6].name);
-  if (reflectionEvaluation.reflection_quality === "discussion_question") badges.push(unitBadgeCatalog[7].name);
-  if (retryImproved) badges.push(unitBadgeCatalog[8].name);
+  const badges = [unitBadgeCatalog[0].id];
+  if (s1.correct / s1.total >= 0.85) badges.push(unitBadgeCatalog[1].id);
+  if (s2.correct / s2.total >= 0.85) badges.push(unitBadgeCatalog[2].id);
+  if (s3.correct / s3.total >= 0.85) badges.push(unitBadgeCatalog[3].id);
+  if (membraneWallCorrect) badges.push(unitBadgeCatalog[4].id);
+  if (energyFunctionCorrect && chloroplastConceptCorrect) badges.push(unitBadgeCatalog[5].id);
+  if (noHintPerfect) badges.push(unitBadgeCatalog[6].id);
+  if (reflectionEvaluation.reflection_quality === "discussion_question") badges.push(unitBadgeCatalog[7].id);
+  if (retryImproved) badges.push(unitBadgeCatalog[8].id);
   return {
+    unit_max_exp: UNIT_EXP_CAP,
+    unit_exp_cap: UNIT_EXP_CAP,
     completion_exp: completionExp,
     concept_exp: conceptExp,
     revision_exp: revisionExp,
@@ -1400,7 +1540,14 @@ function calculateResult() {
     reflection_exp_reason: reflectionEvaluation.reflection_exp_reason,
     reflection_review_status: reflectionEvaluation.reflection_review_status,
     retry_exp: retryExp,
+    retry_improved: retryImproved,
     mastery_exp: masteryExp,
+    attempt_total_exp: totalExp,
+    previous_best_credited_exp: previousBestCredited,
+    unit_credited_exp: unitCreditedExp,
+    credited_delta: creditedDelta,
+    no_hint_perfect: noHintPerfect,
+    perfect: correct === total,
     total_exp: totalExp,
     correct,
     total,
@@ -1449,6 +1596,148 @@ function buildCheckpoint1QuestionLogs() {
   });
 }
 
+const canonicalQuestionMeta = {
+  q01: { local_id: "visual_targets", type: "mapping", checkpoint_id: "checkpoint1", skill_tag: "organelle_identification", misconception_tag: "organelle_position_confusion" },
+  q02: { local_id: "cytoplasm", type: "choice", checkpoint_id: "checkpoint2", skill_tag: "cytoplasm_function", misconception_tag: "cytoplasm_empty_space" },
+  q03: { local_id: "mitochondria", type: "choice", checkpoint_id: "checkpoint2", skill_tag: "organelle_function", misconception_tag: "mitochondria_chloroplast_confusion" },
+  q04: { local_id: "vacuole", type: "choice", checkpoint_id: "checkpoint2", skill_tag: "organelle_function", misconception_tag: "vacuole_nucleus_confusion" },
+  q05: { local_id: "membrane", type: "choice", checkpoint_id: "checkpoint2", skill_tag: "cell_boundary", misconception_tag: "membrane_wall_confusion" },
+  q06: { local_id: "wall", type: "choice", checkpoint_id: "checkpoint2", skill_tag: "cell_boundary", misconception_tag: "membrane_wall_confusion" },
+  q07: { local_id: "chloroplast", type: "choice", checkpoint_id: "checkpoint2", skill_tag: "organelle_function", misconception_tag: "mitochondria_chloroplast_confusion" },
+  q08: { local_id: "compare", type: "mapping", checkpoint_id: "checkpoint3", skill_tag: "animal_plant_cell_compare", misconception_tag: "animal_plant_same_structure" },
+  q09: { local_id: "vacuole", type: "choice", checkpoint_id: "checkpoint4", skill_tag: "animal_plant_cell_compare", misconception_tag: "animal_cells_have_no_vacuole" },
+  q10: { local_id: "chloroplast", type: "choice", checkpoint_id: "checkpoint4", skill_tag: "chloroplast_context", misconception_tag: "all_plant_cells_have_chloroplast" },
+  q11: { local_id: "membrane", type: "choice", checkpoint_id: "checkpoint4", skill_tag: "cell_boundary", misconception_tag: "membrane_wall_confusion" },
+  q12: { local_id: "wall", type: "choice", checkpoint_id: "checkpoint4", skill_tag: "cell_boundary", misconception_tag: "membrane_wall_confusion" },
+  q13: { local_id: "energy", type: "choice", checkpoint_id: "checkpoint4", skill_tag: "energy_organelle_compare", misconception_tag: "respiration_photosynthesis_confusion" }
+};
+
+const checkpoint2CanonicalByLocalId = {
+  cytoplasm: "q02",
+  mitochondria: "q03",
+  vacuole: "q04",
+  membrane: "q05",
+  wall: "q06",
+  chloroplast: "q07"
+};
+
+const checkpoint4CanonicalByLocalId = {
+  vacuole: "q09",
+  chloroplast: "q10",
+  membrane: "q11",
+  wall: "q12",
+  energy: "q13"
+};
+
+function canonicalQuestionIdFromInteraction(group, localId) {
+  if (!localId) return "";
+  if (/^q\d+$/.test(localId)) return localId;
+  if (group === "checkpoint1") return "q01";
+  if (group === "checkpoint2") return checkpoint2CanonicalByLocalId[localId] || "";
+  if (group === "checkpoint4") return checkpoint4CanonicalByLocalId[localId] || "";
+  return "";
+}
+
+async function markHintForQuestion(qid) {
+  if (!qid) return true;
+  if (!state.hintEventStatus) state.hintEventStatus = {};
+  if (state.hintEventStatus[qid] === "sent") return true;
+  state.hintEventStatus[qid] = state.student?.is_guest ? "sent" : "pending";
+  saveState();
+  if (state.student?.is_guest) return true;
+  return flushHintEvents([qid]);
+}
+
+async function flushHintEvents(ids = Object.keys(state.hintEventStatus || {})) {
+  if (state.student?.is_guest) return true;
+  const pending = ids.filter((qid) => state.hintEventStatus?.[qid] !== "sent");
+  for (const qid of pending) {
+    try {
+      await postBackendAction("hintEvent", {
+        student_id: state.student.student_id,
+        unit_id: mission.unit_id,
+        attempt_id: state.attempt_id,
+        attempt_session_token: state.attempt_session_token,
+        question_id: `${mission.unit_id}_${qid}`,
+        question_version: QUESTION_VERSION
+      });
+      state.hintEventStatus[qid] = "sent";
+    } catch (error) {
+      state.hintEventStatus[qid] = "failed";
+    }
+  }
+  saveState();
+  return Object.values(state.hintEventStatus || {}).every((status) => status === "sent");
+}
+
+function labelForFunctionAnswer(value) {
+  return checkpoint2Items.find((item) => item.answer === value)?.label || value || "";
+}
+
+function canonicalRawAnswers() {
+  return {
+    q01: Object.fromEntries(Object.entries(CHECKPOINT1_TARGET_LOG_IDS).map(([localId, targetId]) => [targetId, state.answers.checkpoint1[localId] || ""])),
+    q02: state.answers.checkpoint2.cytoplasm || "",
+    q03: labelForFunctionAnswer(state.answers.checkpoint2.mitochondria),
+    q04: labelForFunctionAnswer(state.answers.checkpoint2.vacuole),
+    q05: labelForFunctionAnswer(state.answers.checkpoint2.membrane),
+    q06: labelForFunctionAnswer(state.answers.checkpoint2.wall),
+    q07: labelForFunctionAnswer(state.answers.checkpoint2.chloroplast),
+    q08: { ...(state.answers.checkpoint3 || {}) },
+    q09: state.answers.checkpoint4.vacuole || "",
+    q10: state.answers.checkpoint4.chloroplast || "",
+    q11: state.answers.checkpoint4.membrane || "",
+    q12: state.answers.checkpoint4.wall || "",
+    q13: state.answers.checkpoint4.energy || ""
+  };
+}
+
+function formatCanonicalAnswer(value) {
+  if (Array.isArray(value)) return value.join("、");
+  if (value && typeof value === "object") return Object.entries(value).map(([key, answer]) => `${key}:${answer}`).join("；");
+  return String(value || "");
+}
+
+function legacyHintUsedForCanonical(qid) {
+  if (qid === "q01") return Object.values(state.answers.checkpoint1Hints || {}).some(Boolean);
+  const meta = canonicalQuestionMeta[qid];
+  if (!meta) return false;
+  if (meta.checkpoint_id === "checkpoint2") return Boolean(state.answers.checkpoint2Hints?.[meta.local_id]);
+  if (meta.checkpoint_id === "checkpoint4") return Boolean(state.answers.checkpoint4Hints?.[meta.local_id]);
+  return false;
+}
+
+function canonicalQuestionLogs(rawAnswers = canonicalRawAnswers()) {
+  return Object.keys(canonicalQuestionMeta).map((qid) => {
+    const meta = canonicalQuestionMeta[qid];
+    const answer = rawAnswers[qid];
+    const usedHint = Boolean(state.hintEventStatus?.[qid]) || legacyHintUsedForCanonical(qid);
+    return {
+      question_id: `${mission.unit_id}_${qid}`,
+      unit_id: mission.unit_id,
+      student_id: state.student.student_id,
+      question_version: QUESTION_VERSION,
+      question_type: meta.type,
+      checkpoint_id: meta.checkpoint_id,
+      concept_id: meta.skill_tag,
+      skill_tag: meta.skill_tag,
+      misconception_tag: meta.misconception_tag,
+      attempt_answer: formatCanonicalAnswer(answer),
+      answer_json: JSON.stringify(answer),
+      used_hint: usedHint,
+      hint_used: usedHint
+    };
+  });
+}
+
+function badgeEvalForPayload() {
+  return unitBadgeCatalog.map((badge) => ({
+    badge_id: badge.id,
+    badge_name: badge.name,
+    badge_image_path: badge.badge_image_path.split("?")[0].replace(/^\.\.\//, "")
+  }));
+}
+
 function buildAttempt() {
   const now = new Date().toISOString();
   const completedTargetCount = checkpoint1Items.length - remainingStructureTargets();
@@ -1459,6 +1748,12 @@ function buildAttempt() {
     mission,
     attempt_type: state.attempt_type,
     attempt_no: studentAttempts(state.student.student_id).length + 1,
+    attempt_id: state.attempt_id,
+    attempt_session_id: state.attempt_session_id,
+    attempt_session_token: state.attempt_session_token,
+    previous_attempt_id: state.previous_attempt_id,
+    question_version: QUESTION_VERSION,
+    verification_mode: state.verification_mode,
     started_at: state.started_at,
     submitted_at: state.submitted_at || now,
     completion_status: completedTargetCount === checkpoint1Items.length ? "complete" : "incomplete",
@@ -1477,20 +1772,166 @@ function buildAttempt() {
     cell_structure_checkpoint_completion_status: completedTargetCount === checkpoint1Items.length ? "complete" : "incomplete",
     cell_structure_checkpoint_exp_awarded: checkpoint1Result?.exp || 0,
     cell_structure_checkpoint_exp_type: checkpoint1Result?.exp === CHECKPOINT1_CONCEPT_EXP ? "concept" : checkpoint1Result?.exp === CHECKPOINT1_REVISION_EXP ? "revision" : "none",
-    question_logs: buildCheckpoint1QuestionLogs(),
+    cell_structure_target_logs: buildCheckpoint1QuestionLogs(),
+    question_logs: canonicalQuestionLogs(),
     raw_answers: state.answers
+  };
+}
+
+function buildBackendPayload(attempt) {
+  const rawAnswers = canonicalRawAnswers();
+  const logs = canonicalQuestionLogs(rawAnswers);
+  return {
+    action: "submitAttempt",
+    attempt_id: attempt.attempt_id || state.attempt_id,
+    attempt_session_id: attempt.attempt_session_id || state.attempt_session_id,
+    attempt_session_token: attempt.attempt_session_token || state.attempt_session_token,
+    previous_attempt_id: attempt.previous_attempt_id || state.previous_attempt_id,
+    question_version: QUESTION_VERSION,
+    student_id: attempt.student.student_id,
+    student_name: attempt.student.student_name,
+    class_name: attempt.student.class_name,
+    seat_no: attempt.student.seat_no,
+    unit_id: attempt.mission.unit_id,
+    unit_title: attempt.mission.unit_title,
+    attempt_type: attempt.attempt_type,
+    started_at: attempt.started_at,
+    submitted_at: attempt.submitted_at,
+    total_questions: attempt.total,
+    correct: attempt.correct,
+    accuracy: attempt.accuracy,
+    hints_used: attempt.hint_used,
+    correct_without_hint: attempt.correct_without_hint,
+    corrected_after_hint: attempt.corrected_after_hint,
+    completion_exp: attempt.completion_exp,
+    concept_exp: attempt.concept_exp,
+    revision_exp: attempt.revision_exp,
+    question_exp: attempt.question_exp,
+    mastery_exp: attempt.mastery_exp,
+    retry_exp: attempt.retry_exp,
+    attempt_total_exp: attempt.attempt_total_exp,
+    unit_credited_exp: attempt.unit_credited_exp,
+    credited_delta: attempt.credited_delta,
+    confidence_score: attempt.confidence_score,
+    reflection_quality: attempt.reflection_quality,
+    reflection_review_status: attempt.reflection_review_status,
+    teacher_attention_needed: attempt.teacher_attention_needed,
+    student_question: attempt.student_question,
+    confident_concept: attempt.confident_concept,
+    uncertain_concept: attempt.uncertain_concept,
+    raw_answers: rawAnswers,
+    raw_answers_json: JSON.stringify(rawAnswers),
+    question_logs: logs,
+    cell_structure_target_logs_json: JSON.stringify(buildCheckpoint1QuestionLogs()),
+    badge_eval_json: JSON.stringify(badgeEvalForPayload()),
+    client_summary: {
+      total_questions: attempt.total,
+      correct: attempt.correct,
+      accuracy: attempt.accuracy,
+      attempt_total_exp: attempt.attempt_total_exp,
+      unit_credited_exp: attempt.unit_credited_exp
+    }
+  };
+}
+
+async function submitAttemptToBackend(attempt) {
+  if (attempt.student?.is_guest) return { ok: true, verification_status: "local_guest" };
+  const body = new URLSearchParams();
+  body.set("payload", JSON.stringify(buildBackendPayload(attempt)));
+  const response = await fetch(`${BACKEND_URL}?action=submitAttempt`, {
+    method: "POST",
+    body,
+    cache: "no-store"
+  });
+  if (!response.ok) throw new Error(`backend_${response.status}`);
+  const data = await response.json();
+  if (!data.ok) throw new Error(data.error || "backend_submit_failed");
+  return data;
+}
+
+function applyBackendSubmitResponse(response, localResult) {
+  if (!response || response.ok === false) return localResult;
+  const progress = response.student_progress || response.progress || null;
+  if (progress && state.student) {
+    state.student.progress = progress;
+    state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
+    state.student.current_title_id = progress.current_title_id || state.student.current_title_id;
+    state.student.current_title = progress.current_title || state.student.current_title;
+    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path;
+    state.student.title_avatar_variant = progress.title_avatar_variant || state.student.title_avatar_variant;
+    state.student.completed_attempts = Number(progress.completed_attempts ?? state.student.completed_attempts ?? 0);
+  }
+  const verified = response.verified_attempt || response.attempt || null;
+  if (!verified) {
+    return {
+      ...localResult,
+      verification_status: response.verification_status || "pending_backend",
+      backend_response: response
+    };
+  }
+  return {
+    ...localResult,
+    ...verified,
+    total: Number(verified.total_questions ?? localResult.total),
+    correct: Number(verified.correct ?? localResult.correct),
+    correct_without_hint: Number(verified.correct_without_hint ?? localResult.correct_without_hint),
+    corrected_after_hint: Number(verified.corrected_after_hint ?? localResult.corrected_after_hint),
+    hint_used: Number(verified.hints_used ?? localResult.hint_used),
+    concept_exp: Number(verified.concept_exp ?? localResult.concept_exp),
+    revision_exp: Number(verified.revision_exp ?? localResult.revision_exp),
+    question_exp: Number(verified.question_exp ?? localResult.question_exp),
+    mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
+    retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
+    attempt_total_exp: Number(verified.attempt_total_exp ?? localResult.attempt_total_exp),
+    total_exp: Number(verified.attempt_total_exp ?? localResult.total_exp),
+    unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
+    credited_delta: Number(verified.credited_delta ?? localResult.credited_delta),
+    no_hint_perfect: Boolean(verified.no_hint_perfect),
+    badges: Array.isArray(verified.badges) ? verified.badges : localResult.badges,
+    verification_status: verified.verification_status || response.verification_status || "server_verified",
+    hint_verification_status: verified.hint_verification_status || response.hint_verification_status || "",
+    backend_response: response
   };
 }
 
 function renderResult() {
   const result = state.result?.section_stats ? state.result : calculateResult();
+  const verificationStatus = state.student?.is_guest ? "local_guest" : (result.verification_status || state.verification_mode || "pending_backend");
+  const isVerified = verificationStatus === "server_verified";
+  const isGuest = verificationStatus === "local_guest";
+  const summaryCopy = isGuest
+    ? {
+      totalLabel: "guest 本次預估 EXP",
+      creditLabel: "正式認列 EXP",
+      deltaLabel: "正式累積增量",
+      creditValue: "不列入",
+      deltaValue: "+0",
+      note: `guest 測試：本次預估 ${result.attempt_total_exp}/${UNIT_EXP_CAP} EXP，不列入正式累積。`
+    }
+    : isVerified
+      ? {
+        totalLabel: "本次取得 EXP",
+        creditLabel: "本單元正式認列 EXP",
+        deltaLabel: "本次新增認列",
+        creditValue: `${result.unit_credited_exp}/${UNIT_EXP_CAP}`,
+        deltaValue: `+${result.credited_delta}`,
+        note: `後台已完成 server_verified 重算；本單元正式認列 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，本次新增認列 +${result.credited_delta}。`
+      }
+      : {
+        totalLabel: "本次預估 EXP",
+        creditLabel: "正式認列 EXP",
+        deltaLabel: "正式累積增量",
+        creditValue: "待確認",
+        deltaValue: "+0",
+        note: `本次預估 ${result.attempt_total_exp}/${UNIT_EXP_CAP} EXP，待後台確認；完成確認前不列入正式累積。`
+      };
   const expRows = [
     { title: "完成任務", detail: "完整提交本次預習檢核", value: result.completion_exp },
-    { title: "概念答對", detail: `未使用提示直接答對 ${result.correct_without_hint} 題`, value: result.concept_exp },
-    { title: "提示後修正", detail: `使用提示後仍完成修正 ${result.corrected_after_hint} 題`, value: result.revision_exp },
+    { title: "直接答對", detail: `未使用提示直接答對 ${result.correct_without_hint} 題，直接答對池最高 ${DIRECT_EXP_POOL} EXP。`, value: result.concept_exp },
+    { title: "提示後修正", detail: `使用提示後完成修正 ${result.corrected_after_hint} 題，修正池低於直接答對池。`, value: result.revision_exp },
     { title: "回報品質", detail: result.reflection_exp_reason || "空白可提交，但沒有回報 EXP。", value: result.question_exp },
-    { title: "再挑戰", detail: state.attempt_type === "retry" ? "本次為重新登入後從頭完成的再挑戰紀錄" : "首次挑戰不列入", value: result.retry_exp },
-    { title: "精熟表現", detail: result.mastery_exp ? "正確率達到精熟門檻" : "尚未達到精熟門檻", value: result.mastery_exp }
+    { title: "精熟表現", detail: result.no_hint_perfect ? "全部答對且全程未使用提示，取得最高精熟 EXP。" : result.perfect ? "全部答對，但曾使用提示，精熟 EXP 低於零提示全對。" : result.mastery_exp ? "正確率達到精熟門檻。" : "尚未達到精熟門檻。", value: result.mastery_exp },
+    { title: "再挑戰進步", detail: result.retry_improved ? `本次比前一次進步，取得進步補分；本單元認列仍最多 ${UNIT_EXP_CAP} EXP。` : state.attempt_type === "retry" ? "本次為再挑戰，但未高於前一次完整挑戰，不給進步補分。" : "首次挑戰不列入。", value: result.retry_exp }
   ];
   return `
     <div class="mission-layout">
@@ -1502,9 +1943,14 @@ function renderResult() {
           <p>${state.lockNotice || "本次任務已提交，作答結果已鎖定；若要再挑戰，請重新登入並從頭完成。"}</p>
         </div>
         <div class="score-grid">
-          <div class="score-box"><span>總 EXP</span><strong>${result.total_exp}</strong></div>
+          <div class="score-box"><span>${summaryCopy.totalLabel}</span><strong>${result.attempt_total_exp}</strong></div>
+          <div class="score-box"><span>${summaryCopy.creditLabel}</span><strong>${summaryCopy.creditValue}</strong></div>
+          <div class="score-box"><span>${summaryCopy.deltaLabel}</span><strong>${summaryCopy.deltaValue}</strong></div>
           <div class="score-box"><span>答對題數</span><strong>${result.correct}/${result.total}</strong></div>
-          <div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div>
+        </div>
+        <div class="story-panel highlight">
+          <strong>${isVerified ? "正式認列完成" : isGuest ? "guest 測試結果" : "等待後台確認"}</strong>
+          <p>${summaryCopy.note}</p>
         </div>
 
         <h3>各關表現</h3>
@@ -1546,11 +1992,31 @@ function renderResult() {
 }
 
 function aggregateStudent() {
-  if (!state.student) return { totalExp: 0, badges: [], attempts: [] };
+  if (!state.student) return { totalExp: 0, badges: [], attempts: [], completedUnits: 0 };
+  const progress = state.student.progress || state.student.student_progress || {};
+  const verified = !state.student.is_guest && (progress.unit_badge_summary_json !== undefined || progress.source === "verified_attempts" || Number.isFinite(Number(progress.total_exp)));
+  if (verified) {
+    const totalExp = Number(progress.total_exp || state.student.total_exp || 0);
+    const completedUnits = Number(progress.completed_unit_count ?? progress.completed_units_count ?? progress.completed_attempts ?? state.student.completed_attempts ?? 0) || 0;
+    let badges = [];
+    try {
+      const summaries = JSON.parse(progress.unit_badge_summary_json || "[]");
+      badges = summaries.flatMap((unit) => (unit.earned_badge_ids || unit.earned_badges || []).map((badge) => typeof badge === "string" ? badge : badge.badge_id || badge.id)).filter(Boolean);
+    } catch {
+      badges = [];
+    }
+    return { totalExp, badges: [...new Set(badges)], attempts: [], completedUnits };
+  }
   const attempts = studentAttempts(state.student.student_id);
-  const totalExp = attempts.reduce((sum, item) => sum + (item.total_exp || 0), 0);
+  const bestByUnit = new Map();
+  attempts.forEach((attempt) => {
+    const unitId = attempt.mission?.unit_id || mission.unit_id;
+    const credited = Number(attempt.unit_credited_exp ?? attempt.total_exp ?? 0);
+    bestByUnit.set(unitId, Math.max(bestByUnit.get(unitId) || 0, credited));
+  });
+  const totalExp = [...bestByUnit.values()].reduce((sum, value) => sum + value, 0);
   const badges = [...new Set(attempts.flatMap((item) => item.badges || []))];
-  return { totalExp, badges, attempts };
+  return { totalExp, badges, attempts, completedUnits: bestByUnit.size };
 }
 
 function renderBadgeCatalog(earnedBadges) {
@@ -1558,14 +2024,38 @@ function renderBadgeCatalog(earnedBadges) {
   return `
     <div class="badge-grid">
       ${unitBadgeCatalog.map((badge) => `
-        <div class="badge ${earned.has(badge.name) ? "earned" : "locked"}" data-badge-id="${badge.id}">
-          <img src="${badge.badge_image_path}" alt="${badge.name}">
+        <div class="badge ${earned.has(badge.id) || earned.has(badge.name) ? "earned" : "locked"}" data-badge-id="${badge.id}" data-badge-image-hook="${badge.badge_image_path}">
+          <div class="badge-visual ${badge.id === "cell_structure_flawless" ? "gold" : ""}">
+            <img src="${badge.badge_image_path}" alt="${badge.name}">
+          </div>
           <strong>${badge.name}</strong>
           <p>${badge.condition}</p>
         </div>
       `).join("")}
     </div>
   `;
+}
+
+function updateBadgeOverviewBridge() {
+  if (typeof window === "undefined") return;
+  if (!state.student) {
+    delete window.__BIOQUEST_BADGE_OVERVIEW_STATE__;
+    return;
+  }
+  const progress = state.student.progress || state.student.student_progress || {};
+  window.__BIOQUEST_BADGE_OVERVIEW_STATE__ = {
+    student: {
+      ...state.student,
+      progress,
+      student_progress: progress,
+      is_guest: Boolean(state.student.is_guest),
+      title_avatar_path: state.student.title_avatar_path || progress.title_avatar_path || "",
+      current_title_id: state.student.current_title_id || progress.current_title_id || "",
+      current_title: state.student.current_title || progress.current_title || ""
+    },
+    progress,
+    student_progress: progress
+  };
 }
 
 function titleForExp(exp) {
@@ -1584,36 +2074,20 @@ function titleForExp(exp) {
 function renderAchievements() {
   if (!state.student) return renderLogin();
   const aggregate = aggregateStudent();
-  const title = titleForExp(aggregate.totalExp);
-  const progress = titleProgressRules?.progressPercent(aggregate.totalExp) ?? Math.min(100, (aggregate.totalExp / TITLE_PROGRESS_CAP) * 100);
   const currentResultBadges = state.result?.badges || [];
   const unitBadges = [...new Set([...aggregate.badges, ...currentResultBadges])];
   return `
     <div class="wide-layout">
-      <div class="panel">
-        <p class="eyebrow">累積成就</p>
-        <h2>${state.student.student_name}</h2>
-        <p class="lead">${state.student.class_name} 班 ${state.student.seat_no} 號｜目前稱號：${title.current}</p>
-        ${renderTitleAvatarCard("achievements")}
-        <div class="score-grid">
-          <div class="score-box"><span>累積 EXP</span><strong>${aggregate.totalExp}</strong></div>
-          <div class="score-box"><span>已取得徽章</span><strong>${aggregate.badges.length}</strong></div>
-          <div class="score-box"><span>完成任務</span><strong>${aggregate.attempts.length}</strong></div>
-        </div>
-        <h3>下一稱號：${title.next}${title.remaining ? `｜還差 ${title.remaining} EXP` : ""}</h3>
-        <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
-        <p class="muted">稱號進度 ${aggregate.totalExp >= TITLE_PROGRESS_CAP ? 100 : Math.floor(progress * 10) / 10}%｜稱號進度以 ${TITLE_PROGRESS_CAP.toLocaleString()} EXP 封頂；全冊理論仍可累積 ${FULL_BOOK_EXP_MAX.toLocaleString()} EXP，達最高稱號後 EXP 繼續累積。</p>
-      </div>
-      <div class="panel">
+      <div class="panel" data-bq-unit-achievements="true">
         <p class="eyebrow">本單元成就</p>
         <h3>細胞工廠的祕密</h3>
-        <p class="muted">本單元可收集的徽章會全部列在這裡，已取得的徽章會亮燈。</p>
+        <p class="muted">本單元可收集的徽章會全部列在這裡，已取得的徽章會以全彩呈現；未取得維持灰階。</p>
         ${renderBadgeCatalog(unitBadges)}
       </div>
       <div class="panel bq-all-unit-badge-overview" data-bq-badge-overview="true"></div>
       <div class="panel">
         <h3>可再挑戰任務</h3>
-        <p>${aggregate.attempts.length ? "細胞工廠的祕密" : "完成首次任務後，這裡會出現可再挑戰項目。"}</p>
+        <p>${aggregate.completedUnits || aggregate.attempts.length ? "細胞工廠的祕密" : "完成首次任務後，這裡會出現可再挑戰項目。"}</p>
       </div>
     </div>
   `;
@@ -1709,8 +2183,33 @@ function render() {
     achievements: renderAchievements,
     rules: renderRules
   };
+  updateBadgeOverviewBridge();
+  screen.dataset.bioquestScreen = state.screen;
   screen.innerHTML = renderers[state.screen]();
   attachCurrentScreen();
+  window.BioQuestCharacterLayout?.enhance?.({ force: true });
 }
 
 render();
+
+if (typeof window !== "undefined") {
+  window.__cellStructureTest = {
+    VERSION,
+    QUESTION_VERSION,
+    mission,
+    unitBadgeCatalog,
+    defaultState,
+    state: () => state,
+    setState: (next) => { state = { ...structuredClone(defaultState), ...next, question_version: QUESTION_VERSION }; },
+    canonicalRawAnswers,
+    canonicalQuestionLogs,
+    buildBackendPayload,
+    submitAttemptToBackend,
+    calculateResult,
+    evaluateReflectionQuality,
+    applyBackendSubmitResponse,
+    renderResult,
+    renderAchievements,
+    renderBadgeCatalog
+  };
+}
