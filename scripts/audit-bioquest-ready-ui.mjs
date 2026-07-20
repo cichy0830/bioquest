@@ -64,7 +64,7 @@ appVersionOverrides.set("plant_material_transport", "20260720-plant-material-tra
 appVersionOverrides.set("human_nutrition", "20260719-human-nutrition-qa-v1");
 appVersionOverrides.set("plant_material_transport", "20260720-plant-material-transport-badges-v1");
 appVersionOverrides.set("plant_transport_structures", "20260720-plant-transport-structures-extension-v2");
-appVersionOverrides.set("cardiovascular_components", "20260720-cardiovascular-components-converge-v1");
+appVersionOverrides.set("cardiovascular_components", "20260720-cardiovascular-components-brief-scroll-v1");
 appVersionOverrides.set("human_circulation", "20260718-ag-visual-fixes-v1");
 appVersionOverrides.set("stimulus_response", "20260718-ag-visual-fixes-v1");
 appVersionOverrides.set("nervous_system", "20260718-nervous-system-ready-v1");

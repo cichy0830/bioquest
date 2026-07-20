@@ -150,18 +150,26 @@ textarea { resize: vertical; min-height: 116px; }
   background-position: center;
 }
 .cardiovascular-components-brief-scene::after {
-  content: "";
-  position: absolute;
-  right: 9%;
-  bottom: 9%;
-  width: min(36%, 310px);
-  aspect-ratio: 1;
-  border-radius: 44% 56% 46% 54%;
-  background:
-    radial-gradient(circle at 46% 42%, #f7f4d1 0 7%, transparent 7.5%),
-    radial-gradient(circle at 62% 36%, rgba(255,255,255,.8) 0 5%, transparent 5.5%),
-    linear-gradient(135deg, rgba(31,121,68,.75), rgba(157,213,96,.62));
-  opacity: .72;
+  content: none;
+  display: none;
+}
+.bq-brief-scene-stage.brief-scene {
+  min-height: 0;
+  padding: 0;
+  background: rgba(7, 48, 55, 0.82);
+  background-image: none;
+  background-size: auto;
+  background-position: center;
+}
+.bq-brief-scene-stage .bq-brief-scene-media {
+  z-index: 1;
+}
+.bq-brief-scene-stage .bq-brief-scene-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
 }
 .scene-copy {
   position: relative;
@@ -410,7 +418,7 @@ textarea { resize: vertical; min-height: 116px; }
   .hero-panel { min-height: auto; }
   .brief-scene {
     grid-template-columns: 1fr;
-    min-height: 600px;
+    min-height: 0;
     align-items: end;
     padding: 16px;
   }
@@ -432,7 +440,7 @@ textarea { resize: vertical; min-height: 116px; }
   .panel { padding: 16px; }
   .hero-title { font-size: 34px; }
   .brief-scene { min-height: 560px; }
-  .cardiovascular-components-brief-scene::after { right: -2%; bottom: 38%; width: 56%; }
+  .bq-brief-scene-stage.brief-scene { min-height: 0; padding: 0; }
   .badge-visual { width: 74px; height: 74px; }
   .badge { min-height: 164px; }
 }
