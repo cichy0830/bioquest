@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260720-human-circulation-achievement-order-v3";
+const VERSION = "20260720-human-circulation-badges-v1";
 const QUESTION_VERSION = "20260718-human-circulation-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -41,7 +41,15 @@ const assets = {
   questionLymphFluid: "human-circulation-tissue-fluid-lymph-visual"
 };
 
-const badgeAsset = () => "";
+const readyBadgeIds = new Set([
+  "human_circulation_entry",
+  "pulmonary_route_tracker",
+  "systemic_route_tracker",
+  "human_circulation_flawless"
+]);
+const badgeAsset = (id) => readyBadgeIds.has(id)
+  ? `../shared-assets/badges/human_circulation/badge-human_circulation-${id}.webp?v=${VERSION}`
+  : "";
 const reflectionRules = {
   conceptTerms: ["循環", "血液", "心臟", "右心", "左心", "右心室", "左心室", "右心房", "左心房", "肺循環", "體循環", "肺部", "全身", "微血管", "含氧量", "氧氣", "二氧化碳", "動脈", "靜脈", "肺動脈", "肺靜脈", "組織液", "淋巴", "物質交換"],
   irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "午餐", "放假"],
@@ -65,7 +73,7 @@ const badges = [
   ["human_circulation_flawless", "循環路線零提示全對徽章", "全部答對且全程未使用提示。"],
   ["human_circulation_reflection_reporter", "高品質循環回報徽章", "回報品質達 discussion_question。"],
   ["retry_growth_human_circulation", "再探血流路線進步徽章", "再挑戰完整完成且正確率進步。"]
-].map(([id, name, condition]) => ({ id, name, condition, badge_image_path: badgeAsset(id), image_status: "pending" }));
+].map(([id, name, condition]) => ({ id, name, condition, badge_image_path: badgeAsset(id), image_status: readyBadgeIds.has(id) ? "ready" : "pending" }));
 
 const sequenceSteps = [
   { id: "right_ventricle", label: "右心室" },

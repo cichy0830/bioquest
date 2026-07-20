@@ -28,7 +28,7 @@ const sharedVersionOverrides = new Map([
   ["plant_transport_structures", "20260720-plant-transport-structures-extension-v2"],
   ["plant_material_transport", "20260720-plant-material-transport-badges-v1"],
   ["cardiovascular_components", "20260720-cardiovascular-components-brief-visible-v2"],
-  ["human_circulation", "20260720-human-circulation-achievement-order-v3"],
+  ["human_circulation", "20260720-human-circulation-badges-v1"],
   ["stimulus_response", "20260718-ag-visual-fixes-v1"],
   ["nervous_system", "20260713-login-busy-v1"],
   ["endocrine_system", "20260713-login-busy-v1"],
