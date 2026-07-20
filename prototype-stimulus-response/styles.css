@@ -149,19 +149,26 @@ textarea { resize: vertical; min-height: 116px; }
   background-size: cover;
   background-position: center;
 }
-.human-circulation-brief-scene::after {
-  content: "";
-  position: absolute;
-  right: 9%;
-  bottom: 9%;
-  width: min(36%, 310px);
-  aspect-ratio: 1;
-  border-radius: 44% 56% 46% 54%;
-  background:
-    radial-gradient(circle at 46% 42%, #f7f4d1 0 7%, transparent 7.5%),
-    radial-gradient(circle at 62% 36%, rgba(255,255,255,.8) 0 5%, transparent 5.5%),
-    linear-gradient(135deg, rgba(31,121,68,.75), rgba(157,213,96,.62));
-  opacity: .72;
+body[data-unit-id="stimulus_response"] .stimulus-response-brief-scene.bq-brief-scene-stage {
+  isolation: isolate;
+  min-height: 0;
+  padding: 0;
+  background: #08343d !important;
+}
+body[data-unit-id="stimulus_response"] .stimulus-response-brief-scene .bq-brief-scene-media {
+  z-index: 1 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+body[data-unit-id="stimulus_response"] .stimulus-response-brief-scene .bq-brief-scene-image {
+  opacity: 1 !important;
+  visibility: visible !important;
+  filter: none !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+}
+body[data-unit-id="stimulus_response"] .stimulus-response-brief-scene .bq-brief-student-avatar {
+  z-index: 2 !important;
 }
 .scene-copy {
   position: relative;
@@ -189,6 +196,7 @@ textarea { resize: vertical; min-height: 116px; }
 .title-avatar-brief span, .title-avatar-brief p { margin: 0; color: var(--muted); font-size: 13px; font-weight: 800; }
 
 .prep-owl-hero {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(150px, 240px) minmax(0, 1fr);
   gap: 18px;
@@ -200,10 +208,15 @@ textarea { resize: vertical; min-height: 116px; }
   background: linear-gradient(135deg, rgba(233, 250, 221, .9), rgba(255, 246, 217, .86));
 }
 .prep-owl-hero img {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
+  min-height: 180px;
   max-height: 260px;
   object-fit: contain;
+  opacity: 1;
+  visibility: visible;
 }
 .concept-grid, .ledger-grid, .feedback-columns, .badge-wall {
   display: grid;
@@ -439,7 +452,6 @@ textarea { resize: vertical; min-height: 116px; }
   .panel { padding: 16px; }
   .hero-title { font-size: 34px; }
   .brief-scene { min-height: 560px; }
-  .human-circulation-brief-scene::after { right: -2%; bottom: 38%; width: 56%; }
   .badge-visual { width: 74px; height: 74px; }
   .badge { min-height: 164px; }
 }

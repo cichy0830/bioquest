@@ -49,10 +49,42 @@ try {
     });
     page.on("dialog", (dialog) => dialog.accept());
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260720-stimulus-response-readiness-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260720-stimulus-response-qa-roles-badges-v2`);
     await page.locator("#guestBtn").click();
+    await page.locator(".bq-brief-scene-stage").waitFor();
+    const briefSnapshot = await page.evaluate(() => {
+      const stage = document.querySelector(".bq-brief-scene-stage");
+      const scene = document.querySelector(".bq-brief-scene-image");
+      const student = document.querySelector(".bq-brief-student-avatar");
+      const stageBox = stage?.getBoundingClientRect();
+      const sceneBox = scene?.getBoundingClientRect();
+      const studentBox = student?.getBoundingClientRect();
+      return {
+        sceneCount: document.querySelectorAll(".bq-brief-scene-image").length,
+        studentCount: document.querySelectorAll(".bq-brief-student-avatar").length,
+        sceneNaturalWidth: scene?.naturalWidth || 0,
+        sceneVisible: Boolean(sceneBox && stageBox && sceneBox.width > stageBox.width * 0.9 && sceneBox.height > stageBox.height * 0.9),
+        studentVisible: Boolean(studentBox && studentBox.width > 40 && studentBox.height > 120),
+        hasOwl: document.querySelectorAll(".brief-hero .owl-panel, .brief-hero .bq-report-assistant").length
+      };
+    });
+    assert.equal(briefSnapshot.sceneCount, 1, "brief scene image should be exactly one");
+    assert.equal(briefSnapshot.studentCount, 1, "brief student avatar should be exactly one");
+    assert(briefSnapshot.sceneNaturalWidth > 0, "brief scene image must load");
+    assert.equal(briefSnapshot.sceneVisible, true, "brief scene image must fill the 16:9 stage visibly");
+    assert.equal(briefSnapshot.studentVisible, true, "brief student avatar must be visible");
+    assert.equal(briefSnapshot.hasOwl, 0, "brief page must not show owl");
     await page.locator('[data-next="scan"]').click();
     assert.equal(await page.locator(".prep-owl-hero").count(), 1, "prep owl hero missing");
+    await page.waitForFunction(() => {
+      const img = document.querySelector(".prep-owl-hero img");
+      return img && img.naturalWidth > 0;
+    });
+    const prepOwlVisible = await page.locator(".prep-owl-hero img").evaluate((img) => {
+      const box = img.getBoundingClientRect();
+      return img.naturalWidth > 0 && box.width > 80 && box.height > 120 && getComputedStyle(img).visibility !== "hidden";
+    });
+    assert.equal(prepOwlVisible, true, "prep owl must be visibly rendered under the heading");
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "horizontal overflow on prep");
     await page.locator('[data-next="checkpoint1"]').click();
     assert.equal(await page.locator(`[data-sequence="${Q(7)}"] [data-sequence-item]`).count(), 0, "sequence should not appear in checkpoint1");
@@ -76,6 +108,19 @@ try {
     await answerChoice(page, Q(13), "controlled_repeated");
     await answerChoice(page, Q(14), "single_trial_caution");
     await page.locator('[data-section-next="checkpoint3"]').click();
+    await page.waitForFunction(() => {
+      const images = [...document.querySelectorAll(".mentor-card img, .bq-feedback-mentor__visual img")];
+      return images.length === 1 && images[0].naturalWidth > 0;
+    });
+    const reviewMentor = await page.evaluate(() => {
+      const images = [...document.querySelectorAll(".mentor-card img, .bq-feedback-mentor__visual img")];
+      return images.map((img) => {
+        const box = img.getBoundingClientRect();
+        return { width: box.width, height: box.height, naturalWidth: img.naturalWidth };
+      });
+    });
+    assert.equal(reviewMentor.length, 1, "review mentor image should be exactly one");
+    assert(reviewMentor[0].naturalWidth > 0 && reviewMentor[0].width > 180 && reviewMentor[0].height > 180, "review mentor image must be complete and visible");
     await page.locator('[data-next="reflection"]').click();
     assert.equal(await page.locator(".bq-report-assistant").count(), 1, "report owl should be exactly one");
     await page.locator("#submitMission").click();
@@ -84,6 +129,8 @@ try {
     await page.locator('[data-next="achievements"]').click();
     await page.locator(".achievements-stack").waitFor();
     assert.equal(await page.locator("[data-bq-unit-achievements] .badge").count(), 15, "all 15 unit badges should render before shared title");
+    assert.equal(await page.locator("[data-bq-unit-achievements] .badge-visual:not(.asset-missing) img").count(), 4, "four approved badge images should render");
+    assert.equal(await page.locator("[data-bq-unit-achievements] .badge-visual.asset-missing").count(), 11, "eleven badges should remain controlled pending");
     assert.equal(await page.locator(".bq-title-avatar-card").count(), 1, "shared title avatar should be exactly one");
     assert.equal(await page.locator(".bq-all-unit-badge-overview").count(), 1, "whole-book overview missing");
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "achievement horizontal overflow");

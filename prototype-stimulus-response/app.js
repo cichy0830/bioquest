@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260720-stimulus-response-readiness-v1";
+const VERSION = "20260720-stimulus-response-qa-roles-badges-v2";
 const QUESTION_VERSION = "20260718-stimulus-response-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -41,7 +41,18 @@ const assets = {
   questionDataCards: "stimulus-response-data-cards"
 };
 
-const badgeAsset = () => "";
+const readyBadgeIds = new Set([
+  "stimulus_response_entry",
+  "response_pathway_sequencer",
+  "reaction_time_reader",
+  "stimulus_response_flawless"
+]);
+
+function badgeAsset(id) {
+  return readyBadgeIds.has(id)
+    ? `../shared-assets/badges/stimulus_response/badge-stimulus_response-${id}.webp?v=${VERSION}`
+    : "";
+}
 const reflectionRules = {
   conceptTerms: ["刺激", "反應", "受器", "動器", "感受", "接收刺激", "肌肉", "腺體", "訊息傳遞", "協調", "流程", "有意識", "反應時間", "注意力", "疲勞", "練習", "多次測量", "公平測量", "控制變因"],
   irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "午餐", "放假"],
@@ -65,7 +76,10 @@ const badges = [
   ["stimulus_response_reflection_reporter", "高品質反應回報徽章", "回報品質達 discussion_question。"],
   ["retry_growth_stimulus_response", "再探反應進步徽章", "再挑戰完整完成且正確率進步。"],
   ["response_evidence_integrator", "反應證據整合徽章", "能整合反應時間與公平測量證據。"]
-].map(([id, name, condition]) => ({ id, name, condition, badge_image_path: badgeAsset(id), image_status: "pending" }));
+].map(([id, name, condition]) => {
+  const badge_image_path = badgeAsset(id);
+  return { id, name, condition, badge_image_path, image_status: badge_image_path ? "ready" : "pending" };
+});
 
 const sequenceSteps = [
   { id: "stimulus_appears", label: "刺激出現" },
@@ -784,7 +798,7 @@ function renderBrief() {
 }
 
 function renderScan() {
-  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入反應控制室前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先用「變化、接收、協調、執行、結果」拆解情境。</h3><p>刺激是可被感受的變化；受器接收刺激；訊息經過協調後，由肌肉或腺體等動器產生反應。</p></div></div><div class="concept-grid"><article><strong>刺激</strong><p>生物能感受到的環境或體內變化，例如光、聲音、熱或氣味。</p></article><article><strong>受器</strong><p>負責接收刺激的構造或細胞，例如眼、耳、皮膚中的感受構造。</p></article><article><strong>動器</strong><p>產生反應的構造，常見例子包含肌肉與腺體。</p></article><article><strong>反應時間</strong><p>刺激出現到做出反應所花的時間，會受注意力、疲勞、練習與測量方法影響。</p></article></div><button class="primary" data-next="checkpoint1">開始追蹤反應訊號</button></section></div>`;
+  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入反應控制室前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" loading="eager" decoding="async" onerror="this.style.display='none'"><div><h3>先用「變化、接收、協調、執行、結果」拆解情境。</h3><p>刺激是可被感受的變化；受器接收刺激；訊息經過協調後，由肌肉或腺體等動器產生反應。</p></div></div><div class="concept-grid"><article><strong>刺激</strong><p>生物能感受到的環境或體內變化，例如光、聲音、熱或氣味。</p></article><article><strong>受器</strong><p>負責接收刺激的構造或細胞，例如眼、耳、皮膚中的感受構造。</p></article><article><strong>動器</strong><p>產生反應的構造，常見例子包含肌肉與腺體。</p></article><article><strong>反應時間</strong><p>刺激出現到做出反應所花的時間，會受注意力、疲勞、練習與測量方法影響。</p></article></div><button class="primary" data-next="checkpoint1">開始追蹤反應訊號</button></section></div>`;
 }
 
 function renderCheckpoint(section) {
@@ -910,11 +924,7 @@ function renderReview() {
         </div>
         <button class="primary" data-next="reflection">前往任務回報</button>
       </section>
-      <aside class="panel mentor-card" data-feedback-state="${stateName}">
-        <img src="../shared-assets/mentor-feedback/mentor-feedback-${stateName}.webp" alt="阿澤老師回饋" onerror="this.src='${assets.mentorFallback}'">
-        <h3>${feedbackTitle(stateName)}</h3>
-        <p>請把不確定的概念轉成課堂上想確認的方向。</p>
-      </aside>
+      <aside class="panel mentor-card" data-feedback-state="${stateName}" data-feedback-mentor-state="${stateName}" aria-label="阿澤老師任務回饋"></aside>
     </div>
   `;
 }
@@ -1184,6 +1194,8 @@ if (typeof window !== "undefined") {
     buildBackendPayload,
     evaluateReflection,
     titleAvatarPath,
+    renderBrief,
+    renderScan,
     renderQuestionEvidence,
     renderCheckpoint,
     renderReview,

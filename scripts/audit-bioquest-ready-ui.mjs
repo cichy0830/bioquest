@@ -66,7 +66,7 @@ appVersionOverrides.set("plant_material_transport", "20260720-plant-material-tra
 appVersionOverrides.set("plant_transport_structures", "20260720-plant-transport-structures-extension-v2");
 appVersionOverrides.set("cardiovascular_components", "20260720-cardiovascular-components-brief-visible-v2");
 appVersionOverrides.set("human_circulation", "20260720-human-circulation-badges-v1");
-appVersionOverrides.set("stimulus_response", "20260720-stimulus-response-readiness-v1");
+appVersionOverrides.set("stimulus_response", "20260720-stimulus-response-qa-roles-badges-v2");
 appVersionOverrides.set("nervous_system", "20260718-nervous-system-ready-v1");
 appVersionOverrides.set("endocrine_system", "20260718-endocrine-system-ready-v1");
 appVersionOverrides.set("behavior_sensing", "20260718-behavior-sensing-ready-v1");
@@ -120,16 +120,26 @@ function badgeBlock(source) {
   return source.slice(start, next < 0 ? source.length : next);
 }
 
+function readyBadgeIds(source) {
+  const match = source.match(/const readyBadgeIds = new Set\(\[([\s\S]*?)\]\);/);
+  if (!match) return new Set();
+  return new Set([...match[1].matchAll(/["']([^"']+)["']/g)].map((item) => item[1]));
+}
+
 function badgeInventory(source, folder) {
   const block = badgeBlock(source);
+  const readyIds = readyBadgeIds(source);
   const entries = [...block.matchAll(/\{\s*id:\s*["']([^"']+)["']([\s\S]*?)\}/g)].map((match) => {
     const explicit = match[2].match(/badge_image_path:\s*["']([^"']+)["']/)?.[1] || "";
     return { id: match[1], explicit };
   });
   if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components" || folder === "prototype-human-circulation" || folder === "prototype-stimulus-response" || folder === "prototype-nervous-system" || folder === "prototype-endocrine-system" || folder === "prototype-behavior-sensing" || folder === "prototype-respiration-homeostasis" || folder === "prototype-excretion-water-homeostasis" || folder === "prototype-temperature-glucose-homeostasis" || folder === "prototype-cell-division" || folder === "prototype-asexual-reproduction" || folder === "prototype-sexual-reproduction")) {
     const dynamicTemplate = source.match(/const badgeAsset = \(id\) => `([^`]+)`/)?.[1] || "";
+    const readyTemplate = source.match(/`([^`]*badge-[^`]*-\$\{id\}\.webp[^`]*)`/)?.[1] || "";
     return [...block.matchAll(/\[\s*["']([^"']+)["']\s*,\s*["'][^"']+["']\s*,\s*["'][^"']+["']\s*\]/g)].map((match) => {
-      const imagePath = dynamicTemplate ? dynamicTemplate.replace("${id}", match[1]) : "";
+      const imagePath = readyIds.has(match[1]) && readyTemplate
+        ? readyTemplate.replace("${id}", match[1])
+        : dynamicTemplate ? dynamicTemplate.replace("${id}", match[1]) : "";
       const filePath = imagePath.split(/[?#]/)[0];
       const absolute = filePath ? path.resolve(root, folder, filePath) : "";
       return { id: match[1], imagePath, exists: Boolean(absolute && fs.existsSync(absolute)) };

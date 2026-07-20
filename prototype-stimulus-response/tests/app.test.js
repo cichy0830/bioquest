@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-stimulus-response/app.js" });
 const api = context.window.__stimulus_responseTest;
 
-assert.equal(api.VERSION, "20260720-stimulus-response-readiness-v1");
+assert.equal(api.VERSION, "20260720-stimulus-response-qa-roles-badges-v2");
 assert.equal(api.QUESTION_VERSION, "20260718-stimulus-response-ready-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -39,6 +39,14 @@ assert(!source.includes("startData.question_version !== VERSION"), "startAttempt
 assert.equal(api.mission.unit_id, "stimulus_response");
 assert.equal(api.questions.length, 14);
 assert.equal(api.badges.length, 15);
+assert.equal(api.badges.filter((badge) => badge.image_status === "ready").length, 4);
+assert.equal(api.badges.filter((badge) => badge.image_status === "pending").length, 11);
+for (const id of ["stimulus_response_entry", "response_pathway_sequencer", "reaction_time_reader", "stimulus_response_flawless"]) {
+  const badge = api.badges.find((item) => item.id === id);
+  assert.equal(badge.image_status, "ready", id);
+  assert(badge.badge_image_path.includes(`badge-stimulus_response-${id}.webp?v=${api.VERSION}`), `${id} badge URL must include cache VERSION`);
+}
+assert(!api.badges.some((badge) => /review|contact|approved|_generated_sources|raw/i.test(badge.badge_image_path)), "runtime badge paths must not point at review/raw/generated assets");
 assert(source.includes("BioQuestLoginUX?.begin"));
 assert(fs.readFileSync(path.join(root, "styles.css"), "utf8").includes("正式徽章素材待接"));
 assert(!source.includes("function titleAndProgress"), "local title progress calculator must stay removed");
@@ -117,6 +125,9 @@ assert(!api.renderQuestionEvidence(Q(9)).includes("不一定都先經過"), "q09
 assert(!api.renderQuestionEvidence(Q(10)).includes("反應時間"), "q10 evidence must avoid naming the answer concept");
 assert.equal(api.assets.briefingSceneHook, ["assets", "stimulus-response-briefing-azhe-wide.webp"].join("/"));
 assert.equal(api.assets.ambientBackgroundHook, ["assets", "stimulus-response-entry-wide.webp"].join("/"));
+assert(api.renderBrief().includes("bq-brief-scene-image"));
+assert(api.renderScan().includes("prep-owl-hero"));
+assert(!api.renderReview().includes("<img"), "review mentor image must be injected once by shared helper");
 assert(!api.renderReflection().includes("bq-report-assistant"));
 assert(fs.readFileSync(path.join(root, "index.html"), "utf8").includes("data-report-owl-src"));
 assert(api.renderResult().includes("提交後本次作答已鎖定"));

@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-stimulus-response")
   : sourceRoot;
-const VERSION = "20260720-stimulus-response-readiness-v1";
+const VERSION = "20260720-stimulus-response-qa-roles-badges-v2";
 const STORAGE_KEY = "bioquest_stimulus_response_state_v1";
 const QUESTION_VERSION = "20260718-stimulus-response-ready-v1";
 const UNIT_ID = "stimulus_response";
@@ -120,6 +120,8 @@ try {
           unitBeforeTitle: unit && title ? nodes.indexOf(unit) < nodes.indexOf(title) : false,
           unitBeforeOverview: unit && overview ? nodes.indexOf(unit) < nodes.indexOf(overview) : false,
           badgeCountBeforeTitle: title ? [...document.querySelectorAll("[data-bq-unit-achievements] .badge")].filter((badge) => nodes.indexOf(badge) < nodes.indexOf(title)).length : 0,
+          readyBadgeCount: document.querySelectorAll("[data-bq-unit-achievements] .badge-visual:not(.asset-missing) img").length,
+          readyBadgeUrls: [...document.querySelectorAll("[data-bq-unit-achievements] .badge-visual:not(.asset-missing) img")].map((img) => img.getAttribute("src") || ""),
           titleText: title?.textContent || "",
           pendingBadgeCount: document.querySelectorAll("[data-bq-unit-achievements] .badge-visual.asset-missing").length,
           hasOverflow: document.documentElement.scrollWidth > innerWidth
@@ -132,7 +134,9 @@ try {
       assert.equal(snapshot.unitBeforeTitle, true, "unit badge panel should appear before title card");
       assert.equal(snapshot.unitBeforeOverview, true, "unit badge panel should appear before whole-book overview");
       assert.equal(snapshot.badgeCountBeforeTitle, 15, "all 15 unit badges must appear before title card");
-      assert.equal(snapshot.pendingBadgeCount, 15, "all U20 badges should stay controlled pending fallback until approved art exists");
+      assert.equal(snapshot.readyBadgeCount, 4, "four approved U20 badges should render real images");
+      assert.equal(snapshot.pendingBadgeCount, 11, "remaining U20 badges should stay controlled pending fallback");
+      assert(snapshot.readyBadgeUrls.every((url) => url.includes(`?v=${VERSION}`)), "ready badge URLs must carry runtime cache busting");
       if (status === "verified") {
         assert(snapshot.titleText.includes("8600 EXP"), "verified title card should use StudentProgress total");
         assert(!snapshot.titleText.includes("13600"), "verified title card must ignore localStorage attempt EXP");
