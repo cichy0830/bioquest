@@ -4,6 +4,7 @@ const roster = {
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
 const VERSION = "20260718-u18-u20-assets-v1";
+const QUESTION_VERSION = "20260718-stimulus-response-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -126,7 +127,7 @@ function createEmptyState() {
     attempt_session_token: "",
     attempt_session_id: "",
     previous_attempt_id: "",
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     optionOrders: {},
     answers: {},
@@ -147,7 +148,8 @@ function loadState() {
   if (typeof localStorage === "undefined") return createEmptyState();
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey) || "null");
-    return parsed && parsed.question_version ? { ...createEmptyState(), ...parsed } : createEmptyState();
+    if (!parsed || !parsed.question_version) return createEmptyState();
+    return { ...createEmptyState(), ...parsed, question_version: QUESTION_VERSION };
   } catch (error) {
     return createEmptyState();
   }
@@ -327,7 +329,7 @@ function beginLocalAttempt(student) {
     attempt_id: attemptId,
     attempt_session_token: `guest_${attemptId}`,
     attempt_session_id: `guest_session_${attemptId}`,
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     screen: "brief",
     completedScreens: ["login", "brief"]
@@ -358,9 +360,9 @@ async function handleLogin(useGuest) {
       action: "startAttempt",
       student_id: student.student_id,
       unit_id: mission.unit_id,
-      question_version: VERSION
+      question_version: QUESTION_VERSION
     });
-    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== VERSION) {
+    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== QUESTION_VERSION) {
       throw new Error("backend_registry_not_ready");
     }
     state = {
@@ -370,7 +372,7 @@ async function handleLogin(useGuest) {
       attempt_session_token: startData.attempt_session_token,
       attempt_session_id: startData.attempt_session_id,
       previous_attempt_id: startData.previous_attempt_id || "",
-      question_version: startData.question_version,
+      question_version: QUESTION_VERSION,
       verification_mode: startData.verification_mode,
       screen: "brief",
       completedScreens: ["login", "brief"]
@@ -428,7 +430,7 @@ async function flushHintEvents(ids = Object.keys(state.hintEventStatus)) {
         attempt_id: state.attempt_id,
         attempt_session_token: state.attempt_session_token,
         question_id: questionId,
-        question_version: state.question_version
+        question_version: QUESTION_VERSION
       });
       state.hintEventStatus[questionId] = "sent";
     } catch (error) {
@@ -631,7 +633,7 @@ function buildBackendPayload(result = scoreAttempt()) {
     attempt_id: state.attempt_id,
     attempt_session_token: state.attempt_session_token,
     previous_attempt_id: state.previous_attempt_id,
-    question_version: state.question_version,
+    question_version: QUESTION_VERSION,
     raw_answers: rawAnswers,
     raw_answers_json: JSON.stringify(rawAnswers),
     question_logs: result.logs.map((log) => ({
@@ -1186,6 +1188,7 @@ if (typeof document !== "undefined") {
 if (typeof window !== "undefined") {
   window.__stimulus_responseTest = {
     VERSION,
+    QUESTION_VERSION,
     mission,
     assets,
     badges,

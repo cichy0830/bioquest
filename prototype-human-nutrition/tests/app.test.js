@@ -23,7 +23,14 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-human-nutrition/app.js" });
 
 const api = context.window.__human_nutritionTest;
-assert.equal(api.VERSION, "20260714-human-nutrition-v1");
+assert.equal(api.VERSION, "20260719-human-nutrition-qa-v1");
+assert.equal(api.QUESTION_VERSION, "20260714-human-nutrition-v1");
+assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
+assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
+assert(source.includes("question_version: QUESTION_VERSION"), "backend question_version must use canonical QUESTION_VERSION");
+assert(!source.includes("question_version: VERSION"), "cache VERSION must not flow into backend question_version payloads");
+assert(source.includes("startData.question_version !== QUESTION_VERSION"), "startAttempt guard must compare canonical QUESTION_VERSION");
+assert(!source.includes("startData.question_version !== VERSION"), "startAttempt guard must not compare cache VERSION");
 assert.equal(api.mission.unit_id, "human_nutrition");
 assert.equal(api.questions.length, 14);
 assert.equal(api.badges.length, 13);
@@ -52,7 +59,7 @@ const answers = {
 
 api.setState({
   student: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true, profile_gender: "female" },
-  attempt_id: "human_nutrition_test_attempt", attempt_session_token: "guest_token", question_version: api.VERSION,
+  attempt_id: "human_nutrition_test_attempt", attempt_session_token: "guest_token", question_version: api.QUESTION_VERSION,
   answers, reflection: { confident: "消化和吸收", question: "", confidence: "4" }
 });
 for (const question of api.questions) assert.equal(api.isCorrect(question.id), true, `${question.id} should be correct`);
@@ -60,11 +67,17 @@ let score = api.scoreAttempt();
 assert.equal(score.correct_count, 14);
 assert.equal(score.total_questions, 14);
 assert.equal(score.hint_used_count, 0);
-assert.equal(score.unit_credited_exp, 500);
+assert.equal(score.unit_credited_exp, 460);
 assert(score.earned_badges.includes("human_nutrition_flawless"));
 assert(score.earned_badges.includes("food_path_sequencer"));
+api.setState({
+  student: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true, profile_gender: "female" },
+  attempt_id: "human_nutrition_valid_reflection", attempt_session_token: "guest_token", question_version: api.QUESTION_VERSION,
+  answers, reflection: { confident: "消化和吸收", question: "我想知道小腸絨毛增加面積後，養分如何進入血液並運送？", confidence: "4" }
+});
+assert.equal(api.scoreAttempt().unit_credited_exp, 500);
 
-api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "human_nutrition_hint_attempt", attempt_session_token: "guest_token", question_version: api.VERSION, answers, hints: { q07: true }, hintEventStatus: { q07: "sent" }, reflection: { confident: "膽汁", question: "我想確認膽汁如何幫助脂質消化，以及為什麼它本身不是酵素？", confidence: "3" } });
+api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "human_nutrition_hint_attempt", attempt_session_token: "guest_token", question_version: api.QUESTION_VERSION, answers, hints: { q07: true }, hintEventStatus: { q07: "sent" }, reflection: { confident: "膽汁", question: "我想確認膽汁如何幫助脂質消化，以及為什麼它本身不是酵素？", confidence: "3" } });
 score = api.scoreAttempt();
 assert(score.unit_credited_exp < 500, "提示後全對不得高於零提示全對");
 assert(score.earned_badges.includes("human_nutrition_reflection_reporter"));
@@ -75,10 +88,10 @@ for (const [text, expectedExp] of [["", 0], ["老師好帥", 0], ["消化道與�
   assert.equal(api.evaluateReflection().question_exp, expectedExp, `reflection exp mismatch for ${text}`);
 }
 
-api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "server_attempt", attempt_session_token: "server_token", previous_attempt_id: "prev_attempt", question_version: api.VERSION, answers, hints: { q12: true }, reflection: { confident: "食物流向", question: "我想確認消化和吸收的差異，以及養分何時會進入血液。", confidence: "5" } });
+api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "server_attempt", attempt_session_token: "server_token", previous_attempt_id: "prev_attempt", question_version: api.QUESTION_VERSION, answers, hints: { q12: true }, reflection: { confident: "食物流向", question: "我想確認消化和吸收的差異，以及養分何時會進入血液。", confidence: "5" } });
 const payload = api.buildBackendPayload(api.scoreAttempt());
 assert.equal(payload.unit_id, "human_nutrition");
-assert.equal(payload.question_version, api.VERSION);
+assert.equal(payload.question_version, api.QUESTION_VERSION);
 assert.equal(payload.attempt_session_token, "server_token");
 assert.equal(payload.question_logs.length, 14);
 assert.deepEqual(payload.raw_answers.q01, answers.q01);
@@ -89,9 +102,36 @@ const checkpoint = api.renderCheckpoint("checkpoint1");
 assert(checkpoint.includes("data-sequence=\"q02\""), "q02 drag sequence missing");
 assert(checkpoint.includes("上移"), "mobile sequence fallback missing");
 assert(checkpoint.includes("已選："), "selection state must be visible");
-assert(api.renderQuestionEvidence("q10").includes("大量絨毛狀構造"), "villi evidence card missing");
-assert(api.renderReflection().includes("owl-bioquest-report-reminder.webp"), "report owl missing");
-assert(api.renderResult().includes("提交後本次作答已鎖定"), "submit lock copy missing");
-assert(api.renderAchievements().includes("學生稱號角色"), "title avatar hook missing");
+for (const qid of ["q10", "q11", "q12"]) {
+  assert.equal(api.renderQuestionEvidence(qid), "", `${qid} redundant evidence card should be removed`);
+}
+assert(!api.renderReflection().includes("bq-report-assistant"), "local report owl should be injected by shared layout");
+assert(api.renderBrief().includes("bq-brief-scene-stage"), "shared dual-role brief stage missing");
+
+const resultBase = {
+  attempt_exp: 460,
+  unit_credited_exp: 460,
+  base_exp: 360,
+  hint_exp: 40,
+  reflection_exp: 60,
+  earned_badges: []
+};
+
+api.setState({ student: { is_guest: true }, result: { ...resultBase, verification_status: "local_guest" } });
+const guestResult = api.renderResult();
+assert(guestResult.includes("提交後本次作答已鎖定"), "submit lock copy missing");
+assert(guestResult.includes("不列入正式累積"), "guest formal exclusion missing");
+assert(!guestResult.includes("本單元認列"), "guest result must not use legacy credit wording");
+
+api.setState({ student: { student_id: "S99999", is_guest: false }, result: { ...resultBase, verification_status: "pending_backend" } });
+const pendingResult = api.renderResult();
+assert(pendingResult.includes("待後台確認"), "pending verification copy missing");
+assert(!pendingResult.includes("後台已回傳正式認列資料"), "pending result must not claim verified credit");
+
+api.setState({ student: { student_id: "S99999", is_guest: false }, result: { ...resultBase, verification_status: "server_verified" } });
+const verifiedResult = api.renderResult();
+assert(verifiedResult.includes("後台已回傳正式認列資料"), "verified credit copy missing");
+assert(api.renderAchievements().includes('data-bq-unit-achievements="human_nutrition"'), "unit achievement hook missing");
+assert(!api.renderAchievements().includes("title-card"), "legacy title card must be removed");
 
 console.log("prototype-human-nutrition app regression passed");

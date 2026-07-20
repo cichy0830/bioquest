@@ -28,7 +28,14 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-human-circulation/app.js" });
 const api = context.window.__human_circulationTest;
 
-assert.equal(api.VERSION, "20260718-human-circulation-ready-v1");
+assert.equal(api.VERSION, "20260718-u18-u20-assets-v1");
+assert.equal(api.QUESTION_VERSION, "20260718-human-circulation-ready-v1");
+assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
+assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
+assert(source.includes("question_version: QUESTION_VERSION"), "backend question_version must use canonical QUESTION_VERSION");
+assert(!source.includes("question_version: VERSION"), "cache VERSION must not flow into backend question_version payloads");
+assert(source.includes("startData.question_version !== QUESTION_VERSION"), "startAttempt guard must compare canonical QUESTION_VERSION");
+assert(!source.includes("startData.question_version !== VERSION"), "startAttempt guard must not compare cache VERSION");
 assert.equal(api.mission.unit_id, "human_circulation");
 assert.equal(api.questions.length, 14);
 assert.equal(api.badges.length, 15);
@@ -53,7 +60,7 @@ const answers = {
   [Q(14)]: "systemic"
 };
 
-api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "circulation_test", attempt_session_token: "guest", question_version: api.VERSION, answers, reflection: { question: "" } });
+api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "circulation_test", attempt_session_token: "guest", question_version: api.QUESTION_VERSION, answers, reflection: { question: "" } });
 for (const question of api.questions) assert.equal(api.isCorrect(question.id), true, question.id);
 let score = api.scoreAttempt();
 assert.equal(score.correct_count, 14);
@@ -62,10 +69,10 @@ assert(score.earned_badges.includes("human_circulation_flawless"));
 assert(score.earned_badges.includes("pulmonary_route_tracker"));
 assert(score.earned_badges.includes("tissue_exchange_direction_judge"));
 
-api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "circulation_valid_reflection", attempt_session_token: "guest", question_version: api.VERSION, answers, reflection: { question: "我想確認判斷體循環和肺循環時，應該先看心臟左右，還是先看血液要到肺部或全身？" } });
+api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "circulation_valid_reflection", attempt_session_token: "guest", question_version: api.QUESTION_VERSION, answers, reflection: { question: "我想確認判斷體循環和肺循環時，應該先看心臟左右，還是先看血液要到肺部或全身？" } });
 assert.equal(api.scoreAttempt().unit_credited_exp, 500);
 
-api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "hint", attempt_session_token: "guest", question_version: api.VERSION, answers, hints: { [Q(2)]: true }, hintEventStatus: { [Q(2)]: "sent" }, reflection: { question: "我想確認肺動脈和肺靜脈為什麼不能只用含氧量來判斷？" } });
+api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "hint", attempt_session_token: "guest", question_version: api.QUESTION_VERSION, answers, hints: { [Q(2)]: true }, hintEventStatus: { [Q(2)]: "sent" }, reflection: { question: "我想確認肺動脈和肺靜脈為什麼不能只用含氧量來判斷？" } });
 score = api.scoreAttempt();
 assert(score.unit_credited_exp < 500);
 assert(!score.earned_badges.includes("human_circulation_flawless"));
@@ -84,13 +91,14 @@ api.setState({
   student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" },
   attempt_id: "server",
   attempt_session_token: "token",
-  question_version: api.VERSION,
+  question_version: api.QUESTION_VERSION,
   answers,
   hints: { [Q(2)]: true },
   reflection: { question: "我想確認肺動脈和肺靜脈為什麼不能只用含氧量來判斷？" }
 });
 const payload = api.buildBackendPayload(api.scoreAttempt());
 assert.equal(payload.unit_id, "human_circulation");
+assert.equal(payload.question_version, api.QUESTION_VERSION);
 assert.equal(payload.question_logs.length, 14);
 assert.deepEqual(payload.raw_answers[Q(2)], answers[`${Q(2)}_sequence`]);
 assert(!source.includes("arteries_veins_connect"));
