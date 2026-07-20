@@ -16,7 +16,7 @@ const units = [
     sequence: 2,
     summary: "正式順序第二單元。已完成學生端靜態原型，含流程排序、變因分類、資料判讀與結論修正。",
     tags: ["正式原型", "科學方法", "已可測試"],
-    url: "prototype-scientific-method/?v=20260715-brief-scene-unified-u1u7-v1&title=20260720-title-next-progress-v1"
+    url: "prototype-scientific-method/?v=20260721-scientific-method-server-verified-v1&title=20260720-title-next-progress-v1"
   },
   {
     title: "進入實驗室",
