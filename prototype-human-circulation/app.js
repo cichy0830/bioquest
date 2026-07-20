@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260720-human-circulation-evidence-v1";
+const VERSION = "20260720-human-circulation-qa-fixes-v2";
 const QUESTION_VERSION = "20260718-human-circulation-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -396,6 +396,21 @@ function setScreen(nextScreen) {
   }
   saveState();
   renderApp();
+  resetScreenScroll();
+}
+
+function resetScreenScroll() {
+  const apply = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    document.querySelector(".main-stage")?.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
+    document.querySelector("#screen")?.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
+  };
+  apply();
+  requestAnimationFrame(apply);
+  setTimeout(apply, 0);
+  setTimeout(apply, 80);
 }
 
 function canUseNav(target) {
@@ -739,6 +754,7 @@ async function submitMission() {
   });
   saveState();
   renderApp();
+  resetScreenScroll();
 }
 
 function renderLogin() {
@@ -1034,21 +1050,8 @@ function creditStatusText(result) {
 
 function renderAchievements() {
   const result = state.result || scoreAttempt();
-  const titleInfo = titleAndProgress(state.student, result.unit_credited_exp);
-  const credit = creditStatusText(result);
   return `
     <div class="stack achievements-stack">
-      <section class="panel title-card">
-        <p class="eyebrow">全冊稱號</p>
-        <div class="title-card-content">
-          <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
-          <div>
-            <h2>${escapeHtml(titleInfo.current.title)}</h2>
-            <p>${credit.status === "verified" ? `${titleInfo.totalExp} EXP｜稱號進度 ${titleInfo.progressPercent}%` : credit.resultLine}</p>
-            <p>${credit.status === "verified" ? (titleInfo.next ? `距離 ${titleInfo.next.title} 還差 ${titleInfo.remaining} EXP` : "已達最高稱號，後續 EXP 仍會累積。") : credit.note}</p>
-          </div>
-        </div>
-      </section>
       ${renderBadgeWall(result.earned_badges)}
     </div>
   `;
@@ -1056,9 +1059,9 @@ function renderAchievements() {
 
 function renderBadgeWall(earned = []) {
   const earnedSet = new Set(earned);
-  return `<section class="panel">
+  return `<section class="panel" data-bq-unit-achievements="${mission.unit_id}">
     <p class="eyebrow">徽章收藏牆</p>
-    <h2>本單元 14 枚徽章</h2>
+    <h2>本單元 ${badges.length} 枚徽章</h2>
     <div class="badge-wall">
       ${badges.map((badge) => `
         <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
