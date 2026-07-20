@@ -46,17 +46,18 @@ const cacheVersion = "20260715-achievement-order-v1";
 const surfaceCacheVersion = "20260715-achievement-order-v1";
 const backendConfigVersion = "20260713-backend-endpoint-v1";
 const appCacheVersion = "20260715-badge-overview-v2";
+const sharedTitleProgressVersion = "20260720-title-next-progress-v1";
 const appVersionOverrides = new Map();
 appVersionOverrides.set("cell_observation", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("cell_structure", "20260715-cell-structure-achievement-avatar-v1");
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
-appVersionOverrides.set("enzymes", "20260718-enzymes-badges-v1");
+appVersionOverrides.set("enzymes", "20260720-enzymes-user-review-v2");
 appVersionOverrides.set("nutrient_test", "20260720-nutrient-test-starch-glucose-only-v2");
 appVersionOverrides.set("scale", "20260717-scale-user-review-v2");
 appVersionOverrides.set("nutrients_energy", "20260717-badge-icon-cleanup-v1");
-appVersionOverrides.set("photosynthesis", "20260718-photosynthesis-qa-v1");
+appVersionOverrides.set("photosynthesis", "20260720-photosynthesis-user-review-v2");
 appVersionOverrides.set("biological_organization", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("cell_transport", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("plant_material_transport", "20260718-ag-visual-fixes-v1");
@@ -192,8 +193,8 @@ const audit = units.map(([unitId, folder]) => {
   const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
   const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
   const expectedAppVersion = appVersionOverrides.get(unitId) || appCacheVersion;
-  const expectedSharedJsVersion = sharedCacheOverrides.get(unitId) || cacheVersion;
-  const expectedSharedCssVersion = sharedCacheOverrides.get(unitId) || surfaceCacheVersion;
+  const expectedSharedJsVersion = sharedTitleProgressVersion;
+  const expectedSharedCssVersion = sharedTitleProgressVersion;
   for (const marker of [
     `data-unit-id="${unitId}"`,
     "data-login-cover-wide=",

@@ -69,7 +69,7 @@ for (const unit of readyUnits) {
   assert(index.includes(`data-unit-id="${unit.unitId}"`), `${folder} unit id mismatch`);
   assert(index.includes(`data-unit-sequence="${unit.sequence}"`), `${folder} sequence missing or mismatched`);
   assert(index.includes(`data-unit-title="${unit.title}"`), `${folder} formal title missing or mismatched`);
-  const expectedSharedVersion = sharedVersionOverrides.get(unit.unitId) || "20260715-achievement-order-v1";
+  const expectedSharedVersion = "20260720-title-next-progress-v1";
   assert(index.includes(`bioquest-character-layout.css?v=${expectedSharedVersion}`), `${folder} shared CSS cache bust missing`);
   assert(index.includes(`bioquest-character-layout.js?v=${expectedSharedVersion}`), `${folder} shared JS cache bust missing`);
   assert(!/\b1-\d\b/.test(index), `${folder} must not contain chapter numbering`);

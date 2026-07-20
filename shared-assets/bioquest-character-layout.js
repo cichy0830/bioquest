@@ -580,14 +580,17 @@
   function titleInfoFromStudent(student = {}) {
     const progress = student.progress || student.student_progress || student.title_progress || {};
     const guest = isGuestState(student);
-    const totalExp = guest ? 0 : Number(progress.total_exp ?? student.total_exp ?? 0) || 0;
-    const explicitTitleId = String(progress.current_title_id || student.current_title_id || "").trim();
+    const verified = !guest && isVerifiedProgress(progress);
+    const totalExp = verified ? Number(progress.total_exp ?? student.total_exp ?? 0) || 0 : 0;
+    const explicitTitleId = verified ? String(progress.current_title_id || student.current_title_id || "").trim() : "";
     const level = explicitTitleId
       ? titleProgressLevel(explicitTitleId)
       : (global.BioQuestTitleProgress?.getTitleForExp?.(totalExp) || titleProgressLevel("trainee_investigator"));
-    const title = progress.current_title || student.current_title || level.title || "見習調查員";
-    const completed = guest ? 0 : trustedCompletedUnitCount(student, progress);
-    return { level, title, totalExp, completed };
+    const title = verified ? (progress.current_title || student.current_title || level.title || "見習調查員") : "見習調查員";
+    const completed = verified ? trustedCompletedUnitCount(student, progress) : 0;
+    const titleProgress = global.BioQuestTitleProgress?.getTitleForExp?.(totalExp) || {};
+    const highest = titleProgress.next === "已達目前最高稱號";
+    return { level, title, totalExp, completed, guest, verified, nextTitle: titleProgress.next || "", remaining: Number(titleProgress.remaining || 0), highest };
   }
 
   function parseMaybeJsonArray(value) {
@@ -654,6 +657,13 @@
     card.className = "bq-title-avatar-card title-avatar-card achievements";
     card.dataset.bqTitleAvatarCard = "true";
     card.dataset.titleAvatarPath = avatarPath;
+    const nextCopy = info.guest
+      ? "guest 測試不列入正式稱號進度。"
+      : !info.verified
+        ? "等待後台確認正式稱號進度。"
+        : info.highest
+          ? "已達目前最高稱號"
+          : `距離「${info.nextTitle}」還差 ${info.remaining} EXP`;
     setHtml(card, `
       <div class="bq-title-avatar-visual title-avatar-visual">
         <img src="${escapeHtml(avatarPath)}" alt="${escapeHtml(info.title)}稱號角色" loading="eager" onerror="this.onerror=null;this.src='${escapeHtml(fallbackPath)}';">
@@ -662,6 +672,7 @@
         <span>目前稱號</span>
         <strong>${escapeHtml(info.title)}</strong>
         <p>${escapeHtml(String(info.totalExp))} EXP｜已完成 ${escapeHtml(String(info.completed))} 站</p>
+        <p class="bq-title-avatar-next">${escapeHtml(nextCopy)}</p>
       </div>
     `);
     return card;

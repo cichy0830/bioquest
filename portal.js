@@ -7,7 +7,7 @@ const units = [
     summary: "正式順序第一單元。已完成學生端靜態原型，含生命現象、生物/非生物、環境條件、EXP 與徽章。",
     tags: ["正式原型", "生命現象", "已可測試"],
     aliases: ["多采多姿的生命世界"],
-    url: "prototype-life-world/?v=20260715-brief-scene-unified-u1u7-v1"
+    url: "prototype-life-world/?v=20260715-brief-scene-unified-u1u7-v1&title=20260720-title-next-progress-v1"
   },
   {
     title: "探究自然的科學方法",
@@ -16,7 +16,7 @@ const units = [
     sequence: 2,
     summary: "正式順序第二單元。已完成學生端靜態原型，含流程排序、變因分類、資料判讀與結論修正。",
     tags: ["正式原型", "科學方法", "已可測試"],
-    url: "prototype-scientific-method/?v=20260715-brief-scene-unified-u1u7-v1"
+    url: "prototype-scientific-method/?v=20260715-brief-scene-unified-u1u7-v1&title=20260720-title-next-progress-v1"
   },
   {
     title: "進入實驗室",
@@ -25,7 +25,7 @@ const units = [
     sequence: 3,
     summary: "正式順序第三單元。已完成學生端靜態原型，含器材功能、器材選用、安全情境、操作順序與實驗紀錄。",
     tags: ["正式原型", "實驗安全", "已可測試"],
-    url: "prototype-lab-entry/?v=20260715-brief-scene-unified-u1u7-v1"
+    url: "prototype-lab-entry/?v=20260715-brief-scene-unified-u1u7-v1&title=20260720-title-next-progress-v1"
   },
   {
     title: "顯微鏡的使用",
@@ -34,7 +34,7 @@ const units = [
     sequence: 4,
     summary: "正式順序第四單元。已完成學生端靜態原型，含部位功能、低倍到高倍操作、倍率視野與搬運收納安全。",
     tags: ["正式原型", "顯微鏡", "已可測試"],
-    url: "prototype-microscope-use/?v=20260715-brief-scene-unified-u1u7-v1"
+    url: "prototype-microscope-use/?v=20260715-brief-scene-unified-u1u7-v1&title=20260720-title-next-progress-v1"
   },
   {
     title: "生物體的基本單位",
@@ -43,32 +43,32 @@ const units = [
     sequence: 5,
     summary: "正式順序第五單元。已完成學生端靜態原型，含細胞基本單位、單細胞/多細胞、形狀功能與顯微證據判讀。",
     tags: ["正式原型", "細胞", "已可測試"],
-    url: "prototype-cell-basic-unit/?v=20260715-brief-scene-unified-u1u7-v1"
+    url: "prototype-cell-basic-unit/?v=20260715-brief-scene-unified-u1u7-v1&title=20260720-title-next-progress-v1"
   },
-  { title: "細胞的構造", unitId: "cell_structure", status: "ready", sequence: 6, summary: "已有模板驗證原型，具細胞圖、構造高亮、配對、比較、EXP 明細與徽章。", tags: ["模板驗證", "細胞構造", "已可測試"], url: "prototype-cell-structure/?v=20260715-brief-scene-unified-u1u7-v1", note: "模板驗證單元" },
-  { title: "細胞的觀察", unitId: "cell_observation", status: "ready", sequence: 7, summary: "正式順序第七單元。已完成學生端靜態原型，含玻片製作、低高倍策略、顯微視野判讀、染色目的與迷思修正。", tags: ["正式原型", "顯微觀察", "已可測試"], url: "prototype-cell-observation/?v=20260717-badge-icon-cleanup-v1" },
-  { title: "物質進出細胞的方式", unitId: "cell_transport", status: "ready", sequence: 8, summary: "正式順序第八單元。已完成學生端靜態原型，含擴散與滲透、半透膜、濃度方向、資料判讀與動植物細胞變化。", tags: ["正式原型", "擴散", "滲透", "已可測試"], url: "prototype-cell-transport/?v=20260717-badge-icon-cleanup-v1" },
-  { title: "生物體的組成層次", unitId: "biological_organization", status: "ready", sequence: 9, summary: "正式順序第九單元。已完成學生端靜態原型，含組成層次排序、例子分類、單多細胞判斷、植物器官與動植物比較。", tags: ["正式原型", "組成層次", "排序", "植物器官", "已可測試"], url: "prototype-biological-organization/?v=20260717-badge-icon-cleanup-v1" },
-  { title: "尺度", unitId: "scale", status: "ready", sequence: 10, summary: "正式順序第十單元。已完成學生端靜態原型，含尺度排序、單位配對、觀察工具、比例尺判讀、圖像與實際大小。", tags: ["正式原型", "尺度", "比例尺", "觀察工具", "已可測試"], url: "prototype-scale/?v=20260717-scale-user-review-v2" },
-  { title: "食物中的養分與能量", unitId: "nutrients_energy", status: "ready", sequence: 11, summary: "正式順序第十一單元。已完成學生端靜態原型，含養分功能、主要食物來源、能量判斷、營養資料與均衡飲食。", tags: ["正式原型", "養分", "能量", "均衡飲食", "已可測試"], url: "prototype-nutrients-energy/?v=20260717-badge-icon-cleanup-v1" },
-  { title: "養分檢測", unitId: "nutrient_test", status: "ready", sequence: 12, summary: "正式順序第十二單元。已完成學生端靜態原型，含澱粉與葡萄糖檢測結果判讀、試劑與養分配對、對照組、資料證據與安全判斷。", tags: ["正式原型", "養分檢測", "證據判讀", "安全", "已可測試"], url: "prototype-nutrient-test/?v=20260720-nutrient-test-starch-glucose-only-v2" },
-  { title: "酵素", unitId: "enzymes", status: "ready", sequence: 13, summary: "正式順序第十三單元。已完成學生端靜態原型，含酵素作用、專一性、可重複作用、溫度與酸鹼值資料判讀及消化情境。", tags: ["正式原型", "酵素", "專一性", "資料判讀", "已可測試"], url: "prototype-enzymes/?v=20260718-enzymes-badges-v1" },
-  { title: "植物如何製造養分", unitId: "photosynthesis", status: "ready", sequence: 14, summary: "正式順序第十四單元。已完成學生端靜態原型，含原料/能量/產物分類、葉片構造、澱粉與氣泡證據、變因判讀及光合作用/呼吸作用迷思修正。", tags: ["正式原型", "光合作用", "葉綠體", "變因判讀", "已可測試"], url: "prototype-photosynthesis/?v=20260718-photosynthesis-qa-v1" },
-  { title: "人體如何獲得養分", unitId: "human_nutrition", status: "ready", sequence: 15, summary: "正式順序第十五單元。已完成學生端靜態原型，含消化道與消化腺、食物流向、消化吸收、酵素與膽汁、小腸吸收與血液運送。", tags: ["正式原型", "消化", "吸收", "食物流向", "已可測試"], url: "prototype-human-nutrition/?v=20260719-human-nutrition-qa-v1" },
-  { title: "植物的運輸構造", unitId: "plant_transport_structures", status: "ready", sequence: 16, summary: "正式順序第十六單元。已完成學生端靜態原型，含根毛、維管束、木質部、韌皮部、葉脈與蒸散作用基礎判讀。", tags: ["正式原型", "植物", "維管束", "運輸", "已可測試"], url: "prototype-plant-transport-structures/?v=20260720-plant-transport-structures-extension-v2" },
-  { title: "植物體內物質的運輸", unitId: "plant_material_transport", status: "ready", sequence: 17, summary: "正式順序第十七單元。已完成來源端學生原型骨架，含水分與礦物質、葉製造養分、木質部與韌皮部、蒸散作用、氣孔與資料證據判讀。", tags: ["正式原型", "植物運輸", "木質部", "韌皮部", "來源可測"], url: "prototype-plant-material-transport/?v=20260718-ag-visual-fixes-v1" },
-  { title: "人體心血管系統的組成", unitId: "cardiovascular_components", status: "ready", sequence: 18, summary: "正式順序第十八單元。手機優先功能原型已可測試，含心臟、血管、血液成分、脈搏血壓與合作流程排序；正式視覺素材待核准後接線。", tags: ["可測試", "心血管", "血液", "後台驗證"], url: "prototype-cardiovascular-components/?v=20260718-ag-visual-fixes-v1" },
-  { title: "人體的循環系統", unitId: "human_circulation", status: "ready", sequence: 19, summary: "正式順序第十九單元。手機優先功能原型已可測試，含體循環、肺循環、含氧量變化、微血管交換與組織液/淋巴基礎；正式視覺素材待核准後接線。", tags: ["可測試", "循環", "體循環", "肺循環", "後台驗證"], url: "prototype-human-circulation/?v=20260718-ag-visual-fixes-v1" },
-  { title: "刺激與反應", unitId: "stimulus_response", status: "ready", sequence: 20, summary: "正式順序第二十單元。手機優先功能原型已可測試，含刺激/反應辨識、受器與動器、基本流程、反應時間資料判讀與公平測量。", tags: ["可測試", "刺激", "反應", "受器", "反應時間"], url: "prototype-stimulus-response/?v=20260718-ag-visual-fixes-v1" },
-  { title: "神經系統", unitId: "nervous_system", status: "ready", sequence: 21, summary: "正式順序第二十一單元。手機優先功能原型已可測試，含神經元與神經、中樞/周圍神經、三類神經元分工、反射路徑與腦脊髓迷思修正。", tags: ["可測試", "神經", "中樞", "反射", "後台驗證"], url: "prototype-nervous-system/?v=20260718-nervous-system-ready-v1" },
-  { title: "內分泌系統", unitId: "endocrine_system", status: "ready", sequence: 22, summary: "激素、腺體、血液運送、目標器官與血糖調節。", tags: ["內分泌", "激素"], url: "prototype-endocrine-system/?v=20260718-endocrine-system-ready-v1" },
-  { title: "行為與感應", unitId: "behavior_sensing", status: "ready", sequence: 23, summary: "正式順序第二十三單元。手機優先功能原型已可測試，含動物行為功能、趨性、向性、植物感應運動、睡眠運動與單元邊界判讀。", tags: ["可測試", "行為", "感應", "趨性", "向性"], url: "prototype-behavior-sensing/?v=20260718-behavior-sensing-ready-v1" },
-  { title: "呼吸與氣體的恆定", unitId: "respiration_homeostasis", status: "ready", sequence: 24, summary: "正式順序第二十四單元。手機優先功能原型已可測試，含呼吸與細胞利用氧氣、空氣進入肺泡路徑、肺泡氣體交換、吸氣呼氣胸腔變化與活動時氣體恆定判讀。", tags: ["可測試", "呼吸", "氣體交換", "恆定", "肺泡"], url: "prototype-respiration-homeostasis/?v=20260718-respiration-homeostasis-v1" },
-  { title: "排泄與水分的恆定", unitId: "excretion_water_homeostasis", status: "ready", sequence: 25, summary: "正式順序第二十五單元。手機優先功能原型已可測試，含排泄與排遺、代謝廢物、含氮廢物、泌尿系統、尿液路徑、水分收支與資料判讀。", tags: ["可測試", "排泄", "泌尿系統", "水分恆定", "資料判讀"], url: "prototype-excretion-water-homeostasis/?v=20260718-excretion-water-homeostasis-v1" },
-  { title: "體溫與血糖的恆定", unitId: "temperature_glucose_homeostasis", status: "ready", sequence: 26, summary: "正式順序第二十六單元。手機優先功能原型已可測試，含恆定、負回饋、內溫/外溫、體溫調節、流汗水分、血糖調節與資料判讀。", tags: ["可測試", "體溫", "血糖", "恆定", "負回饋"], url: "prototype-temperature-glucose-homeostasis/?v=20260718-temperature-glucose-homeostasis-v1" },
-  { title: "細胞的分裂", unitId: "cell_division", status: "ready", sequence: 27, summary: "正式順序第二十七單元。手機優先功能原型已可測試，含新細胞來源、生長修補、染色體與 DNA、先複製再分配、母細胞/子細胞、根尖證據與單元邊界。", tags: ["可測試", "細胞分裂", "染色體", "生長修補", "邊界"], url: "prototype-cell-division/?v=20260718-cell-division-v1" },
-  { title: "無性生殖", unitId: "asexual_reproduction", status: "ready", sequence: 28, summary: "正式順序第二十八單元。手機優先功能原型已可測試，含無性生殖定義、親代來源、後代相似、常見方式、營養繁殖流程、優點限制與 U27/U29 邊界。", tags: ["可測試", "無性生殖", "出芽", "營養繁殖", "邊界"], url: "prototype-asexual-reproduction/?v=20260718-asexual-reproduction-v1" },
-  { title: "有性生殖", unitId: "sexual_reproduction", status: "ready", sequence: 29, summary: "正式順序第二十九單元。手機優先功能原型已可測試，含配子、受精、親代來源、後代差異、體內/體外受精、植物授粉與受精、無性/有性比較與 U28/U30/U31 邊界。", tags: ["可測試", "有性生殖", "配子", "受精", "邊界"], url: "prototype-sexual-reproduction/?v=20260718-sexual-reproduction-v1" },
+  { title: "細胞的構造", unitId: "cell_structure", status: "ready", sequence: 6, summary: "已有模板驗證原型，具細胞圖、構造高亮、配對、比較、EXP 明細與徽章。", tags: ["模板驗證", "細胞構造", "已可測試"], url: "prototype-cell-structure/?v=20260715-brief-scene-unified-u1u7-v1&title=20260720-title-next-progress-v1", note: "模板驗證單元" },
+  { title: "細胞的觀察", unitId: "cell_observation", status: "ready", sequence: 7, summary: "正式順序第七單元。已完成學生端靜態原型，含玻片製作、低高倍策略、顯微視野判讀、染色目的與迷思修正。", tags: ["正式原型", "顯微觀察", "已可測試"], url: "prototype-cell-observation/?v=20260717-badge-icon-cleanup-v1&title=20260720-title-next-progress-v1" },
+  { title: "物質進出細胞的方式", unitId: "cell_transport", status: "ready", sequence: 8, summary: "正式順序第八單元。已完成學生端靜態原型，含擴散與滲透、半透膜、濃度方向、資料判讀與動植物細胞變化。", tags: ["正式原型", "擴散", "滲透", "已可測試"], url: "prototype-cell-transport/?v=20260717-badge-icon-cleanup-v1&title=20260720-title-next-progress-v1" },
+  { title: "生物體的組成層次", unitId: "biological_organization", status: "ready", sequence: 9, summary: "正式順序第九單元。已完成學生端靜態原型，含組成層次排序、例子分類、單多細胞判斷、植物器官與動植物比較。", tags: ["正式原型", "組成層次", "排序", "植物器官", "已可測試"], url: "prototype-biological-organization/?v=20260717-badge-icon-cleanup-v1&title=20260720-title-next-progress-v1" },
+  { title: "尺度", unitId: "scale", status: "ready", sequence: 10, summary: "正式順序第十單元。已完成學生端靜態原型，含尺度排序、單位配對、觀察工具、比例尺判讀、圖像與實際大小。", tags: ["正式原型", "尺度", "比例尺", "觀察工具", "已可測試"], url: "prototype-scale/?v=20260717-scale-user-review-v2&title=20260720-title-next-progress-v1" },
+  { title: "食物中的養分與能量", unitId: "nutrients_energy", status: "ready", sequence: 11, summary: "正式順序第十一單元。已完成學生端靜態原型，含養分功能、主要食物來源、能量判斷、營養資料與均衡飲食。", tags: ["正式原型", "養分", "能量", "均衡飲食", "已可測試"], url: "prototype-nutrients-energy/?v=20260717-badge-icon-cleanup-v1&title=20260720-title-next-progress-v1" },
+  { title: "養分檢測", unitId: "nutrient_test", status: "ready", sequence: 12, summary: "正式順序第十二單元。已完成學生端靜態原型，含澱粉與葡萄糖檢測結果判讀、試劑與養分配對、對照組、資料證據與安全判斷。", tags: ["正式原型", "養分檢測", "證據判讀", "安全", "已可測試"], url: "prototype-nutrient-test/?v=20260720-nutrient-test-starch-glucose-only-v2&title=20260720-title-next-progress-v1" },
+  { title: "酵素", unitId: "enzymes", status: "ready", sequence: 13, summary: "正式順序第十三單元。已完成學生端靜態原型，含酵素作用、專一性、可重複作用、溫度與酸鹼值資料判讀及消化情境。", tags: ["正式原型", "酵素", "專一性", "資料判讀", "已可測試"], url: "prototype-enzymes/?v=20260720-enzymes-user-review-v2&title=20260720-title-next-progress-v1" },
+  { title: "植物如何製造養分", unitId: "photosynthesis", status: "ready", sequence: 14, summary: "正式順序第十四單元。已完成學生端靜態原型，含原料/能量/產物分類、葉片構造、澱粉與氣泡證據、變因判讀及光合作用/呼吸作用迷思修正。", tags: ["正式原型", "光合作用", "葉綠體", "變因判讀", "已可測試"], url: "prototype-photosynthesis/?v=20260720-photosynthesis-user-review-v2&title=20260720-title-next-progress-v1" },
+  { title: "人體如何獲得養分", unitId: "human_nutrition", status: "ready", sequence: 15, summary: "正式順序第十五單元。已完成學生端靜態原型，含消化道與消化腺、食物流向、消化吸收、酵素與膽汁、小腸吸收與血液運送。", tags: ["正式原型", "消化", "吸收", "食物流向", "已可測試"], url: "prototype-human-nutrition/?v=20260719-human-nutrition-qa-v1&title=20260720-title-next-progress-v1" },
+  { title: "植物的運輸構造", unitId: "plant_transport_structures", status: "ready", sequence: 16, summary: "正式順序第十六單元。已完成學生端靜態原型，含根毛、維管束、木質部、韌皮部、葉脈與蒸散作用基礎判讀。", tags: ["正式原型", "植物", "維管束", "運輸", "已可測試"], url: "prototype-plant-transport-structures/?v=20260720-plant-transport-structures-extension-v2&title=20260720-title-next-progress-v1" },
+  { title: "植物體內物質的運輸", unitId: "plant_material_transport", status: "ready", sequence: 17, summary: "正式順序第十七單元。已完成來源端學生原型骨架，含水分與礦物質、葉製造養分、木質部與韌皮部、蒸散作用、氣孔與資料證據判讀。", tags: ["正式原型", "植物運輸", "木質部", "韌皮部", "來源可測"], url: "prototype-plant-material-transport/?v=20260718-ag-visual-fixes-v1&title=20260720-title-next-progress-v1" },
+  { title: "人體心血管系統的組成", unitId: "cardiovascular_components", status: "ready", sequence: 18, summary: "正式順序第十八單元。手機優先功能原型已可測試，含心臟、血管、血液成分、脈搏血壓與合作流程排序；正式視覺素材待核准後接線。", tags: ["可測試", "心血管", "血液", "後台驗證"], url: "prototype-cardiovascular-components/?v=20260718-ag-visual-fixes-v1&title=20260720-title-next-progress-v1" },
+  { title: "人體的循環系統", unitId: "human_circulation", status: "ready", sequence: 19, summary: "正式順序第十九單元。手機優先功能原型已可測試，含體循環、肺循環、含氧量變化、微血管交換與組織液/淋巴基礎；正式視覺素材待核准後接線。", tags: ["可測試", "循環", "體循環", "肺循環", "後台驗證"], url: "prototype-human-circulation/?v=20260718-ag-visual-fixes-v1&title=20260720-title-next-progress-v1" },
+  { title: "刺激與反應", unitId: "stimulus_response", status: "ready", sequence: 20, summary: "正式順序第二十單元。手機優先功能原型已可測試，含刺激/反應辨識、受器與動器、基本流程、反應時間資料判讀與公平測量。", tags: ["可測試", "刺激", "反應", "受器", "反應時間"], url: "prototype-stimulus-response/?v=20260718-ag-visual-fixes-v1&title=20260720-title-next-progress-v1" },
+  { title: "神經系統", unitId: "nervous_system", status: "ready", sequence: 21, summary: "正式順序第二十一單元。手機優先功能原型已可測試，含神經元與神經、中樞/周圍神經、三類神經元分工、反射路徑與腦脊髓迷思修正。", tags: ["可測試", "神經", "中樞", "反射", "後台驗證"], url: "prototype-nervous-system/?v=20260718-nervous-system-ready-v1&title=20260720-title-next-progress-v1" },
+  { title: "內分泌系統", unitId: "endocrine_system", status: "ready", sequence: 22, summary: "激素、腺體、血液運送、目標器官與血糖調節。", tags: ["內分泌", "激素"], url: "prototype-endocrine-system/?v=20260718-endocrine-system-ready-v1&title=20260720-title-next-progress-v1" },
+  { title: "行為與感應", unitId: "behavior_sensing", status: "ready", sequence: 23, summary: "正式順序第二十三單元。手機優先功能原型已可測試，含動物行為功能、趨性、向性、植物感應運動、睡眠運動與單元邊界判讀。", tags: ["可測試", "行為", "感應", "趨性", "向性"], url: "prototype-behavior-sensing/?v=20260718-behavior-sensing-ready-v1&title=20260720-title-next-progress-v1" },
+  { title: "呼吸與氣體的恆定", unitId: "respiration_homeostasis", status: "ready", sequence: 24, summary: "正式順序第二十四單元。手機優先功能原型已可測試，含呼吸與細胞利用氧氣、空氣進入肺泡路徑、肺泡氣體交換、吸氣呼氣胸腔變化與活動時氣體恆定判讀。", tags: ["可測試", "呼吸", "氣體交換", "恆定", "肺泡"], url: "prototype-respiration-homeostasis/?v=20260718-respiration-homeostasis-v1&title=20260720-title-next-progress-v1" },
+  { title: "排泄與水分的恆定", unitId: "excretion_water_homeostasis", status: "ready", sequence: 25, summary: "正式順序第二十五單元。手機優先功能原型已可測試，含排泄與排遺、代謝廢物、含氮廢物、泌尿系統、尿液路徑、水分收支與資料判讀。", tags: ["可測試", "排泄", "泌尿系統", "水分恆定", "資料判讀"], url: "prototype-excretion-water-homeostasis/?v=20260718-excretion-water-homeostasis-v1&title=20260720-title-next-progress-v1" },
+  { title: "體溫與血糖的恆定", unitId: "temperature_glucose_homeostasis", status: "ready", sequence: 26, summary: "正式順序第二十六單元。手機優先功能原型已可測試，含恆定、負回饋、內溫/外溫、體溫調節、流汗水分、血糖調節與資料判讀。", tags: ["可測試", "體溫", "血糖", "恆定", "負回饋"], url: "prototype-temperature-glucose-homeostasis/?v=20260718-temperature-glucose-homeostasis-v1&title=20260720-title-next-progress-v1" },
+  { title: "細胞的分裂", unitId: "cell_division", status: "ready", sequence: 27, summary: "正式順序第二十七單元。手機優先功能原型已可測試，含新細胞來源、生長修補、染色體與 DNA、先複製再分配、母細胞/子細胞、根尖證據與單元邊界。", tags: ["可測試", "細胞分裂", "染色體", "生長修補", "邊界"], url: "prototype-cell-division/?v=20260718-cell-division-v1&title=20260720-title-next-progress-v1" },
+  { title: "無性生殖", unitId: "asexual_reproduction", status: "ready", sequence: 28, summary: "正式順序第二十八單元。手機優先功能原型已可測試，含無性生殖定義、親代來源、後代相似、常見方式、營養繁殖流程、優點限制與 U27/U29 邊界。", tags: ["可測試", "無性生殖", "出芽", "營養繁殖", "邊界"], url: "prototype-asexual-reproduction/?v=20260718-asexual-reproduction-v1&title=20260720-title-next-progress-v1" },
+  { title: "有性生殖", unitId: "sexual_reproduction", status: "ready", sequence: 29, summary: "正式順序第二十九單元。手機優先功能原型已可測試，含配子、受精、親代來源、後代差異、體內/體外受精、植物授粉與受精、無性/有性比較與 U28/U30/U31 邊界。", tags: ["可測試", "有性生殖", "配子", "受精", "邊界"], url: "prototype-sexual-reproduction/?v=20260718-sexual-reproduction-v1&title=20260720-title-next-progress-v1" },
   { title: "蛋的觀察", unitId: "egg_observation", status: "planned", sequence: 30, summary: "卵的構造、胚胎發育與觀察判讀。", tags: ["觀察", "生殖"] },
   { title: "花的觀察", unitId: "flower_observation", status: "planned", sequence: 31, summary: "花的構造、授粉、受精與果實種子形成。", tags: ["花", "植物"] },
   { title: "遺傳、染色體與基因", unitId: "genetics_chromosome_gene", status: "planned", sequence: 32, summary: "染色體、基因、性狀與遺傳基本概念。", tags: ["遺傳", "基因"] },

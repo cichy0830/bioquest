@@ -426,6 +426,12 @@ body[data-unit-id="cardiovascular_components"] .bq-brief-scene-stage {
   line-height: 1.6;
 }
 
+.bq-title-avatar-copy .bq-title-avatar-next {
+  margin-top: 7px;
+  color: #9a5a10;
+  font-weight: 900;
+}
+
 .checkbox-list label {
   display: grid;
   grid-template-columns: 24px minmax(0, 1fr);

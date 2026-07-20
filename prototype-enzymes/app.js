@@ -3,8 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260718-enzymes-substrate-wording-v1";
-const QUESTION_VERSION = "20260711-enzymes-v1";
+const VERSION = "20260720-enzymes-user-review-v2";
+const QUESTION_VERSION = "20260720-enzymes-user-review-v2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -28,8 +28,7 @@ const mission = {
 const ENZYME_ASSET_BASE = ["..", "shared-assets", "units", "enzymes"].join("/");
 const assets = {
   mentorFallback: "../prototype-life-world/assets/mentor-life-world-azhe-v2.png",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.webp",
-  owlPrep: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
+  owlPrep: "assets/owl-enzymes-prep-reminder.webp",
   owlResult: "../shared-assets/assistants/owl-bioquest-result.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "assets/bg-enzymes-briefing-azhe-wide.webp",
@@ -65,21 +64,12 @@ const badges = [
   { id: "enzyme_reusable_guardian", name: "可重複作用徽章", condition: "酵素反應前後本質通常不變的題組達 85% 以上。" },
   { id: "condition_effect_reader", name: "條件影響判讀徽章", condition: "溫度與酸鹼值資料判讀題組達 85% 以上。" },
   { id: "digestion_context_connector", name: "消化情境連結徽章", condition: "消化情境與養分分解題組達 85% 以上。" },
-  { id: "enzyme_data_interpreter", name: "酵素資料判讀徽章", condition: "資料表、曲線或排序流程題組達 85% 以上。" },
+  { id: "enzyme_data_interpreter", name: "酵素資料判讀徽章", condition: "溫度資料與酸鹼值曲線判讀題組達 85% 以上。" },
   { id: "enzyme_misconception_reviser", name: "酵素迷思修正徽章", condition: "至少一題提示後修正成功。" },
   { id: "enzymes_flawless", name: "酵素零提示全對徽章", condition: "全部答對且全程未使用提示。" },
   { id: "enzymes_reflection_reporter", name: "高品質酵素回報徽章", condition: "回報品質達 discussion_question。" },
   { id: "retry_growth_enzymes", name: "再探酵素進步徽章", condition: "再挑戰完整完成且正確率進步。" }
 ].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id), image_status: readyBadgeIds.has(badge.id) ? "ready" : "pending" }));
-
-const sequenceSteps = [
-  { id: "enzyme_substrate", label: "確認資料測的是哪個酵素與作用對象" },
-  { id: "condition", label: "確認改變的是溫度或酸鹼值" },
-  { id: "compare", label: "比較不同條件下的反應速率或產物量" },
-  { id: "trend", label: "找出作用較強與較弱的條件" },
-  { id: "conclusion", label: "用資料證據形成結論" }
-];
-const correctSequence = ["enzyme_substrate", "condition", "compare", "trend", "conclusion"];
 
 const questions = [
   { id: "q01", section: "checkpoint1", concept: "enzyme_function", answer: "promote_reaction", prompt: "某生物體內反應在有某種物質參與時進行得更快，而這種物質反應後仍可繼續作用。這種物質最可能具有哪一類功能？", hint: "留意「反應變快」和「反應後仍可繼續作用」兩個線索。", misconception: "enzyme_as_energy", options: [{ id: "promote_reaction", text: "促進生物體內反應進行" }, { id: "all_energy", text: "直接提供所有能量" }, { id: "replace_nutrients", text: "取代所有養分" }, { id: "color_only", text: "只讓物質變色" }] },
@@ -87,7 +77,7 @@ const questions = [
   { id: "q04", section: "checkpoint1", concept: "enzyme_specificity", answer: "not_match", prompt: "若某酵素主要能分解澱粉，卻被拿來處理蛋白質樣品，最合理的預測是什麼？", hint: "把酵素想成有適合對象的工具，先看工具和材料是否配對。", misconception: "no_specificity", options: [{ id: "not_match", text: "作用可能不明顯，因為作用對象不合適" }, { id: "fastest", text: "一定能把蛋白質分解最快" }, { id: "turns_lipase", text: "會變成脂肪酶" }, { id: "all_targets", text: "可以同時分解所有養分" }] },
   { id: "q05", section: "checkpoint2", concept: "temperature_effect", answer: "optimal_temperature", prompt: "某酵素在不同溫度下的反應速率：10 度很慢、25 度中等、37 度最快、70 度幾乎沒有作用。哪個解讀較合理？", hint: "不只看溫度高低，要看資料中反應速率在哪裡最高、在哪裡下降。", misconception: "hotter_always_better", options: [{ id: "optimal_temperature", text: "酵素有適合溫度，太高可能使作用變差" }, { id: "hotter", text: "溫度越高一定越快" }, { id: "cold_permanent", text: "10 度一定使酵素永久失效" }, { id: "seventy_best", text: "70 度一定是所有酵素最佳溫度" }] },
   { id: "q06", section: "checkpoint2", concept: "temperature_effect", answer: "not_always_hotter", prompt: "有同學說：「加熱一定能讓酵素越來越活躍，所以溫度越高越好。」哪個修正較合理？", hint: "想想資料曲線是否一直往上，還是可能在某個範圍後下降。", misconception: "hotter_always_better", options: [{ id: "not_always_hotter", text: "酵素通常有適合溫度，超過適合範圍可能使作用降低或失去作用" }, { id: "boiling", text: "所有酵素都適合沸水" }, { id: "cold_product", text: "低溫一定讓酵素變成產物" }, { id: "no_effect", text: "溫度不會影響酵素" }] },
-  { id: "q07", section: "checkpoint2", concept: "ph_effect", answer: "acidic", prompt: "某酵素在酸鹼值 pH 2 作用強，在 pH 7 與 pH 10 作用弱。哪個推論較符合資料？", hint: "先找資料中作用最強的酸鹼值，再描述它較適合的環境。", misconception: "same_ph_for_all", options: [{ id: "acidic", text: "這種酵素較適合酸性環境" }, { id: "all_environments", text: "這種酵素一定適合所有環境" }, { id: "ph_none", text: "酸鹼值不會影響酵素" }, { id: "ten_fastest", text: "pH 10 一定最快" }] },
+  { id: "q07", section: "checkpoint2", concept: "ph_effect", answer: "acidic", prompt: "觀察酸鹼值與酵素活性的關係圖。這種酵素較適合哪一種環境？", hint: "先看橫軸的酸鹼值，再找曲線最高點。pH 小於 7 是酸性、等於 7 是中性、大於 7 是鹼性。", misconception: "same_ph_for_all", options: [{ id: "acidic", text: "酸性環境" }, { id: "neutral", text: "中性環境" }, { id: "alkaline", text: "鹼性環境" }, { id: "all_environments", text: "所有環境都一樣" }] },
   { id: "q08", section: "checkpoint2", concept: "ph_effect", answer: "activity_lower", prompt: "胃中的某些消化酵素較適合酸性環境。若把它放到不適合的酸鹼環境中，較可能發生什麼事？", hint: "先看這種酵素原本適合哪種環境，再判斷環境改變後的作用情形。", misconception: "same_ph_for_all", options: [{ id: "activity_lower", text: "作用可能變差" }, { id: "all_faster", text: "一定分解所有養分更快" }, { id: "auto_change", text: "會自動變成另一種酵素" }, { id: "ph_none", text: "酸鹼值完全沒有影響" }] },
   { id: "q10", section: "checkpoint3", concept: "digestion_context", answer: "digest_specific", prompt: "唾液中的澱粉酶可以協助澱粉分解。這最能說明酵素和消化作用的哪個關係？", hint: "注意酵素與養分的配對，以及消化時物質變小的方向。", misconception: "enzyme_replaces_digestion", options: [{ id: "digest_specific", text: "消化酵素可協助特定養分分解成較小物質" }, { id: "replace_organs", text: "酵素會取代所有消化器官" }, { id: "starch_lipid", text: "澱粉酶主要分解脂質" }, { id: "none", text: "消化作用和酵素完全無關" }] },
   { id: "q11", section: "checkpoint3", concept: "digestion_context", answer: "protease", prompt: "若食物中主要含蛋白質，較可能需要哪一類消化酵素協助分解？", hint: "先看食物中主要養分，再找名稱或功能較相配的酵素。", misconception: "no_specificity", options: [{ id: "protease", text: "蛋白酶" }, { id: "amylase", text: "澱粉酶" }, { id: "lipase", text: "脂肪酶" }, { id: "chloroplast", text: "葉綠體" }] },
@@ -111,7 +101,7 @@ const classifyQuestions = {
 const sectionMap = {
   checkpoint1: ["q01", "q02", "q03", "q04"],
   checkpoint2: ["q05", "q06", "q07", "q08"],
-  checkpoint3: ["q09", "q10", "q11", "q12", "q13", "q14"]
+  checkpoint3: ["q10", "q11", "q12", "q13", "q14"]
 };
 
 const defaultState = {
@@ -132,7 +122,7 @@ const defaultState = {
   completed_unit_count: 0,
   started_at: null,
   completedScreens: ["login", "rules"],
-  answers: { q03: {}, q09_sequence: [], reflection: {} },
+  answers: { q03: {}, reflection: {} },
   hints: {},
   checkedWrong: {},
   interactions: {},
@@ -144,8 +134,6 @@ const defaultState = {
 };
 
 let state = loadState();
-let draggedSequenceId = null;
-
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
 function questionById(id) { return questions.find((question) => question.id === id); }
 function loadState() {
@@ -273,14 +261,6 @@ function orderedOptions(question) {
     .map((id) => question.options.find((option) => option.id === id))
     .filter(Boolean);
 }
-function ensureSequence() {
-  if (!state.answers.q09_sequence?.length) {
-    state.answers.q09_sequence = optionOrder("q09_sequence", sequenceSteps.map((step) => step.id));
-    saveState();
-  }
-  return state.answers.q09_sequence;
-}
-
 function unlock(...screens) {
   screens.forEach((item) => {
     if (!state.completedScreens.includes(item)) state.completedScreens.push(item);
@@ -324,15 +304,6 @@ function renderStudentMini() {
   studentMini.innerHTML = `<p><strong>${state.student.student_name}</strong></p><p>${state.student.class_name} 班 ${state.student.seat_no} 號</p><p class="muted">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</p><p class="muted">後台完成紀錄：${state.remote_completed_attempts || 0} 筆</p>`;
 }
 
-function mentorCard(title, text) {
-  return `<div class="mentor-card"><div class="mentor-avatar"><img src="${assets.mentorFallback}" alt="阿澤老師"></div><div class="mentor-copy"><span>阿澤老師</span><strong>${title}</strong><p>${text}</p></div></div>`;
-}
-function owlPanel(image = assets.owlPrep, alt = "貓頭鷹助理") {
-  return `<div class="owl-frame"><img src="${image}" alt="${alt}"></div>`;
-}
-function layout(content, image = assets.owlPrep) {
-  return `<div class="mission-layout"><div class="panel hero-panel">${content}</div>${owlPanel(image)}</div>`;
-}
 function titleAvatarPath() {
   const student = state.student || {};
   return normalizeTitleAvatarPath(student.title_avatar_path || student.progress?.title_avatar_path);
@@ -347,14 +318,14 @@ function normalizeTitleAvatarPath(rawPath = "") {
 
 function renderLogin() {
   const value = state.student?.student_id && state.student.student_id !== "guest" ? state.student.student_id : "";
-  return layout(`
+  return `<div class="wide-layout"><div class="panel hero-panel">
     <p class="eyebrow">生命祕境 BioQuest</p><h2 class="hero-title">任務登入</h2>
     <div class="story-panel"><strong>固定登入招呼</strong><p>輸入學號後，系統會顯示姓名。老師測試流程時可使用 guest。</p></div>
     <div class="mission-hud"><div><span>任務代號</span><strong>enzymes</strong></div><div><span>預估時間</span><strong>10-15 分鐘</strong></div><div><span>後台</span><strong>Google Sheet</strong></div></div>
     <div class="form-grid"><label>學號<input id="studentIdInput" value="${value}" placeholder="例如 S70101 或 guest" autocomplete="off"></label></div>
     <div class="actions"><button class="primary" id="loginButton">登入任務</button><button class="secondary" id="guestButton">老師測試 guest</button><button class="ghost" id="resetButton">清除本機測試紀錄</button></div>
     <div id="loginMessage" class="status-line"></div>
-  `, assets.owlLogin);
+  </div></div>`;
 }
 
 async function fetchStudentStatus(id) {
@@ -411,7 +382,6 @@ async function login(id) {
     state.question_version = QUESTION_VERSION;
     state.backend_status = "local_guest";
     unlock("brief", "rules", "achievements");
-    ensureSequence();
     saveState();
     setScreen("brief");
     return;
@@ -453,7 +423,6 @@ async function login(id) {
   state.cumulative_total_exp = Number(remoteProgress.total_exp ?? remoteProgress.total_credited_exp ?? 0);
   state.completed_unit_count = Number(remoteProgress.completed_unit_count || 0);
   unlock("brief", "rules", "achievements");
-  ensureSequence();
   saveState();
   setScreen("brief");
 }
@@ -478,20 +447,30 @@ function selectedClass(question, option) {
 function evidenceTable(caption, headers, rows) {
   return `<section class="question-evidence" aria-label="${caption}"><strong>${caption}</strong><div class="evidence-table" role="table"><div class="evidence-row evidence-head" role="row">${headers.map((header) => `<span role="columnheader">${header}</span>`).join("")}</div>${rows.map((row) => `<div class="evidence-row" role="row">${row.map((cell) => `<span role="cell">${cell}</span>`).join("")}</div>`).join("")}</div></section>`;
 }
+function phActivityGraph() {
+  return `<figure class="question-evidence ph-activity-graph">
+    <strong>酸鹼值與酵素活性的關係</strong>
+    <div class="ph-scaffold" aria-label="酸鹼值判讀提示"><span>pH &lt; 7｜酸性</span><span>pH = 7｜中性</span><span>pH &gt; 7｜鹼性</span></div>
+    <svg viewBox="0 0 500 230" role="img" aria-labelledby="phGraphTitle phGraphDesc">
+      <title id="phGraphTitle">酸鹼值與酵素活性的關係曲線圖</title>
+      <desc id="phGraphDesc">橫軸是酸鹼值零到十四，縱軸是相對酵素活性。曲線在 pH 二附近最高，在 pH 七與 pH 十附近較低。</desc>
+      <g class="graph-grid"><path d="M35 20V170H455"/><path d="M35 95H455M35 20H455"/></g>
+      <g class="graph-axis-labels"><text x="245" y="218">酸鹼值 pH</text><text transform="translate(15 130) rotate(-90)">相對酵素活性（%）</text><text x="24" y="175">0</text><text x="16" y="100">50</text><text x="10" y="25">100</text><text x="31" y="191">0</text><text x="91" y="191">2</text><text x="241" y="191">7</text><text x="327" y="191">10</text><text x="447" y="191">14</text></g>
+      <path class="activity-curve" d="M35 158 C58 132 73 62 95 30 C135 36 180 105 245 140 C285 151 330 155 455 158"/>
+      <g class="activity-points"><circle cx="95" cy="30" r="6"/><circle cx="245" cy="140" r="6"/><circle cx="335" cy="155" r="6"/></g>
+    </svg>
+    <figcaption>以圖中最高活性作為 100% 的相對值；請依座標軸與曲線最高點判讀。</figcaption>
+  </figure>`;
+}
 function renderQuestionEvidence(qid) {
   if (qid === "q05") return evidenceTable("溫度與反應速率資料", ["溫度", "反應速率"], [["10 度", "很慢"], ["25 度", "中等"], ["37 度", "最快"], ["70 度", "幾乎沒有作用"]]);
-  if (qid === "q07") return evidenceTable("酸鹼值與作用情形資料", ["酸鹼值", "作用情形"], [["pH 2", "強"], ["pH 7", "弱"], ["pH 10", "弱"]]);
-  if (qid === "q09") return evidenceTable("資料判讀任務卡", ["欄位", "需要辨認的線索"], [["研究對象", "酵素與作用對象"], ["改變條件", "溫度或酸鹼值"], ["結果資料", "反應速率或產物量"]]);
+  if (qid === "q07") return phActivityGraph();
   if (qid === "q13") return `<section class="question-evidence qualitative-note"><strong>概念邊界提醒</strong><p>酵素在反應中是促進者；判讀反應快慢仍需同時考慮作用對象與環境條件，不能把單一因素當成全部原因。</p></section>`;
   return "";
 }
 function renderChoiceQuestion(qid) {
   const question = questionById(qid);
   return `<div class="question-card" data-question-id="${qid}"><h3>${question.prompt}</h3>${renderQuestionEvidence(qid)}<div class="choice-grid">${orderedOptions(question).map((option) => `<button class="choice-button${selectedClass(question, option)}" data-choice="${qid}" data-value="${option.id}">${option.text}</button>`).join("")}</div><p class="selected-answer">${state.answers[qid] ? `已選：${question.options.find((option) => option.id === state.answers[qid])?.text || ""}` : "尚未選擇"}</p>${state.hints[qid] ? `<div class="feedback warn">${question.hint}</div>` : ""}</div>`;
-}
-function renderSequenceQuestion() {
-  const order = ensureSequence();
-  return `<div class="question-card" data-question-id="q09"><h3>判讀一組酵素活性資料時，拖曳整理較合理的思考流程。</h3><p class="field-help">排序題：可拖曳卡片；手機可使用上移 / 下移按鈕。重點是先辨認資料內容，再比較趨勢並形成結論。</p>${renderQuestionEvidence("q09")}<div class="sortable-list">${order.map((id, index) => { const step = sequenceSteps.find((item) => item.id === id); return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><strong>${step.label}</strong><div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`; }).join("")}</div>${state.hints.q09 ? `<div class="feedback warn">先確認酵素與作用對象，再確認改變條件，接著比較資料趨勢；最後才用證據形成結論。</div>` : ""}${state.checkedWrong.q09 ? `<div class="feedback bad">順序仍可調整；先整理資料在測什麼與改變什麼，再比較結果。</div>` : ""}</div>`;
 }
 function renderClassifyQuestion(qid) {
   const config = classifyQuestions[qid];
@@ -503,14 +482,13 @@ function renderBrief() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務簡報</p><h2>生命反應加速任務</h2><div class="brief-scene enzymes-brief-scene" data-briefing-scene-hook="${assets.briefingSceneHook}"><div class="scene-copy"><div class="student-avatar-slot"><img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}';"></div><h3>為什麼同一種反應有時快、有時慢？</h3><p>生命反應研究站的資料顯示，酵素、酵素作用的對象（稱為受質）與環境條件會一起影響反應。你要從配對、資料與生活情境中找出合理解釋。</p></div></div><div class="mission-hud"><div><span>任務區</span><strong>生命反應研究站</strong></div><div><span>重點</span><strong>專一性與條件</strong></div><div><span>原則</span><strong>用資料判讀</strong></div></div><div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
 }
 function renderScan() {
-  return `<div class="mission-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的判斷線索</h2><div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>酵素能促進反應，但不是能量本身；先看作用對象是否配對，再看溫度、酸鹼值與資料趨勢。</p></div><div class="card-grid"><div class="concept-card"><strong>反應角色</strong><p>酵素可促進生物體內反應，反應後通常不被消耗。</p></div><div class="concept-card"><strong>專一性</strong><p>不同酵素通常有較適合的作用對象。</p></div><div class="concept-card"><strong>條件影響</strong><p>溫度與酸鹼值要看適合範圍，不是越高或越極端越好。</p></div><div class="concept-card"><strong>資料判讀</strong><p>先確認研究對象與改變條件，再比較多筆資料形成結論。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div><div class="owl-frame enzymes-prep-owl"><img src="${assets.owlPrep}" alt="酵素任務提醒貓頭鷹"></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="酵素任務提醒貓頭鷹"><div><h3>先看作用對象，再看環境條件。</h3><p>酵素能促進反應，但不是能量本身；判讀資料時要比較溫度、酸鹼值與反應活性的關係。</p></div></div><div class="card-grid"><div class="concept-card"><strong>反應角色</strong><p>酵素可促進生物體內反應，反應後通常不被消耗。</p></div><div class="concept-card"><strong>專一性</strong><p>不同酵素通常有較適合的作用對象。</p></div><div class="concept-card"><strong>條件影響</strong><p>溫度與酸鹼值要看適合範圍，不是越高或越極端越好。</p></div><div class="concept-card"><strong>圖表判讀</strong><p>先讀座標軸，再找曲線高低與變化趨勢。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div></div>`;
 }
 function renderCheckpoint1() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>酵素功能與專一性</h2><div class="question-grid">${["q01","q02"].map(renderChoiceQuestion).join("")}${renderClassifyQuestion("q03")}${renderChoiceQuestion("q04")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`; }
 function renderCheckpoint2() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>條件與資料判讀</h2><div class="question-grid">${["q05","q06","q07","q08"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`; }
-function renderCheckpoint3() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>消化情境與迷思修正</h2><div class="question-grid">${renderSequenceQuestion()}${["q10","q11","q12","q13","q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`; }
+function renderCheckpoint3() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>消化情境與迷思修正</h2><div class="question-grid">${["q10","q11","q12","q13","q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`; }
 
 function isCorrect(qid) {
-  if (qid === "q09") return ensureSequence().join("|") === correctSequence.join("|");
   if (multiSelectQuestions[qid]) {
     const selected = [...(state.answers[qid] || [])].sort();
     const expected = [...multiSelectQuestions[qid].answers].sort();
@@ -520,7 +498,6 @@ function isCorrect(qid) {
   return state.answers[qid] === questionById(qid).answer;
 }
 function isAnswered(qid) {
-  if (qid === "q09") return Boolean(state.interactions.q09) && ensureSequence().length === correctSequence.length;
   if (multiSelectQuestions[qid]) return Boolean(state.interactions[qid]) && (state.answers[qid] || []).length > 0;
   if (classifyQuestions[qid]) return classifyQuestions[qid].items.every((item) => Boolean(state.answers[qid]?.[item.id]));
   return Boolean(state.answers[qid]);
@@ -582,19 +559,6 @@ async function checkSection(section) {
   saveState();
   setScreen(next);
 }
-function moveSequence(id, dir) {
-  const order = ensureSequence(); const index = order.indexOf(id); const next = index + dir;
-  if (index < 0 || next < 0 || next >= order.length) return;
-  [order[index], order[next]] = [order[next], order[index]];
-  state.answers.q09_sequence = order; state.interactions.q09 = true; saveState(); render();
-}
-function dropSequence(targetId) {
-  if (!draggedSequenceId || draggedSequenceId === targetId) return;
-  const order = ensureSequence().filter((id) => id !== draggedSequenceId);
-  order.splice(order.indexOf(targetId), 0, draggedSequenceId);
-  state.answers.q09_sequence = order; state.interactions.q09 = true; draggedSequenceId = null; saveState(); render();
-}
-
 function attachQuestionEvents() {
   document.querySelectorAll("[data-choice]").forEach((button) => button.addEventListener("click", async () => {
     const question = questionById(button.dataset.choice);
@@ -615,8 +579,6 @@ function attachQuestionEvents() {
     if (select.value && item && select.value !== item.answer && !await markHint(qid)) return;
     saveState(); render();
   }));
-  document.querySelectorAll("[data-move]").forEach((button) => button.addEventListener("click", () => moveSequence(button.dataset.move, Number(button.dataset.dir))));
-  document.querySelectorAll(".sortable-item").forEach((item) => { item.addEventListener("dragstart", () => { draggedSequenceId = item.dataset.sequenceId; }); item.addEventListener("dragover", (event) => event.preventDefault()); item.addEventListener("drop", (event) => { event.preventDefault(); dropSequence(item.dataset.sequenceId); }); });
   const checkButton = document.querySelector("#checkSection");
   if (checkButton) checkButton.addEventListener("click", async () => checkSection(checkButton.dataset.section));
 }
@@ -626,12 +588,10 @@ function evaluateReflectionQuality(reflection) {
 }
 function questionConcept(qid) {
   if (qid === "q03") return "enzyme_specificity";
-  if (qid === "q09") return "data_interpretation";
   return questionById(qid)?.concept || "unknown";
 }
 function questionMisconception(qid) {
   if (classifyQuestions[qid]) return classifyQuestions[qid].misconception;
-  if (qid === "q09") return "data_single_point";
   return questionById(qid)?.misconception || "unknown";
 }
 
@@ -660,7 +620,7 @@ function calculateResult() {
   if (["q02"].every(isCorrect)) earned.push("enzyme_reusable_guardian");
   if (["q05","q06","q07","q08","q14"].every(isCorrect)) earned.push("condition_effect_reader");
   if (["q10","q11","q12"].every(isCorrect)) earned.push("digestion_context_connector");
-  if (["q05","q07","q09"].every(isCorrect)) earned.push("enzyme_data_interpreter");
+  if (["q05","q07"].every(isCorrect)) earned.push("enzyme_data_interpreter");
   if (qids.some((qid) => isCorrect(qid) && state.hints[qid])) earned.push("enzymes_misconception_reviser");
   if (accuracy === 1 && hintUsed === 0) earned.push("enzymes_flawless");
   if (reflectionEval.reflection_quality === "discussion_question" && reflectionEval.reflection_review_status === "server_recalculated") earned.push("enzymes_reflection_reporter");
@@ -694,8 +654,8 @@ function renderReflection() {
 
 function buildBackendPayload(attempt) {
   const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
-  const answerFor = (qid) => qid === "q09" ? state.answers.q09_sequence : state.answers[qid];
-  const correctFor = (qid) => qid === "q09" ? correctSequence : multiSelectQuestions[qid] ? multiSelectQuestions[qid].answers : classifyQuestions[qid] ? Object.fromEntries(classifyQuestions[qid].items.map((item) => [item.id, item.answer])) : questionById(qid).answer;
+  const answerFor = (qid) => state.answers[qid];
+  const correctFor = (qid) => multiSelectQuestions[qid] ? multiSelectQuestions[qid].answers : classifyQuestions[qid] ? Object.fromEntries(classifyQuestions[qid].items.map((item) => [item.id, item.answer])) : questionById(qid).answer;
   return {
     attempt_id: attempt.attempt_id, student_id: attempt.student.student_id, student_name: attempt.student.student_name, class_name: attempt.student.class_name, seat_no: attempt.student.seat_no, unit_id: mission.unit_id, unit_title: mission.unit_title,
     attempt_type: attempt.attempt_type, attempt_type_candidate: attempt.attempt_type_candidate, attempt_no_candidate: attempt.attempt_no, attempt_session_id: attempt.attempt_session_id, attempt_session_token: attempt.attempt_session_token, question_version: attempt.question_version, started_from_login: attempt.started_from_login, previous_attempt_id: attempt.previous_attempt_id, retry_validation_status: attempt.retry_validation_status,
@@ -707,7 +667,7 @@ function buildBackendPayload(attempt) {
     misconceptions_json: JSON.stringify(attempt.misconceptions), raw_answers_json: JSON.stringify(attempt.raw_answers), badge_eval_json: JSON.stringify(badges.map((badge) => ({ badge_id: badge.id, earned_candidate: attempt.badges.includes(badge.id), badge_image_path: badge.image_status === "ready" ? badge.badge_image_path : "" }))),
     question_logs: qids.map((qid) => {
       const answer = answerFor(qid);
-      const questionType = qid === "q09" ? "sequence" : multiSelectQuestions[qid] ? "set" : classifyQuestions[qid] ? "mapping" : "choice";
+      const questionType = multiSelectQuestions[qid] ? "set" : classifyQuestions[qid] ? "mapping" : "choice";
       const checkpointId = sectionMap.checkpoint1.includes(qid) ? "checkpoint1" : sectionMap.checkpoint2.includes(qid) ? "checkpoint2" : "checkpoint3";
       return {
         student_id: attempt.student.student_id,
