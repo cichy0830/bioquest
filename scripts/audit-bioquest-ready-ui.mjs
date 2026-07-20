@@ -71,7 +71,7 @@ appVersionOverrides.set("plant_material_transport", "20260720-plant-material-tra
 appVersionOverrides.set("plant_transport_structures", "20260720-plant-transport-structures-extension-v2");
 appVersionOverrides.set("cardiovascular_components", "20260720-cardiovascular-components-brief-visible-v2");
 appVersionOverrides.set("human_circulation", "20260720-human-circulation-badges-v1");
-appVersionOverrides.set("stimulus_response", "20260720-stimulus-response-qa-roles-badges-v2");
+appVersionOverrides.set("stimulus_response", "20260721-stimulus-response-badges-b-v1");
 appVersionOverrides.set("nervous_system", "20260718-nervous-system-ready-v1");
 appVersionOverrides.set("endocrine_system", "20260718-endocrine-system-ready-v1");
 appVersionOverrides.set("behavior_sensing", "20260718-behavior-sensing-ready-v1");

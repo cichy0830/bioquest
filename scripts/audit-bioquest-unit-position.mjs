@@ -29,7 +29,7 @@ const sharedVersionOverrides = new Map([
   ["plant_material_transport", "20260720-plant-material-transport-badges-v1"],
   ["cardiovascular_components", "20260720-cardiovascular-components-brief-visible-v2"],
   ["human_circulation", "20260720-human-circulation-badges-v1"],
-  ["stimulus_response", "20260720-stimulus-response-qa-roles-badges-v2"],
+  ["stimulus_response", "20260721-stimulus-response-badges-b-v1"],
   ["nervous_system", "20260713-login-busy-v1"],
   ["endocrine_system", "20260713-login-busy-v1"],
   ["behavior_sensing", "20260713-login-busy-v1"],
