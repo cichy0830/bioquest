@@ -3,7 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260720-plant-material-transport-canonical-v1";
+const VERSION = "20260720-plant-material-transport-badges-v1";
+const QUESTION_VERSION = "20260720-plant-material-transport-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -91,7 +92,16 @@ const badges = [
   ["plant_material_transport_reflection_reporter", "高品質運輸回報徽章", "回報品質達 discussion_question。"],
   ["retry_growth_plant_material_transport", "再探綠植調度進步徽章", "再挑戰完整完成且正確率進步。"]
 ].map(([id, name, condition]) => {
-  const readyIds = new Set(["plant_material_transport_entry", "xylem_upward_carrier", "phloem_nutrient_dispatcher", "plant_material_transport_flawless"]);
+  const readyIds = new Set([
+    "plant_material_transport_entry",
+    "transport_overview_mapper",
+    "water_mineral_absorber",
+    "xylem_upward_carrier",
+    "phloem_nutrient_dispatcher",
+    "transpiration_flow_linker",
+    "transport_evidence_reader",
+    "plant_material_transport_flawless"
+  ]);
   return { id, name, condition, badge_image_path: badgeAsset(id), image_status: readyIds.has(id) ? "ready" : "pending" };
 });
 
@@ -149,7 +159,7 @@ function createEmptyState() {
     attempt_session_token: "",
     attempt_session_id: "",
     previous_attempt_id: "",
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     optionOrders: {},
     answers: {},
@@ -170,7 +180,7 @@ function loadState() {
   if (typeof localStorage === "undefined") return createEmptyState();
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey) || "null");
-    return parsed && parsed.question_version ? { ...createEmptyState(), ...parsed } : createEmptyState();
+    return parsed && parsed.question_version ? { ...createEmptyState(), ...parsed, question_version: QUESTION_VERSION } : createEmptyState();
   } catch (error) {
     return createEmptyState();
   }
@@ -350,7 +360,7 @@ function beginLocalAttempt(student) {
     attempt_id: attemptId,
     attempt_session_token: `guest_${attemptId}`,
     attempt_session_id: `guest_session_${attemptId}`,
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     screen: "brief",
     completedScreens: ["login", "brief"]
@@ -381,9 +391,9 @@ async function handleLogin(useGuest) {
       action: "startAttempt",
       student_id: student.student_id,
       unit_id: mission.unit_id,
-      question_version: VERSION
+      question_version: QUESTION_VERSION
     });
-    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== VERSION) {
+    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== QUESTION_VERSION) {
       throw new Error("backend_registry_not_ready");
     }
     state = {
@@ -1167,6 +1177,7 @@ if (typeof document !== "undefined") {
 if (typeof window !== "undefined") {
   window.__plant_material_transportTest = {
     VERSION,
+    QUESTION_VERSION,
     mission,
     assets,
     badges,
