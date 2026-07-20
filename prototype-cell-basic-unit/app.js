@@ -3,6 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
+const VERSION = "20260721-cell-basic-unit-readiness-v1";
 const BASIC_UNIT_VERSION = "20260712-basic-unit-sheet-login-v4";
 const mission = {
   unit_id: "cell_basic_unit",
@@ -47,7 +48,7 @@ const studentMini = document.querySelector("#studentMini");
 const LOCK_MESSAGE = "本次任務已提交，作答結果已鎖定；若要再挑戰，請重新登入並從頭完成。";
 const LOCKED_SCREENS_AFTER_SUBMIT = new Set(["brief", "scan", "checkpoint1", "checkpoint2", "checkpoint3", "checkpoint4", "review", "reflection"]);
 
-const badgeAsset = (id) => `../shared-assets/badges/cell_basic_unit/badge-cell_basic_unit-${id}.webp`;
+const badgeAsset = (id) => `../shared-assets/badges/cell_basic_unit/badge-cell_basic_unit-${id}.webp?v=${VERSION}`;
 const badges = [
   { id: "cell_basic_unit_entry", name: "細胞基礎入門徽章", condition: "完成生命積木辨識任務。" },
   { id: "cell_unit_concept_keeper", name: "細胞基本單位徽章", condition: "細胞基本單位題組達 85% 以上。" },
@@ -333,7 +334,7 @@ async function fetchStudentStatus(id) {
 }
 async function postBackendAction(action, payload) {
   const body = new URLSearchParams();
-  body.set("payload", JSON.stringify(payload));
+  body.set("payload", JSON.stringify({ action, ...payload }));
   const response = await fetch(`${BACKEND_URL}?action=${encodeURIComponent(action)}`, { method: "POST", body });
   if (!response.ok) throw new Error(`backend_${response.status}`);
   const data = await response.json();
@@ -341,7 +342,7 @@ async function postBackendAction(action, payload) {
   return data;
 }
 function startAttemptSession(studentId) {
-  return postBackendAction("startAttempt", { student_id: studentId, unit_id: mission.unit_id });
+  return postBackendAction("startAttempt", { student_id: studentId, unit_id: mission.unit_id, question_version: BASIC_UNIT_VERSION });
 }
 function isServerVerifiedSession(session) {
   return Boolean(session?.attempt_id && session?.attempt_session_token && session?.question_version === BASIC_UNIT_VERSION && session?.verification_mode === "server_verified");
@@ -411,9 +412,26 @@ async function login(id) {
     message.innerHTML = `<span class="pill warn">請輸入學號。</span>`;
     return;
   }
-  window.BioQuestLoginUX?.begin({ guest: id === "guest" });
+  const isGuest = id === "guest";
+  window.BioQuestLoginUX?.begin({ guest: isGuest });
+  message.innerHTML = `<span class="pill">${isGuest ? "正在建立老師測試模式……" : "正在連接 BioQuest 學習後台，請稍候……"}</span>`;
   await window.BioQuestLoginUX?.paint();
   clearPendingLoginIdentity();
+  if (isGuest) {
+    const completed = studentAttempts("guest").length;
+    state = structuredClone(defaultState);
+    state.student = { ...roster.guest };
+    state.remote_completed_attempts = completed;
+    state.attempt_type = completed > 0 ? "retry" : "first";
+    state.started_at = new Date().toISOString();
+    state.attempt_id = `guest-${Date.now()}`;
+    state.question_version = BASIC_UNIT_VERSION;
+    state.optionOrders = {};
+    unlock("brief", "rules", "achievements");
+    saveState();
+    setScreen("brief");
+    return;
+  }
   let student = null;
   let completed = 0;
   let serverSession = null;
@@ -436,14 +454,9 @@ async function login(id) {
     const remoteAccuracy = data.attempt_status?.previous_accuracy ?? data.attempt_status?.best_accuracy;
     remotePreviousAccuracy = remoteAccuracy === null || remoteAccuracy === undefined || remoteAccuracy === "" ? null : Number(remoteAccuracy);
   } catch (error) {
-    if (id !== "guest") {
-      const notReady = String(error?.message || error).includes("backend_registry_not_ready");
-      message.innerHTML = `<span class="pill warn">${notReady ? "後台版本尚未更新，請通知老師。" : "後台目前無法連線，尚未登入。請檢查網路後按「登入任務」重試。"}</span>`;
-      return;
-    }
-    student = roster.guest;
-    completed = studentAttempts(student.student_id).length;
-    message.innerHTML = `<span class="pill warn">後台暫時無法連線；guest 已切換為本機測試模式，不列入正式統計。</span>`;
+    const notReady = String(error?.message || error).includes("backend_registry_not_ready");
+    message.innerHTML = `<span class="pill warn">${notReady ? "後台版本尚未更新，請通知老師。" : "後台目前無法連線，尚未登入。請檢查網路後按「登入任務」重試。"}</span>`;
+    return;
   }
   state = structuredClone(defaultState);
   state.student = { ...student };
@@ -1036,17 +1049,56 @@ function renderResultBadges(result) {
   const earned = new Set(result.badges || []);
   return `<section class="result-badges"><h3>本單元徽章</h3><div class="badge-grid">${badges.map((badge) => `<div class="badge-card ${earned.has(badge.id) || earned.has(badge.name) ? "lit earned-now" : ""}" data-badge-id="${badge.id}"><img src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div></section>`;
 }
+function resultStatus(result) {
+  if (state.student?.is_guest) return "local_guest";
+  if (result?.verification_status === "server_verified") return "server_verified";
+  return result?.verification_status || "pending_backend";
+}
+function resultSummaryCopy(result) {
+  const status = resultStatus(result);
+  if (status === "local_guest") {
+    return {
+      totalLabel: "guest 本次預估 EXP",
+      creditLabel: "正式認列 EXP",
+      deltaLabel: "正式累積增量",
+      creditValue: "不列入",
+      deltaValue: "+0",
+      heading: "guest 測試結果",
+      note: `guest 測試：本次預估 ${result.attempt_total_exp}/${UNIT_EXP_CAP} EXP，不列入正式累積。`
+    };
+  }
+  if (status === "server_verified") {
+    return {
+      totalLabel: "本次取得 EXP",
+      creditLabel: "本單元正式認列 EXP",
+      deltaLabel: "本次新增認列",
+      creditValue: `${result.unit_credited_exp}/${UNIT_EXP_CAP}`,
+      deltaValue: `+${result.credited_delta}`,
+      heading: "正式認列完成",
+      note: `後台已完成 server_verified 重算；本單元正式認列 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，本次新增認列 +${result.credited_delta}。`
+    };
+  }
+  return {
+    totalLabel: "本次預估 EXP",
+    creditLabel: "正式認列 EXP",
+    deltaLabel: "正式累積增量",
+    creditValue: "待後台確認",
+    deltaValue: "+0",
+    heading: "等待後台確認",
+    note: `本次預估 ${result.attempt_total_exp}/${UNIT_EXP_CAP} EXP，待後台確認；完成確認前不列入正式累積。`
+  };
+}
 function renderResult() {
   const result = state.result || calculateResult();
+  const summary = resultSummaryCopy(result);
   const ledger = [["直接答對", result.concept_exp], ["提示後修正", result.revision_exp], ["完成任務", result.completion_exp], ["任務回報", result.question_exp], ["精熟加成", result.mastery_exp], ["再挑戰進步", result.retry_exp], ["本次總計", result.attempt_total_exp]];
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>生命積木辨識完成</h2>${state.lockNotice ? `<div class="feedback warn">${state.lockNotice}</div>` : ""}<div class="feedback good">提交後本次作答已鎖定；若要再挑戰，請重新登入並從頭完成。</div><div class="score-grid"><div class="score-box"><span>本次取得 EXP</span><strong>${result.attempt_total_exp}</strong></div><div class="score-box"><span>本單元認列 EXP</span><strong>${result.unit_credited_exp}/${UNIT_EXP_CAP}</strong></div><div class="score-box"><span>正確率</span><strong>${Math.round(result.accuracy * 100)}%</strong></div></div><section class="exp-ledger"><h3>EXP 明細</h3><div class="exp-ledger-grid">${ledger.map(([label, value], index) => `<div class="exp-ledger-item ${index === ledger.length - 1 ? "total" : ""}"><span>${label}</span><strong>${value} EXP</strong></div>`).join("")}</div></section><div class="story-panel"><strong>回報品質</strong><p>${result.reflection_exp_reason}</p></div>${renderResultBadges(result)}<div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>生命積木辨識完成</h2>${state.lockNotice ? `<div class="feedback warn">${state.lockNotice}</div>` : ""}<div class="feedback good">提交後本次作答已鎖定；若要再挑戰，請重新登入並從頭完成。</div><div class="score-grid"><div class="score-box"><span>${summary.totalLabel}</span><strong>${result.attempt_total_exp}</strong></div><div class="score-box"><span>${summary.creditLabel}</span><strong>${summary.creditValue}</strong></div><div class="score-box"><span>${summary.deltaLabel}</span><strong>${summary.deltaValue}</strong></div><div class="score-box"><span>正確率</span><strong>${Math.round(result.accuracy * 100)}%</strong></div></div><section class="exp-ledger"><h3>EXP 明細</h3><div class="exp-ledger-grid">${ledger.map(([label, value], index) => `<div class="exp-ledger-item ${index === ledger.length - 1 ? "total" : ""}"><span>${label}</span><strong>${value} EXP</strong></div>`).join("")}</div></section><div class="story-panel highlight"><strong>${summary.heading}</strong><p>${summary.note}</p></div><div class="story-panel"><strong>回報品質</strong><p>${result.reflection_exp_reason}</p></div>${renderResultBadges(result)}<div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
 }
 function renderAchievements() {
   const result = state.result || calculateResult();
-  const { totalExp, title } = titleAndProgress();
   const acquired = acquiredBadgeNames();
   const earnedNow = new Set(result.badges || []);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">累積成就</p><h2>${state.student?.student_name || "學習者"}</h2><div class="student-title-card" data-current-title-id="${title.id}" data-title-avatar-path="${titleAvatarPath(title.id)}"><div class="student-title-avatar"><img src="${titleAvatarPath(title.id)}" alt="${title.current}稱號角色"></div><div><span>目前稱號</span><strong>${title.current}</strong><p>累積 ${totalExp} EXP</p><p>${title.remaining ? `下一稱號：${title.next}，還差 ${title.remaining} EXP` : "已達最高稱號，EXP 仍會繼續累積。"}</p></div></div><div class="progress-bar"><div class="progress-fill" style="width:${title.title_progress_percent}%"></div></div><p class="muted">稱號進度 ${Math.min(100, Math.round(title.title_progress_percent * 10) / 10)}%</p></div><div class="panel"><p class="eyebrow">成就收藏</p><h2>本單元成就</h2><div class="badge-grid">${badges.map((badge) => `<div class="badge-card ${acquired.has(badge.id) || acquired.has(badge.name) ? "lit" : ""} ${earnedNow.has(badge.id) || earnedNow.has(badge.name) ? "earned-now" : ""}" data-badge-id="${badge.id}"><img src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div><div class="actions"><button class="secondary" id="achieveResult">返回結算</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel" data-bq-unit-achievements="true"><p class="eyebrow">成就收藏</p><h2>本單元成就</h2><div class="badge-grid">${badges.map((badge) => `<div class="badge-card ${acquired.has(badge.id) || acquired.has(badge.name) ? "lit" : ""} ${earnedNow.has(badge.id) || earnedNow.has(badge.name) ? "earned-now" : ""}" data-badge-id="${badge.id}"><img src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p>${badge.condition}</p></div>`).join("")}</div><div class="actions"><button class="secondary" id="achieveResult">返回結算</button></div></div></div>`;
 }
 function renderRules() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元封頂</strong><p>本單元認列 EXP 上限為 500。零提示全對可取得題目與精熟 EXP；空白回報固定 0 EXP，因此最高為 460，具體有效回報取得 40 EXP 時才可達 500。</p></div><div class="story-panel"><strong>提示後修正</strong><p>提示會給判斷線索，不直接公布答案。提示後答對仍有修正 EXP，但低於未提示答對。</p></div><div class="story-panel"><strong>提交鎖定</strong><p>提交任務後本次作答結果鎖定。再挑戰必須重新登入並從頭完成整份任務。</p></div></div><div class="actions"><button class="secondary" id="rulesBack">返回目前任務</button></div></div></div>`;
@@ -1098,12 +1150,36 @@ function attachEvents() {
   if (state.screen === "achievements") document.querySelector("#achieveResult").addEventListener("click", () => setScreen("result"));
   if (state.screen === "rules") document.querySelector("#rulesBack").addEventListener("click", () => setScreen(state.student ? state.screen === "rules" && state.submitted_at ? "result" : "brief" : "login"));
 }
+function updateBadgeOverviewBridge() {
+  if (typeof window === "undefined") return;
+  if (!state.student) {
+    delete window.__BIOQUEST_BADGE_OVERVIEW_STATE__;
+    return;
+  }
+  const progress = state.student.progress || state.student.student_progress || {};
+  window.__BIOQUEST_BADGE_OVERVIEW_STATE__ = {
+    student: {
+      ...state.student,
+      progress,
+      student_progress: progress,
+      is_guest: Boolean(state.student.is_guest),
+      title_avatar_path: state.student.title_avatar_path || progress.title_avatar_path || "",
+      current_title_id: state.student.current_title_id || progress.current_title_id || "",
+      current_title: state.student.current_title || progress.current_title || ""
+    },
+    progress,
+    student_progress: progress
+  };
+}
 function render() {
   if (state.submitted_at && LOCKED_SCREENS_AFTER_SUBMIT.has(state.screen)) state.screen = "result";
   renderNav();
   renderStudentMini();
   const views = { login: renderLogin, brief: renderBrief, scan: renderScan, checkpoint1: renderCheckpoint1, checkpoint2: renderCheckpoint2, checkpoint3: renderCheckpoint3, checkpoint4: renderCheckpoint4, review: renderReview, reflection: renderReflection, result: renderResult, achievements: renderAchievements, rules: renderRules };
+  updateBadgeOverviewBridge();
+  screen.dataset.bioquestScreen = state.screen;
   screen.innerHTML = views[state.screen]();
   attachEvents();
+  window.BioQuestCharacterLayout?.enhance?.({ force: true });
 }
 render();

@@ -139,12 +139,6 @@ textarea { min-height: 96px; resize: vertical; }
 .exp-ledger-item strong { color:var(--teal-dark); }
 .exp-ledger-item.total { border-color:rgba(216,155,50,.55); background:#fff3d4; }
 .result-badges { margin-top:22px; }
-.student-title-card { display:grid; grid-template-columns:minmax(150px,220px) minmax(0,1fr); gap:18px; align-items:center; margin:16px 0; padding:16px; border:1px solid var(--line); border-radius:8px; background:linear-gradient(135deg,rgba(226,248,247,.92),rgba(255,244,214,.84)); }
-.student-title-avatar { display:grid; place-items:center; min-height:230px; }
-.student-title-avatar img { display:block; width:100%; height:230px; object-fit:contain; object-position:center bottom; }
-.student-title-card span { color:var(--muted); font-size:13px; font-weight:900; }
-.student-title-card strong { display:block; margin:4px 0 8px; color:var(--teal-dark); font-size:26px; }
-.student-title-card p { margin:4px 0; color:var(--muted); line-height:1.55; }
 .progress-bar { height:12px; overflow:hidden; border-radius:999px; background:#dce8e4; }
 .progress-fill { height:100%; border-radius:inherit; background:linear-gradient(90deg,var(--teal),var(--amber)); }
 .status-line { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0; }
@@ -174,8 +168,5 @@ textarea { min-height: 96px; resize: vertical; }
   .sequence-move-buttons button { flex:1; }
   .badge-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .exp-ledger-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .student-title-card { grid-template-columns:1fr; text-align:center; }
-  .student-title-avatar { min-height:210px; }
-  .student-title-avatar img { height:min(62vw,280px); }
   .actions { display:grid; grid-template-columns:1fr; }
 }
