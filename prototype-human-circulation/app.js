@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260718-u18-u20-assets-v1";
+const VERSION = "20260720-human-circulation-evidence-v1";
 const QUESTION_VERSION = "20260718-human-circulation-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -813,13 +813,11 @@ function renderQuestion(question) {
 function conceptLabel(concept) { return {circulation_loop:"血液循環",route_reasoning:"路徑推理",pulmonary_circulation:"肺循環",systemic_circulation:"體循環",oxygen_content_shift:"含氧量變化",capillary_exchange:"微血管交換",tissue_fluid_lymph_basic:"組織液與淋巴"}[concept] || concept; }
 
 function renderQuestionEvidence(qid) {
-  if (qid === "human_circulation_q01") return `<div class="evidence-card"><strong>循環概念卡</strong><p>血液不是單程送出，而是在心臟、肺部與全身之間持續流動。</p></div>`;
   if (qid === "human_circulation_q02") return `<div class="evidence-card"><strong>路徑排序卡</strong><p>排序題請拖曳卡片；手機可用上移 / 下移。提示只協助判斷方向，不直接列答案。</p></div>`;
-  if (qid === "human_circulation_q03" || qid === "human_circulation_q04" || qid === "human_circulation_q14") return `<div class="evidence-card"><strong>肺循環 / 體循環判斷</strong><p>先看目的地是肺部還是全身組織，再確認交換後回到哪一側心房。</p></div>`;
-  if (qid === "human_circulation_q05" || qid === "human_circulation_q06" || qid === "human_circulation_q08") return `<div class="evidence-card evidence-table"><strong>肺部交換資料</strong><table><thead><tr><th>地點</th><th>資料線索</th></tr></thead><tbody><tr><td>肺部微血管</td><td>含氧量由低變高</td></tr><tr><td>肺泡附近</td><td>氧氣進入血液，二氧化碳離開血液</td></tr></tbody></table></div>`;
-  if (qid === "human_circulation_q07" || qid === "human_circulation_q13") return `<div class="evidence-card"><strong>動靜脈判斷卡</strong><p>動脈與靜脈先看血流相對心臟方向；肺循環中的含氧量有特例。</p></div>`;
-  if (qid === "human_circulation_q09" || qid === "human_circulation_q10" || qid === "human_circulation_q11") return `<div class="evidence-card"><strong>全身微血管交換站</strong><p>全身細胞附近需要氧氣與養分，也會產生二氧化碳與部分廢物。</p></div>`;
-  if (qid === "human_circulation_q12") return `<div class="evidence-card"><strong>組織液與淋巴基礎</strong><p>細胞附近的液體環境協助交換；部分組織液可進入淋巴系統回收。</p></div>`;
+  if (qid === "human_circulation_q03" || qid === "human_circulation_q04") return `<div class="evidence-card"><strong>方向閱讀提醒</strong><p>先讀題幹中的出發點、目的地與回到心臟的位置，再選最符合的循環名稱。</p></div>`;
+  if (qid === "human_circulation_q05" || qid === "human_circulation_q06" || qid === "human_circulation_q08") return `<div class="evidence-card"><strong>資料閱讀提醒</strong><p>先確認題目問的是地點、氣體變化，還是推論限制；答案需由題幹資料支持。</p></div>`;
+  if (qid === "human_circulation_q07" || qid === "human_circulation_q13") return `<div class="evidence-card"><strong>圖示閱讀提醒</strong><p>圖色常是輔助線索，判斷時要同時讀題幹中的方向、位置與文字資料。</p></div>`;
+  if (qid === "human_circulation_q09" || qid === "human_circulation_q10" || qid === "human_circulation_q11") return `<div class="evidence-card"><strong>微血管資料提醒</strong><p>先確認題目問哪一類物質、移動方向或血管特性，再選能被題幹支持的敘述。</p></div>`;
   return "";
 }
 

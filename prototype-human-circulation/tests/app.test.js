@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-human-circulation/app.js" });
 const api = context.window.__human_circulationTest;
 
-assert.equal(api.VERSION, "20260718-u18-u20-assets-v1");
+assert.equal(api.VERSION, "20260720-human-circulation-evidence-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-human-circulation-ready-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -43,6 +43,39 @@ assert(source.includes("BioQuestLoginUX?.begin"));
 assert(fs.readFileSync(path.join(root, "styles.css"), "utf8").includes("正式徽章素材待接"));
 
 const Q = (n) => `human_circulation_q${String(n).padStart(2, "0")}`;
+assert.equal(api.renderQuestionEvidence(Q(1)), "", "q01 should not show a pre-question evidence card");
+assert(api.renderQuestionEvidence(Q(2)).includes("路徑排序卡"), "q02 should keep the operation card");
+assert(api.renderQuestionEvidence(Q(2)).includes("上移 / 下移"), "q02 should keep mobile sequence operation support");
+for (const qid of [Q(3), Q(4)]) {
+  const evidence = api.renderQuestionEvidence(qid);
+  assert(evidence.includes("方向閱讀提醒"), `${qid} should use a short neutral direction scaffold`);
+  assert(!evidence.includes("肺循環 / 體循環判斷"), `${qid} must not reveal the circulation label clue`);
+}
+for (const qid of [Q(5), Q(6), Q(8)]) {
+  const evidence = api.renderQuestionEvidence(qid);
+  assert(evidence.includes("資料閱讀提醒"), `${qid} should use neutral data-reading scaffold`);
+  assert(!evidence.includes("含氧量由低變高"), `${qid} must not reveal oxygen-change answer direction`);
+}
+for (const qid of [Q(7), Q(13)]) {
+  const evidence = api.renderQuestionEvidence(qid);
+  assert(evidence.includes("圖示閱讀提醒"), `${qid} should use neutral figure-reading scaffold`);
+  assert(!evidence.includes("肺循環中的含氧量有特例"), `${qid} must not leak the artery/vein exception`);
+}
+for (const qid of [Q(9), Q(10), Q(11)]) {
+  const evidence = api.renderQuestionEvidence(qid);
+  assert(evidence.includes("微血管資料提醒"), `${qid} should use neutral microvascular scaffold`);
+  assert(!evidence.includes("全身細胞附近需要氧氣與養分"), `${qid} must not reveal exchange direction`);
+}
+assert.equal(api.renderQuestionEvidence(Q(12)), "", "q12 should not show a pre-question evidence card");
+assert.equal(api.renderQuestionEvidence(Q(14)), "", "q14 should not show a pre-route evidence card");
+for (const legacyToken of [
+  "循環概念卡",
+  "肺循環 / 體循環判斷",
+  "肺部交換資料",
+  "動靜脈判斷卡",
+  "全身微血管交換站",
+  "組織液與淋巴基礎"
+]) assert(!source.includes(legacyToken), `legacy over-revealing evidence remains: ${legacyToken}`);
 const answers = {
   [Q(1)]: "loops_back",
   [`${Q(2)}_sequence`]: ["right_ventricle", "lungs", "left_atrium", "left_ventricle", "body_tissues", "right_atrium"],
@@ -107,6 +140,8 @@ assert(api.questions.find((question) => question.id === Q(2)).steps.length === 6
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(2)).analysis_group, "circulation_route_map");
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(12)).analysis_group, "capillary_exchange_station");
 assert(api.renderCheckpoint("checkpoint1").includes("上移"));
+assert.equal(api.assets.briefingSceneHook, "assets/human-circulation-briefing-azhe-wide.webp");
+assert.equal(api.assets.ambientBackgroundHook, "assets/human-circulation-entry-wide.webp");
 assert(!api.renderReflection().includes("bq-report-assistant"));
 assert(fs.readFileSync(path.join(root, "index.html"), "utf8").includes("data-report-owl-src"));
 assert(api.renderResult().includes("提交後本次作答已鎖定"));

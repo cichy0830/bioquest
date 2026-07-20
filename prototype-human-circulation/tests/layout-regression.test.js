@@ -49,7 +49,7 @@ try {
     });
     page.on("dialog", (dialog) => dialog.accept());
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260718-human-circulation-ready-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260720-human-circulation-evidence-v1`);
     await page.locator("#guestBtn").click();
     await page.locator('[data-next="scan"]').click();
     assert.equal(await page.locator(".prep-owl-hero").count(), 1, "prep owl hero missing");
@@ -57,6 +57,10 @@ try {
     await page.locator('[data-next="checkpoint1"]').click();
     assert.equal(await page.locator(`[data-sequence="${Q(2)}"] [data-sequence-item]`).count(), 6, "route sequence cards missing");
     assert.equal(await page.locator(`[data-question-id="${Q(9)}"]`).count(), 0, "checkpoint routing leaked later question");
+    let checkpointText = await page.locator("#screen").textContent();
+    for (const legacy of ["循環概念卡", "肺循環 / 體循環判斷"]) {
+      assert(!checkpointText.includes(legacy), `checkpoint1 should not show legacy evidence: ${legacy}`);
+    }
     await answerChoice(page, Q(1), "loops_back");
     await orderSequence(page, Q(2), ["right_ventricle", "lungs", "left_atrium", "left_ventricle", "body_tissues", "right_atrium"]);
     await answerChoice(page, Q(3), "right_lung_left");
@@ -67,12 +71,20 @@ try {
     await answerChoice(page, Q(7), "pulmonary_exception");
     await answerChoice(page, Q(8), "lung_exchange");
     await page.locator('[data-section-next="checkpoint2"]').click();
+    checkpointText = await page.locator("#screen").textContent();
+    for (const legacy of ["肺部交換資料", "動靜脈判斷卡"]) {
+      assert(!checkpointText.includes(legacy), `checkpoint2 should not show legacy evidence: ${legacy}`);
+    }
     await answerChoice(page, Q(9), "blood_to_tissue");
     await answerChoice(page, Q(10), "tissue_to_blood");
     await answerChoice(page, Q(11), "capillary");
     await answerChoice(page, Q(12), "fluid_lymph_recovery");
     await answerChoice(page, Q(13), "direction_route_first");
     await answerChoice(page, Q(14), "systemic");
+    checkpointText = await page.locator("#screen").textContent();
+    for (const legacy of ["全身微血管交換站", "組織液與淋巴基礎", "體循環路徑判斷"]) {
+      assert(!checkpointText.includes(legacy), `checkpoint3 should not show legacy evidence: ${legacy}`);
+    }
     await page.locator('[data-section-next="checkpoint3"]').click();
     await page.locator('[data-next="reflection"]').click();
     assert.equal(await page.locator(".bq-report-assistant").count(), 1, "report owl should be exactly one");
