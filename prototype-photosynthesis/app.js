@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260720-photosynthesis-user-review-v2";
+const VERSION = "20260720-photosynthesis-badges-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -86,7 +86,7 @@ const badges = [
   { id: "photosynthesis_flawless", name: "光合作用零提示全對徽章", condition: "全部答對且全程未使用提示。" },
   { id: "photosynthesis_reflection_reporter", name: "高品質光合回報徽章", condition: "回報品質達 discussion_question。" },
   { id: "retry_growth_photosynthesis", name: "再探光合作用進步徽章", condition: "再挑戰完整完成且正確率進步。" }
-].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id), image_status: "pending" }));
+].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id), image_status: "ready" }));
 
 const sequenceSteps = [
   { id: "research_question", label: "確認研究問題" },

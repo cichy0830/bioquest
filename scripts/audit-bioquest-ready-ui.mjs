@@ -57,7 +57,7 @@ appVersionOverrides.set("enzymes", "20260720-enzymes-user-review-v2");
 appVersionOverrides.set("nutrient_test", "20260720-nutrient-test-starch-glucose-only-v2");
 appVersionOverrides.set("scale", "20260717-scale-user-review-v2");
 appVersionOverrides.set("nutrients_energy", "20260717-badge-icon-cleanup-v1");
-appVersionOverrides.set("photosynthesis", "20260720-photosynthesis-user-review-v2");
+appVersionOverrides.set("photosynthesis", "20260720-photosynthesis-badges-v1");
 appVersionOverrides.set("biological_organization", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("cell_transport", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("plant_material_transport", "20260718-ag-visual-fixes-v1");
