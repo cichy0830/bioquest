@@ -31,7 +31,7 @@ const sharedVersionOverrides = new Map([
   ["prototype-nervous-system", "20260721-title-avatar-webp-v1"],
   ["prototype-endocrine-system", "20260721-title-avatar-webp-v1"],
   ["prototype-behavior-sensing", "20260721-title-avatar-webp-v1"],
-  ["prototype-respiration-homeostasis", "20260713-login-busy-v1"],
+  ["prototype-respiration-homeostasis", "20260721-respiration-homeostasis-p1-v1"],
   ["prototype-excretion-water-homeostasis", "20260713-login-busy-v1"],
   ["prototype-temperature-glucose-homeostasis", "20260713-login-busy-v1"],
   ["prototype-cell-division", "20260713-login-busy-v1"],

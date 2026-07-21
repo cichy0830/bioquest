@@ -3,7 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260718-respiration-homeostasis-v1";
+const VERSION = "20260721-respiration-homeostasis-p1-v1";
+const QUESTION_VERSION = "20260718-respiration-homeostasis-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -125,7 +126,7 @@ function createEmptyState() {
     attempt_session_token: "",
     attempt_session_id: "",
     previous_attempt_id: "",
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     optionOrders: {},
     answers: {},
@@ -146,7 +147,7 @@ function loadState() {
   if (typeof localStorage === "undefined") return createEmptyState();
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey) || "null");
-    return parsed && parsed.question_version ? { ...createEmptyState(), ...parsed } : createEmptyState();
+    return parsed && parsed.question_version === QUESTION_VERSION ? { ...createEmptyState(), ...parsed, question_version: QUESTION_VERSION } : createEmptyState();
   } catch (error) {
     return createEmptyState();
   }
@@ -326,7 +327,7 @@ function beginLocalAttempt(student) {
     attempt_id: attemptId,
     attempt_session_token: `guest_${attemptId}`,
     attempt_session_id: `guest_session_${attemptId}`,
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     screen: "brief",
     completedScreens: ["login", "brief"]
@@ -357,9 +358,9 @@ async function handleLogin(useGuest) {
       action: "startAttempt",
       student_id: student.student_id,
       unit_id: mission.unit_id,
-      question_version: VERSION
+      question_version: QUESTION_VERSION
     });
-    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== VERSION) {
+    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== QUESTION_VERSION) {
       throw new Error("backend_registry_not_ready");
     }
     state = {
@@ -369,7 +370,7 @@ async function handleLogin(useGuest) {
       attempt_session_token: startData.attempt_session_token,
       attempt_session_id: startData.attempt_session_id,
       previous_attempt_id: startData.previous_attempt_id || "",
-      question_version: startData.question_version,
+      question_version: QUESTION_VERSION,
       verification_mode: startData.verification_mode,
       screen: "brief",
       completedScreens: ["login", "brief"]
@@ -398,6 +399,23 @@ function setScreen(nextScreen) {
   }
   saveState();
   renderApp();
+}
+
+function resetViewportScroll() {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  const apply = () => {
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    } catch (error) {
+      try { window.scrollTo(0, 0); } catch (innerError) {}
+    }
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+    const mainStage = document.querySelector(".main-stage");
+    if (mainStage) mainStage.scrollTop = 0;
+  };
+  apply();
+  if (typeof window.requestAnimationFrame === "function") window.requestAnimationFrame(apply);
 }
 
 function canUseNav(target) {
@@ -509,11 +527,23 @@ function nextAfterSection(section) {
 function scoreAttempt() {
   const logs = requiredQuestionIds.map((id) => {
     const correct = isCorrect(id);
+    const hintUsed = Boolean(state.hints[id]);
+    const expAwarded = correct
+      ? Math.round((hintUsed ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / requiredQuestionIds.length)
+      : 0;
     return {
       question_id: id,
       answer: answerValue(id),
+      question_type: questionMap[id].type,
       is_correct: correct,
-      hint_used: Boolean(state.hints[id]),
+      hint_used: hintUsed,
+      corrected_after_hint: correct && hintUsed,
+      exp_type: correct ? (hintUsed ? "revision" : "concept") : "none",
+      exp_awarded: expAwarded,
+      concept_id: questionMap[id].concept,
+      checkpoint_id: checkpointIdForQuestion(id),
+      teacher_group_id: analysisGroupForQuestion(id),
+      verification_status: state.student?.is_guest ? "local_guest" : "client_candidate",
       skill_tag: questionMap[id].concept,
       misconception_tag: correct ? "" : questionMap[id].misconception
     };
@@ -639,10 +669,19 @@ function buildBackendPayload(result = scoreAttempt()) {
       question_id: log.question_id,
       unit_id: mission.unit_id,
       student_id: state.student.student_id,
-      question_type: questionMap[log.question_id]?.type || "",
+      question_type: log.question_type || questionMap[log.question_id]?.type || "",
       attempt_answer: log.answer,
       answer_json: JSON.stringify(log.answer),
       used_hint: log.hint_used,
+      hint_used: log.hint_used,
+      is_correct: log.is_correct,
+      corrected_after_hint: log.corrected_after_hint,
+      exp_type: log.exp_type,
+      exp_awarded: log.exp_awarded,
+      concept_id: log.concept_id,
+      checkpoint_id: log.checkpoint_id,
+      teacher_group_id: log.teacher_group_id,
+      verification_status: log.verification_status,
       analysis_group: analysisGroupForQuestion(log.question_id),
       skill_tag: log.skill_tag,
       misconception_tag: log.misconception_tag
@@ -662,6 +701,10 @@ function analysisGroupForQuestion(questionId) {
   if (["respiration_homeostasis_q11", "respiration_homeostasis_q12", "respiration_homeostasis_q13"].includes(questionId)) return "gas_balance_diversity";
   if (questionId === "respiration_homeostasis_q14") return "unit_boundary_control";
   return "respiration_terms_boundary";
+}
+
+function checkpointIdForQuestion(questionId) {
+  return questionMap[questionId]?.section || "";
 }
 
 async function submitAttemptToBackend(payload) {
@@ -832,12 +875,26 @@ function conceptLabel(concept) { return {breathing_vs_cellular_respiration:"呼�
 function renderQuestionEvidence(qid) {
   if (["respiration_homeostasis_q01", "respiration_homeostasis_q02"].includes(qid)) return `<div class="evidence-card"><strong>呼吸名詞卡</strong><p>先分辨空氣進出肺的呼吸運動，以及細胞利用氧氣與養分釋放能量。</p></div>`;
   if (["respiration_homeostasis_q03", "respiration_homeostasis_q04"].includes(qid)) return `<div class="evidence-card"><strong>呼吸道路徑卡</strong><p>從外界入口、主要管道、分支到肺內交換位置，判斷構造順序與功能。</p></div>`;
-  if (["respiration_homeostasis_q05", "respiration_homeostasis_q06"].includes(qid)) return `<div class="evidence-card"><strong>肺泡交換卡</strong><p>觀察肺泡薄壁、多數量與微血管，判斷氧氣和二氧化碳的移動方向。</p></div>`;
+  if (["respiration_homeostasis_q05", "respiration_homeostasis_q06"].includes(qid)) return `<div class="evidence-card"><strong>肺泡資料閱讀</strong><p>先看交換位置附近的距離、接觸面與血液流動線索，再依題目資訊判斷。</p></div>`;
   if (["respiration_homeostasis_q07", "respiration_homeostasis_q08", "respiration_homeostasis_q09"].includes(qid)) return `<div class="evidence-card"><strong>吸氣呼氣線索卡</strong><p>用橫膈位置、胸腔大小與空氣方向一起判斷吸氣或呼氣。</p></div>`;
-  if (qid === "respiration_homeostasis_q10") return `<div class="evidence-card"><strong>氣體資料卡</strong><p>吸入空氣：氧氣較多、二氧化碳較少；呼出空氣：氧氣較少、二氧化碳較多。</p></div>`;
-  if (qid === "respiration_homeostasis_q11") return `<div class="evidence-card"><strong>活動需求卡</strong><p>活動量增加時，細胞對氧氣的需求與二氧化碳排出也會改變。</p></div>`;
-  if (["respiration_homeostasis_q12", "respiration_homeostasis_q13"].includes(qid)) return `<div class="evidence-card"><strong>多樣交換構造卡</strong><p>不同生物有不同氣體交換構造，例如肺泡、鰓、氣管系統或氣孔。</p></div>`;
-  if (qid === "respiration_homeostasis_q14") return `<div class="evidence-card"><strong>單元邊界卡</strong><p>本單元聚焦呼吸與氣體交換；行為感應與腎臟排泄水分留在相鄰單元。</p></div>`;
+  if (qid === "respiration_homeostasis_q10") return `<div class="evidence-card evidence-chart-card">
+    <strong>氣體資料閱讀圖</strong>
+    <p>先確認比較對象、氣體種類與刻度，再回到選項判斷資料支持哪個說法。</p>
+    <div class="gas-chart" role="img" aria-label="橫軸是吸入空氣與呼出空氣，縱軸是相對含量百分比。氧氣在吸入空氣約二十一、呼出空氣約十六；二氧化碳在吸入空氣約零點零四、呼出空氣約四。">
+      <span class="chart-y-label">相對含量（%）</span>
+      <div class="chart-bars">
+        <span class="chart-bar oxygen" style="--value:84"><b>21</b></span>
+        <span class="chart-bar carbon" style="--value:1"><b>0.04</b></span>
+        <span class="chart-bar oxygen" style="--value:64"><b>16</b></span>
+        <span class="chart-bar carbon" style="--value:16"><b>4</b></span>
+      </div>
+      <div class="chart-x-labels"><span>吸入空氣</span><span>呼出空氣</span></div>
+      <div class="chart-legend"><span><i class="oxygen"></i>氧氣</span><span><i class="carbon"></i>二氧化碳</span></div>
+    </div>
+  </div>`;
+  if (qid === "respiration_homeostasis_q11") return `<div class="evidence-card"><strong>活動資料閱讀</strong><p>先比較情境中的身體需求是否改變，再依題目資料判斷呼吸變化的合理解釋。</p></div>`;
+  if (["respiration_homeostasis_q12", "respiration_homeostasis_q13"].includes(qid)) return `<div class="evidence-card"><strong>多樣構造判讀</strong><p>先看生物生活環境、氣體接觸位置與題目提供的構造描述，再做配對或判斷。</p></div>`;
+  if (qid === "respiration_homeostasis_q14") return `<div class="evidence-card"><strong>單元邊界提醒</strong><p>先找題目是否聚焦空氣進出、身體內的氣體交換，或相鄰主題中的其他調節現象。</p></div>`;
   return "";
 }
 
@@ -913,7 +970,7 @@ function renderReview() {
   const feedback = conceptFeedback();
   const stateName = result.accuracy >= 1 && result.hint_used_count === 0 ? "excellent" : result.accuracy >= .86 ? "strong" : result.accuracy >= .64 ? "stable" : result.accuracy >= .4 ? "needs_review" : "retry_ready";
   return `
-    <div class="mission-layout review-layout" data-feedback-state="${stateName}">
+    <div class="stack review-layout" data-feedback-state="${stateName}">
       <section class="panel">
         <p class="eyebrow">概念回饋</p>
         <h2>先整理你目前的氣體平衡判讀線索</h2>
@@ -930,11 +987,6 @@ function renderReview() {
         </div>
         <button class="primary" data-next="reflection">前往任務回報</button>
       </section>
-      <aside class="panel mentor-card" data-feedback-state="${stateName}">
-        <img src="../shared-assets/mentor-feedback/mentor-feedback-${stateName}.webp" alt="阿澤老師回饋" onerror="this.src='${assets.mentorFallback}'">
-        <h3>${feedbackTitle(stateName)}</h3>
-        <p>請把不確定的概念轉成課堂上想確認的方向。</p>
-      </aside>
     </div>
   `;
 }
@@ -1056,21 +1108,8 @@ function creditStatusText(result) {
 
 function renderAchievements() {
   const result = state.result || scoreAttempt();
-  const titleInfo = titleAndProgress(state.student, result.unit_credited_exp);
-  const credit = creditStatusText(result);
   return `
     <div class="stack achievements-stack">
-      <section class="panel title-card">
-        <p class="eyebrow">全冊稱號</p>
-        <div class="title-card-content">
-          <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
-          <div>
-            <h2>${escapeHtml(titleInfo.current.title)}</h2>
-            <p>${credit.status === "verified" ? `${titleInfo.totalExp} EXP｜稱號進度 ${titleInfo.progressPercent}%` : credit.resultLine}</p>
-            <p>${credit.status === "verified" ? (titleInfo.next ? `距離 ${titleInfo.next.title} 還差 ${titleInfo.remaining} EXP` : "已達最高稱號，後續 EXP 仍會累積。") : credit.note}</p>
-          </div>
-        </div>
-      </section>
       ${renderBadgeWall(result.earned_badges)}
     </div>
   `;
@@ -1078,7 +1117,7 @@ function renderAchievements() {
 
 function renderBadgeWall(earned = []) {
   const earnedSet = new Set(earned);
-  return `<section class="panel">
+  return `<section class="panel" data-bq-unit-achievements="${mission.unit_id}">
     <p class="eyebrow">徽章收藏牆</p>
     <h2>本單元 17 枚徽章</h2>
     <div class="badge-wall">
@@ -1116,6 +1155,7 @@ function renderRules() {
 
 function renderApp() {
   if (!screen) return;
+  const previousScreen = screen.dataset.bioquestScreen || "";
   const views = {
     login: renderLogin,
     brief: renderBrief,
@@ -1134,6 +1174,7 @@ function renderApp() {
   updateNav();
   bindScreenEvents();
   if (typeof window !== "undefined" && window.BioQuestCharacterLayout?.enhance) window.BioQuestCharacterLayout.enhance({ force: true });
+  if (previousScreen && previousScreen !== state.screen) resetViewportScroll();
 }
 
 function updateNav() {
@@ -1206,6 +1247,7 @@ if (typeof document !== "undefined") {
 if (typeof window !== "undefined") {
   window.__respiration_homeostasisTest = {
     VERSION,
+    QUESTION_VERSION,
     mission,
     assets,
     badges,
@@ -1225,6 +1267,7 @@ if (typeof window !== "undefined") {
     renderReview,
     renderReflection,
     renderResult,
-    renderAchievements
+    renderAchievements,
+    resetViewportScroll
   };
 }
