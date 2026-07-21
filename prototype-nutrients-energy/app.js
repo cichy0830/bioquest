@@ -3,7 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260717-nutrients-energy-u11-fixes-v2";
+const VERSION = "20260721-nutrients-energy-q11-inactive-cache-v1";
+const QUESTION_VERSION = "20260721-nutrients-energy-q11-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -60,14 +61,6 @@ const badges = [
   { id: "retry_growth_nutrients_energy", name: "再探養分能量進步徽章", condition: "再挑戰完整完成且正確率進步。" }
 ].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id) }));
 
-const sequenceSteps = [
-  { id: "observe", label: "觀察餐點有哪些食物" },
-  { id: "infer", label: "推測主要養分來源" },
-  { id: "check", label: "檢查是否過度單一" },
-  { id: "adjust", label: "提出補足不同養分來源的方向" }
-];
-const correctSequence = ["observe", "infer", "check", "adjust"];
-
 const questions = [
   { id: "q04", section: "checkpoint1", concept: "vitamins_minerals_regulation", answer: "regulation_not_energy", prompt: "有同學說：『維生素很重要，所以一定能提供大量能量。』哪個修正較合理？", hint: "重要不等於提供大量能量；先看它主要協助哪一類身體功能。", misconception: "vitamins_as_energy", visual: "function", options: [{ id: "regulation_not_energy", text: "維生素很重要，但主要協助身體功能，不提供主要能量" }, { id: "vitamin_lipid", text: "維生素就是脂質" }, { id: "more_heat", text: "維生素越多越能提供熱量" }, { id: "meat_only", text: "維生素只存在肉類" }] },
   { id: "q06", section: "checkpoint2", concept: "food_nutrient_mix", answer: "mixed_nutrients", prompt: "牛奶可能同時含有水、蛋白質、脂質、醣類與礦物質。這最能提醒我們什麼？", hint: "先想真實食物通常是混合物，分類題多半是在問主要來源或特定判斷目的。", misconception: "one_food_one_nutrient", visual: "food", options: [{ id: "mixed_nutrients", text: "食物常含多種養分，不一定只能歸成單一成分" }, { id: "one_nutrient", text: "牛奶只含一種養分" }, { id: "water_only", text: "有水的食物就不含其他養分" }, { id: "mineral_energy", text: "礦物質會提供大量能量" }] },
@@ -121,8 +114,11 @@ const classifyQuestions = {
 const sectionMap = {
   checkpoint1: ["q01", "q02", "q03", "q04"],
   checkpoint2: ["q05", "q06", "q07", "q08"],
-  checkpoint3: ["q09", "q10", "q11", "q12", "q13", "q14"]
+  checkpoint3: ["q09", "q10", "q12", "q13", "q14"]
 };
+const activeDirectQuestionIds = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
+const inactiveLegacyQuestionIds = ["q11"];
+const inactiveLegacyAnswerKeys = ["q11", "q11_sequence"];
 
 const defaultState = {
   screen: "login",
@@ -131,7 +127,7 @@ const defaultState = {
   attempt_id: "",
   attempt_session_id: "",
   attempt_session_token: "",
-  question_version: "",
+  question_version: QUESTION_VERSION,
   session_expires_at: "",
   session_error: "",
   remote_completed_attempts: 0,
@@ -142,7 +138,7 @@ const defaultState = {
   completed_unit_count: 0,
   started_at: null,
   completedScreens: ["login", "rules"],
-  answers: { q01: [], q02: {}, q03: [], q05: {}, q11_sequence: [], reflection: {} },
+  answers: { q01: [], q02: {}, q03: [], q05: {}, reflection: {} },
   hints: {},
   checkedWrong: {},
   interactions: {},
@@ -154,14 +150,25 @@ const defaultState = {
 };
 
 let state = loadState();
-let draggedSequenceId = null;
 
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
 function questionById(id) { return questions.find((question) => question.id === id); }
+function sanitizeInactiveLegacy(nextState) {
+  inactiveLegacyAnswerKeys.forEach((key) => {
+    delete nextState.answers?.[key];
+    delete nextState.hints?.[key];
+    delete nextState.checkedWrong?.[key];
+    delete nextState.interactions?.[key];
+    delete nextState.optionOrders?.[key];
+    delete nextState.optionOrders?.[`${key}_multi`];
+  });
+  return nextState;
+}
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey));
-    return saved ? { ...clone(defaultState), ...saved, answers: { ...clone(defaultState.answers), ...(saved.answers || {}) } } : clone(defaultState);
+    const loaded = saved ? { ...clone(defaultState), ...saved, question_version: QUESTION_VERSION, answers: { ...clone(defaultState.answers), ...(saved.answers || {}) } } : clone(defaultState);
+    return sanitizeInactiveLegacy(loaded);
   } catch {
     return clone(defaultState);
   }
@@ -283,14 +290,6 @@ function orderedOptions(question) {
     .map((id) => question.options.find((option) => option.id === id))
     .filter(Boolean);
 }
-function ensureSequence() {
-  if (!state.answers.q11_sequence?.length) {
-    state.answers.q11_sequence = optionOrder("q11_sequence", sequenceSteps.map((step) => step.id));
-    saveState();
-  }
-  return state.answers.q11_sequence;
-}
-
 function unlock(...screens) {
   screens.forEach((item) => {
     if (!state.completedScreens.includes(item)) state.completedScreens.push(item);
@@ -383,7 +382,7 @@ async function postBackendAction(action, payload) {
   return data;
 }
 function startAttemptSession(studentId) {
-  return postBackendAction("startAttempt", { student_id: studentId, unit_id: mission.unit_id });
+  return postBackendAction("startAttempt", { student_id: studentId, unit_id: mission.unit_id, question_version: QUESTION_VERSION });
 }
 function normalizeBackendStudent(data, id) {
   if (!data?.ok) return null;
@@ -418,10 +417,9 @@ async function login(id) {
     state.attempt_id = `guest_${mission.unit_id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     state.attempt_session_id = state.attempt_id;
     state.attempt_session_token = "guest_local_session";
-    state.question_version = VERSION;
+    state.question_version = QUESTION_VERSION;
     state.backend_status = "local_guest";
     unlock("brief", "rules", "achievements");
-    ensureSequence();
     saveState();
     setScreen("brief");
     return;
@@ -442,8 +440,13 @@ async function login(id) {
     remoteAttemptStatus = data.attempt_status || {};
     completed = Number(remoteAttemptStatus.completed_attempt_count ?? data.completed_attempts ?? 0);
     serverSession = await startAttemptSession(student.student_id);
+    if (serverSession.verification_mode !== "server_verified" || !serverSession.attempt_session_token || serverSession.question_version !== QUESTION_VERSION) {
+      throw new Error("backend_registry_not_ready");
+    }
   } catch (error) {
-    message.innerHTML = `<span class="pill warn">無法取得安全任務憑證（${error.message}）。請確認後台已重新部署並連線後再登入。</span>`;
+    message.innerHTML = error.message === "backend_registry_not_ready"
+      ? `<span class="pill warn">後台版本尚未更新，請通知老師後再重新登入。</span>`
+      : `<span class="pill warn">無法取得安全任務憑證（${error.message}）。請確認後台已重新部署並連線後再登入。</span>`;
     return;
   }
   state = clone(defaultState);
@@ -454,14 +457,13 @@ async function login(id) {
   state.attempt_id = serverSession.attempt_id;
   state.attempt_session_id = serverSession.attempt_session_id;
   state.attempt_session_token = serverSession.attempt_session_token;
-  state.question_version = serverSession.question_version;
+  state.question_version = QUESTION_VERSION;
   state.session_expires_at = serverSession.expires_at;
   state.remote_previous_attempt_id = serverSession.previous_attempt_id || remoteAttemptStatus.previous_attempt_id || remoteAttemptStatus.latest_attempt_id || remoteProgress.latest_attempt_id || "";
   const remoteAccuracy = remoteAttemptStatus.previous_accuracy ?? remoteAttemptStatus.best_accuracy;
   state.remote_previous_accuracy = remoteAccuracy === null || remoteAccuracy === undefined || remoteAccuracy === "" ? null : Number.isFinite(Number(remoteAccuracy)) ? Number(remoteAccuracy) : null;
   applyBackendProgress(remoteProgress);
   unlock("brief", "rules", "achievements");
-  ensureSequence();
   saveState();
   setScreen("brief");
 }
@@ -504,10 +506,6 @@ function renderMultiSelect(qid) {
   const order = optionOrder(`${qid}_multi`, config.options.map((option) => option.id)).map((id) => config.options.find((option) => option.id === id));
   return `<div class="question-card multi-select-card" data-question-id="${qid}"><div class="question-mode-banner"><strong>可複選</strong><span>請選出所有符合的選項</span></div><h3>${config.prompt}</h3>${assetFigure(config.image, "養分辨識圖卡", "圖像只提供養分或食物線索；答案以選項文字為準。")}<div class="choice-grid">${order.map((option) => `<button class="choice-button ${selected.includes(option.id) ? "selected" : ""}" data-multi="${qid}" data-value="${option.id}" aria-pressed="${selected.includes(option.id)}">${option.text}</button>`).join("")}</div><p class="selected-answer">${selected.length ? `已選：${selected.map((id) => config.options.find((option) => option.id === id)?.text).filter(Boolean).join("、")}` : "尚未選擇"}</p>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
 }
-function renderSequenceQuestion() {
-  const order = ensureSequence();
-  return `<div class="question-card"><h3>判斷餐點是否較均衡時，請拖曳排出思考流程。</h3><p class="field-help">排序題：可拖曳卡片；手機可使用上移 / 下移按鈕。</p>${assetFigure(assets.balancedMealComparison, "多樣與單一餐點比較圖", "先觀察食物，再連到養分來源與多樣性。")}<div class="sortable-list">${order.map((id, index) => { const step = sequenceSteps.find((item) => item.id === id); return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><strong>${step.label}</strong><div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`; }).join("")}</div>${state.hints.q11 ? `<div class="feedback warn">先看餐點裡有哪些食物，再連到主要養分；檢查是否單一後，才提出補足方向。</div>` : ""}${state.checkedWrong.q11 ? `<div class="feedback bad">流程仍可調整。請確認判斷依據出現在調整建議之前。</div>` : ""}</div>`;
-}
 function renderClassifyQuestion(qid) {
   const config = classifyQuestions[qid];
   const items = optionOrder(`${qid}_items`, config.items.map((item) => item.id)).map((id) => config.items.find((item) => item.id === id));
@@ -522,10 +520,9 @@ function renderScan() {
 }
 function renderCheckpoint1() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>養分種類與主要功能</h2><div class="question-grid">${renderMultiSelect("q01")}${renderClassifyQuestion("q02")}${renderMultiSelect("q03")}${renderChoiceQuestion("q04")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`; }
 function renderCheckpoint2() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>食物來源與養分角色</h2><div class="question-grid">${renderClassifyQuestion("q05")}${["q06","q07","q08"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`; }
-function renderCheckpoint3() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>能量資料與均衡判斷</h2><div class="question-grid">${renderChoiceQuestion("q09")}${renderChoiceQuestion("q10")}${renderSequenceQuestion()}${["q12","q13","q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`; }
+function renderCheckpoint3() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>能量資料與均衡判斷</h2><div class="question-grid">${renderChoiceQuestion("q09")}${renderChoiceQuestion("q10")}${["q12","q13","q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`; }
 
 function isCorrect(qid) {
-  if (qid === "q11") return ensureSequence().join("|") === correctSequence.join("|");
   if (multiSelectQuestions[qid]) {
     const selected = [...(state.answers[qid] || [])].sort();
     const expected = [...multiSelectQuestions[qid].answers].sort();
@@ -535,7 +532,6 @@ function isCorrect(qid) {
   return state.answers[qid] === questionById(qid).answer;
 }
 function isAnswered(qid) {
-  if (qid === "q11") return Boolean(state.interactions.q11) && ensureSequence().length === correctSequence.length;
   if (multiSelectQuestions[qid]) return Boolean(state.interactions[qid]) && (state.answers[qid] || []).length > 0;
   if (classifyQuestions[qid]) return classifyQuestions[qid].items.every((item) => Boolean(state.answers[qid]?.[item.id]));
   return Boolean(state.answers[qid]);
@@ -597,19 +593,6 @@ async function checkSection(section) {
   saveState();
   setScreen(next);
 }
-function moveSequence(id, dir) {
-  const order = ensureSequence(); const index = order.indexOf(id); const next = index + dir;
-  if (index < 0 || next < 0 || next >= order.length) return;
-  [order[index], order[next]] = [order[next], order[index]];
-  state.answers.q11_sequence = order; state.interactions.q11 = true; saveState(); render();
-}
-function dropSequence(targetId) {
-  if (!draggedSequenceId || draggedSequenceId === targetId) return;
-  const order = ensureSequence().filter((id) => id !== draggedSequenceId);
-  order.splice(order.indexOf(targetId), 0, draggedSequenceId);
-  state.answers.q11_sequence = order; state.interactions.q11 = true; draggedSequenceId = null; saveState(); render();
-}
-
 function attachQuestionEvents() {
   document.querySelectorAll("[data-choice]").forEach((button) => button.addEventListener("click", async () => {
     const question = questionById(button.dataset.choice);
@@ -630,8 +613,6 @@ function attachQuestionEvents() {
     if (select.value && item && select.value !== item.answer && !await markHint(qid)) return;
     saveState(); render();
   }));
-  document.querySelectorAll("[data-move]").forEach((button) => button.addEventListener("click", () => moveSequence(button.dataset.move, Number(button.dataset.dir))));
-  document.querySelectorAll(".sortable-item").forEach((item) => { item.addEventListener("dragstart", () => { draggedSequenceId = item.dataset.sequenceId; }); item.addEventListener("dragover", (event) => event.preventDefault()); item.addEventListener("drop", (event) => { event.preventDefault(); dropSequence(item.dataset.sequenceId); }); });
   const checkButton = document.querySelector("#checkSection");
   if (checkButton) checkButton.addEventListener("click", async () => checkSection(checkButton.dataset.section));
 }
@@ -644,18 +625,16 @@ function questionConcept(qid) {
   if (qid === "q02") return "carbohydrate_energy";
   if (qid === "q03") return "energy_sources";
   if (qid === "q05") return "food_nutrient_mix";
-  if (qid === "q11") return "balanced_diet";
   return questionById(qid)?.concept || "unknown";
 }
 function questionMisconception(qid) {
   if (multiSelectQuestions[qid]) return multiSelectQuestions[qid].misconception;
   if (classifyQuestions[qid]) return classifyQuestions[qid].misconception;
-  if (qid === "q11") return "single_food_balance";
   return questionById(qid)?.misconception || "unknown";
 }
 
 function calculateResult() {
-  const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
+  const qids = activeDirectQuestionIds;
   const total = qids.length; const correctIds = qids.filter(isCorrect); const correct = correctIds.length;
   const hintUsed = Object.values(state.hints).filter(Boolean).length;
   const correctWithoutHint = correctIds.filter((qid) => !state.hints[qid]).length;
@@ -677,7 +656,7 @@ function calculateResult() {
   if (["q01","q02","q04"].every(isCorrect)) earned.push("nutrient_function_matcher");
   if (["q05","q06"].every(isCorrect)) earned.push("food_source_classifier");
   if (["q03","q09"].every(isCorrect)) earned.push("energy_source_judge");
-  if (["q10","q11","q13"].every(isCorrect)) earned.push("balanced_diet_decider");
+  if (["q10","q13"].every(isCorrect)) earned.push("balanced_diet_decider");
   if (isCorrect("q09")) earned.push("nutrition_label_reader");
   if (["q02","q03","q04","q07","q08","q12"].every(isCorrect)) earned.push("nutrient_role_balancer");
   if (qids.some((qid) => isCorrect(qid) && state.hints[qid])) earned.push("nutrients_misconception_reviser");
@@ -711,10 +690,19 @@ function renderReflection() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2><div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；只複製方向、寫飲食偏好或無關玩笑不會取得高 EXP。具體且與養分、功能、能量或均衡飲食相關的疑問，才可能取得回報 EXP，正式分數由後台重算。</p></div><div class="form-grid"><label>我最能掌握的一項養分或能量概念是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label><label>我還不確定養分種類、功能、能量來源或均衡飲食中的哪一部分？<textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea></label><label>選一個希望老師再解釋的方向，並用自己的話補充<textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label><label>信心分數<span class="field-help">5 分代表我能自己說明本單元重點概念。</span><select id="confidenceScore">${[1,2,3,4,5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label></div><div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div></div>`;
 }
 
+function activeRawAnswers() {
+  const raw = {};
+  activeDirectQuestionIds.forEach((qid) => {
+    raw[qid] = state.answers[qid];
+  });
+  raw.reflection = state.answers.reflection || {};
+  return raw;
+}
+
 function buildBackendPayload(attempt) {
-  const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
-  const answerFor = (qid) => qid === "q11" ? state.answers.q11_sequence : state.answers[qid];
-  const correctFor = (qid) => qid === "q11" ? correctSequence : multiSelectQuestions[qid] ? multiSelectQuestions[qid].answers : classifyQuestions[qid] ? Object.fromEntries(classifyQuestions[qid].items.map((item) => [item.id, item.answer])) : questionById(qid).answer;
+  const qids = activeDirectQuestionIds;
+  const answerFor = (qid) => state.answers[qid];
+  const correctFor = (qid) => multiSelectQuestions[qid] ? multiSelectQuestions[qid].answers : classifyQuestions[qid] ? Object.fromEntries(classifyQuestions[qid].items.map((item) => [item.id, item.answer])) : questionById(qid).answer;
   return {
     attempt_id: attempt.attempt_id, student_id: attempt.student.student_id, student_name: attempt.student.student_name, class_name: attempt.student.class_name, seat_no: attempt.student.seat_no, unit_id: mission.unit_id, unit_title: mission.unit_title,
     attempt_type: attempt.attempt_type, attempt_type_candidate: attempt.attempt_type_candidate, attempt_no_candidate: attempt.attempt_no, attempt_session_id: attempt.attempt_session_id, attempt_session_token: attempt.attempt_session_token, question_version: attempt.question_version, started_from_login: attempt.started_from_login, previous_attempt_id: attempt.previous_attempt_id, retry_validation_status: attempt.retry_validation_status,
@@ -726,7 +714,7 @@ function buildBackendPayload(attempt) {
     misconceptions_json: JSON.stringify(attempt.misconceptions), raw_answers_json: JSON.stringify(attempt.raw_answers), badge_eval_json: JSON.stringify(badges.map((badge) => ({ badge_id: badge.id, earned_candidate: attempt.badges.includes(badge.id), badge_image_path: badge.badge_image_path }))),
     question_logs: qids.map((qid) => {
       const answer = answerFor(qid);
-      const questionType = qid === "q11" ? "sequence" : multiSelectQuestions[qid] ? "multi_select" : classifyQuestions[qid] ? "mapping" : "choice";
+      const questionType = multiSelectQuestions[qid] ? "multi_select" : classifyQuestions[qid] ? "mapping" : "choice";
       const checkpointId = sectionMap.checkpoint1.includes(qid) ? "checkpoint1" : sectionMap.checkpoint2.includes(qid) ? "checkpoint2" : "checkpoint3";
       return {
         student_id: attempt.student.student_id,
@@ -768,7 +756,7 @@ function renderAchievements() {
   const syncNote = guest
     ? `guest 測試：本次預估 ${estimatedExp}/${UNIT_EXP_CAP} EXP，不列入正式累積；徽章亮燈僅供老師測試畫面。`
     : pending ? `本次預估 ${estimatedExp}/${UNIT_EXP_CAP} EXP，待後台確認；徽章亮燈先顯示本次作答預覽。` : "";
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>本單元成就：生命補給徽章牆</h2>${guest || pending ? `<div class="feedback warn">${syncNote}</div>` : ""}<div class="score-grid"><div class="score-box"><span>${badgeLabel}</span><strong>${badgeCount}</strong></div><div class="score-box"><span>${expLabel}</span><strong>${expValue}</strong></div><div class="score-box"><span>${unitLabel}</span><strong>${unitValue}</strong></div></div><div class="badge-grid">${badges.map((badge) => { const lit = litIds.includes(badge.id); const gold = badge.id === "nutrients_energy_flawless"; const pendingBadge = pending && lit && !state.cumulative_badges.includes(badge.id); return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><strong>${badge.name}</strong>${pendingBadge ? `<span class="pill warn">待同步</span>` : ""}<p class="muted">${badge.condition}</p></div>`; }).join("")}</div><p class="muted">${status === "verified" ? "正式亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。" : "目前只顯示本次作答預覽；正式徽章需等待後台確認。"}</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel" data-bq-unit-achievements="nutrients_energy"><p class="eyebrow">本單元成就</p><h2>本單元成就：生命補給徽章牆</h2>${guest || pending ? `<div class="feedback warn">${syncNote}</div>` : ""}<div class="score-grid"><div class="score-box"><span>${badgeLabel}</span><strong>${badgeCount}</strong></div><div class="score-box"><span>${expLabel}</span><strong>${expValue}</strong></div><div class="score-box"><span>${unitLabel}</span><strong>${unitValue}</strong></div></div><div class="badge-grid">${badges.map((badge) => { const lit = litIds.includes(badge.id); const gold = badge.id === "nutrients_energy_flawless"; const pendingBadge = pending && lit && !state.cumulative_badges.includes(badge.id); return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><strong>${badge.name}</strong>${pendingBadge ? `<span class="pill warn">待同步</span>` : ""}<p class="muted">${badge.condition}</p></div>`; }).join("")}</div><p class="muted">${status === "verified" ? "正式亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。" : "目前只顯示本次作答預覽；正式徽章需等待後台確認。"}</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
 }
 
 function renderRules() {
@@ -815,15 +803,15 @@ function buildAttempt() {
     started_at: state.started_at,
     submitted_at: state.submitted_at || now,
     completion_status: "complete",
-    required_answer_count: [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].length,
-    answered_required_count: [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].filter(isAnswered).length,
+    required_answer_count: activeDirectQuestionIds.length,
+    answered_required_count: activeDirectQuestionIds.filter(isAnswered).length,
     backend_status: state.backend_status,
     ...state.result,
     confidence_score: state.answers.reflection.confidence_score,
     confident_concept: state.answers.reflection.confident_concept,
     uncertain_concept: state.answers.reflection.uncertain_concept,
     student_question: state.answers.reflection.student_question,
-    raw_answers: state.answers,
+    raw_answers: activeRawAnswers(),
     payload_version: VERSION
   };
 }

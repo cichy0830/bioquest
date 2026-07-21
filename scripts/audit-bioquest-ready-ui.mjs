@@ -61,7 +61,7 @@ appVersionOverrides.set("cell_structure", "20260721-cell-structure-scrolltop-v1"
 appVersionOverrides.set("enzymes", "20260720-enzymes-user-review-v2");
 appVersionOverrides.set("nutrient_test", "20260721-nutrient-test-brief-ratio-v1");
 appVersionOverrides.set("scale", "20260717-scale-user-review-v2");
-appVersionOverrides.set("nutrients_energy", "20260717-badge-icon-cleanup-v1");
+appVersionOverrides.set("nutrients_energy", "20260721-nutrients-energy-q11-inactive-cache-v1");
 appVersionOverrides.set("photosynthesis", "20260721-photosynthesis-q09-inactive-cache-v1");
 appVersionOverrides.set("biological_organization", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("cell_transport", "20260721-cell-transport-q07-inactive-cache-v1");
@@ -86,9 +86,10 @@ const sharedCacheOverrides = new Map();
   sharedCacheOverrides.set(unitId, "20260715-brief-scene-unified-u1u7-v1");
 });
 sharedCacheOverrides.set("cell_observation", "20260716-cell-observation-guest-local-v1");
-["scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
+["scale", "nutrient_test"].forEach((unitId) => {
   sharedCacheOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
+sharedCacheOverrides.set("nutrients_energy", "20260721-title-avatar-webp-v1");
 sharedCacheOverrides.set("enzymes", "20260718-enzymes-badges-v1");
 sharedCacheOverrides.set("nutrient_test", "20260721-nutrient-test-brief-ratio-v1");
 sharedCacheOverrides.set("cell_transport", "20260721-cell-transport-q07-inactive-cache-v1");

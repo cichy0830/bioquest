@@ -275,20 +275,6 @@ textarea { min-height: 96px; resize: vertical; }
 .evidence-table thead th { background: #e7f5f2; }
 .evidence-table tbody th { color: var(--teal-dark); background: #f6fbf9; }
 
-.sortable-list { display:grid; gap:10px; }
-.sortable-item {
-  display:grid;
-  grid-template-columns: 34px minmax(0,1fr) auto;
-  gap:10px;
-  align-items:center;
-  padding:12px;
-  border:1px solid var(--line);
-  border-radius:8px;
-  background:#fff;
-}
-.drag-handle { width:22px; height:22px; border-radius:6px; background: repeating-linear-gradient(0deg, rgba(16,152,166,.7), rgba(16,152,166,.7) 2px, transparent 2px, transparent 6px); }
-.sequence-move-buttons { display:flex; gap:6px; }
-
 .microscope-layout { display: grid; grid-template-columns: minmax(250px, .9fr) minmax(0,1fr); gap: 16px; align-items: start; }
 .scope-card { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.74); }
 .scope-view {
@@ -414,7 +400,6 @@ textarea { min-height: 96px; resize: vertical; }
 .question-data-card dt { color: var(--muted); font-size: 13px; font-weight: 800; }
 .question-data-card dd { margin: 5px 0 0; color: var(--teal-dark); font-size: 22px; font-weight: 900; }
 .question-data-card figcaption { margin-top: 10px; color: var(--muted); font-size: 13px; font-weight: 800; }
-.sortable-item small { display: block; margin-top: 4px; color: var(--teal-dark); font-weight: 900; }
 .scale-visual > div { min-height: 150px; }
 .scale-visual figcaption { padding: 10px 12px; color: var(--muted); font-size: 13px; font-weight: 800; }
 .unit-ruler { display: grid; grid-template-columns: repeat(4, 1fr); align-items: end; gap: 8px; padding: 26px; background: repeating-linear-gradient(90deg, transparent 0 23px, rgba(19,93,100,.18) 23px 25px); }
@@ -451,9 +436,6 @@ textarea { min-height: 96px; resize: vertical; }
   .mentor-card, .classify-row { grid-template-columns: 1fr; }
   .mentor-avatar { min-height: 230px; height: min(62vw, 320px); place-items: center; }
   .owl-frame { min-height: 260px; }
-  .sortable-item { grid-template-columns: 34px minmax(0,1fr); }
-  .sequence-move-buttons { grid-column:1 / -1; }
-  .sequence-move-buttons button { flex:1; }
   .badge-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .asset-strip { grid-template-columns: 1fr; }
   .actions { display:grid; grid-template-columns:1fr; }
