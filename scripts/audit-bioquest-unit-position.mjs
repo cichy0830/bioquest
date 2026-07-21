@@ -23,7 +23,7 @@ const sharedVersionOverrides = new Map([
   ["nutrients_energy", "20260715-title-avatar-card-v1"],
   ["nutrient_test", "20260720-nutrient-test-starch-glucose-only-v2"],
   ["enzymes", "20260718-enzymes-badges-v1"],
-  ["photosynthesis", "20260720-photosynthesis-badge-cache-v2"],
+  ["photosynthesis", "20260721-photosynthesis-q09-inactive-cache-v1"],
   ["human_nutrition", "20260719-human-nutrition-qa-v1"],
   ["plant_transport_structures", "20260720-plant-transport-structures-extension-v2"],
   ["plant_material_transport", "20260720-plant-material-transport-badges-v1"],

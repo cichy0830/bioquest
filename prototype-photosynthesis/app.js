@@ -3,8 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260720-photosynthesis-badge-cache-v2";
-const QUESTION_VERSION = "20260720-photosynthesis-user-review-v2";
+const VERSION = "20260721-photosynthesis-q09-inactive-cache-v1";
+const QUESTION_VERSION = "20260721-photosynthesis-q09-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -56,7 +56,7 @@ const assets = {
   owlPrep: "assets/owl-photosynthesis-prep-reminder.webp",
   owlReport: "assets/owl-photosynthesis-report-reminder.webp",
   owlResult: "assets/owl-photosynthesis-result.webp",
-  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.png",
+  titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "assets/bg-photosynthesis-briefing-azhe-wide.webp",
   briefingSceneMobileHook: "",
   ambientBackgroundHook: "assets/bg-photosynthesis-entry-wide.webp",
@@ -89,15 +89,6 @@ const badges = [
   { id: "retry_growth_photosynthesis", name: "再探光合作用進步徽章", condition: "再挑戰完整完成且正確率進步。" }
 ].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id), image_status: "ready" }));
 
-const sequenceSteps = [
-  { id: "research_question", label: "確認研究問題" },
-  { id: "changed_condition", label: "找出被改變的條件" },
-  { id: "controlled_conditions", label: "確認其他條件是否盡量相同" },
-  { id: "compare_evidence", label: "比較澱粉或氧氣等結果證據" },
-  { id: "data_conclusion", label: "用資料形成結論" }
-];
-const correctSequence = ["research_question", "changed_condition", "controlled_conditions", "compare_evidence", "data_conclusion"];
-
 const questions = [
   { id: "q01", section: "checkpoint1", concept: "photosynthesis_overview", type: "choice", answer: "photosynthesis", prompt: "綠色植物在有光時，能利用二氧化碳和水製造葡萄糖等養分，並釋放氧氣。這描述的是哪一種作用？", hint: "留意題目中同時出現光、二氧化碳、水、養分與氧氣。", misconception: "soil_as_food_source", options: [{ id: "photosynthesis", text: "光合作用" }, { id: "diffusion", text: "擴散作用" }, { id: "nutrient_test", text: "養分檢測" }, { id: "water_only", text: "單純吸水" }] },
   { id: "q02", section: "checkpoint1", concept: "reactants_energy", type: "mapping", prompt: "請依完整光合作用反應，將相關項目分類。", hint: "水會參與反應，也會在反應過程中生成；簡化的淨反應式常把水列在原料端。", misconception: "light_as_reactant", items: [{ id: "carbon_dioxide", label: "二氧化碳" }, { id: "water", label: "水" }, { id: "light", label: "光" }, { id: "glucose", label: "葡萄糖" }, { id: "oxygen", label: "氧氣" }], choices: [{ id: "reactant", text: "原料" }, { id: "reactant_and_product", text: "原料，也是產物" }, { id: "energy", text: "能量來源" }, { id: "product", text: "產物" }], answer: { carbon_dioxide: "reactant", water: "reactant_and_product", light: "energy", glucose: "product", oxygen: "product" } },
@@ -107,7 +98,6 @@ const questions = [
   { id: "q06", section: "checkpoint2", concept: "products", type: "choice", answer: "oxygen", prompt: "水生植物在強光下產生較多氣泡。若其他條件相近，這些氣泡常被用來作為哪一種產物的線索？", hint: "想想光合作用除了製造葡萄糖等養分，還會釋放哪一種氣體。", misconception: "oxygen_as_reactant", options: [{ id: "oxygen", text: "氧氣" }, { id: "starch", text: "澱粉" }, { id: "minerals", text: "土壤礦物質" }, { id: "protein", text: "蛋白質" }] },
   { id: "q07", section: "checkpoint2", concept: "chloroplast_site", type: "choice", answer: "green_cells", prompt: "有同學說：「植物身上每一個細胞都一定能行光合作用。」哪個修正較合理？", hint: "回想葉綠體和綠色部位的線索，並想想根部或非綠色組織是否都一樣。", misconception: "all_cells_photosynthesize", options: [{ id: "green_cells", text: "光合作用主要在含葉綠體的綠色細胞中進行，不是每個植物細胞都一定能進行" }, { id: "all_roots", text: "所有根細胞都有大量葉綠體" }, { id: "animals_only", text: "只有動物細胞能行光合作用" }, { id: "cell_wall_site", text: "細胞壁就是光合作用場所" }] },
   { id: "q08", section: "checkpoint2", concept: "photosynthesis_overview", type: "choice", answer: "soil_water_minerals_food_made", prompt: "有同學說：「植物的養分主要都是從土壤直接吸收來的。」哪個修正較合理？", hint: "不要把「吸收水和礦物質」和「製造有機養分」混成同一件事。", misconception: "soil_as_food_source", options: [{ id: "soil_water_minerals_food_made", text: "植物會從土壤吸收水和礦物質，也能用光合作用製造葡萄糖等養分" }, { id: "no_water", text: "植物完全不需要水" }, { id: "soil_glucose", text: "土壤直接提供所有葡萄糖" }, { id: "oxygen_food", text: "植物只靠氧氣製造養分" }] },
-  { id: "q09", section: "checkpoint3", concept: "variable_evidence", type: "sequence", prompt: "判讀一組光合作用變因資料時，請拖曳排序卡，排出較合理的思考流程。", hint: "先看實驗想問什麼，再找改變的條件；確認公平比較後，才用結果證據形成結論。", misconception: "no_control_variable", steps: sequenceSteps, answer: correctSequence },
   { id: "q10", section: "checkpoint3", concept: "starch_evidence", type: "choice", answer: "light_starch", prompt: "同一片葉子一半照光、一半遮光，之後用碘液檢測。照光處呈藍黑色，遮光處沒有明顯藍黑色。哪個解讀較合理？", hint: "先連結碘液和澱粉，再比較照光與遮光兩部分的差異。", misconception: "starch_test_overread", evidence: "starch", options: [{ id: "light_starch", text: "光照有助於葉片產生並累積澱粉證據" }, { id: "shade_oxygen", text: "遮光處產生最多氧氣" }, { id: "iodine_co2", text: "碘液可直接測出二氧化碳" }, { id: "same", text: "照光和遮光結果完全相同" }] },
   { id: "q11", section: "checkpoint3", concept: "variable_evidence", type: "choice", answer: "strong_light_more_bubbles", prompt: "某水生植物在弱光下每分鐘約 2 個氣泡，在較強光下每分鐘約 10 個氣泡。若其他條件相近，較合理的推論是什麼？", hint: "比較兩個光照條件下的氣泡數，並想想氣泡常作為哪種產物的線索。", misconception: "no_control_variable", evidence: "bubbles", options: [{ id: "strong_light_more_bubbles", text: "光照增強時，光合作用產生氧氣的速率可能增加" }, { id: "weak_none", text: "弱光一定沒有任何生命活動" }, { id: "no_relation", text: "氣泡數和光合作用無關" }, { id: "water_glucose", text: "強光一定代表水變成葡萄糖" }] },
   { id: "q12", section: "checkpoint3", concept: "variable_evidence", type: "set", answer: ["light_time", "plant_type_size", "water_amount", "temperature"], prompt: "若要檢查二氧化碳是否影響光合作用，哪些條件應盡量保持相同，才比較能判斷二氧化碳的影響？", hint: "題目想看二氧化碳的影響，因此除了二氧化碳以外，其他可能影響結果的條件要盡量相同。", misconception: "no_control_variable", options: [{ id: "light_time", text: "光照時間" }, { id: "plant_type_size", text: "植物種類與大小" }, { id: "water_amount", text: "水量" }, { id: "temperature", text: "溫度" }, { id: "co2_supply", text: "二氧化碳供應量" }, { id: "container_color", text: "容器顏色隨意改變" }] },
@@ -119,7 +109,7 @@ const questionMap = Object.fromEntries(questions.map((question) => [question.id,
 const sections = {
   checkpoint1: ["q01", "q02", "q03", "q04"],
   checkpoint2: ["q05", "q06", "q07", "q08"],
-  checkpoint3: ["q09", "q10", "q11", "q12", "q13", "q14"]
+  checkpoint3: ["q10", "q11", "q12", "q13", "q14"]
 };
 const requiredQuestionIds = questions.map((question) => question.id);
 
@@ -217,14 +207,11 @@ function questionAnswered(question) {
   const value = answerValue(question.id);
   if (question.type === "choice") return typeof value === "string" && value.length > 0;
   if (question.type === "mapping") return Boolean(value && Object.keys(question.answer).every((key) => value[key]));
-  if (question.type === "sequence") return Array.isArray(value) && value.length === question.answer.length;
   if (question.type === "set") return Array.isArray(value) && value.length > 0;
   return false;
 }
 
 function answerValue(qid) {
-  const question = questionMap[qid];
-  if (question.type === "sequence") return state.answers[`${qid}_sequence`] || [];
   return state.answers[qid];
 }
 
@@ -233,7 +220,6 @@ function isCorrect(qid) {
   const value = answerValue(qid);
   if (question.type === "choice") return value === question.answer;
   if (question.type === "mapping") return sameMapping(value, question.answer);
-  if (question.type === "sequence") return Array.isArray(value) && value.length === question.answer.length && value.every((id, index) => id === question.answer[index]);
   if (question.type === "set") return sameSet(value, question.answer);
   return false;
 }
@@ -251,10 +237,10 @@ function stableShuffle(items, seed) {
 
 function orderedOptions(question) {
   if (!state.optionOrders[question.id]) {
-    const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
+    const ids = (question.options || []).map((item) => item.id);
     state.optionOrders[question.id] = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}`);
   }
-  const source = Object.fromEntries((question.type === "sequence" ? question.steps : question.options || []).map((item) => [item.id, item]));
+  const source = Object.fromEntries((question.options || []).map((item) => [item.id, item]));
   return state.optionOrders[question.id].map((id) => source[id]).filter(Boolean);
 }
 
@@ -265,10 +251,6 @@ function formatSelected(question) {
     const choices = Object.fromEntries(question.choices.map((item) => [item.id, item.text]));
     return question.items.map((item) => `${item.label}：${choices[value?.[item.id]] || "尚未選擇"}`).join("；");
   }
-  if (question.type === "sequence") {
-    const labels = Object.fromEntries(question.steps.map((item) => [item.id, item.label]));
-    return (value || []).map((id) => labels[id]).join(" → ") || "尚未排序";
-  }
   if (question.type === "set") {
     return (value || []).map((id) => question.options.find((option) => option.id === id)?.text).filter(Boolean).join("、") || "尚未選擇";
   }
@@ -277,10 +259,11 @@ function formatSelected(question) {
 
 function titleAvatarPath(student = state.student) {
   const gender = student?.profile_gender === "female" ? "female" : "male";
-  const fallback = `../shared-assets/title-avatars/title-01-trainee_investigator-${gender}.png`;
+  const fallback = `../shared-assets/title-avatars/title-01-trainee_investigator-${gender}.webp`;
   const rawPath = student?.title_avatar_path || student?.progress?.title_avatar_path || fallback;
-  if (rawPath.startsWith("../") || rawPath.startsWith("http")) return rawPath;
-  if (rawPath.startsWith("shared-assets/")) return `../${rawPath}`;
+  const normalized = String(rawPath).replace(/\.png($|\?)/, ".webp$1");
+  if (normalized.startsWith("../") || normalized.startsWith("http")) return normalized;
+  if (normalized.startsWith("shared-assets/")) return `../${normalized}`;
   return fallback;
 }
 
@@ -461,7 +444,7 @@ async function flushHintEvents(ids = Object.keys(state.hintEventStatus)) {
 function setAnswer(questionId, value) {
   const question = questionMap[questionId];
   if (state.submitted) return;
-  state.answers[question.type === "sequence" ? `${questionId}_sequence` : questionId] = value;
+  state.answers[questionId] = value;
   if (question.type === "choice" && value && value !== question.answer) markHint(questionId).then(renderApp);
   if (question.type === "mapping" && value && Object.entries(value).some(([key, selected]) => selected && selected !== question.answer[key])) markHint(questionId).then(renderApp);
   saveState();
@@ -481,24 +464,6 @@ function toggleSetAnswer(questionId, optionId) {
 async function confirmSetAnswer(questionId) {
   if (!isCorrect(questionId)) await markHint(questionId);
   renderApp();
-}
-
-function moveSequence(questionId, itemId, direction) {
-  if (state.submitted) return;
-  const current = [...(state.answers[`${questionId}_sequence`] || orderedOptions(questionMap[questionId]).map((item) => item.id))];
-  const index = current.indexOf(itemId);
-  const nextIndex = index + direction;
-  if (index < 0 || nextIndex < 0 || nextIndex >= current.length) return;
-  [current[index], current[nextIndex]] = [current[nextIndex], current[index]];
-  state.answers[`${questionId}_sequence`] = current;
-  saveState();
-  renderApp();
-}
-
-function initSequence(questionId) {
-  if (!state.answers[`${questionId}_sequence`]) {
-    state.answers[`${questionId}_sequence`] = orderedOptions(questionMap[questionId]).map((item) => item.id);
-  }
 }
 
 function checkSection(section) {
@@ -590,7 +555,7 @@ function badgeIdsForScore(logs, reflection, retryExp, flawless) {
   if (passed(["q03", "q07"])) earned.push("chloroplast_site_locator");
   if (passed(["q05"])) earned.push("leaf_structure_connector");
   if (passed(["q06", "q10", "q11", "q14"])) earned.push("products_evidence_reader");
-  if (passed(["q09", "q10", "q11", "q12"])) earned.push("variable_evidence_interpreter");
+  if (passed(["q10", "q11", "q12"])) earned.push("variable_evidence_interpreter");
   if (correctedCore) earned.push("photosynthesis_boundary_reviser");
   if (flawless) earned.push("photosynthesis_flawless");
   if (reflection.reflection_quality === "discussion_question") earned.push("photosynthesis_reflection_reporter");
@@ -824,7 +789,7 @@ function renderCheckpoint(section) {
   const heading = {
     checkpoint1: ["光合作用基礎", "先整理光、二氧化碳、水、養分、氧氣與葉綠體。"],
     checkpoint2: ["葉片構造與產物", "把葉片功能、氣泡與植物養分來源迷思串起來。"],
-    checkpoint3: ["證據與變因判讀", "用拖曳排序、資料表與控制變因判斷光合作用證據。"]
+    checkpoint3: ["證據與變因判讀", "用資料表與控制變因判斷光合作用證據。"]
   }[section];
   return `
     <div class="stack checkpoint-stack">
@@ -883,16 +848,12 @@ function renderQuestionEvidence(qid) {
   if (qid === "q12") {
     return `<figure class="question-asset"><img src="${assets.questionVariableControl}" alt="光合作用變因比較示意圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>變因比較示意圖。請判斷哪些條件應保持相同。</figcaption></figure><div class="multi-note">可複選。先選出所有應保持相同的條件，再按「確認這組答案」。</div>`;
   }
-  if (qid === "q09") {
-    return `<figure class="question-asset"><img src="${assets.questionStarchEvidence}" alt="光合作用證據觀察紀錄圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>證據觀察紀錄。排序重點是判讀流程，不是背步驟號碼。</figcaption></figure><div class="multi-note">拖曳排序題。手機可用上移／下移按鈕調整順序。</div>`;
-  }
   return "";
 }
 
 function renderQuestionControl(question) {
   if (question.type === "choice") return renderChoiceQuestion(question);
   if (question.type === "mapping") return renderMappingQuestion(question);
-  if (question.type === "sequence") return renderSequenceQuestion(question);
   if (question.type === "set") return renderSetQuestion(question);
   return "";
 }
@@ -917,23 +878,6 @@ function renderMappingQuestion(question) {
       </select>
     </label>
   `).join("")}</div>`;
-}
-
-function renderSequenceQuestion(question) {
-  initSequence(question.id);
-  const labels = Object.fromEntries(question.steps.map((step) => [step.id, step.label]));
-  return `<div class="sequence-list" data-sequence="${question.id}">
-    ${(state.answers[`${question.id}_sequence`] || []).map((id, index) => `
-      <article class="sequence-item" draggable="true" data-sequence-item="${id}">
-        <span class="sequence-number">${index + 1}</span>
-        <strong>${escapeHtml(labels[id])}</strong>
-        <div class="sequence-actions">
-          <button class="icon-btn" data-move="${question.id}" data-item="${id}" data-dir="-1" aria-label="上移">↑</button>
-          <button class="icon-btn" data-move="${question.id}" data-item="${id}" data-dir="1" aria-label="下移">↓</button>
-        </div>
-      </article>
-    `).join("")}
-  </div>`;
 }
 
 function renderSetQuestion(question) {
@@ -1187,29 +1131,6 @@ function bindScreenEvents() {
     current[select.dataset.mapItem] = select.value;
     setAnswer(qid, current);
   }));
-  screen.querySelectorAll("[data-move]").forEach((button) => button.addEventListener("click", () => moveSequence(button.dataset.move, button.dataset.item, Number(button.dataset.dir))));
-  screen.querySelectorAll("[data-sequence-item]").forEach((item) => {
-    item.addEventListener("dragstart", (event) => {
-      event.dataTransfer?.setData("text/plain", item.dataset.sequenceItem);
-    });
-    item.addEventListener("dragover", (event) => event.preventDefault());
-    item.addEventListener("drop", (event) => {
-      event.preventDefault();
-      const draggedId = event.dataTransfer?.getData("text/plain");
-      const targetId = item.dataset.sequenceItem;
-      const qid = item.closest("[data-sequence]")?.dataset.sequence;
-      if (!qid || !draggedId || draggedId === targetId) return;
-      const current = [...(state.answers[`${qid}_sequence`] || orderedOptions(questionMap[qid]).map((step) => step.id))];
-      const from = current.indexOf(draggedId);
-      const to = current.indexOf(targetId);
-      if (from < 0 || to < 0) return;
-      current.splice(from, 1);
-      current.splice(to, 0, draggedId);
-      state.answers[`${qid}_sequence`] = current;
-      saveState();
-      renderApp();
-    });
-  });
   const textarea = screen.querySelector("#studentQuestion");
   const confident = screen.querySelector("#confidentConcept");
   const confidence = screen.querySelector("#confidenceLevel");
