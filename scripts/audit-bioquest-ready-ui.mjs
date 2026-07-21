@@ -46,7 +46,7 @@ const cacheVersion = "20260715-achievement-order-v1";
 const surfaceCacheVersion = "20260715-achievement-order-v1";
 const backendConfigVersion = "20260713-backend-endpoint-v1";
 const appCacheVersion = "20260715-badge-overview-v2";
-const sharedTitleProgressVersion = "20260720-title-next-progress-v1";
+const sharedTitleProgressVersion = "20260721-title-avatar-webp-v1";
 const appVersionOverrides = new Map();
 appVersionOverrides.set("life_world", "20260720-life-world-server-verified-v1");
 appVersionOverrides.set("scientific_method", "20260721-scientific-method-server-verified-v1");
@@ -99,8 +99,8 @@ sharedCacheOverrides.set("human_nutrition", "20260719-human-nutrition-qa-v1");
 sharedCacheOverrides.set("plant_material_transport", "20260720-plant-material-transport-badges-v1");
 sharedCacheOverrides.set("plant_transport_structures", "20260720-plant-transport-structures-extension-v2");
 sharedCacheOverrides.set("cardiovascular_components", "20260720-cardiovascular-components-brief-visible-v2");
-sharedCacheOverrides.set("human_circulation", "20260720-human-circulation-achievement-order-v3");
-sharedCacheOverrides.set("stimulus_response", "20260720-title-next-progress-v1");
+sharedCacheOverrides.set("human_circulation", "20260721-title-avatar-webp-v1");
+sharedCacheOverrides.set("stimulus_response", "20260721-title-avatar-webp-v1");
 sharedCacheOverrides.set("nervous_system", "20260713-login-busy-v1");
 sharedCacheOverrides.set("endocrine_system", "20260713-login-busy-v1");
 sharedCacheOverrides.set("behavior_sensing", "20260713-login-busy-v1");
@@ -111,7 +111,7 @@ sharedCacheOverrides.set("cell_division", "20260713-login-busy-v1");
 sharedCacheOverrides.set("asexual_reproduction", "20260713-login-busy-v1");
 sharedCacheOverrides.set("sexual_reproduction", "20260713-login-busy-v1");
 const sharedIndexHookOverrides = new Map([
-  ["human_circulation", "20260720-human-circulation-achievement-order-v3"]
+  ["human_circulation", "20260721-title-avatar-webp-v1"]
 ]);
 
 function assert(condition, message) {

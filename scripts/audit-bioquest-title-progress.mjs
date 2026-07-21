@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const root = path.resolve(process.argv[2] || defaultRoot);
-const sharedVersion = "20260720-title-next-progress-v1";
+const sharedVersion = "20260721-title-avatar-webp-v1";
 const portal = fs.readFileSync(path.join(root, "portal.js"), "utf8");
 const start = portal.indexOf("const units = [");
 const end = portal.indexOf("\n\nconst statusText", start);

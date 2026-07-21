@@ -39,7 +39,7 @@ const sharedVersionOverrides = new Map([
   ["prototype-sexual-reproduction", "20260713-login-busy-v1"]
 ]);
 const sharedIndexHookOverrides = new Map([
-  ["prototype-human-circulation", "20260720-human-circulation-achievement-order-v3"]
+  ["prototype-human-circulation", "20260721-title-avatar-webp-v1"]
 ]);
 const readyUnits = [
   "prototype-life-world",
@@ -103,7 +103,7 @@ for (const token of [
 for (const folder of readyUnits) {
   const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
   const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
-  const expectedSharedVersion = sharedIndexHookOverrides.get(folder) || "20260720-title-next-progress-v1";
+  const expectedSharedVersion = sharedIndexHookOverrides.get(folder) || "20260721-title-avatar-webp-v1";
   assert(index.includes(`bioquest-character-layout.css?v=${expectedSharedVersion}`), `${folder}: shared CSS cache not updated`);
   assert(index.includes(`bioquest-character-layout.js?v=${expectedSharedVersion}`), `${folder}: shared JS cache not updated`);
   assert(!app.includes("aggregate.badges.map"), `${folder}: legacy whole-book badge renderer still expands aggregate.badges`);

@@ -41,7 +41,7 @@ const sharedVersionOverrides = new Map([
   ["sexual_reproduction", "20260713-login-busy-v1"]
 ]);
 const sharedIndexHookOverrides = new Map([
-  ["human_circulation", "20260720-human-circulation-achievement-order-v3"]
+  ["human_circulation", "20260721-title-avatar-webp-v1"]
 ]);
 
 function assert(condition, message) {
@@ -72,7 +72,7 @@ for (const unit of readyUnits) {
   assert(index.includes(`data-unit-id="${unit.unitId}"`), `${folder} unit id mismatch`);
   assert(index.includes(`data-unit-sequence="${unit.sequence}"`), `${folder} sequence missing or mismatched`);
   assert(index.includes(`data-unit-title="${unit.title}"`), `${folder} formal title missing or mismatched`);
-  const expectedSharedVersion = sharedIndexHookOverrides.get(unit.unitId) || "20260720-title-next-progress-v1";
+  const expectedSharedVersion = sharedIndexHookOverrides.get(unit.unitId) || "20260721-title-avatar-webp-v1";
   assert(index.includes(`bioquest-character-layout.css?v=${expectedSharedVersion}`), `${folder} shared CSS cache bust missing`);
   assert(index.includes(`bioquest-character-layout.js?v=${expectedSharedVersion}`), `${folder} shared JS cache bust missing`);
   assert(!/\b1-\d\b/.test(index), `${folder} must not contain chapter numbering`);

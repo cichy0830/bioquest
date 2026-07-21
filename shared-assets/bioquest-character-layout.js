@@ -644,8 +644,31 @@
     return `${TITLE_AVATAR_BASE_PATH}/title-${level.order}-${level.id}-${gender}.webp`;
   }
 
+  function titleAvatarFallbackPath(student = {}) {
+    const gender = titleAvatarGender(student);
+    const titleId = String(student.current_title_id || student.progress?.current_title_id || student.student_progress?.current_title_id || "trainee_investigator");
+    const level = titleProgressLevel(titleId);
+    return `${TITLE_AVATAR_BASE_PATH}/title-${level.order}-${level.id}-${gender}.webp`;
+  }
+
+  function normalizeTitleAvatarAssetPath(value) {
+    const match = String(value || "").trim().match(/^([^?#]*)([?#].*)?$/);
+    const rawPath = match?.[1] || "";
+    const suffix = match?.[2] || "";
+    const cleanPath = rawPath.replace(/\\/g, "/");
+    const sharedMatch = cleanPath.match(/(?:^|\/)shared-assets\/title-avatars\/([^/]+)$/);
+    const fileName = sharedMatch?.[1] || (cleanPath.match(/(?:^|\/)(title-\d{2}-[a-z0-9_]+-(?:male|female)\.(?:webp|png|jpe?g))$/i)?.[1] || "");
+    if (!fileName) return "";
+    const webpFile = fileName.replace(/\.(?:png|jpe?g)$/i, ".webp");
+    return `${TITLE_AVATAR_BASE_PATH}/${webpFile}${suffix}`;
+  }
+
   function normalizeTitleAvatarPath(rawPath, student = {}) {
-    return normalizeBriefAvatarPath(rawPath, student);
+    const value = String(rawPath || "").trim();
+    if (!value) return titleAvatarFallbackPath(student);
+    if (/^(https?:|data:)/i.test(value)) return titleAvatarFallbackPath(student);
+    const normalizedTitlePath = normalizeTitleAvatarAssetPath(value);
+    return normalizedTitlePath || normalizeBriefAvatarPath(value, student);
   }
 
   function createAchievementTitleAvatarCard(student = readStoredStudent()) {
@@ -745,7 +768,7 @@
     const holderPath = holder?.dataset.titleAvatarPath || holder?.dataset.studentCharacterHook || "";
     const image = root.querySelector(".bq-brief-student-avatar, .student-avatar-slot img, .title-avatar-brief img, .brief-title-avatar-card img, .student-title-avatar img");
     const imagePath = image?.getAttribute("src") || "";
-    return normalizeBriefAvatarPath(holderPath || imagePath || student.title_avatar_path || student.progress?.title_avatar_path, student);
+    return normalizeTitleAvatarPath(holderPath || imagePath || student.title_avatar_path || student.progress?.title_avatar_path, student);
   }
 
   function findBriefScene(root) {
@@ -897,7 +920,7 @@
     }, true);
   }
 
-  global.BioQuestCharacterLayout = Object.freeze({ enhance, feedbackState });
+  global.BioQuestCharacterLayout = Object.freeze({ enhance, feedbackState, normalizeTitleAvatarPath });
   global.BioQuestBadgeOverview = Object.freeze({
     version: BADGE_OVERVIEW_VERSION,
     renderHtml: renderWholeBookBadgeOverview
