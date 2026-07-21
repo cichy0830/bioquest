@@ -74,7 +74,7 @@ appVersionOverrides.set("human_circulation", "20260720-human-circulation-badges-
 appVersionOverrides.set("stimulus_response", "20260721-stimulus-response-badges-b-v1");
 appVersionOverrides.set("nervous_system", "20260721-nervous-system-minimal-p1-v1");
 appVersionOverrides.set("endocrine_system", "20260721-endocrine-system-minimal-p1-v1");
-appVersionOverrides.set("behavior_sensing", "20260718-behavior-sensing-ready-v1");
+appVersionOverrides.set("behavior_sensing", "20260721-behavior-sensing-p1-v1");
 appVersionOverrides.set("respiration_homeostasis", "20260718-respiration-homeostasis-v1");
 appVersionOverrides.set("excretion_water_homeostasis", "20260718-excretion-water-homeostasis-v1");
 appVersionOverrides.set("temperature_glucose_homeostasis", "20260718-temperature-glucose-homeostasis-v1");
@@ -104,7 +104,7 @@ sharedCacheOverrides.set("human_circulation", "20260721-title-avatar-webp-v1");
 sharedCacheOverrides.set("stimulus_response", "20260721-title-avatar-webp-v1");
 sharedCacheOverrides.set("nervous_system", "20260721-title-avatar-webp-v1");
 sharedCacheOverrides.set("endocrine_system", "20260721-title-avatar-webp-v1");
-sharedCacheOverrides.set("behavior_sensing", "20260713-login-busy-v1");
+sharedCacheOverrides.set("behavior_sensing", "20260721-title-avatar-webp-v1");
 sharedCacheOverrides.set("respiration_homeostasis", "20260713-login-busy-v1");
 sharedCacheOverrides.set("excretion_water_homeostasis", "20260713-login-busy-v1");
 sharedCacheOverrides.set("temperature_glucose_homeostasis", "20260713-login-busy-v1");

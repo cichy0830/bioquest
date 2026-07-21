@@ -3,7 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260718-behavior-sensing-ready-v1";
+const VERSION = "20260721-behavior-sensing-p1-v1";
+const QUESTION_VERSION = "20260718-behavior-sensing-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -117,7 +118,7 @@ function createEmptyState() {
     attempt_session_token: "",
     attempt_session_id: "",
     previous_attempt_id: "",
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     optionOrders: {},
     answers: {},
@@ -138,7 +139,7 @@ function loadState() {
   if (typeof localStorage === "undefined") return createEmptyState();
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey) || "null");
-    return parsed && parsed.question_version ? { ...createEmptyState(), ...parsed } : createEmptyState();
+    return parsed && parsed.question_version === QUESTION_VERSION ? { ...createEmptyState(), ...parsed, question_version: QUESTION_VERSION } : createEmptyState();
   } catch (error) {
     return createEmptyState();
   }
@@ -257,13 +258,10 @@ function titleAvatarPath(student = state.student) {
   return fallback;
 }
 
-function titleAndProgress(student = state.student, localGain = 0) {
+function titleAndProgress(student = state.student) {
   const remoteTotal = Number(student?.progress?.total_exp ?? student?.total_exp);
-  const localTotal = loadAttempts()
-    .filter((attempt) => attempt.student_id === student?.student_id && attempt.unit_id !== mission.unit_id)
-    .reduce((sum, attempt) => sum + Number(attempt.unit_credited_exp || 0), 0) + Number(localGain || 0);
   const explicitLevel = titleLevels.find((level) => level.id === (student?.current_title_id || student?.progress?.current_title_id));
-  const totalExp = Math.max(Number.isFinite(remoteTotal) ? remoteTotal : 0, localTotal, explicitLevel?.need || 0);
+  const totalExp = Math.max(Number.isFinite(remoteTotal) ? remoteTotal : 0, explicitLevel?.need || 0);
   const current = titleLevels.filter((level) => totalExp >= level.need).at(-1) || titleLevels[0];
   const next = titleLevels.find((level) => level.need > totalExp) || null;
   return {
@@ -318,7 +316,7 @@ function beginLocalAttempt(student) {
     attempt_id: attemptId,
     attempt_session_token: `guest_${attemptId}`,
     attempt_session_id: `guest_session_${attemptId}`,
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     screen: "brief",
     completedScreens: ["login", "brief"]
@@ -349,9 +347,9 @@ async function handleLogin(useGuest) {
       action: "startAttempt",
       student_id: student.student_id,
       unit_id: mission.unit_id,
-      question_version: VERSION
+      question_version: QUESTION_VERSION
     });
-    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== VERSION) {
+    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== QUESTION_VERSION) {
       throw new Error("backend_registry_not_ready");
     }
     state = {
@@ -361,7 +359,7 @@ async function handleLogin(useGuest) {
       attempt_session_token: startData.attempt_session_token,
       attempt_session_id: startData.attempt_session_id,
       previous_attempt_id: startData.previous_attempt_id || "",
-      question_version: startData.question_version,
+      question_version: QUESTION_VERSION,
       verification_mode: startData.verification_mode,
       screen: "brief",
       completedScreens: ["login", "brief"]
@@ -390,6 +388,23 @@ function setScreen(nextScreen) {
   }
   saveState();
   renderApp();
+}
+
+function resetViewportScroll() {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  const apply = () => {
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    } catch (error) {
+      try { window.scrollTo(0, 0); } catch (innerError) {}
+    }
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+    const mainStage = document.querySelector(".main-stage");
+    if (mainStage) mainStage.scrollTop = 0;
+  };
+  apply();
+  if (typeof window.requestAnimationFrame === "function") window.requestAnimationFrame(apply);
 }
 
 function canUseNav(target) {
@@ -501,11 +516,20 @@ function nextAfterSection(section) {
 function scoreAttempt() {
   const logs = requiredQuestionIds.map((id) => {
     const correct = isCorrect(id);
+    const hintUsed = Boolean(state.hints[id]);
     return {
       question_id: id,
       answer: answerValue(id),
+      question_type: questionMap[id].type,
       is_correct: correct,
-      hint_used: Boolean(state.hints[id]),
+      hint_used: hintUsed,
+      corrected_after_hint: correct && hintUsed,
+      exp_type: correct ? (hintUsed ? "revision" : "concept") : "none",
+      exp_awarded: correct ? Math.round((hintUsed ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / requiredQuestionIds.length) : 0,
+      concept_id: questionMap[id].concept,
+      checkpoint_id: checkpointIdForQuestion(id),
+      teacher_group_id: analysisGroupForQuestion(id),
+      verification_status: state.student?.is_guest ? "local_guest" : "client_candidate",
       skill_tag: questionMap[id].concept,
       misconception_tag: correct ? "" : questionMap[id].misconception
     };
@@ -625,18 +649,27 @@ function buildBackendPayload(result = scoreAttempt()) {
     question_version: state.question_version,
     raw_answers: rawAnswers,
     raw_answers_json: JSON.stringify(rawAnswers),
-    question_logs: result.logs.map((log) => ({
-      question_id: log.question_id,
-      unit_id: mission.unit_id,
-      student_id: state.student.student_id,
-      question_type: questionMap[log.question_id]?.type || "",
-      attempt_answer: log.answer,
-      answer_json: JSON.stringify(log.answer),
-      used_hint: log.hint_used,
-      analysis_group: analysisGroupForQuestion(log.question_id),
-      skill_tag: log.skill_tag,
-      misconception_tag: log.misconception_tag
-    })),
+	    question_logs: result.logs.map((log) => ({
+	      question_id: log.question_id,
+	      unit_id: mission.unit_id,
+	      student_id: state.student.student_id,
+	      question_type: log.question_type || questionMap[log.question_id]?.type || "",
+	      attempt_answer: log.answer,
+	      answer_json: JSON.stringify(log.answer),
+	      used_hint: log.hint_used,
+	      hint_used: log.hint_used,
+	      is_correct: log.is_correct,
+	      corrected_after_hint: log.corrected_after_hint,
+	      exp_type: log.exp_type,
+	      exp_awarded: log.exp_awarded,
+	      analysis_group: analysisGroupForQuestion(log.question_id),
+	      concept_id: log.concept_id,
+	      checkpoint_id: log.checkpoint_id,
+	      teacher_group_id: log.teacher_group_id,
+	      verification_status: log.verification_status,
+	      skill_tag: log.skill_tag,
+	      misconception_tag: log.misconception_tag
+	    })),
     student_question: state.reflection.question,
     confident_concept: state.reflection.confident,
     confidence_level: state.reflection.confidence,
@@ -651,6 +684,15 @@ function analysisGroupForQuestion(questionId) {
   if (["behavior_sensing_q09", "behavior_sensing_q10", "behavior_sensing_q13"].includes(questionId)) return "plant_nastic_movements";
   if (questionId === "behavior_sensing_q14") return "unit_boundary_control";
   return "behavior_response_basics";
+}
+
+function checkpointIdForQuestion(questionId) {
+  const section = questionMap[questionId]?.section || "";
+  return {
+    checkpoint1: "behavior_sensing_cp1_response_and_animal_behavior",
+    checkpoint2: "behavior_sensing_cp2_taxis_and_tropism",
+    checkpoint3: "behavior_sensing_cp3_plant_sensing_and_boundaries"
+  }[section] || "";
 }
 
 async function submitAttemptToBackend(payload) {
@@ -793,7 +835,7 @@ function renderBrief() {
 }
 
 function renderScan() {
-  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入反應控制室前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先看「刺激、反應者、反應方式、是否整體移動」。</h3><p>動物可能用行為回應刺激；植物也會用生長方向或局部運動回應光、觸碰與晝夜變化。</p></div></div><div class="concept-grid"><article><strong>刺激與反應</strong><p>生物會接收環境刺激並產生反應，這些反應常有助於適應環境。</p></article><article><strong>動物行為功能</strong><p>動物行為可從取食、避敵、求偶、育幼等生活需求方向判斷。</p></article><article><strong>趨性與向性</strong><p>趨性看整個生物體移動；向性看植物生長方向受刺激影響。</p></article><article><strong>植物感應運動</strong><p>含羞草觸發運動與睡眠運動都屬植物對刺激的反應，但不是整株像動物般移動。</p></article></div><button class="primary" data-next="checkpoint1">開始判讀環境訊號</button></section></div>`;
+  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入反應控制室前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先看「刺激、反應者、反應方式、觀察時間」。</h3><p>先找情境中的環境線索與生物反應，再比較反應者、位置、方向或姿態的變化。</p></div></div><div class="concept-grid"><article><strong>刺激與反應</strong><p>先確認情境中出現了什麼環境線索，以及生物做出了什麼可觀察反應。</p></article><article><strong>動物行為功能</strong><p>動物行為可以回到生活需求與情境證據判斷，不只看動物名稱。</p></article><article><strong>比較反應方式</strong><p>先比較反應者、反應發生的位置，以及變化是位置、方向或姿態；不要只看名詞就判斷。</p></article><article><strong>植物感應</strong><p>植物反應可從刺激來源、反應部位、反應速度與是否恢復等線索閱讀。</p></article></div><button class="primary" data-next="checkpoint1">開始判讀環境訊號</button></section></div>`;
 }
 
 function renderCheckpoint(section) {
@@ -819,12 +861,12 @@ function renderQuestion(question) {
 function conceptLabel(concept) { return {stimulus_response_adaptation:"刺激反應",animal_behavior_function:"動物行為",taxis_whole_organism:"趨性",tropism_growth_direction:"向性",plant_nastic_response:"植物感應運動",plant_response_boundary:"植物反應邊界",evidence_interpretation:"資料判讀"}[concept] || concept; }
 
 function renderQuestionEvidence(qid) {
-  if (["behavior_sensing_q01", "behavior_sensing_q02", "behavior_sensing_q03", "behavior_sensing_q04"].includes(qid)) return `<div class="evidence-card"><strong>動物行為情境卡</strong><p>先找刺激與反應，再判斷行為可能和取食、避敵、求偶或育幼哪個生活需求較相關。</p></div>`;
-  if (["behavior_sensing_q05", "behavior_sensing_q06", "behavior_sensing_q07", "behavior_sensing_q08"].includes(qid)) return `<div class="evidence-card"><strong>趨性 / 向性線索卡</strong><p>趨性看整個生物體移動；向性看植物部位因生長改變方向。</p></div>`;
-  if (["behavior_sensing_q09", "behavior_sensing_q10", "behavior_sensing_q13"].includes(qid)) return `<div class="evidence-card"><strong>植物感應運動卡</strong><p>觀察反應是否由觸碰或晝夜變化引發、是否局部、是否可逆。</p></div>`;
-  if (qid === "behavior_sensing_q11") return `<div class="evidence-card"><strong>植物反應邊界卡</strong><p>植物沒有動物式神經系統，但仍可能以生長或局部運動回應刺激。</p></div>`;
-  if (qid === "behavior_sensing_q12") return `<div class="evidence-card"><strong>觀察紀錄卡</strong><p>從時間、光照方向與莖彎長等線索判讀資料，不把植物說成整株移動。</p></div>`;
-  if (qid === "behavior_sensing_q14") return `<div class="evidence-card"><strong>單元邊界卡</strong><p>本單元聚焦行為與感應；激素、血糖、肺泡與吸氣呼氣屬相鄰單元。</p></div>`;
+  if (["behavior_sensing_q01", "behavior_sensing_q02", "behavior_sensing_q03", "behavior_sensing_q04"].includes(qid)) return `<div class="evidence-card"><strong>情境觀察卡</strong><p>先找這個情境出現了什麼環境線索，以及生物做出了什麼反應；再思考這個反應可能和生活需求有什麼關聯。</p></div>`;
+  if (["behavior_sensing_q05", "behavior_sensing_q06", "behavior_sensing_q07", "behavior_sensing_q08"].includes(qid)) return `<div class="evidence-card"><strong>方向反應觀察卡</strong><p>先觀察反應發生在整個生物，還是植物的某個部位；再留意變化是位置改變、方向改變，還是隨時間逐漸出現。</p></div>`;
+  if (["behavior_sensing_q09", "behavior_sensing_q10", "behavior_sensing_q13"].includes(qid)) return `<div class="evidence-card"><strong>植物反應觀察卡</strong><p>先看刺激來源、反應部位、反應速度，以及過一段時間後是否恢復；不要只看植物名稱就判斷。</p></div>`;
+  if (qid === "behavior_sensing_q11") return `<div class="evidence-card"><strong>植物反應觀察卡</strong><p>回想前面看過的植物例子：它們可能因光、觸碰或晝夜變化出現可觀察改變。先用例子判斷說法是否合理。</p></div>`;
+  if (qid === "behavior_sensing_q12") return `<div class="evidence-card"><strong>觀察紀錄閱讀卡</strong><p>先看紀錄中的條件、時間與可觀察變化，再判斷這份資料能支持到哪一個範圍；不要加入紀錄中沒有出現的系統或構造。</p></div>`;
+  if (qid === "behavior_sensing_q14") return `<div class="evidence-card"><strong>單元範圍判斷卡</strong><p>先找哪個情境最直接呈現「環境刺激」與「生物反應」的關係；其他看似熟悉的名詞要確認是否真的屬於本單元。</p></div>`;
   return "";
 }
 
@@ -900,7 +942,7 @@ function renderReview() {
   const feedback = conceptFeedback();
   const stateName = result.accuracy >= 1 && result.hint_used_count === 0 ? "excellent" : result.accuracy >= .86 ? "strong" : result.accuracy >= .64 ? "stable" : result.accuracy >= .4 ? "needs_review" : "retry_ready";
   return `
-    <div class="mission-layout review-layout" data-feedback-state="${stateName}">
+    <div class="stack review-layout" data-feedback-state="${stateName}">
       <section class="panel">
         <p class="eyebrow">概念回饋</p>
         <h2>先整理你目前的環境訊號判讀線索</h2>
@@ -917,11 +959,6 @@ function renderReview() {
         </div>
         <button class="primary" data-next="reflection">前往任務回報</button>
       </section>
-      <aside class="panel mentor-card" data-feedback-state="${stateName}">
-        <img src="../shared-assets/mentor-feedback/mentor-feedback-${stateName}.webp" alt="阿澤老師回饋" onerror="this.src='${assets.mentorFallback}'">
-        <h3>${feedbackTitle(stateName)}</h3>
-        <p>請把不確定的概念轉成課堂上想確認的方向。</p>
-      </aside>
     </div>
   `;
 }
@@ -1038,21 +1075,8 @@ function creditStatusText(result) {
 
 function renderAchievements() {
   const result = state.result || scoreAttempt();
-  const titleInfo = titleAndProgress(state.student, result.unit_credited_exp);
-  const credit = creditStatusText(result);
   return `
     <div class="stack achievements-stack">
-      <section class="panel title-card">
-        <p class="eyebrow">全冊稱號</p>
-        <div class="title-card-content">
-          <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
-          <div>
-            <h2>${escapeHtml(titleInfo.current.title)}</h2>
-            <p>${credit.status === "verified" ? `${titleInfo.totalExp} EXP｜稱號進度 ${titleInfo.progressPercent}%` : credit.resultLine}</p>
-            <p>${credit.status === "verified" ? (titleInfo.next ? `距離 ${titleInfo.next.title} 還差 ${titleInfo.remaining} EXP` : "已達最高稱號，後續 EXP 仍會累積。") : credit.note}</p>
-          </div>
-        </div>
-      </section>
       ${renderBadgeWall(result.earned_badges)}
     </div>
   `;
@@ -1060,7 +1084,7 @@ function renderAchievements() {
 
 function renderBadgeWall(earned = []) {
   const earnedSet = new Set(earned);
-  return `<section class="panel">
+  return `<section class="panel" data-bq-unit-achievements="${mission.unit_id}">
     <p class="eyebrow">徽章收藏牆</p>
     <h2>本單元 15 枚徽章</h2>
     <div class="badge-wall">
@@ -1098,6 +1122,8 @@ function renderRules() {
 
 function renderApp() {
   if (!screen) return;
+  const screenChanged = renderApp.lastScreen !== state.screen;
+  renderApp.lastScreen = state.screen;
   const views = {
     login: renderLogin,
     brief: renderBrief,
@@ -1116,6 +1142,7 @@ function renderApp() {
   updateNav();
   bindScreenEvents();
   if (typeof window !== "undefined" && window.BioQuestCharacterLayout?.enhance) window.BioQuestCharacterLayout.enhance({ force: true });
+  if (screenChanged) resetViewportScroll();
 }
 
 function updateNav() {
@@ -1188,6 +1215,7 @@ if (typeof document !== "undefined") {
 if (typeof window !== "undefined") {
   window.__behavior_sensingTest = {
     VERSION,
+    QUESTION_VERSION,
     mission,
     assets,
     badges,
@@ -1203,6 +1231,9 @@ if (typeof window !== "undefined") {
     titleAvatarPath,
     renderBrief,
     renderQuestionEvidence,
+    checkpointIdForQuestion,
+    analysisGroupForQuestion,
+    resetViewportScroll,
     renderCheckpoint,
     renderReview,
     renderReflection,
