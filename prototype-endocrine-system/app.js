@@ -3,7 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260718-endocrine-system-ready-v1";
+const VERSION = "20260721-endocrine-system-minimal-p1-v1";
+const QUESTION_VERSION = "20260718-endocrine-system-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -121,7 +122,7 @@ function createEmptyState() {
     attempt_session_token: "",
     attempt_session_id: "",
     previous_attempt_id: "",
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     optionOrders: {},
     answers: {},
@@ -142,7 +143,7 @@ function loadState() {
   if (typeof localStorage === "undefined") return createEmptyState();
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey) || "null");
-    return parsed && parsed.question_version ? { ...createEmptyState(), ...parsed } : createEmptyState();
+    return parsed && parsed.question_version ? { ...createEmptyState(), ...parsed, question_version: QUESTION_VERSION } : createEmptyState();
   } catch (error) {
     return createEmptyState();
   }
@@ -261,13 +262,10 @@ function titleAvatarPath(student = state.student) {
   return fallback;
 }
 
-function titleAndProgress(student = state.student, localGain = 0) {
+function titleAndProgress(student = state.student) {
   const remoteTotal = Number(student?.progress?.total_exp ?? student?.total_exp);
-  const localTotal = loadAttempts()
-    .filter((attempt) => attempt.student_id === student?.student_id && attempt.unit_id !== mission.unit_id)
-    .reduce((sum, attempt) => sum + Number(attempt.unit_credited_exp || 0), 0) + Number(localGain || 0);
   const explicitLevel = titleLevels.find((level) => level.id === (student?.current_title_id || student?.progress?.current_title_id));
-  const totalExp = Math.max(Number.isFinite(remoteTotal) ? remoteTotal : 0, localTotal, explicitLevel?.need || 0);
+  const totalExp = Math.max(Number.isFinite(remoteTotal) ? remoteTotal : 0, explicitLevel?.need || 0);
   const current = titleLevels.filter((level) => totalExp >= level.need).at(-1) || titleLevels[0];
   const next = titleLevels.find((level) => level.need > totalExp) || null;
   return {
@@ -322,7 +320,7 @@ function beginLocalAttempt(student) {
     attempt_id: attemptId,
     attempt_session_token: `guest_${attemptId}`,
     attempt_session_id: `guest_session_${attemptId}`,
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     screen: "brief",
     completedScreens: ["login", "brief"]
@@ -353,9 +351,9 @@ async function handleLogin(useGuest) {
       action: "startAttempt",
       student_id: student.student_id,
       unit_id: mission.unit_id,
-      question_version: VERSION
+      question_version: QUESTION_VERSION
     });
-    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== VERSION) {
+    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== QUESTION_VERSION) {
       throw new Error("backend_registry_not_ready");
     }
     state = {
@@ -365,7 +363,7 @@ async function handleLogin(useGuest) {
       attempt_session_token: startData.attempt_session_token,
       attempt_session_id: startData.attempt_session_id,
       previous_attempt_id: startData.previous_attempt_id || "",
-      question_version: startData.question_version,
+      question_version: QUESTION_VERSION,
       verification_mode: startData.verification_mode,
       screen: "brief",
       completedScreens: ["login", "brief"]
@@ -394,6 +392,23 @@ function setScreen(nextScreen) {
   }
   saveState();
   renderApp();
+}
+
+function resetViewportScroll() {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  const apply = () => {
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    } catch (error) {
+      try { window.scrollTo(0, 0); } catch (innerError) {}
+    }
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+    const mainStage = document.querySelector(".main-stage");
+    if (mainStage) mainStage.scrollTop = 0;
+  };
+  apply();
+  if (typeof window.requestAnimationFrame === "function") window.requestAnimationFrame(apply);
 }
 
 function canUseNav(target) {
@@ -626,7 +641,7 @@ function buildBackendPayload(result = scoreAttempt()) {
     attempt_id: state.attempt_id,
     attempt_session_token: state.attempt_session_token,
     previous_attempt_id: state.previous_attempt_id,
-    question_version: state.question_version,
+    question_version: QUESTION_VERSION,
     raw_answers: rawAnswers,
     raw_answers_json: JSON.stringify(rawAnswers),
     question_logs: result.logs.map((log) => ({
@@ -1041,21 +1056,8 @@ function creditStatusText(result) {
 
 function renderAchievements() {
   const result = state.result || scoreAttempt();
-  const titleInfo = titleAndProgress(state.student, result.unit_credited_exp);
-  const credit = creditStatusText(result);
   return `
     <div class="stack achievements-stack">
-      <section class="panel title-card">
-        <p class="eyebrow">全冊稱號</p>
-        <div class="title-card-content">
-          <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
-          <div>
-            <h2>${escapeHtml(titleInfo.current.title)}</h2>
-            <p>${credit.status === "verified" ? `${titleInfo.totalExp} EXP｜稱號進度 ${titleInfo.progressPercent}%` : credit.resultLine}</p>
-            <p>${credit.status === "verified" ? (titleInfo.next ? `距離 ${titleInfo.next.title} 還差 ${titleInfo.remaining} EXP` : "已達最高稱號，後續 EXP 仍會累積。") : credit.note}</p>
-          </div>
-        </div>
-      </section>
       ${renderBadgeWall(result.earned_badges)}
     </div>
   `;
@@ -1063,9 +1065,9 @@ function renderAchievements() {
 
 function renderBadgeWall(earned = []) {
   const earnedSet = new Set(earned);
-  return `<section class="panel">
+  return `<section class="panel" data-bq-unit-achievements="${mission.unit_id}">
     <p class="eyebrow">徽章收藏牆</p>
-    <h2>本單元 15 枚徽章</h2>
+    <h2>本單元 ${badges.length} 枚徽章</h2>
     <div class="badge-wall">
       ${badges.map((badge) => `
         <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
@@ -1101,6 +1103,8 @@ function renderRules() {
 
 function renderApp() {
   if (!screen) return;
+  const screenChanged = renderApp.lastScreen !== state.screen;
+  renderApp.lastScreen = state.screen;
   const views = {
     login: renderLogin,
     brief: renderBrief,
@@ -1119,6 +1123,7 @@ function renderApp() {
   updateNav();
   bindScreenEvents();
   if (typeof window !== "undefined" && window.BioQuestCharacterLayout?.enhance) window.BioQuestCharacterLayout.enhance({ force: true });
+  if (screenChanged) resetViewportScroll();
 }
 
 function updateNav() {
@@ -1191,6 +1196,7 @@ if (typeof document !== "undefined") {
 if (typeof window !== "undefined") {
   window.__endocrine_systemTest = {
     VERSION,
+    QUESTION_VERSION,
     mission,
     assets,
     badges,

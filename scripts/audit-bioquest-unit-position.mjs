@@ -31,7 +31,7 @@ const sharedVersionOverrides = new Map([
   ["human_circulation", "20260720-human-circulation-badges-v1"],
   ["stimulus_response", "20260721-stimulus-response-badges-b-v1"],
   ["nervous_system", "20260721-title-avatar-webp-v1"],
-  ["endocrine_system", "20260713-login-busy-v1"],
+  ["endocrine_system", "20260721-title-avatar-webp-v1"],
   ["behavior_sensing", "20260713-login-busy-v1"],
   ["respiration_homeostasis", "20260713-login-busy-v1"],
   ["excretion_water_homeostasis", "20260713-login-busy-v1"],
