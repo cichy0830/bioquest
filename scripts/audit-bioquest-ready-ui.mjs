@@ -54,7 +54,7 @@ appVersionOverrides.set("lab_intro", "20260721-lab-intro-server-verified-v1");
 appVersionOverrides.set("microscope_use", "20260721-microscope-use-server-verified-v1");
 appVersionOverrides.set("cell_basic_unit", "20260721-cell-basic-unit-required-gates-v1");
 appVersionOverrides.set("cell_observation", "20260717-badge-icon-cleanup-v1");
-appVersionOverrides.set("cell_structure", "20260721-cell-structure-server-verified-v1");
+appVersionOverrides.set("cell_structure", "20260721-cell-structure-scrolltop-v1");
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
@@ -234,7 +234,7 @@ const audit = units.map(([unitId, folder]) => {
     assert(index.includes("styles.css?v=20260721-cell-basic-unit-required-gates-v1"), "cell_basic_unit style cache bust missing");
   }
   if (unitId === "cell_structure") {
-    assert(index.includes("styles.css?v=20260721-cell-structure-server-verified-v1"), "cell_structure style cache bust missing");
+    assert(index.includes("styles.css?v=20260721-cell-structure-scrolltop-v1"), "cell_structure style cache bust missing");
   }
   if (unitId === "cell_observation") {
     assert(index.includes("styles.css?v=20260717-badge-icon-cleanup-v1"), "cell_observation style cache bust missing");

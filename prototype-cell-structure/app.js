@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260721-cell-structure-server-verified-v1";
+const VERSION = "20260721-cell-structure-scrolltop-v1";
 const QUESTION_VERSION = "20260720-cell-structure-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -100,7 +100,7 @@ function redirectLockedAttempt() {
   unlock("result", "achievements");
   saveState();
   render();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  resetScreenScroll();
 }
 
 function normalizeLockedScreen() {
@@ -184,11 +184,19 @@ function setScreen(next) {
     return;
   }
   if (next !== "result") state.lockNotice = "";
+  resetScreenScroll();
   state.screen = next;
   if (!state.completedScreens.includes(next)) state.completedScreens.push(next);
   saveState();
   render();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  resetScreenScroll();
+}
+
+function resetScreenScroll() {
+  document.scrollingElement?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  document.querySelector(".main-stage")?.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
+  screen?.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
 }
 
 function unlock(...screens) {
@@ -208,7 +216,13 @@ function renderNav() {
   });
 
   if (activeButton && window.matchMedia("(max-width: 980px)").matches) {
-    activeButton.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    const list = activeButton.closest(".step-list");
+    if (list) {
+      list.scrollTo({
+        left: activeButton.offsetLeft - (list.clientWidth - activeButton.clientWidth) / 2,
+        behavior: "auto"
+      });
+    }
   }
 
   if (!state.student) {
