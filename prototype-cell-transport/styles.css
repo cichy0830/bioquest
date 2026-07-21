@@ -276,26 +276,12 @@ textarea { min-height: 96px; resize: vertical; }
 .question-image-wrap { width: min(100%, 680px); margin: 0 auto; aspect-ratio: 16 / 9; }
 .question-image-wrap img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .question-visual figcaption { padding: 10px 12px; color: var(--muted); font-size: 13px; font-weight: 800; }
-.data-table-wrap { margin: 12px 0; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
-.evidence-table { width: 100%; min-width: 520px; border-collapse: collapse; text-align: center; }
+.data-table-wrap { max-width: 100%; margin: 12px 0; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+.evidence-table { width: 100%; min-width: min(520px, 100%); border-collapse: collapse; text-align: center; }
 .evidence-table caption { padding: 12px; color: var(--teal-dark); font-weight: 900; text-align: left; }
 .evidence-table th, .evidence-table td { padding: 11px 12px; border-top: 1px solid var(--line); }
 .evidence-table thead th { background: #e7f5f2; }
 .evidence-table tbody th { color: var(--teal-dark); background: #f6fbf9; }
-
-.sortable-list { display:grid; gap:10px; }
-.sortable-item {
-  display:grid;
-  grid-template-columns: 34px minmax(0,1fr) auto;
-  gap:10px;
-  align-items:center;
-  padding:12px;
-  border:1px solid var(--line);
-  border-radius:8px;
-  background:#fff;
-}
-.drag-handle { width:22px; height:22px; border-radius:6px; background: repeating-linear-gradient(0deg, rgba(16,152,166,.7), rgba(16,152,166,.7) 2px, transparent 2px, transparent 6px); }
-.sequence-move-buttons { display:flex; gap:6px; }
 
 .microscope-layout { display: grid; grid-template-columns: minmax(250px, .9fr) minmax(0,1fr); gap: 16px; align-items: start; }
 .scope-card { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.74); }
@@ -383,9 +369,6 @@ textarea { min-height: 96px; resize: vertical; }
   .mentor-card, .classify-row { grid-template-columns: 1fr; }
   .mentor-avatar { min-height: 230px; height: min(62vw, 320px); place-items: center; }
   .owl-frame { min-height: 260px; }
-  .sortable-item { grid-template-columns: 34px minmax(0,1fr); }
-  .sequence-move-buttons { grid-column:1 / -1; }
-  .sequence-move-buttons button { flex:1; }
   .badge-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .asset-strip { grid-template-columns: 1fr; }
   .actions { display:grid; grid-template-columns:1fr; }

@@ -3,8 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260716-cell-transport-u8-ux-v1";
-const QUESTION_VERSION = "20260716-cell-transport-canonical-v1";
+const VERSION = "20260721-cell-transport-q07-inactive-cache-v1";
+const QUESTION_VERSION = "20260721-cell-transport-q07-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -37,7 +37,7 @@ const assets = {
   plantCellImage: "assets/cell-transport-plant-cell-concentration-set.webp"
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/cell_transport/badge-cell_transport-${id}.webp`;
+const badgeAsset = (id) => `../shared-assets/badges/cell_transport/badge-cell_transport-${id}.webp?v=${VERSION}`;
 const reflectionRules = {
   conceptTerms: ["擴散", "滲透", "半透膜", "細胞膜", "濃度", "溶液濃度", "水分", "紅血球", "植物細胞", "質壁分離", "馬鈴薯", "皺縮", "膨脹"],
   irrelevantTerms: ["老師好帥", "帥", "午餐", "下課", "遊戲", "天氣", "好笑"],
@@ -178,16 +178,9 @@ const questions = [
   }
 ];
 
-const sequenceSteps = [
-  { id: "track", label: "確認要追蹤的是水還是其他物質" },
-  { id: "membrane", label: "確認是否有膜或半透膜" },
-  { id: "concentration", label: "比較兩側濃度" },
-  { id: "predict", label: "預測主要移動方向" }
-];
-const correctSequence = sequenceSteps.map((step) => step.id);
 const sectionMap = {
   checkpoint1: ["q01", "q02", "q03", "q04"],
-  checkpoint2: ["q05", "q06", "q07", "q08"],
+  checkpoint2: ["q05", "q06", "q08"],
   checkpoint3: ["q09", "q10", "q11", "q12", "q13", "q14"]
 };
 
@@ -208,7 +201,7 @@ const defaultState = {
   completed_unit_count: 0,
   started_at: null,
   completedScreens: ["login", "rules"],
-  answers: { q07_sequence: [], reflection: {} },
+  answers: { reflection: {} },
   hints: {},
   checkedWrong: {},
   interactions: {},
@@ -220,13 +213,17 @@ const defaultState = {
   backend_status: ""
 };
 let state = loadState();
-let draggedSequenceId = null;
 
 function clone(value) { return JSON.parse(JSON.stringify(value)); }
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
-    return saved ? { ...clone(defaultState), ...saved, answers: { ...clone(defaultState.answers), ...(saved.answers || {}) }, interactions: { ...(saved.interactions || {}) } } : clone(defaultState);
+    const next = saved ? { ...clone(defaultState), ...saved, answers: { ...clone(defaultState.answers), ...(saved.answers || {}) }, interactions: { ...(saved.interactions || {}) } } : clone(defaultState);
+    delete next.answers.q07_sequence;
+    delete next.hints.q07;
+    delete next.checkedWrong.q07;
+    delete next.interactions.q07;
+    return next;
   }
   catch { return clone(defaultState); }
 }
@@ -320,6 +317,12 @@ function applyBackendProgress(progress = {}) {
   }
 }
 function questionById(qid) { return questions.find((question) => question.id === qid); }
+function activeQuestionIds() { return [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3]; }
+function activeRawAnswers() {
+  const raw = { reflection: clone(state.answers.reflection || {}) };
+  activeQuestionIds().forEach((qid) => { raw[qid] = state.answers[qid]; });
+  return raw;
+}
 function shuffle(ids) {
   const result = [...ids];
   for (let i = result.length - 1; i > 0; i -= 1) {
@@ -331,10 +334,6 @@ function shuffle(ids) {
 function orderedOptions(question) {
   if (!state.optionOrders[question.id]) state.optionOrders[question.id] = shuffle(question.options.map((option) => option.id));
   return state.optionOrders[question.id].map((id) => question.options.find((option) => option.id === id));
-}
-function ensureSequence() {
-  if (!Array.isArray(state.answers.q07_sequence) || state.answers.q07_sequence.length !== sequenceSteps.length) state.answers.q07_sequence = shuffle(sequenceSteps.map((step) => step.id));
-  return state.answers.q07_sequence;
 }
 function unlock(...screens) {
   screens.forEach((item) => { if (!state.completedScreens.includes(item)) state.completedScreens.push(item); });
@@ -436,7 +435,6 @@ async function login(id) {
     state.question_version = QUESTION_VERSION;
     state.backend_status = "local_guest";
     unlock("brief", "rules", "achievements");
-    ensureSequence();
     saveState();
     setScreen("brief");
     return;
@@ -483,7 +481,6 @@ async function login(id) {
   state.cumulative_total_exp = Number(remoteProgress.total_exp ?? remoteProgress.total_credited_exp ?? 0);
   state.completed_unit_count = Number(remoteProgress.completed_unit_count || 0);
   unlock("brief", "rules", "achievements");
-  ensureSequence();
   saveState();
   setScreen("brief");
 }
@@ -502,7 +499,7 @@ function renderBrief() {
       <img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'">
     </figure>
     <div class="scene-copy bq-brief-scene-caption"><h3>微觀研究站偵測到濃度異常</h3><p>有些粒子慢慢散開，有些細胞在不同溶液中改變外形。請先判斷追蹤物質、膜的條件與濃度差，再用證據解釋變化。</p></div>
-    <div class="mission-hud"><div><span>任務區</span><strong>微觀研究站</strong></div><div><span>重點</span><strong>擴散與滲透</strong></div><div><span>排序題</span><strong>拖曳 + 上下移</strong></div></div>
+    <div class="mission-hud"><div><span>任務區</span><strong>微觀研究站</strong></div><div><span>重點</span><strong>擴散與滲透</strong></div><div><span>資料判讀</span><strong>質量與濃度</strong></div></div>
     <div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
 }
 function renderScan() {
@@ -536,28 +533,19 @@ function renderChoiceQuestion(qid) {
   const question = questionById(qid);
   return `<div class="question-card" data-question-id="${qid}"><h3>${question.prompt}</h3>${renderQuestionImage(question)}${renderQuestionData(question)}<div class="choice-grid">${orderedOptions(question).map((option) => `<button class="choice-button${selectedClass(question, option)}" data-choice="${qid}" data-value="${option.id}">${option.text}</button>`).join("")}</div><p class="selected-answer">${state.answers[qid] ? `已選：${question.options.find((option) => option.id === state.answers[qid])?.text || ""}` : "尚未選擇"}</p>${state.hints[qid] ? `<div class="feedback warn">${question.hint}</div>` : ""}</div>`;
 }
-function renderSequenceQuestion() {
-  const order = ensureSequence();
-  return `<div class="question-card"><h3>判斷細胞膜兩側物質移動方向時，請拖曳排序卡，排出較合理的思考流程。</h3><p class="field-help">操作方式：拖曳卡片排序。手機可使用每張卡片的上移 / 下移按鈕。</p><div class="sortable-list">${order.map((id, index) => {
-    const step = sequenceSteps.find((item) => item.id === id);
-    return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><strong>${step.label}</strong><div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`;
-  }).join("")}</div>${state.hints.q07 ? "<div class=\"feedback warn\">先確認本題研究的對象與限制條件；方向判斷要建立在兩側環境比較之後。</div>" : ""}</div>`;
-}
 function renderCheckpoint1() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>擴散、滲透與半透膜</h2><div class="question-grid">${sectionMap.checkpoint1.map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`; }
-function renderCheckpoint2() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>濃度方向與資料判讀</h2><div class="question-grid">${["q05", "q06"].map(renderChoiceQuestion).join("")}${renderSequenceQuestion()}${renderChoiceQuestion("q08")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`; }
+function renderCheckpoint2() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>濃度方向與資料判讀</h2><div class="question-grid">${sectionMap.checkpoint2.map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`; }
 function renderCheckpoint3() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>細胞環境模擬與迷思修正</h2><div class="cell-change-strip"><div class="change-card animal"><strong>紅血球</strong><span>沒有細胞壁</span></div><div class="change-card plant"><strong>植物細胞</strong><span>有細胞壁支撐</span></div><div class="change-card data"><strong>資料線索</strong><span>質量改變可作為水分進出的證據</span></div></div><div class="question-grid">${sectionMap.checkpoint3.map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`; }
 
 function isCorrect(qid) {
-  if (qid === "q07") return ensureSequence().join("|") === correctSequence.join("|");
   const question = questionById(qid);
   return state.answers[qid] === question?.answer;
 }
 function isAnswered(qid) {
-  if (qid === "q07") return Boolean(state.interactions.q07) && ensureSequence().length === correctSequence.length;
   return Boolean(state.answers[qid]);
 }
 function allRequiredAnswered() {
-  return [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3].every(isAnswered);
+  return activeQuestionIds().every(isAnswered);
 }
 async function markHint(qid) {
   if (state.hints[qid]) {
@@ -608,16 +596,6 @@ async function checkSection(section) {
   if (next === "review") state.result = calculateResult();
   unlock(next); saveState(); setScreen(next);
 }
-function moveSequence(id, dir) {
-  const order = ensureSequence(); const index = order.indexOf(id); const next = index + dir;
-  if (index < 0 || next < 0 || next >= order.length) return;
-  [order[index], order[next]] = [order[next], order[index]]; state.answers.q07_sequence = order; state.interactions.q07 = true; saveState(); render();
-}
-function dropSequence(targetId) {
-  if (!draggedSequenceId || draggedSequenceId === targetId) return;
-  const order = ensureSequence().filter((id) => id !== draggedSequenceId);
-  order.splice(order.indexOf(targetId), 0, draggedSequenceId); state.answers.q07_sequence = order; state.interactions.q07 = true; draggedSequenceId = null; saveState(); render();
-}
 function attachQuestionEvents() {
   document.querySelectorAll("[data-choice]").forEach((button) => button.addEventListener("click", async () => {
     const question = questionById(button.dataset.choice);
@@ -629,12 +607,6 @@ function attachQuestionEvents() {
     }
     saveState(); render();
   }));
-  document.querySelectorAll("[data-move]").forEach((button) => button.addEventListener("click", () => moveSequence(button.dataset.move, Number(button.dataset.dir))));
-  document.querySelectorAll(".sortable-item").forEach((item) => {
-    item.addEventListener("dragstart", () => { draggedSequenceId = item.dataset.sequenceId; });
-    item.addEventListener("dragover", (event) => event.preventDefault());
-    item.addEventListener("drop", (event) => { event.preventDefault(); dropSequence(item.dataset.sequenceId); });
-  });
   const checkButton = document.querySelector("#checkSection");
   if (checkButton) checkButton.addEventListener("click", () => checkSection(checkButton.dataset.section));
 }
@@ -642,8 +614,8 @@ function attachQuestionEvents() {
 function evaluateReflectionQuality(reflection) {
   return window.BioQuestReflectionQuality.evaluate(reflection, reflectionRules);
 }
-function questionConcept(qid) { return qid === "q07" ? "concentration_gradient" : questionById(qid)?.concept || "unknown"; }
-function questionMisconception(qid) { return qid === "q07" ? "transport_decision_sequence" : questionById(qid)?.misconception || "unknown"; }
+function questionConcept(qid) { return questionById(qid)?.concept || "unknown"; }
+function questionMisconception(qid) { return questionById(qid)?.misconception || "unknown"; }
 function answerDescription(qid) {
   const map = {
     q03: "水分主要往濃糖水一側移動",
@@ -652,7 +624,6 @@ function answerDescription(qid) {
     q13: "判斷滲透要比較半透膜兩側溶液濃度差"
   };
   if (map[qid]) return map[qid];
-  if (qid === "q07") return "依序確認追蹤對象、膜條件、兩側濃度，再預測主要移動方向";
   const question = questionById(qid);
   return question?.options?.find((option) => option.id === question.answer)?.text || "";
 }
@@ -667,7 +638,7 @@ function conceptMastery(qids) {
   }, {});
 }
 function calculateResult() {
-  const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
+  const qids = activeQuestionIds();
   const correctIds = qids.filter(isCorrect); const total = qids.length; const correct = correctIds.length;
   const hintUsed = Object.values(state.hints).filter(Boolean).length;
   const direct = correctIds.filter((qid) => !state.hints[qid]).length;
@@ -692,7 +663,7 @@ function calculateResult() {
   if (["q01", "q02", "q05"].filter(isCorrect).length / 3 >= .85) earned.push("diffusion_direction_judge");
   if (["q03", "q13"].filter(isCorrect).length / 2 >= .85) earned.push("osmosis_flow_mapper");
   if (["q04", "q06", "q14"].filter(isCorrect).length / 3 >= .85) earned.push("semipermeable_membrane_keeper");
-  if (["q05", "q07", "q08"].filter(isCorrect).length / 3 >= .85) earned.push("concentration_data_reader");
+  if (["q05", "q08"].every(isCorrect)) earned.push("concentration_data_reader");
   if (["q09", "q10", "q11", "q12"].filter(isCorrect).length / 4 >= .85) earned.push("cell_change_explainer");
   if (correctIds.some((qid) => state.hints[qid] && ["diffusion", "osmosis", "semipermeable_membrane", "concentration_gradient"].includes(questionConcept(qid)))) earned.push("transport_misconception_reviser");
   if (accuracy === 1 && hintUsed === 0) earned.push("cell_transport_flawless");
@@ -719,7 +690,6 @@ function misconceptionText(tag) {
     semipermeable_as_wall: "建議再確認半透膜：它不是完全封閉，而是讓某些物質通過、限制另一些物質通過。",
     direction_by_water_amount_only: "建議再練習方向判斷：比較兩側溶液濃度，不要只看水量或容器大小。",
     diffusion_direction_by_solute_concentration: "建議先鎖定題目追蹤的物質本身，再比較它在膜兩側的濃度；若可通過，淨移動趨勢由該物質濃度較高處往較低處。",
-    transport_decision_sequence: "建議再把每一步的判斷目的連起來：先確認追蹤對象，再確認會影響通過的膜條件，最後才用兩側濃度推論主要方向。",
     cell_membrane_all_or_none: "建議再理解細胞膜選擇性通透：不是完全開放，也不是完全封閉。",
     animal_cell_wall_confusion: "建議再比較動物與植物細胞：紅血球沒有細胞壁，外形較容易受水分進出影響。",
     plant_cell_burst_like_animal: "建議再確認植物細胞壁的支撐作用：在清水中通常較膨脹，但不容易像動物細胞那樣破裂。",
@@ -738,11 +708,11 @@ function renderReflection() {
 }
 function buildAttempt() {
   const now = new Date().toISOString();
-  const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
-  return { attempt_id: state.attempt_id || state.attempt_session_id, timestamp: now, student: state.student, mission, attempt_type: state.attempt_type, attempt_type_candidate: state.attempt_type, attempt_no: Number(state.remote_completed_attempts || 0) + 1, attempt_session_id: state.attempt_session_id, attempt_session_token: state.attempt_session_token, question_version: state.question_version || QUESTION_VERSION, started_from_login: true, previous_attempt_id: previousAttemptId(), retry_validation_status: state.attempt_type === "retry" ? "pending_backend_validation" : "not_retry", started_at: state.started_at, submitted_at: state.submitted_at || now, completion_status: "complete", required_answer_count: qids.length, answered_required_count: qids.filter(isAnswered).length, backend_status: state.backend_status, ...state.result, confidence_score: state.answers.reflection.confidence_score, confident_concept: state.answers.reflection.confident_concept, uncertain_concept: state.answers.reflection.uncertain_concept, student_question: state.answers.reflection.student_question, raw_answers: state.answers, payload_version: VERSION };
+  const qids = activeQuestionIds();
+  return { attempt_id: state.attempt_id || state.attempt_session_id, timestamp: now, student: state.student, mission, attempt_type: state.attempt_type, attempt_type_candidate: state.attempt_type, attempt_no: Number(state.remote_completed_attempts || 0) + 1, attempt_session_id: state.attempt_session_id, attempt_session_token: state.attempt_session_token, question_version: state.question_version || QUESTION_VERSION, started_from_login: true, previous_attempt_id: previousAttemptId(), retry_validation_status: state.attempt_type === "retry" ? "pending_backend_validation" : "not_retry", started_at: state.started_at, submitted_at: state.submitted_at || now, completion_status: "complete", required_answer_count: qids.length, answered_required_count: qids.filter(isAnswered).length, backend_status: state.backend_status, ...state.result, confidence_score: state.answers.reflection.confidence_score, confident_concept: state.answers.reflection.confident_concept, uncertain_concept: state.answers.reflection.uncertain_concept, student_question: state.answers.reflection.student_question, raw_answers: activeRawAnswers(), payload_version: VERSION };
 }
 function buildBackendPayload(attempt) {
-  const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];
+  const qids = activeQuestionIds();
   return {
     attempt_id: attempt.attempt_id, student_id: attempt.student.student_id, student_name: attempt.student.student_name, class_name: attempt.student.class_name, seat_no: attempt.student.seat_no,
     unit_id: mission.unit_id, unit_title: mission.unit_title, mission_title: mission.mission_title, attempt_type: attempt.attempt_type, attempt_type_candidate: attempt.attempt_type_candidate, attempt_no_candidate: attempt.attempt_no, attempt_session_id: attempt.attempt_session_id, attempt_session_token: attempt.attempt_session_token, question_version: attempt.question_version, started_from_login: attempt.started_from_login, previous_attempt_id: attempt.previous_attempt_id, retry_validation_status: attempt.retry_validation_status, completion_status: attempt.completion_status, required_answer_count: attempt.required_answer_count, answered_required_count: attempt.answered_required_count, all_required_answered: attempt.all_required_answered, started_at: attempt.started_at, submitted_at: attempt.submitted_at,
@@ -753,7 +723,7 @@ function buildBackendPayload(attempt) {
     teacher_attention_needed: attempt.teacher_attention_needed, student_question: attempt.student_question,
     diffusion_direction_score: scoreForConcept(attempt, "diffusion"), osmosis_flow_score: scoreForConcept(attempt, "osmosis"), semipermeable_membrane_score: scoreForConcept(attempt, "semipermeable_membrane", "cell_membrane_selectivity"), concentration_data_score: scoreForConcept(attempt, "concentration_gradient", "evidence_based_prediction"), cell_change_explanation_score: scoreForConcept(attempt, "animal_cell_concentration_change", "plant_cell_concentration_change"), diffusion_osmosis_compare_score: scoreForConcept(attempt, "diffusion", "osmosis"),
     misconceptions_json: JSON.stringify(attempt.misconceptions), raw_answers_json: JSON.stringify(attempt.raw_answers), badges_json: JSON.stringify(attempt.badges), existing_badges_json: JSON.stringify(cumulativeBadgeIds()), cumulative_badges_candidate_json: JSON.stringify(attempt.cumulative_badges_candidate), badge_eval_json: JSON.stringify(badges.map((badge) => ({ badge_id: badge.id, earned_candidate: attempt.badges.includes(badge.id), badge_image_path: badge.badge_image_path }))),
-    question_logs: qids.map((qid) => ({ question_id: `${mission.unit_id}_${qid}`, question_version: attempt.question_version, question_type: qid === "q07" ? "sequence" : "choice", skill_tag: questionConcept(qid), concept_id: questionConcept(qid), checkpoint_id: qid === "q07" ? "checkpoint2" : questionById(qid)?.section, is_correct: isCorrect(qid), hint_used: Boolean(state.hints[qid]), used_hint: Boolean(state.hints[qid]), attempt_answer: JSON.stringify(qid === "q07" ? state.answers.q07_sequence : state.answers[qid]), answer_json: JSON.stringify(qid === "q07" ? state.answers.q07_sequence : state.answers[qid]), correct_answer: qid === "q07" ? correctSequence.join(" > ") : questionById(qid)?.answer, answer_description: answerDescription(qid), exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept", exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total) }))
+    question_logs: qids.map((qid) => ({ question_id: `${mission.unit_id}_${qid}`, question_version: attempt.question_version, question_type: "choice", skill_tag: questionConcept(qid), concept_id: questionConcept(qid), checkpoint_id: questionById(qid)?.section, is_correct: isCorrect(qid), hint_used: Boolean(state.hints[qid]), used_hint: Boolean(state.hints[qid]), attempt_answer: JSON.stringify(state.answers[qid]), answer_json: JSON.stringify(state.answers[qid]), correct_answer: questionById(qid)?.answer, answer_description: answerDescription(qid), exp_type: !isCorrect(qid) ? "none" : state.hints[qid] ? "revision" : "concept", exp_awarded: !isCorrect(qid) ? 0 : Math.round((state.hints[qid] ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / attempt.total) }))
   };
 }
 async function submitAttemptToBackend(attempt) {
