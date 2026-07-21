@@ -28,7 +28,7 @@ const sharedVersionOverrides = new Map([
   ["prototype-cardiovascular-components", "20260720-cardiovascular-components-brief-visible-v2"],
   ["prototype-human-circulation", "20260720-human-circulation-badges-v1"],
   ["prototype-stimulus-response", "20260721-stimulus-response-badges-b-v1"],
-  ["prototype-nervous-system", "20260713-login-busy-v1"],
+  ["prototype-nervous-system", "20260721-title-avatar-webp-v1"],
   ["prototype-endocrine-system", "20260713-login-busy-v1"],
   ["prototype-behavior-sensing", "20260713-login-busy-v1"],
   ["prototype-respiration-homeostasis", "20260713-login-busy-v1"],
