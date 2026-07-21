@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-stimulus-response/app.js" });
 const api = context.window.__stimulus_responseTest;
 
-assert.equal(api.VERSION, "20260720-stimulus-response-qa-roles-badges-v2");
+assert.equal(api.VERSION, "20260721-stimulus-response-badges-cd-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-stimulus-response-ready-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -39,9 +39,25 @@ assert(!source.includes("startData.question_version !== VERSION"), "startAttempt
 assert.equal(api.mission.unit_id, "stimulus_response");
 assert.equal(api.questions.length, 14);
 assert.equal(api.badges.length, 15);
-assert.equal(api.badges.filter((badge) => badge.image_status === "ready").length, 4);
-assert.equal(api.badges.filter((badge) => badge.image_status === "pending").length, 11);
-for (const id of ["stimulus_response_entry", "response_pathway_sequencer", "reaction_time_reader", "stimulus_response_flawless"]) {
+assert.equal(api.badges.filter((badge) => badge.image_status === "ready").length, 15);
+assert.equal(api.badges.filter((badge) => badge.image_status === "pending").length, 0);
+for (const id of [
+  "stimulus_response_entry",
+  "stimulus_response_identifier",
+  "stimulus_response_misconception_spotter",
+  "receptor_effector_matcher",
+  "response_pathway_sequencer",
+  "role_context_classifier",
+  "rapid_response_reasoner",
+  "reaction_time_reader",
+  "reaction_data_cautious_reader",
+  "fair_test_designer",
+  "stimulus_response_misconception_reviser",
+  "stimulus_response_flawless",
+  "stimulus_response_reflection_reporter",
+  "retry_growth_stimulus_response",
+  "response_evidence_integrator"
+]) {
   const badge = api.badges.find((item) => item.id === id);
   assert.equal(badge.image_status, "ready", id);
   assert(badge.badge_image_path.includes(`badge-stimulus_response-${id}.webp?v=${api.VERSION}`), `${id} badge URL must include cache VERSION`);

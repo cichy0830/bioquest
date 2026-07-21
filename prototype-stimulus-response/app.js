@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260721-stimulus-response-badges-b-v1";
+const VERSION = "20260721-stimulus-response-badges-cd-v1";
 const QUESTION_VERSION = "20260718-stimulus-response-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -44,12 +44,19 @@ const assets = {
 const readyBadgeIds = new Set([
   "stimulus_response_entry",
   "stimulus_response_identifier",
+  "stimulus_response_misconception_spotter",
   "receptor_effector_matcher",
   "response_pathway_sequencer",
+  "role_context_classifier",
+  "rapid_response_reasoner",
   "reaction_time_reader",
   "reaction_data_cautious_reader",
   "fair_test_designer",
-  "stimulus_response_flawless"
+  "stimulus_response_misconception_reviser",
+  "stimulus_response_flawless",
+  "stimulus_response_reflection_reporter",
+  "retry_growth_stimulus_response",
+  "response_evidence_integrator"
 ]);
 
 function badgeAsset(id) {

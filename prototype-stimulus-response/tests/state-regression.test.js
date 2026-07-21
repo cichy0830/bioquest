@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-stimulus-response")
   : sourceRoot;
-const VERSION = "20260720-stimulus-response-qa-roles-badges-v2";
+const VERSION = "20260721-stimulus-response-badges-cd-v1";
 const STORAGE_KEY = "bioquest_stimulus_response_state_v1";
 const QUESTION_VERSION = "20260718-stimulus-response-ready-v1";
 const UNIT_ID = "stimulus_response";
@@ -29,7 +29,7 @@ function stateFor(status, screen) {
     title_avatar_path: backendStyleAvatarPath,
     unit_badge_summary_json: JSON.stringify([
       { unit_id: "human_circulation", unit_title: "人體的循環系統", total_badges: 15, earned_count: 4, earned_badges: [] },
-      { unit_id: UNIT_ID, unit_title: "刺激與反應", total_badges: 15, earned_count: status === "verified" ? 1 : 0, earned_badges: [] }
+      { unit_id: UNIT_ID, unit_title: "刺激與反應", total_badges: 15, earned_count: status === "verified" ? 15 : 0, earned_badges: [] }
     ])
   };
   return {
@@ -121,7 +121,7 @@ try {
           unitBeforeOverview: unit && overview ? nodes.indexOf(unit) < nodes.indexOf(overview) : false,
           badgeCountBeforeTitle: title ? [...document.querySelectorAll("[data-bq-unit-achievements] .badge")].filter((badge) => nodes.indexOf(badge) < nodes.indexOf(title)).length : 0,
           readyBadgeCount: document.querySelectorAll("[data-bq-unit-achievements] .badge-visual:not(.asset-missing) img").length,
-          readyBadgeUrls: [...document.querySelectorAll("[data-bq-unit-achievements] .badge-visual:not(.asset-missing) img")].map((img) => img.getAttribute("src") || ""),
+          readyBadgeUrls: [...document.querySelectorAll("[data-bq-unit-achievements] .badge-visual:not(.asset-missing) img")].map((img) => img.currentSrc || img.src || ""),
           titleText: title?.textContent || "",
           pendingBadgeCount: document.querySelectorAll("[data-bq-unit-achievements] .badge-visual.asset-missing").length,
           hasOverflow: document.documentElement.scrollWidth > innerWidth
@@ -134,8 +134,8 @@ try {
       assert.equal(snapshot.unitBeforeTitle, true, "unit badge panel should appear before title card");
       assert.equal(snapshot.unitBeforeOverview, true, "unit badge panel should appear before whole-book overview");
       assert.equal(snapshot.badgeCountBeforeTitle, 15, "all 15 unit badges must appear before title card");
-      assert.equal(snapshot.readyBadgeCount, 4, "four approved U20 badges should render real images");
-      assert.equal(snapshot.pendingBadgeCount, 11, "remaining U20 badges should stay controlled pending fallback");
+      assert.equal(snapshot.readyBadgeCount, 15, "all 15 approved U20 badges should render real images");
+      assert.equal(snapshot.pendingBadgeCount, 0, "U20 should have no controlled pending badge fallback after final approval");
       assert(snapshot.readyBadgeUrls.every((url) => url.includes(`?v=${VERSION}`)), "ready badge URLs must carry runtime cache busting");
       if (status === "verified") {
         assert(snapshot.titleText.includes("8600 EXP"), "verified title card should use StudentProgress total");

@@ -49,7 +49,7 @@ try {
     });
     page.on("dialog", (dialog) => dialog.accept());
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260720-stimulus-response-qa-roles-badges-v2`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260721-stimulus-response-badges-cd-v1`);
     await page.locator("#guestBtn").click();
     await page.locator(".bq-brief-scene-stage").waitFor();
     const briefSnapshot = await page.evaluate(() => {
@@ -129,8 +129,8 @@ try {
     await page.locator('[data-next="achievements"]').click();
     await page.locator(".achievements-stack").waitFor();
     assert.equal(await page.locator("[data-bq-unit-achievements] .badge").count(), 15, "all 15 unit badges should render before shared title");
-    assert.equal(await page.locator("[data-bq-unit-achievements] .badge-visual:not(.asset-missing) img").count(), 4, "four approved badge images should render");
-    assert.equal(await page.locator("[data-bq-unit-achievements] .badge-visual.asset-missing").count(), 11, "eleven badges should remain controlled pending");
+    assert.equal(await page.locator("[data-bq-unit-achievements] .badge-visual:not(.asset-missing) img").count(), 15, "all fifteen approved badge images should render");
+    assert.equal(await page.locator("[data-bq-unit-achievements] .badge-visual.asset-missing").count(), 0, "no U20 badges should remain controlled pending");
     assert.equal(await page.locator(".bq-title-avatar-card").count(), 1, "shared title avatar should be exactly one");
     assert.equal(await page.locator(".bq-all-unit-badge-overview").count(), 1, "whole-book overview missing");
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "achievement horizontal overflow");
