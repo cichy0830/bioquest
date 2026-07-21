@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260721-behavior-sensing-p1-v1";
+const VERSION = "20260721-behavior-sensing-p1-v2";
 const QUESTION_VERSION = "20260718-behavior-sensing-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -839,7 +839,7 @@ function renderScan() {
 }
 
 function renderCheckpoint(section) {
-  const heading = { checkpoint1:["刺激反應與動物行為","先確認環境刺激、生物反應，以及動物行為可能支持的生活需求。"], checkpoint2:["趨性與向性判讀","用整體移動或植物生長方向改變，分辨趨性與向性。"], checkpoint3:["植物感應運動與邊界","判讀含羞草、睡眠運動、植物反應方式，並守住相鄰單元邊界。"] }[section];
+  const heading = { checkpoint1:["刺激反應與動物行為","先確認環境刺激、生物反應，以及動物行為可能支持的生活需求。"], checkpoint2:["方向反應情境判讀","觀察刺激來源、反應發生的位置與方向，再依題目資訊判讀。"], checkpoint3:["植物感應運動與邊界","判讀含羞草、睡眠運動、植物反應方式，並守住相鄰單元邊界。"] }[section];
   return `<div class="stack checkpoint-stack"><section class="panel"><p class="eyebrow">互動關卡</p><h2>${heading[0]}</h2><p class="lead">${heading[1]}</p></section>${sections[section].map((id)=>renderQuestion(questionMap[id])).join("")}<section class="panel action-panel"><p class="muted">本區每題都需留下作答紀錄；不確定時可先選擇，任務後會給概念回饋。</p><button class="primary" data-section-next="${section}">${section === "checkpoint3" ? "整理任務回饋" : "前往下一關"}</button></section></div>`;
 }
 
