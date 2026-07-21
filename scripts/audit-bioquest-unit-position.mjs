@@ -14,7 +14,7 @@ const sharedVersionOverrides = new Map([
   ["scientific_method", "20260715-brief-scene-unified-u1u7-v1"],
   ["lab_intro", "20260715-brief-scene-unified-u1u7-v1"],
   ["microscope_use", "20260715-brief-scene-unified-u1u7-v1"],
-  ["cell_basic_unit", "20260715-brief-scene-unified-u1u7-v1"],
+  ["cell_basic_unit", "20260721-cell-basic-unit-required-gates-v1"],
   ["cell_structure", "20260721-cell-structure-server-verified-v1"],
   ["cell_observation", "20260716-cell-observation-guest-local-v1"],
   ["cell_transport", "20260716-cell-transport-u8-ux-v1"],

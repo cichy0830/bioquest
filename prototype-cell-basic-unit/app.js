@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260721-cell-basic-unit-readiness-v1";
+const VERSION = "20260721-cell-basic-unit-required-gates-v1";
 const BASIC_UNIT_VERSION = "20260712-basic-unit-sheet-login-v4";
 const mission = {
   unit_id: "cell_basic_unit",
@@ -76,6 +76,7 @@ const defaultState = {
   failed_hint_ids: [],
   completedScreens: ["login", "rules"],
   activeToken: null,
+  checkpointNotices: {},
   answers: {
     checkpoint1: {},
     checkpoint1Hints: {},
@@ -574,8 +575,77 @@ function confirmMulti() {
   render();
   return isCorrect;
 }
+function hasChoiceAnswer(questionId) {
+  const q = questionById(questionId);
+  return Boolean(state.answers[q.section]?.[questionId]);
+}
+function checkpointMissingItems(checkpointId) {
+  if (checkpointId === "checkpoint1") {
+    const selected = state.answers.checkpoint1.multi || [];
+    return [
+      !hasChoiceAnswer("q01") ? "q01 基本單位判斷" : "",
+      !selected.length || !state.answers.checkpoint1.multiConfirmed ? "複選題選取並確認" : "",
+      !hasChoiceAnswer("q02") ? "q02 顯微觀察證據判斷" : ""
+    ].filter(Boolean);
+  }
+  if (checkpointId === "checkpoint2") {
+    const classified = classifyItems.filter((item) => state.answers.checkpoint2[item.id]).length;
+    return [
+      classified < classifyItems.length ? `分類例子 ${classified}/${classifyItems.length}` : "",
+      !hasChoiceAnswer("q06") ? "q06 單細胞生命活動判斷" : "",
+      !hasChoiceAnswer("q07") ? "q07 單多細胞迷思修正" : ""
+    ].filter(Boolean);
+  }
+  if (checkpointId === "checkpoint3") {
+    const matched = matchItems.filter((item) => state.answers.checkpoint3[item.id]).length;
+    return [
+      matched < matchItems.length ? `形狀功能配對 ${matched}/${matchItems.length}` : "",
+      !hasChoiceAnswer("q09") ? "q09 神經細胞形狀判斷" : "",
+      !hasChoiceAnswer("q10") ? "q10 紅血球形狀判斷" : ""
+    ].filter(Boolean);
+  }
+  if (checkpointId === "checkpoint4") {
+    return [
+      !hasChoiceAnswer("q12") ? "q12 口腔皮膜觀察判斷" : "",
+      !state.answers.checkpoint4.sequenceConfirmed ? "層級排序確認" : "",
+      !hasChoiceAnswer("q14") ? "q14 細胞功能迷思修正" : ""
+    ].filter(Boolean);
+  }
+  return [];
+}
+function checkpointNoticeText(missingItems) {
+  return `尚未完成：${missingItems.join("、")}。請先完成本關所有作答，再進下一步。`;
+}
+function setCheckpointNotice(checkpointId, missingItems) {
+  state.checkpointNotices = { ...(state.checkpointNotices || {}), [checkpointId]: checkpointNoticeText(missingItems) };
+  saveState();
+  render();
+}
+function clearCheckpointNotice(checkpointId) {
+  if (!state.checkpointNotices?.[checkpointId]) return;
+  state.checkpointNotices = { ...state.checkpointNotices };
+  delete state.checkpointNotices[checkpointId];
+}
+function renderCheckpointNotice(checkpointId) {
+  const missing = checkpointMissingItems(checkpointId);
+  const notice = state.checkpointNotices?.[checkpointId];
+  if (!notice || !missing.length) return "";
+  return `<div class="feedback warn checkpoint-blocker" role="alert">${checkpointNoticeText(missing)}</div>`;
+}
+function advanceCheckpoint(checkpointId, nextScreen, onAdvance) {
+  const missing = checkpointMissingItems(checkpointId);
+  if (missing.length) {
+    setCheckpointNotice(checkpointId, missing);
+    return false;
+  }
+  clearCheckpointNotice(checkpointId);
+  if (onAdvance) onAdvance();
+  unlock(nextScreen);
+  setScreen(nextScreen);
+  return true;
+}
 function renderCheckpoint1() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡一</p><h2>生命積木掃描</h2><p class="lead">用顯微鏡觀察證據與基本單位概念判斷。</p><div class="question-grid">${renderChoiceQuestion("q01")}${renderMultiSelect()}${renderChoiceQuestion("q02")}</div><div class="actions"><button class="primary" id="checkpoint1Next">進入單細胞與多細胞分類</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡一</p><h2>生命積木掃描</h2><p class="lead">用顯微鏡觀察證據與基本單位概念判斷。</p><div class="question-grid">${renderChoiceQuestion("q01")}${renderMultiSelect()}${renderChoiceQuestion("q02")}</div>${renderCheckpointNotice("checkpoint1")}<div class="actions"><button class="primary" id="checkpoint1Next">進入單細胞與多細胞分類</button></div></div></div>`;
 }
 function renderClassification() {
   const categories = [{ id: "single", title: "單細胞生物" }, { id: "multi", title: "多細胞生物" }];
@@ -595,7 +665,7 @@ function setCategory(category) {
   render();
 }
 function renderCheckpoint2() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡二</p><h2>單細胞與多細胞分類</h2><div class="question-grid">${renderClassification()}${renderChoiceQuestion("q06")}${renderChoiceQuestion("q07")}</div><div class="actions"><button class="primary" id="checkpoint2Next">進入形狀與功能配對</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡二</p><h2>單細胞與多細胞分類</h2><div class="question-grid">${renderClassification()}${renderChoiceQuestion("q06")}${renderChoiceQuestion("q07")}</div>${renderCheckpointNotice("checkpoint2")}<div class="actions"><button class="primary" id="checkpoint2Next">進入形狀與功能配對</button></div></div></div>`;
 }
 function renderMatchQuestion() {
   return `<article class="question-card"><p class="eyebrow">配對題</p><h3>請將細胞外形線索和可能功能配對。選完後會直接顯示已選答案。</h3><div class="stack">${matchItems.map((item) => {
@@ -615,7 +685,7 @@ function setMatch(id, value) {
   render();
 }
 function renderCheckpoint3() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡三</p><h2>形狀與功能配對</h2><div class="question-grid">${renderMatchQuestion()}${renderChoiceQuestion("q09")}${renderChoiceQuestion("q10")}</div><div class="actions"><button class="primary" id="checkpoint3Next">進入顯微證據判讀</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡三</p><h2>形狀與功能配對</h2><div class="question-grid">${renderMatchQuestion()}${renderChoiceQuestion("q09")}${renderChoiceQuestion("q10")}</div>${renderCheckpointNotice("checkpoint3")}<div class="actions"><button class="primary" id="checkpoint3Next">進入顯微證據判讀</button></div></div></div>`;
 }
 function getSequenceOrder() { return state.answers.checkpoint4.sequence || ["organism", "tissue", "cell"]; }
 function moveSequence(id, dir) {
@@ -625,6 +695,7 @@ function moveSequence(id, dir) {
   if (next < 0 || next >= order.length) return;
   [order[index], order[next]] = [order[next], order[index]];
   state.answers.checkpoint4.sequence = order;
+  state.answers.checkpoint4.sequenceConfirmed = false;
   saveState();
   render();
 }
@@ -634,20 +705,31 @@ function dropSequence(beforeId) {
   const index = order.indexOf(beforeId);
   order.splice(index < 0 ? order.length : index, 0, draggedSequenceId);
   state.answers.checkpoint4.sequence = order;
+  state.answers.checkpoint4.sequenceConfirmed = false;
   draggedSequenceId = null;
+  saveState();
+  render();
+}
+function confirmSequence() {
+  state.answers.checkpoint4.sequenceConfirmed = true;
+  if (getSequenceOrder().join("|") !== "organism|tissue|cell" && !state.answers.checkpoint4Hints.sequence) {
+    state.answers.checkpoint4Hints.sequence = true;
+    recordHintEvent("q13");
+  }
   saveState();
   render();
 }
 function renderSequenceQuestion() {
   const order = getSequenceOrder();
   const isWrong = order.join("|") !== "organism|tissue|cell";
+  const confirmed = Boolean(state.answers.checkpoint4.sequenceConfirmed);
   return `<article class="question-card"><p class="eyebrow">拖曳排序</p><h3>請由大到小排出生物層級。手機拖曳不穩時可用上移 / 下移。</h3><div class="sortable-list">${order.map((id, index) => {
     const step = sequenceSteps.find((item) => item.id === id);
     return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><strong>${step.label}</strong><div class="sequence-move-buttons"><button class="icon-action" data-sequence-move="${id}" data-direction="up" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-sequence-move="${id}" data-direction="down" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`;
-  }).join("")}</div>${isWrong && state.answers.checkpoint4Hints.sequence ? `<div class="feedback warn">提示：先找完整生物，再找身體的一部分，最後找顯微鏡下的小單位。</div>` : ""}</article>`;
+  }).join("")}</div><div class="multi-confirm-row"><button class="secondary" id="confirmSequence" type="button">確認這組排序</button><span class="selected-answer">${confirmed ? "已確認這組排序" : "尚未確認排序"}</span></div>${isWrong && state.answers.checkpoint4Hints.sequence ? `<div class="feedback warn">提示：先找完整生物，再找身體的一部分，最後找顯微鏡下的小單位。</div>` : ""}</article>`;
 }
 function renderCheckpoint4() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡四</p><h2>顯微證據與層級判斷</h2><div class="question-grid">${renderChoiceQuestion("q12")}${renderSequenceQuestion()}${renderChoiceQuestion("q14")}</div><div class="actions"><button class="primary" id="checkpoint4Next">查看概念回饋</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡四</p><h2>顯微證據與層級判斷</h2><div class="question-grid">${renderChoiceQuestion("q12")}${renderSequenceQuestion()}${renderChoiceQuestion("q14")}</div>${renderCheckpointNotice("checkpoint4")}<div class="actions"><button class="primary" id="checkpoint4Next">查看概念回饋</button></div></div></div>`;
 }
 
 function scoreChoice(questionId) {
@@ -1111,6 +1193,7 @@ function attachCommonChoiceHandlers() {
   document.querySelectorAll("[data-category]").forEach((button) => button.addEventListener("click", () => setCategory(button.dataset.category)));
   document.querySelectorAll("[data-match]").forEach((select) => select.addEventListener("change", () => setMatch(select.dataset.match, select.value)));
   document.querySelectorAll("[data-sequence-move]").forEach((button) => button.addEventListener("click", () => moveSequence(button.dataset.sequenceMove, button.dataset.direction)));
+  document.querySelector("#confirmSequence")?.addEventListener("click", confirmSequence);
   document.querySelectorAll("[data-sequence-id]").forEach((item) => {
     item.addEventListener("dragstart", (event) => { draggedSequenceId = item.dataset.sequenceId; event.dataTransfer?.setData("text/plain", draggedSequenceId); });
     item.addEventListener("dragover", (event) => event.preventDefault());
@@ -1123,15 +1206,15 @@ function attachEvents() {
   if (state.screen === "scan") document.querySelector("#scanNext").addEventListener("click", () => { unlock("checkpoint1"); setScreen("checkpoint1"); });
   if (state.screen === "checkpoint1") {
     attachCommonChoiceHandlers();
-    document.querySelector("#checkpoint1Next").addEventListener("click", () => { unlock("checkpoint2"); setScreen("checkpoint2"); });
+    document.querySelector("#checkpoint1Next").addEventListener("click", () => advanceCheckpoint("checkpoint1", "checkpoint2"));
   }
   if (state.screen === "checkpoint2") {
     attachCommonChoiceHandlers();
-    document.querySelector("#checkpoint2Next").addEventListener("click", () => { unlock("checkpoint3"); setScreen("checkpoint3"); });
+    document.querySelector("#checkpoint2Next").addEventListener("click", () => advanceCheckpoint("checkpoint2", "checkpoint3"));
   }
   if (state.screen === "checkpoint3") {
     attachCommonChoiceHandlers();
-    document.querySelector("#checkpoint3Next").addEventListener("click", () => { unlock("checkpoint4"); setScreen("checkpoint4"); });
+    document.querySelector("#checkpoint3Next").addEventListener("click", () => advanceCheckpoint("checkpoint3", "checkpoint4"));
   }
   if (state.screen === "checkpoint4") {
     attachCommonChoiceHandlers();
@@ -1139,7 +1222,7 @@ function attachEvents() {
       state.answers.checkpoint4Hints.sequence = true;
       recordHintEvent("q13");
     }
-    document.querySelector("#checkpoint4Next").addEventListener("click", () => { state.result = calculateResult(); saveState(); unlock("review"); setScreen("review"); });
+    document.querySelector("#checkpoint4Next").addEventListener("click", () => advanceCheckpoint("checkpoint4", "review", () => { state.result = calculateResult(); saveState(); }));
   }
   if (state.screen === "review") document.querySelector("#reviewNext")?.addEventListener("click", enterReflectionFromReview);
   if (state.screen === "reflection") attachReflection();
