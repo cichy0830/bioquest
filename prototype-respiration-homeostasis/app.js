@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260721-respiration-homeostasis-p1-v1";
+const VERSION = "20260722-respiration-homeostasis-briefing-scene-v1";
 const QUESTION_VERSION = "20260718-respiration-homeostasis-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -31,7 +31,7 @@ const assets = {
   owlReport: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  briefingSceneHook: "",
+  briefingSceneHook: `assets/respiration-homeostasis-briefing-azhe-wide.webp?v=${VERSION}`,
   briefingSceneMobileHook: "",
   ambientBackgroundHook: ""
 };

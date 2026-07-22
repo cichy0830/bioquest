@@ -144,22 +144,22 @@ const allUnits = [
     unitId: "endocrine_system",
     folder: "prototype-endocrine-system",
     storageKey: "bioquest_endocrine_system_state_v1",
-    missingSceneAllowed: true,
-    missingSceneHook: "endocrine-system-briefing-azhe-wide.webp"
+    questionVersion: "20260718-endocrine-system-ready-v1",
+    azhe: { left: 0.11, right: 0.35, top: 0.10, bottom: 0.93 }
   },
   {
     unitId: "behavior_sensing",
     folder: "prototype-behavior-sensing",
     storageKey: "bioquest_behavior_sensing_state_v1",
-    missingSceneAllowed: true,
-    missingSceneHook: "behavior-sensing-briefing-azhe-wide.webp"
+    questionVersion: "20260718-behavior-sensing-v1",
+    azhe: { left: 0.07, right: 0.35, top: 0.14, bottom: 0.92 }
   },
   {
     unitId: "respiration_homeostasis",
     folder: "prototype-respiration-homeostasis",
     storageKey: "bioquest_respiration_homeostasis_state_v1",
-    missingSceneAllowed: true,
-    missingSceneHook: "respiration-homeostasis-briefing-azhe-wide.webp"
+    questionVersion: "20260718-respiration-homeostasis-v1",
+    azhe: { left: 0.04, right: 0.31, top: 0.10, bottom: 0.98 }
   },
   {
     unitId: "excretion_water_homeostasis",
@@ -272,7 +272,7 @@ function stateFor(unit) {
     backend_status: "",
     attempt_type: "first",
     unit_id: unit.unitId,
-    question_version: "brief_scene_audit"
+    question_version: unit.questionVersion || "brief_scene_audit"
   };
 }
 
