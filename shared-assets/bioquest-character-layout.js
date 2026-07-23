@@ -8,7 +8,7 @@
     retry_ready: ["整理後再挑戰", "先保留這次找到的線索，重新整理後再登入挑戰，會更容易看見自己的進步。"]
   };
   const enhancedGenerations = new WeakMap();
-  const BADGE_OVERVIEW_VERSION = "20260715-achievement-order-v1";
+  const BADGE_OVERVIEW_VERSION = "20260723-achievements-title-overview-v1";
   const UNIT_BADGE_OVERVIEW_UNITS = [
     ["life_world", 1, "多彩多姿的生命世界", "open", 9],
     ["scientific_method", 2, "探究自然的科學方法", "open", 8],
@@ -217,8 +217,8 @@
       const id = badge.badge_id || badge.id || badge.badgeId || "";
       const label = badge.name || badge.badge_name || badge.badgeName || id || "已取得徽章";
       const src = normalizeBadgeImagePath(badge.badge_image_path || badge.badgeImagePath || badge.image || "", unit.unit_id);
-      if (!src) return `<span class="bq-unit-badge-missing" role="img" aria-label="${escapeHtml(label)}缺圖" title="${escapeHtml(label)}缺圖">缺圖</span>`;
-      return `<img class="bq-unit-badge-thumb" src="${escapeHtml(src)}" alt="${escapeHtml(label)}" title="${escapeHtml(label)}" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="bq-unit-badge-missing" hidden role="img" aria-label="${escapeHtml(label)}缺圖" title="${escapeHtml(label)}缺圖">缺圖</span>`;
+      if (!src) return `<span class="bq-unit-badge-missing" role="img" aria-label="${escapeHtml(label)}素材待接" title="${escapeHtml(label)}素材待接">待接</span>`;
+      return `<img class="bq-unit-badge-thumb" src="${escapeHtml(src)}" alt="${escapeHtml(label)}" title="${escapeHtml(label)}" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="bq-unit-badge-missing" hidden role="img" aria-label="${escapeHtml(label)}素材待接" title="${escapeHtml(label)}素材待接">待接</span>`;
     }).join("");
   }
 
@@ -542,30 +542,32 @@
   }
 
   function enhanceAchievements(root) {
+    const container = root.querySelector(".achievements-stack, .achievement-stack, .stack") || root;
     const panels = [...root.querySelectorAll(".panel")];
-    const unitPanel = panels.find((panel) => [...panel.querySelectorAll("h2, h3, .eyebrow")].some((heading) => heading.textContent.includes("本單元成就")))
-      || panels.find((panel) => panel.querySelector(".badge-grid, .badge-wall") && !panel.matches("[data-bq-badge-overview]"));
-    if (!unitPanel) return;
-    const overviewPanels = panels.filter((panel) => panel.matches("[data-bq-badge-overview]") || [...panel.querySelectorAll("h2, h3, .eyebrow")].some((heading) => heading.textContent.includes("全部任務徽章")));
+    const unitPanels = panels.filter((panel) => panel.matches("[data-bq-unit-achievements]")
+      || [...panel.querySelectorAll("h2, h3, .eyebrow")].some((heading) => heading.textContent.includes("本單元成就"))
+      || (panel.querySelector(".badge-grid, .badge-wall") && !panel.matches("[data-bq-badge-overview]")));
+    unitPanels.forEach((panel) => {
+      panel.hidden = true;
+      panel.setAttribute("aria-hidden", "true");
+      panel.dataset.bqUnitAchievementsHidden = "true";
+    });
+    const titleCard = ensureAchievementTitleAvatar(root, container);
+    if (titleCard.parentElement !== container || container.firstElementChild !== titleCard) {
+      container.insertBefore(titleCard, container.firstElementChild || null);
+    }
+    const overviewPanels = [...root.querySelectorAll(".panel")].filter((panel) => panel.matches("[data-bq-badge-overview]")
+      || [...panel.querySelectorAll("h2, h3, .eyebrow")].some((heading) => heading.textContent.includes("全部任務徽章")));
     let overviewPanel = overviewPanels[0];
     if (!overviewPanel) {
       overviewPanel = document.createElement("div");
       overviewPanel.className = "panel";
     }
     overviewPanels.slice(1).forEach((panel) => panel.remove());
-    const titleCard = ensureAchievementTitleAvatar(root, unitPanel);
-    unitPanel.insertAdjacentElement("afterend", titleCard);
     titleCard.insertAdjacentElement("afterend", overviewPanel);
     overviewPanel.dataset.bqBadgeOverview = "true";
     overviewPanel.classList.add("bq-all-unit-badge-overview");
     setHtml(overviewPanel, renderWholeBookBadgeOverview());
-    unitPanel.querySelectorAll(".badge, .badge-card").forEach((card) => {
-      if (card.querySelector("img, .bq-badge-asset-pending")) return;
-      const pending = document.createElement("span");
-      pending.className = "bq-badge-asset-pending";
-      setText(pending, "徽章素材待補");
-      card.prepend(pending);
-    });
   }
 
   const TITLE_AVATAR_BASE_PATH = "../shared-assets/title-avatars";
@@ -703,7 +705,7 @@
     return card;
   }
 
-  function ensureAchievementTitleAvatar(root, unitPanel) {
+  function ensureAchievementTitleAvatar(root, container) {
     const existingCards = [...root.querySelectorAll(".bq-title-avatar-card, .title-avatar-card.achievements")];
     let card = existingCards[0] || null;
     const student = readStoredStudent();
@@ -717,8 +719,8 @@
       card.dataset.titleAvatarPath = rendered.dataset.titleAvatarPath;
     }
     existingCards.filter((item) => item !== card).forEach((item) => item.remove());
-    if (card.closest("[data-bq-unit-achievements]") || card.parentElement !== root) {
-      unitPanel.insertAdjacentElement("afterend", card);
+    if (card.closest("[data-bq-unit-achievements]") || card.parentElement !== container) {
+      container.insertBefore(card, container.firstElementChild || null);
     }
     return card;
   }

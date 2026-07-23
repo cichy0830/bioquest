@@ -159,6 +159,20 @@ textarea { resize: vertical; min-height: 116px; }
   border-radius: 8px;
 }
 .scene-copy h2 { margin-bottom: 10px; font-size: clamp(30px, 5vw, 58px); line-height: 1.05; }
+.identity-confirm {
+  display: grid;
+  gap: 4px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(244, 255, 238, 0.32);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #f7fff8;
+}
+.identity-confirm strong { font-size: clamp(1rem, 2vw, 1.18rem); }
+.identity-confirm span { color: rgba(247, 255, 248, 0.86); font-size: 0.92rem; }
 .prep-owl-hero {
   display: grid;
   grid-template-columns: minmax(150px, 240px) minmax(0, 1fr);
@@ -176,6 +190,88 @@ textarea { resize: vertical; min-height: 116px; }
   max-height: 260px;
   object-fit: contain;
 }
+.digestive-system-figure {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+  padding: 14px;
+  border: 1px solid rgba(64, 91, 94, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.72);
+}
+.digestive-system-canvas {
+  position: relative;
+  overflow: hidden;
+  min-height: 260px;
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(240, 248, 246, 0.88), rgba(252, 248, 237, 0.86));
+}
+.digestive-body-outline {
+  position: absolute;
+  inset: 9% 18%;
+  border: 2px solid rgba(42, 79, 76, 0.32);
+  border-radius: 48% 48% 40% 40%;
+}
+.digestive-track,
+.digestive-gland {
+  position: absolute;
+  display: block;
+  border-radius: 999px;
+}
+.digestive-track {
+  border: 4px solid rgba(54, 111, 99, 0.58);
+  background: rgba(54, 111, 99, 0.12);
+}
+.digestive-track-mouth { width: 18%; height: 8%; left: 40%; top: 8%; }
+.digestive-track-esophagus { width: 5%; height: 31%; left: 47%; top: 15%; }
+.digestive-track-stomach { width: 23%; height: 14%; left: 44%; top: 42%; transform: rotate(-10deg); }
+.digestive-track-intestine { width: 40%; height: 30%; left: 31%; top: 56%; border-radius: 35%; }
+.digestive-gland {
+  border: 3px dashed rgba(206, 129, 35, 0.7);
+  background: rgba(240, 175, 82, 0.16);
+}
+.digestive-gland-upper { width: 24%; height: 12%; left: 27%; top: 39%; }
+.digestive-gland-lower { width: 19%; height: 9%; left: 52%; top: 52%; }
+.digestive-hotspot {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 2px solid rgba(31, 68, 65, 0.32);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.42);
+}
+.digestive-hotspot-1 { left: 48%; top: 15%; }
+.digestive-hotspot-2 { left: 36%; top: 20%; }
+.digestive-hotspot-3 { left: 49%; top: 25%; }
+.digestive-hotspot-4 { left: 50%; top: 39%; }
+.digestive-hotspot-5 { left: 57%; top: 51%; }
+.digestive-hotspot-6 { left: 42%; top: 47%; }
+.digestive-hotspot-7 { left: 58%; top: 58%; }
+.digestive-hotspot-8 { left: 50%; top: 69%; }
+.digestive-hotspot-9 { left: 42%; top: 75%; }
+.digestive-hotspot-10 { left: 51%; top: 87%; }
+.digestive-hotspot-11 { left: 62%; top: 50%; }
+.digestive-hotspot-12 { left: 55%; top: 68%; }
+.digestive-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+.digestive-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.digestive-legend i {
+  width: 24px;
+  height: 8px;
+  border-radius: 999px;
+}
+.legend-track { background: rgba(54, 111, 99, 0.58); }
+.legend-gland { background: rgba(240, 175, 82, 0.48); border: 1px dashed rgba(206, 129, 35, 0.7); }
 .concept-grid, .ledger-grid, .feedback-columns, .badge-wall {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -302,16 +398,6 @@ textarea { resize: vertical; min-height: 116px; }
 }
 .sequence-actions { display: flex; gap: 6px; }
 
-.mentor-card {
-  display: grid;
-  justify-items: center;
-  text-align: center;
-}
-.mentor-card img {
-  width: clamp(220px, 32vw, 420px);
-  max-height: 420px;
-  object-fit: contain;
-}
 .owl-panel { text-align: center; }
 .owl-panel img {
   display: block;
@@ -376,6 +462,13 @@ textarea { resize: vertical; min-height: 116px; }
   font-weight: 900;
 }
 .badge strong { display: block; margin-bottom: 8px; }
+.badge-state {
+  display: inline-block;
+  margin: 0 0 8px;
+  color: var(--green-dark);
+  font-size: 12px;
+  font-weight: 900;
+}
 .badge p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
 
 .rule-list { display: grid; gap: 10px; line-height: 1.75; }
@@ -400,8 +493,15 @@ textarea { resize: vertical; min-height: 116px; }
     color: #173025;
     background: linear-gradient(0deg, rgba(255,255,255,.96), rgba(255,255,255,.68));
   }
+  .identity-confirm {
+    color: #173025;
+    background: rgba(255,255,255,.72);
+    border-color: rgba(46,83,78,.18);
+  }
+  .identity-confirm span { color: var(--muted); }
   .prep-owl-hero { grid-template-columns: 1fr; text-align: center; }
   .prep-owl-hero img { width: min(250px, 70vw); margin: 0 auto; }
+  .digestive-system-canvas { min-height: 220px; }
   .sequence-item { grid-template-columns: 42px minmax(0,1fr); }
   .sequence-actions { grid-column: 1 / -1; }
   .sequence-actions .icon-btn { flex: 1; }

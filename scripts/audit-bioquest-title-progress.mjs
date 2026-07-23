@@ -6,7 +6,8 @@ import { fileURLToPath } from "node:url";
 
 const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const root = path.resolve(process.argv[2] || defaultRoot);
-const sharedVersion = "20260721-title-avatar-webp-v1";
+const titleProgressVersion = "20260721-title-avatar-webp-v1";
+const sharedLayoutVersion = "20260723-achievements-title-overview-v1";
 const portal = fs.readFileSync(path.join(root, "portal.js"), "utf8");
 const start = portal.indexOf("const units = [");
 const end = portal.indexOf("\n\nconst statusText", start);
@@ -23,13 +24,13 @@ assert(readyUnits.length === 29, `expected 29 ready units, found ${readyUnits.le
 for (const unit of readyUnits) {
   const folder = unit.url.split("/")[0];
   const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
-  const titleToken = `bioquest-title-progress.js?v=${sharedVersion}`;
-  const layoutToken = `bioquest-character-layout.js?v=${sharedVersion}`;
+  const titleToken = `bioquest-title-progress.js?v=${titleProgressVersion}`;
+  const layoutToken = `bioquest-character-layout.js?v=${sharedLayoutVersion}`;
   assert(index.includes(titleToken), `${folder}: title progress loader missing`);
-  assert(index.includes(`bioquest-character-layout.css?v=${sharedVersion}`), `${folder}: shared layout CSS cache mismatch`);
+  assert(index.includes(`bioquest-character-layout.css?v=${sharedLayoutVersion}`), `${folder}: shared layout CSS cache mismatch`);
   assert(index.includes(layoutToken), `${folder}: shared layout JS cache mismatch`);
   assert(index.indexOf(titleToken) < index.indexOf(layoutToken), `${folder}: title progress must load before character layout`);
-  assert(unit.url.includes(`title=${sharedVersion}`), `${folder}: portal title cache key missing`);
+  assert(unit.url.includes(`title=${sharedLayoutVersion}`), `${folder}: portal title cache key missing`);
 }
 
 const layoutJs = fs.readFileSync(path.join(root, "shared-assets", "bioquest-character-layout.js"), "utf8");

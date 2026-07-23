@@ -9,40 +9,7 @@ const portalPath = path.join(root, "portal.js");
 const portal = fs.readFileSync(portalPath, "utf8");
 const start = portal.indexOf("const units = [");
 const end = portal.indexOf("\n\nconst statusText", start);
-const sharedVersionOverrides = new Map([
-  ["life_world", "20260715-brief-scene-unified-u1u7-v1"],
-  ["scientific_method", "20260715-brief-scene-unified-u1u7-v1"],
-  ["lab_intro", "20260715-brief-scene-unified-u1u7-v1"],
-  ["microscope_use", "20260715-brief-scene-unified-u1u7-v1"],
-  ["cell_basic_unit", "20260721-cell-basic-unit-required-gates-v1"],
-  ["cell_structure", "20260721-cell-structure-scrolltop-v1"],
-  ["cell_observation", "20260716-cell-observation-guest-local-v1"],
-  ["cell_transport", "20260721-cell-transport-q07-inactive-cache-v1"],
-  ["biological_organization", "20260716-biological-organization-title-count-v1"],
-  ["scale", "20260717-scale-user-review-v2"],
-  ["nutrients_energy", "20260721-title-avatar-webp-v1"],
-  ["nutrient_test", "20260720-nutrient-test-starch-glucose-only-v2"],
-  ["enzymes", "20260718-enzymes-badges-v1"],
-  ["photosynthesis", "20260721-photosynthesis-q09-inactive-cache-v1"],
-  ["human_nutrition", "20260719-human-nutrition-qa-v1"],
-  ["plant_transport_structures", "20260720-plant-transport-structures-extension-v2"],
-  ["plant_material_transport", "20260720-plant-material-transport-badges-v1"],
-  ["cardiovascular_components", "20260720-cardiovascular-components-brief-visible-v2"],
-  ["human_circulation", "20260720-human-circulation-badges-v1"],
-  ["stimulus_response", "20260721-stimulus-response-badges-cd-v1"],
-  ["nervous_system", "20260721-title-avatar-webp-v1"],
-  ["endocrine_system", "20260721-title-avatar-webp-v1"],
-  ["behavior_sensing", "20260721-title-avatar-webp-v1"],
-  ["respiration_homeostasis", "20260721-respiration-homeostasis-p1-v1"],
-  ["excretion_water_homeostasis", "20260713-login-busy-v1"],
-  ["temperature_glucose_homeostasis", "20260713-login-busy-v1"],
-  ["cell_division", "20260713-login-busy-v1"],
-  ["asexual_reproduction", "20260713-login-busy-v1"],
-  ["sexual_reproduction", "20260713-login-busy-v1"]
-]);
-const sharedIndexHookOverrides = new Map([
-  ["human_circulation", "20260721-title-avatar-webp-v1"]
-]);
+const sharedLayoutVersion = "20260723-achievements-title-overview-v1";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -72,9 +39,8 @@ for (const unit of readyUnits) {
   assert(index.includes(`data-unit-id="${unit.unitId}"`), `${folder} unit id mismatch`);
   assert(index.includes(`data-unit-sequence="${unit.sequence}"`), `${folder} sequence missing or mismatched`);
   assert(index.includes(`data-unit-title="${unit.title}"`), `${folder} formal title missing or mismatched`);
-  const expectedSharedVersion = sharedIndexHookOverrides.get(unit.unitId) || "20260721-title-avatar-webp-v1";
-  assert(index.includes(`bioquest-character-layout.css?v=${expectedSharedVersion}`), `${folder} shared CSS cache bust missing`);
-  assert(index.includes(`bioquest-character-layout.js?v=${expectedSharedVersion}`), `${folder} shared JS cache bust missing`);
+  assert(index.includes(`bioquest-character-layout.css?v=${sharedLayoutVersion}`), `${folder} shared CSS cache bust missing`);
+  assert(index.includes(`bioquest-character-layout.js?v=${sharedLayoutVersion}`), `${folder} shared JS cache bust missing`);
   assert(!/\b1-\d\b/.test(index), `${folder} must not contain chapter numbering`);
 }
 

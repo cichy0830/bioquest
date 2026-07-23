@@ -23,8 +23,8 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-human-nutrition/app.js" });
 
 const api = context.window.__human_nutritionTest;
-assert.equal(api.VERSION, "20260719-human-nutrition-qa-v1");
-assert.equal(api.QUESTION_VERSION, "20260714-human-nutrition-v1");
+assert.equal(api.VERSION, "20260723-human-nutrition-user-review-v1");
+assert.equal(api.QUESTION_VERSION, "20260723-human-nutrition-digestive-classification-v2");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
 assert(source.includes("question_version: QUESTION_VERSION"), "backend question_version must use canonical QUESTION_VERSION");
@@ -41,7 +41,7 @@ assert(source.includes("BioQuestLoginUX?.begin"), "登入需使用共用即時�
 assert(source.includes("await window.BioQuestLoginUX?.paint"), "登入須在後台請求前讓 busy 狀態可繪製");
 
 const answers = {
-  q01: { mouth: "tract", esophagus: "tract", stomach: "tract", small_intestine: "tract", large_intestine: "tract", salivary_gland: "gland", liver: "gland", pancreas: "gland" },
+  q01: { mouth: "tract", esophagus: "tract", stomach: "tract", small_intestine: "tract", large_intestine: "tract", salivary_gland: "gland", gastric_gland: "gland", intestinal_gland: "gland", liver: "gland", pancreas: "gland" },
   q02_sequence: ["mouth", "esophagus", "stomach", "small_intestine", "large_intestine", "anus"],
   q03: "glands",
   q04: { mouth: "chew", esophagus: "push", stomach: "mix", small_intestine: "absorb_nutrients", large_intestine: "absorb_water" },
@@ -105,8 +105,45 @@ assert(checkpoint.includes("已選："), "selection state must be visible");
 for (const qid of ["q10", "q11", "q12"]) {
   assert.equal(api.renderQuestionEvidence(qid), "", `${qid} redundant evidence card should be removed`);
 }
+assert.equal(api.assets.ambientBackgroundHook, "assets/human-nutrition-entry-wide.webp");
+assert.equal(api.assets.owlPrep, "assets/owl-human-nutrition-prep-report.webp");
 assert(!api.renderReflection().includes("bq-report-assistant"), "local report owl should be injected by shared layout");
 assert(api.renderBrief().includes("bq-brief-scene-stage"), "shared dual-role brief stage missing");
+assert(api.renderBrief().includes("你好，測試學生"), "brief must confirm logged-in identity");
+assert(api.renderDigestiveSystemFallbackFigure().includes("data-digestive-system-figure"), "digestive figure fallback hook missing");
+assert(api.renderScan().includes("data-digestive-hotspot=\"gastric_gland\""), "gastric gland overlay hook missing");
+assert(api.badges.every((badge) => badge.image_status === "controlled_pending" && badge.badge_image_path === ""), "U15 badges must not request unapproved images");
+
+const q01 = api.questions.find((question) => question.id === "q01");
+const q02 = api.questions.find((question) => question.id === "q02");
+const q04 = api.questions.find((question) => question.id === "q04");
+const canonicalQ01Order = q01.items.map((item) => item.id);
+const answerAlignedQ04 = q04.items.map((item) => q04.answer[item.id]);
+function categoryGroup(order) {
+  const categories = order.map((id) => q01.answer[id]);
+  const transitions = categories.slice(1).filter((value, index) => value !== categories[index]).length;
+  const counts = [...new Set(categories)].map((category) => categories.filter((value) => value === category).length);
+  return transitions === 1 && counts.length === 2 && counts.every((count) => count === 5);
+}
+for (let index = 0; index < 20; index += 1) {
+  api.setState({
+    student: { student_id: `S-SEED-${index}`, class_name: "701", seat_no: String(index), student_name: "排序測試" },
+    attempt_id: `human_nutrition_order_seed_${index}`,
+    attempt_session_id: `human_nutrition_order_session_${index}`,
+    question_version: api.QUESTION_VERSION
+  });
+  const q01Order = api.orderedMappingItems(q01).map((item) => item.id);
+  assert.notDeepEqual(q01Order, canonicalQ01Order, `q01 seed ${index} must not keep canonical item order`);
+  assert.equal(categoryGroup(q01Order), false, `q01 seed ${index} must not group all tract and all gland items`);
+  const q01SelectedLabels = api.formatSelected(q01).split("；").map((item) => item.split("：")[0]);
+  const q01LabelsById = Object.fromEntries(q01.items.map((item) => [item.id, item.label]));
+  assert.deepEqual(q01SelectedLabels, Array.from(q01Order, (id) => q01LabelsById[id]), `q01 seed ${index} selected-answer order must match displayed item order`);
+  const q04ChoiceOrder = api.orderedMappingChoices(q04).map((item) => item.id);
+  assert.notDeepEqual(q04ChoiceOrder, answerAlignedQ04, `q04 seed ${index} choices must not align with answer order`);
+  const q02Initial = api.orderedOptions(q02).map((item) => item.id);
+  assert.notDeepEqual(q02Initial, q02.answer, `q02 seed ${index} initial order must not equal correct sequence`);
+  assert.deepEqual(api.orderedMappingItems(q01).map((item) => item.id), q01Order, `q01 seed ${index} rerender order must remain stable`);
+}
 
 const resultBase = {
   attempt_exp: 460,
@@ -131,7 +168,33 @@ assert(!pendingResult.includes("後台已回傳正式認列資料"), "pending re
 api.setState({ student: { student_id: "S99999", is_guest: false }, result: { ...resultBase, verification_status: "server_verified" } });
 const verifiedResult = api.renderResult();
 assert(verifiedResult.includes("後台已回傳正式認列資料"), "verified credit copy missing");
-assert(api.renderAchievements().includes('data-bq-unit-achievements="human_nutrition"'), "unit achievement hook missing");
+assert(!api.renderAchievements().includes('data-bq-unit-achievements="human_nutrition"'), "achievements must not repeat U15 unit badge wall");
+assert(api.renderAchievements().includes('data-bq-achievements-overview-only="true"'), "shared overview-only achievements hook missing");
 assert(!api.renderAchievements().includes("title-card"), "legacy title card must be removed");
+
+const historicalProgress = {
+  total_exp: 3880,
+  current_title_id: "concept_solver",
+  current_title: "概念解謎者",
+  unit_badge_summary_json: JSON.stringify([
+    { unit_id: "life_world", earned_count: 6, total_badges: 9, earned_badges: [{ badge_id: "life_world_entry", badge_image_path: "prototype-life-world/assets/badges/life_world_entry.webp" }] },
+    { unit_id: "photosynthesis", earned_count: 4, total_badges: 11, earned_badges: [{ badge_id: "photosynthesis_entry", badge_image_path: "shared-assets/badges/photosynthesis/badge-photosynthesis-photosynthesis_entry.webp" }] }
+  ]),
+  badges_json: JSON.stringify([{ badge_id: "life_world_entry" }])
+};
+const backendPatch = {
+  total_exp: 4320,
+  current_title_id: "concept_solver",
+  current_title: "概念解謎者",
+  unit_badge_summary_patch_json: JSON.stringify([
+    { unit_id: "human_nutrition", earned_count: 3, total_badges: 13, earned_badges: [{ badge_id: "human_nutrition_entry", badge_image_path: "" }, { badge_id: "food_path_sequencer", badge_image_path: "" }, { badge_id: "human_nutrition_flawless", badge_image_path: "" }] }
+  ]),
+  badges_json: JSON.stringify([{ badge_id: "human_nutrition_entry" }])
+};
+const mergedProgress = api.mergeStudentProgress(historicalProgress, backendPatch);
+const mergedSummary = JSON.parse(mergedProgress.unit_badge_summary_json);
+assert(mergedSummary.some((item) => item.unit_id === "life_world" && item.earned_count === 6), "verified history must be preserved");
+assert(mergedSummary.some((item) => item.unit_id === "photosynthesis" && item.earned_count === 4), "existing unit summary must be preserved");
+assert(mergedSummary.some((item) => item.unit_id === "human_nutrition" && item.earned_count === 3), "U15 summary patch must be merged");
 
 console.log("prototype-human-nutrition app regression passed");

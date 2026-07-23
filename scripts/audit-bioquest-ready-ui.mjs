@@ -42,11 +42,12 @@ const layoutJsPath = path.join(root, "shared-assets", "bioquest-character-layout
 const layoutCssPath = path.join(root, "shared-assets", "bioquest-character-layout.css");
 const layoutJs = fs.readFileSync(layoutJsPath, "utf8");
 const layoutCss = fs.readFileSync(layoutCssPath, "utf8");
-const cacheVersion = "20260715-achievement-order-v1";
-const surfaceCacheVersion = "20260715-achievement-order-v1";
+const cacheVersion = "20260723-achievements-title-overview-v1";
+const surfaceCacheVersion = "20260723-achievements-title-overview-v1";
 const backendConfigVersion = "20260713-backend-endpoint-v1";
 const appCacheVersion = "20260715-badge-overview-v2";
 const sharedTitleProgressVersion = "20260721-title-avatar-webp-v1";
+const sharedLayoutVersion = "20260723-achievements-title-overview-v1";
 const appVersionOverrides = new Map();
 appVersionOverrides.set("life_world", "20260720-life-world-server-verified-v1");
 appVersionOverrides.set("scientific_method", "20260721-scientific-method-server-verified-v1");
@@ -66,7 +67,7 @@ appVersionOverrides.set("photosynthesis", "20260721-photosynthesis-q09-inactive-
 appVersionOverrides.set("biological_organization", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("cell_transport", "20260721-cell-transport-q07-inactive-cache-v1");
 appVersionOverrides.set("plant_material_transport", "20260720-plant-material-transport-badges-v1");
-appVersionOverrides.set("human_nutrition", "20260719-human-nutrition-qa-v1");
+appVersionOverrides.set("human_nutrition", "20260723-human-nutrition-user-review-v1");
 appVersionOverrides.set("plant_material_transport", "20260720-plant-material-transport-badges-v1");
 appVersionOverrides.set("plant_transport_structures", "20260720-plant-transport-structures-extension-v2");
 appVersionOverrides.set("cardiovascular_components", "20260720-cardiovascular-components-brief-visible-v2");
@@ -81,39 +82,6 @@ appVersionOverrides.set("temperature_glucose_homeostasis", "20260718-temperature
 appVersionOverrides.set("cell_division", "20260718-cell-division-v1");
 appVersionOverrides.set("asexual_reproduction", "20260718-asexual-reproduction-v1");
 appVersionOverrides.set("sexual_reproduction", "20260718-sexual-reproduction-v1");
-const sharedCacheOverrides = new Map();
-["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit", "cell_structure", "cell_observation"].forEach((unitId) => {
-  sharedCacheOverrides.set(unitId, "20260715-brief-scene-unified-u1u7-v1");
-});
-sharedCacheOverrides.set("cell_observation", "20260716-cell-observation-guest-local-v1");
-["scale", "nutrient_test"].forEach((unitId) => {
-  sharedCacheOverrides.set(unitId, "20260715-title-avatar-card-v1");
-});
-sharedCacheOverrides.set("nutrients_energy", "20260721-title-avatar-webp-v1");
-sharedCacheOverrides.set("enzymes", "20260718-enzymes-badges-v1");
-sharedCacheOverrides.set("nutrient_test", "20260721-nutrient-test-brief-ratio-v1");
-sharedCacheOverrides.set("cell_transport", "20260721-cell-transport-q07-inactive-cache-v1");
-sharedCacheOverrides.set("scale", "20260717-scale-user-review-v2");
-sharedCacheOverrides.set("biological_organization", "20260716-biological-organization-title-count-v1");
-sharedCacheOverrides.set("photosynthesis", "20260718-photosynthesis-qa-v1");
-sharedCacheOverrides.set("human_nutrition", "20260719-human-nutrition-qa-v1");
-sharedCacheOverrides.set("plant_material_transport", "20260720-plant-material-transport-badges-v1");
-sharedCacheOverrides.set("plant_transport_structures", "20260720-plant-transport-structures-extension-v2");
-sharedCacheOverrides.set("cardiovascular_components", "20260720-cardiovascular-components-brief-visible-v2");
-sharedCacheOverrides.set("human_circulation", "20260721-title-avatar-webp-v1");
-sharedCacheOverrides.set("stimulus_response", "20260721-title-avatar-webp-v1");
-sharedCacheOverrides.set("nervous_system", "20260721-title-avatar-webp-v1");
-sharedCacheOverrides.set("endocrine_system", "20260721-title-avatar-webp-v1");
-sharedCacheOverrides.set("behavior_sensing", "20260721-title-avatar-webp-v1");
-sharedCacheOverrides.set("respiration_homeostasis", "20260713-login-busy-v1");
-sharedCacheOverrides.set("excretion_water_homeostasis", "20260713-login-busy-v1");
-sharedCacheOverrides.set("temperature_glucose_homeostasis", "20260713-login-busy-v1");
-sharedCacheOverrides.set("cell_division", "20260713-login-busy-v1");
-sharedCacheOverrides.set("asexual_reproduction", "20260713-login-busy-v1");
-sharedCacheOverrides.set("sexual_reproduction", "20260713-login-busy-v1");
-const sharedIndexHookOverrides = new Map([
-  ["human_circulation", "20260721-title-avatar-webp-v1"]
-]);
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -214,8 +182,8 @@ const audit = units.map(([unitId, folder]) => {
   const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
   const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
   const expectedAppVersion = appVersionOverrides.get(unitId) || appCacheVersion;
-  const expectedSharedJsVersion = sharedIndexHookOverrides.get(unitId) || sharedTitleProgressVersion;
-  const expectedSharedCssVersion = sharedIndexHookOverrides.get(unitId) || sharedTitleProgressVersion;
+  const expectedSharedJsVersion = sharedLayoutVersion;
+  const expectedSharedCssVersion = sharedLayoutVersion;
   for (const marker of [
     `data-unit-id="${unitId}"`,
     "data-login-cover-wide=",

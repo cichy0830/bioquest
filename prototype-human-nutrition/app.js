@@ -3,8 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260719-human-nutrition-qa-v1";
-const QUESTION_VERSION = "20260714-human-nutrition-v1";
+  const VERSION = "20260723-human-nutrition-user-review-v1";
+  const QUESTION_VERSION = "20260723-human-nutrition-digestive-classification-v2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -65,9 +65,10 @@ const assets = {
   questionVilliEvidence: "human-nutrition-villi-evidence"
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/human_nutrition/badge-human_nutrition-${id}.webp`;
+const plannedBadgeAsset = (id) => `shared-assets/badges/human_nutrition/badge-human_nutrition-${id}.webp`;
+const badgeAsset = () => "";
 const reflectionRules = {
-  conceptTerms: ["消化", "吸收", "消化道", "消化腺", "食物流向", "口腔", "食道", "胃", "小腸", "大腸", "肛門", "唾液腺", "肝臟", "胰臟", "酵素", "膽汁", "脂質", "蛋白質", "澱粉", "絨毛", "血液", "養分運送"],
+  conceptTerms: ["消化", "吸收", "消化道", "消化腺", "食物流向", "口腔", "食道", "胃", "胃腺", "小腸", "腸腺", "大腸", "肛門", "唾液腺", "肝臟", "胰臟", "酵素", "膽汁", "脂質", "蛋白質", "澱粉", "絨毛", "血液", "養分運送"],
   irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "午餐", "放假"],
   lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
   copiedDirections: ["消化道與消化腺的差異", "食物通過消化道的順序", "口腔、食道、胃、小腸與大腸的主要功能", "消化與吸收的差異", "酵素與膽汁在消化中的角色", "小腸絨毛和養分吸收", "養分如何經血液運送到全身"]
@@ -87,7 +88,15 @@ const badges = [
   { id: "human_nutrition_flawless", name: "人體養分零提示全對徽章", condition: "全部答對且全程未使用提示。" },
   { id: "human_nutrition_reflection_reporter", name: "高品質養分回報徽章", condition: "回報品質達 discussion_question。" },
   { id: "retry_growth_human_nutrition", name: "再探養分轉運進步徽章", condition: "再挑戰完整完成且正確率進步。" }
-].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id), image_status: "pending" }));
+].map((badge, index) => ({
+  ...badge,
+  display_order: index + 1,
+  badge_image_path: badgeAsset(badge.id),
+  planned_badge_image_path: plannedBadgeAsset(badge.id),
+  image_status: "controlled_pending",
+  badge_image_status: "controlled_pending",
+  is_gold_badge: badge.id === "human_nutrition_flawless"
+}));
 
 const sequenceSteps = [
   { id: "mouth", label: "口腔" },
@@ -100,7 +109,7 @@ const sequenceSteps = [
 const correctSequence = ["mouth", "esophagus", "stomach", "small_intestine", "large_intestine", "anus"];
 
 const questions = [
-  { id: "q01", section: "checkpoint1", concept: "digestive_system_parts", type: "mapping", prompt: "請將構造分成「食物會通過的消化道」與「分泌消化液的消化腺」。", hint: "先想食物會不會實際通過該構造；會通過的是路線，分泌消化液的是支援站。", misconception: "tract_gland_confusion", items: [{ id: "mouth", label: "口腔" }, { id: "esophagus", label: "食道" }, { id: "stomach", label: "胃" }, { id: "small_intestine", label: "小腸" }, { id: "large_intestine", label: "大腸" }, { id: "salivary_gland", label: "唾液腺" }, { id: "liver", label: "肝臟" }, { id: "pancreas", label: "胰臟" }], choices: [{ id: "tract", text: "消化道" }, { id: "gland", text: "消化腺" }], answer: { mouth: "tract", esophagus: "tract", stomach: "tract", small_intestine: "tract", large_intestine: "tract", salivary_gland: "gland", liver: "gland", pancreas: "gland" } },
+  { id: "q01", section: "checkpoint1", concept: "digestive_system_parts", type: "mapping", prompt: "請將下列構造分成「食物會通過的消化道器官」與「分泌消化液的消化腺構造」。", hint: "先看名稱是在說一整段食物會通過的器官，還是在說會分泌消化液的腺體；不要只因為某器官內有腺體，就把整個器官改成消化腺。", misconception: "tract_gland_confusion", items: [{ id: "mouth", label: "口腔" }, { id: "esophagus", label: "食道" }, { id: "stomach", label: "胃" }, { id: "small_intestine", label: "小腸" }, { id: "large_intestine", label: "大腸" }, { id: "salivary_gland", label: "唾液腺" }, { id: "gastric_gland", label: "胃腺" }, { id: "intestinal_gland", label: "腸腺" }, { id: "liver", label: "肝臟" }, { id: "pancreas", label: "胰臟" }], choices: [{ id: "tract", text: "食物會通過的消化道器官" }, { id: "gland", text: "分泌消化液的消化腺構造" }], answer: { mouth: "tract", esophagus: "tract", stomach: "tract", small_intestine: "tract", large_intestine: "tract", salivary_gland: "gland", gastric_gland: "gland", intestinal_gland: "gland", liver: "gland", pancreas: "gland" } },
   { id: "q02", section: "checkpoint1", concept: "food_path", type: "sequence", prompt: "請拖曳排序卡，排出食物通過消化道的大致順序。", hint: "先從吃進食物的入口開始，再想推送、混合、主要吸收、吸收水分與排出的路線。", misconception: "gland_in_food_path", steps: sequenceSteps, answer: correctSequence },
   { id: "q03", section: "checkpoint1", concept: "digestive_system_parts", type: "choice", answer: "glands", prompt: "下列哪一組較適合稱為「消化腺」？", hint: "題目問的是分泌消化液的構造，不是食物通過的整條路線。", misconception: "tract_gland_confusion", options: [{ id: "glands", text: "唾液腺、肝臟、胰臟" }, { id: "tract", text: "食道、小腸、大腸" }, { id: "ends", text: "口腔、胃、肛門" }, { id: "other", text: "心臟、肺、腎臟" }] },
   { id: "q04", section: "checkpoint1", concept: "organ_functions", type: "mapping", prompt: "請將器官與較主要的功能配對。", hint: "先想食物到了哪一段，再判斷是咀嚼、推送、混合、吸收養分或吸收水分。", misconception: "all_organs_same_function", items: [{ id: "mouth", label: "口腔" }, { id: "esophagus", label: "食道" }, { id: "stomach", label: "胃" }, { id: "small_intestine", label: "小腸" }, { id: "large_intestine", label: "大腸" }], choices: [{ id: "chew", text: "咀嚼並開始部分消化" }, { id: "push", text: "推送食物" }, { id: "mix", text: "混合食物並進行部分消化" }, { id: "absorb_nutrients", text: "主要消化與吸收養分" }, { id: "absorb_water", text: "主要吸收水分並形成糞便" }], answer: { mouth: "chew", esophagus: "push", stomach: "mix", small_intestine: "absorb_nutrients", large_intestine: "absorb_water" } },
@@ -160,6 +169,7 @@ function createEmptyState() {
 }
 
 let state = loadState();
+let pendingScrollReset = false;
 
 function loadState() {
   if (typeof localStorage === "undefined") return createEmptyState();
@@ -174,6 +184,29 @@ function loadState() {
 
 function saveState() {
   if (typeof localStorage !== "undefined") localStorage.setItem(storageKey, JSON.stringify(state));
+}
+
+function requestScrollReset() {
+  pendingScrollReset = true;
+}
+
+function resetScrollToTop() {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  const apply = () => {
+    const targets = [document.scrollingElement, document.documentElement, document.body, document.querySelector(".main-stage")].filter(Boolean);
+    try { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); } catch { window.scrollTo(0, 0); }
+    targets.forEach((target) => {
+      target.scrollTop = 0;
+      target.scrollLeft = 0;
+    });
+  };
+  apply();
+  if (typeof window.requestAnimationFrame === "function") window.requestAnimationFrame(apply);
+  const focusTarget = screen?.querySelector("h1, h2, .panel");
+  if (focusTarget && typeof focusTarget.focus === "function") {
+    if (!focusTarget.hasAttribute("tabindex")) focusTarget.setAttribute("tabindex", "-1");
+    focusTarget.focus({ preventScroll: true });
+  }
 }
 
 function loadAttempts() {
@@ -250,13 +283,82 @@ function stableShuffle(items, seed) {
   return copy;
 }
 
-function orderedOptions(question) {
-  if (!state.optionOrders[question.id]) {
-    const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
-    state.optionOrders[question.id] = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}`);
+function sameOrder(a = [], b = []) {
+  return a.length === b.length && a.every((value, index) => value === b[index]);
+}
+
+function attemptOrderSeed(questionId, lane = "options") {
+  return [
+    state.attempt_session_id,
+    state.attempt_id,
+    state.student?.student_id,
+    mission.unit_id,
+    questionId,
+    lane
+  ].filter(Boolean).join("|") || `${QUESTION_VERSION}|${questionId}|${lane}`;
+}
+
+function avoidLeakingOrder(ids, avoidOrders = []) {
+  const shouldAvoid = avoidOrders.some((order) => sameOrder(ids, order));
+  if (!shouldAvoid || ids.length < 2) return ids;
+  return [ids[1], ids[0], ...ids.slice(2)];
+}
+
+function isSingleBoundaryCategoryGroup(ids, question) {
+  const categories = ids.map((id) => question.answer[id]);
+  if (categories.some((category) => !category)) return false;
+  const unique = [...new Set(categories)];
+  if (unique.length !== 2) return false;
+  const counts = unique.map((category) => categories.filter((value) => value === category).length);
+  if (!counts.every((count) => count === 5)) return false;
+  const transitions = categories.slice(1).filter((category, index) => category !== categories[index]).length;
+  return transitions === 1;
+}
+
+function avoidCategoryGrouping(ids, question) {
+  if (!isSingleBoundaryCategoryGroup(ids, question) || ids.length < 6) return ids;
+  const categories = ids.map((id) => question.answer[id]);
+  const boundary = categories.findIndex((category) => category !== categories[0]);
+  const leftIndex = Math.max(1, boundary - 1);
+  const rightIndex = boundary;
+  const next = [...ids];
+  [next[leftIndex], next[rightIndex]] = [next[rightIndex], next[leftIndex]];
+  return next;
+}
+
+function ensureOrderedIds(key, sourceItems, seed, avoidOrders = []) {
+  if (!state.optionOrders[key]) {
+    const ids = sourceItems.map((item) => item.id);
+    state.optionOrders[key] = avoidLeakingOrder(stableShuffle(ids, seed), avoidOrders);
   }
-  const source = Object.fromEntries((question.type === "sequence" ? question.steps : question.options || []).map((item) => [item.id, item]));
-  return state.optionOrders[question.id].map((id) => source[id]).filter(Boolean);
+  const source = Object.fromEntries(sourceItems.map((item) => [item.id, item]));
+  return state.optionOrders[key].map((id) => source[id]).filter(Boolean);
+}
+
+function orderedOptions(question) {
+  const sourceItems = question.type === "sequence" ? question.steps : question.options || [];
+  const avoidOrders = question.type === "sequence" ? [question.answer] : [];
+  return ensureOrderedIds(question.id, sourceItems, attemptOrderSeed(question.id), avoidOrders);
+}
+
+function orderedMappingItems(question) {
+  const avoidOrders = question.id === "q01" ? [question.items.map((item) => item.id)] : [];
+  const key = `${question.id}_items`;
+  const items = ensureOrderedIds(key, question.items, attemptOrderSeed(question.id, "items"), avoidOrders);
+  if (question.id === "q01") {
+    const guardedIds = avoidCategoryGrouping(items.map((item) => item.id), question);
+    state.optionOrders[key] = guardedIds;
+    const source = Object.fromEntries(question.items.map((item) => [item.id, item]));
+    return guardedIds.map((id) => source[id]).filter(Boolean);
+  }
+  return items;
+}
+
+function orderedMappingChoices(question) {
+  const answerAlignedOrder = question.items.map((item) => question.answer[item.id]).filter(Boolean);
+  const avoidOrders = question.id === "q04" ? [answerAlignedOrder] : [];
+  const key = `${question.id}_choices`;
+  return ensureOrderedIds(key, question.choices, attemptOrderSeed(question.id, "choices"), avoidOrders);
 }
 
 function formatSelected(question) {
@@ -264,7 +366,8 @@ function formatSelected(question) {
   if (question.type === "choice") return question.options.find((option) => option.id === value)?.text || "尚未選擇";
   if (question.type === "mapping") {
     const choices = Object.fromEntries(question.choices.map((item) => [item.id, item.text]));
-    return question.items.map((item) => `${item.label}：${choices[value?.[item.id]] || "尚未選擇"}`).join("；");
+    const items = question.id === "q01" ? orderedMappingItems(question) : question.items;
+    return items.map((item) => `${item.label}：${choices[value?.[item.id]] || "尚未選擇"}`).join("；");
   }
   if (question.type === "sequence") {
     const labels = Object.fromEntries(question.steps.map((item) => [item.id, item.label]));
@@ -280,8 +383,11 @@ function titleAvatarPath(student = state.student) {
   const gender = student?.profile_gender === "female" ? "female" : "male";
   const fallback = `../shared-assets/title-avatars/title-01-trainee_investigator-${gender}.webp`;
   const rawPath = student?.title_avatar_path || student?.progress?.title_avatar_path || fallback;
-  if (rawPath.startsWith("../") || rawPath.startsWith("http")) return rawPath;
-  if (rawPath.startsWith("shared-assets/")) return `../${rawPath}`;
+  if (/^(https?:|data:)/i.test(rawPath)) return fallback;
+  const webpPath = String(rawPath).replace(/\.(?:png|jpe?g)([?#]|$)/i, ".webp$1");
+  if (webpPath.startsWith("../")) return webpPath;
+  if (webpPath.startsWith("./")) return `.${webpPath}`;
+  if (webpPath.startsWith("shared-assets/")) return `../${webpPath}`;
   return fallback;
 }
 
@@ -301,6 +407,78 @@ function titleAndProgress(student = state.student, localGain = 0) {
     remaining: next ? Math.max(0, next.need - totalExp) : 0,
     progressPercent: Math.min(100, Math.round((totalExp / 23400) * 100))
   };
+}
+
+function parseJsonArray(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== "string" || !value.trim()) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function summaryHasTrustedContent(item) {
+  return Boolean(item?.unit_id) && (
+    item.total_badges !== undefined
+    || item.earned_count !== undefined
+    || Array.isArray(item.earned_badges)
+    || Array.isArray(item.earned_badge_ids)
+    || item.availability_status
+    || item.station_title
+  );
+}
+
+function mergeUnitBadgeSummaries(existingValue, incomingValue) {
+  const merged = new Map();
+  parseJsonArray(existingValue).filter(summaryHasTrustedContent).forEach((item) => {
+    merged.set(item.unit_id, { ...item });
+  });
+  parseJsonArray(incomingValue).filter(summaryHasTrustedContent).forEach((item) => {
+    merged.set(item.unit_id, { ...(merged.get(item.unit_id) || {}), ...item });
+  });
+  return [...merged.values()].sort((a, b) => String(a.unit_id).localeCompare(String(b.unit_id)));
+}
+
+function normalizeBadgeEntry(entry) {
+  if (typeof entry === "string") return { badge_id: entry };
+  if (!entry || typeof entry !== "object") return null;
+  const badgeId = String(entry.badge_id || entry.id || "").trim();
+  if (!badgeId) return null;
+  return { ...entry, badge_id: badgeId };
+}
+
+function mergeBadgeCollections(existingValue, incomingValue) {
+  const merged = new Map();
+  [...parseJsonArray(existingValue), ...parseJsonArray(incomingValue)]
+    .map(normalizeBadgeEntry)
+    .filter(Boolean)
+    .forEach((entry) => merged.set(entry.badge_id, { ...(merged.get(entry.badge_id) || {}), ...entry }));
+  return [...merged.values()];
+}
+
+function mergeStudentProgress(existingProgress = {}, incomingProgress = {}) {
+  const merged = { ...(existingProgress || {}), ...(incomingProgress || {}) };
+  const summaries = mergeUnitBadgeSummaries(
+    existingProgress?.unit_badge_summary_json,
+    incomingProgress?.unit_badge_summary_json || incomingProgress?.unit_badge_summary_patch_json
+  );
+  if (summaries.length) merged.unit_badge_summary_json = JSON.stringify(summaries);
+  const badges = mergeBadgeCollections(existingProgress?.badges_json, incomingProgress?.badges_json);
+  if (badges.length) merged.badges_json = JSON.stringify(badges);
+  return merged;
+}
+
+function applyStudentProgress(progress) {
+  if (!state.student || !progress) return;
+  const mergedProgress = mergeStudentProgress(state.student.progress || {}, progress);
+  state.student.progress = mergedProgress;
+  state.student.total_exp = Number(mergedProgress.total_exp ?? state.student.total_exp ?? 0);
+  state.student.current_title_id = mergedProgress.current_title_id || state.student.current_title_id;
+  state.student.current_title = mergedProgress.current_title || state.student.current_title;
+  state.student.title_avatar_path = mergedProgress.title_avatar_path || state.student.title_avatar_path;
 }
 
 async function requestBackend(params) {
@@ -323,18 +501,19 @@ async function requestBackend(params) {
 function normalizeBackendStudent(data, inputId) {
   const student = data.student || data;
   if (!student || !student.student_id) throw new Error("student_not_found");
+  const progress = mergeStudentProgress({}, data.student_progress || data.progress || student.progress || {});
   return {
     student_id: String(student.student_id || inputId),
     class_name: String(student.class_name || student.class || ""),
     seat_no: String(student.seat_no || student.seat || ""),
     student_name: String(student.student_name || student.name || ""),
     profile_gender: student.profile_gender || student.gender || "male",
-    total_exp: Number(student.total_exp || data.progress?.total_exp || 0),
-    current_title_id: student.current_title_id || data.progress?.current_title_id || "",
-    current_title: student.current_title || data.progress?.current_title || "",
-    title_avatar_path: student.title_avatar_path || data.progress?.title_avatar_path || "",
+    total_exp: Number(student.total_exp || progress.total_exp || 0),
+    current_title_id: student.current_title_id || progress.current_title_id || "",
+    current_title: student.current_title || progress.current_title || "",
+    title_avatar_path: student.title_avatar_path || progress.title_avatar_path || "",
     completed_attempts: Number(student.completed_attempts || data.completed_attempts || 0),
-    progress: data.student_progress || data.progress || student.progress || {}
+    progress
   };
 }
 
@@ -352,6 +531,7 @@ function beginLocalAttempt(student) {
     completedScreens: ["login", "brief"]
   };
   saveState();
+  requestScrollReset();
 }
 
 async function handleLogin(useGuest) {
@@ -395,6 +575,7 @@ async function handleLogin(useGuest) {
       completedScreens: ["login", "brief"]
     };
     saveState();
+    requestScrollReset();
     renderApp();
   } catch (error) {
     state = createEmptyState();
@@ -408,6 +589,7 @@ async function handleLogin(useGuest) {
 }
 
 function setScreen(nextScreen) {
+  const previousScreen = state.screen;
   if (state.submitted && LOCKED_SCREENS_AFTER_SUBMIT.has(nextScreen)) {
     state.notice = LOCK_MESSAGE;
     state.screen = "result";
@@ -416,6 +598,7 @@ function setScreen(nextScreen) {
     state.notice = "";
     if (!state.completedScreens.includes(nextScreen)) state.completedScreens.push(nextScreen);
   }
+  if (state.screen !== previousScreen) requestScrollReset();
   saveState();
   renderApp();
 }
@@ -651,6 +834,7 @@ function buildBackendPayload(result = scoreAttempt()) {
     question_version: QUESTION_VERSION,
     raw_answers: rawAnswers,
     raw_answers_json: JSON.stringify(rawAnswers),
+    display_order_json: JSON.stringify(state.optionOrders || {}),
     question_logs: result.logs.map((log) => ({
       question_id: log.question_id,
       attempt_answer: log.answer,
@@ -663,6 +847,34 @@ function buildBackendPayload(result = scoreAttempt()) {
   };
 }
 
+function parseBadgeIds(value) {
+  if (Array.isArray(value)) return value.map((item) => normalizeBadgeEntry(item)?.badge_id || String(item)).filter(Boolean);
+  if (typeof value === "string" && value.trim()) {
+    try {
+      return parseBadgeIds(JSON.parse(value));
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function backendBadgeIds(response, verified, fallback = []) {
+  const sources = [
+    response?.attempt_result?.newly_credited_badges_json,
+    response?.newly_credited_badges_json,
+    verified?.newly_credited_badges_json,
+    response?.attempt_result?.earned_badges_json,
+    verified?.earned_badges_json,
+    verified?.earned_badges
+  ];
+  for (const source of sources) {
+    const ids = parseBadgeIds(source);
+    if (ids.length) return [...new Set(ids)];
+  }
+  return fallback;
+}
+
 async function submitAttemptToBackend(payload) {
   if (state.student?.is_guest) return { ok: true, verification_status: "local_guest" };
   return requestBackend(payload);
@@ -673,13 +885,13 @@ function applyBackendSubmitResponse(response, localResult) {
   const verified = response.verified_attempt || response.attempt || null;
   const progress = response.student_progress || response.progress || null;
   if (progress) {
-    state.student.progress = progress;
-    state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
-    state.student.current_title_id = progress.current_title_id || state.student.current_title_id;
-    state.student.current_title = progress.current_title || state.student.current_title;
-    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path;
+    applyStudentProgress({
+      ...progress,
+      unit_badge_summary_patch_json: progress.unit_badge_summary_patch_json || response.unit_badge_summary_patch_json || response.attempt_result?.unit_badge_summary_patch_json || ""
+    });
   }
   if (!verified) return { ...localResult, backend_response: response };
+  const earnedBadges = backendBadgeIds(response, verified, localResult.earned_badges);
   return {
     ...localResult,
     verification_status: verified.verification_status || response.verification_status || "server_verified",
@@ -696,7 +908,7 @@ function applyBackendSubmitResponse(response, localResult) {
     attempt_exp: Number(verified.attempt_exp ?? localResult.attempt_exp),
     unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
     exp_delta: Number(verified.credited_delta ?? verified.exp_delta ?? localResult.exp_delta),
-    earned_badges: Array.isArray(verified.earned_badges) ? verified.earned_badges : localResult.earned_badges,
+    earned_badges: earnedBadges,
     backend_response: response
   };
 }
@@ -732,6 +944,7 @@ async function submitMission() {
   state.submitted = true;
   state.submitLockedAt = new Date().toISOString();
   state.screen = "result";
+  requestScrollReset();
   for (const item of ["result", "achievements", "rules"]) {
     if (!state.completedScreens.includes(item)) state.completedScreens.push(item);
   }
@@ -768,7 +981,22 @@ function renderLogin() {
   `;
 }
 
+function studentIdentityCopy(student = state.student) {
+  if (!student) return { greeting: "你好", details: "尚未登入" };
+  if (student.is_guest) return { greeting: "你好，老師測試帳號", details: "guest 測試身分｜不列入正式統計" };
+  const details = [
+    student.class_name ? `班級 ${student.class_name}` : "",
+    student.seat_no ? `座號 ${student.seat_no}` : "",
+    student.student_id ? `學號 ${student.student_id}` : ""
+  ].filter(Boolean).join("｜");
+  return {
+    greeting: `你好，${student.student_name || "同學"}`,
+    details: details || "正式學生資料已由 BioQuest 後台確認"
+  };
+}
+
 function renderBrief() {
+  const identity = studentIdentityCopy();
   const sceneAttrs = `${assets.briefingSceneHook ? ` data-briefing-scene-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
   const sceneMedia = `<picture class="bq-brief-scene-media">${assets.briefingSceneMobileHook ? `<source media="(max-width: 680px)" srcset="${assets.briefingSceneMobileHook}">` : ""}<img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="阿澤老師在人體養分轉運任務場景中引導學生"></picture>`;
   return `
@@ -781,6 +1009,10 @@ function renderBrief() {
         <div class="scene-copy bq-brief-scene-caption">
           <p class="eyebrow">${mission.mission_area}</p>
           <h2>${mission.mission_title}</h2>
+          <div class="identity-confirm" role="status" aria-live="polite">
+            <strong>${escapeHtml(identity.greeting)}</strong>
+            <span>${escapeHtml(identity.details)}</span>
+          </div>
           <p>生命補給轉運站收到一份食物進入人體後的追蹤紀錄。請協助整理它如何被分解、吸收並由血液運送。</p>
         </div>
         <div class="button-row">
@@ -789,6 +1021,30 @@ function renderBrief() {
         </div>
       </section>
     </div>
+  `;
+}
+
+function renderDigestiveSystemFallbackFigure() {
+  const hotspots = ["mouth", "salivary_gland", "pharynx", "esophagus", "stomach", "liver", "pancreas", "small_intestine", "large_intestine", "rectum_anus", "gastric_gland", "intestinal_gland"];
+  return `
+    <figure class="digestive-system-figure" data-digestive-system-figure data-asset-status="awaiting_approved_visual">
+      <div class="digestive-system-canvas" role="img" aria-label="人體消化系統示意圖待正式圖核准，目前以中性結構預留圖例與互動點位。">
+        <div class="digestive-body-outline" aria-hidden="true">
+          <span class="digestive-track digestive-track-mouth"></span>
+          <span class="digestive-track digestive-track-esophagus"></span>
+          <span class="digestive-track digestive-track-stomach"></span>
+          <span class="digestive-track digestive-track-intestine"></span>
+          <span class="digestive-gland digestive-gland-upper"></span>
+          <span class="digestive-gland digestive-gland-lower"></span>
+        </div>
+        ${hotspots.map((id, index) => `<button class="digestive-hotspot digestive-hotspot-${index + 1}" type="button" data-digestive-hotspot="${id}" aria-label="消化系統互動點位待正式圖接線"></button>`).join("")}
+      </div>
+      <figcaption>人體消化系統圖已預留正式接線位置；核准素材到位後會以同一圖例區分食物通過路線與分泌消化液的支援構造。</figcaption>
+      <div class="digestive-legend" aria-label="圖例">
+        <span><i class="legend-track"></i>食物通過路線</span>
+        <span><i class="legend-gland"></i>消化液支援構造</span>
+      </div>
+    </figure>
   `;
 }
 
@@ -805,6 +1061,7 @@ function renderScan() {
             <p>食物會通過消化道；消化腺提供消化液；小腸是主要吸收養分的地方。</p>
           </div>
         </div>
+        ${renderDigestiveSystemFallbackFigure()}
         <div class="concept-grid">
           <article><strong>路線</strong><p>食物依序通過口腔、食道、胃、小腸、大腸與肛門。</p></article>
           <article><strong>分工</strong><p>消化道是食物路線；消化腺分泌消化液協助消化。</p></article>
@@ -894,12 +1151,14 @@ function renderChoiceQuestion(question) {
 
 function renderMappingQuestion(question) {
   const current = state.answers[question.id] || {};
-  return `<div class="mapping-list">${question.items.map((item) => `
+  const items = orderedMappingItems(question);
+  const choices = orderedMappingChoices(question);
+  return `<div class="mapping-list">${items.map((item) => `
     <label class="mapping-row">
       <span>${escapeHtml(item.label)}</span>
       <select data-map-question="${question.id}" data-map-item="${item.id}">
         <option value="">尚未選擇</option>
-        ${question.choices.map((choice) => `<option value="${choice.id}" ${current[item.id] === choice.id ? "selected" : ""}>${escapeHtml(choice.text)}</option>`).join("")}
+        ${choices.map((choice) => `<option value="${choice.id}" ${current[item.id] === choice.id ? "selected" : ""}>${escapeHtml(choice.text)}</option>`).join("")}
       </select>
     </label>
   `).join("")}</div>`;
@@ -947,7 +1206,7 @@ function renderReview() {
   const feedback = conceptFeedback();
   const stateName = result.accuracy >= 1 && result.hint_used_count === 0 ? "excellent" : result.accuracy >= .86 ? "strong" : result.accuracy >= .64 ? "stable" : result.accuracy >= .4 ? "needs_review" : "retry_ready";
   return `
-    <div class="mission-layout review-layout" data-feedback-state="${stateName}">
+    <div class="review-layout" data-feedback-state="${stateName}">
       <section class="panel">
         <p class="eyebrow">概念回饋</p>
         <h2>先整理你目前的養分轉運線索</h2>
@@ -964,18 +1223,13 @@ function renderReview() {
         </div>
         <button class="primary" data-next="reflection">前往任務回報</button>
       </section>
-      <aside class="panel mentor-card" data-feedback-state="${stateName}">
-        <img src="../shared-assets/mentor-feedback/mentor-feedback-${stateName}.webp" alt="阿澤老師回饋" onerror="this.src='${assets.mentorFallback}'">
-        <h3>${feedbackTitle(stateName)}</h3>
-        <p>請把不確定的概念轉成課堂上想確認的方向。</p>
-      </aside>
     </div>
   `;
 }
 
 function misconceptionText(tag) {
   return {
-    tract_gland_confusion: "消化道是食物通過的路線；消化腺是分泌消化液的支援構造。",
+    tract_gland_confusion: "消化道器官是食物通過的路線；胃腺、腸腺等消化腺構造才是分泌消化液的支援構造。",
     gland_in_food_path: "食物會通過消化道，不會直接通過肝臟或胰臟。",
     all_organs_same_function: "口腔、食道、胃、小腸和大腸負責不同步驟。",
     digestion_absorption_same: "消化是分解；吸收是小分子養分進入體內或血液。",
@@ -1053,7 +1307,7 @@ function renderResult() {
           <button class="secondary" data-next="rules">查看規則</button>
         </div>
       </section>
-      ${renderBadgeWall(result.earned_badges)}
+      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode: resultMode(result) })}
     </div>
   `;
 }
@@ -1083,10 +1337,8 @@ function ledgerRow(label, value) {
 }
 
 function renderAchievements() {
-  const result = state.result || scoreAttempt();
   return `
-    <div class="stack achievements-stack">
-      ${renderBadgeWall(result.earned_badges, { unitAchievements: true })}
+    <div class="stack achievements-stack" data-bq-achievements-overview-only="true">
     </div>
   `;
 }
@@ -1094,19 +1346,30 @@ function renderAchievements() {
 function renderBadgeWall(earned = [], options = {}) {
   const earnedSet = new Set(earned);
   const unitAttributes = options.unitAchievements ? ` data-bq-unit-achievements="${mission.unit_id}"` : "";
-  const badgeVisual = (badge) => badge.image_status === "pending"
+  const mode = options.mode || resultMode();
+  const badgeList = options.onlyEarned
+    ? [...earnedSet].map((id) => badges.find((badge) => badge.id === id)).filter(Boolean)
+    : badges;
+  const badgeVisual = (badge) => badge.image_status !== "ready" || !badge.badge_image_path
     ? `<span class="bq-badge-asset-pending" role="img" aria-label="${escapeHtml(badge.name)}素材待接">徽章素材待接</span>`
-    : `<img src="${badge.badge_image_path}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('fallback'); this.remove();">`;
+    : `<img src="${badge.badge_image_path}?v=${VERSION}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('fallback'); this.remove();">`;
+  const statusText = {
+    verified: "本次正式取得",
+    pending: "本次可能取得，待後台確認",
+    guest: "guest 測試徽章，不列入正式累積"
+  }[mode] || "本次可能取得，待後台確認";
   return `<section class="panel"${unitAttributes}>
-    <p class="eyebrow">${options.unitAchievements ? "本單元成就" : "徽章收藏牆"}</p>
-    <h2>本單元 13 枚徽章</h2>
+    <p class="eyebrow">${options.onlyEarned ? "本次徽章" : options.unitAchievements ? "本單元成就" : "徽章收藏牆"}</p>
+    <h2>${options.onlyEarned ? "本次取得徽章" : "本單元 13 枚徽章"}</h2>
+    ${options.onlyEarned && !badgeList.length ? `<p class="muted">本次尚未取得徽章；正式徽章累積以後台確認為準。</p>` : ""}
     <div class="badge-wall">
-      ${badges.map((badge) => `
+      ${badgeList.map((badge) => `
         <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
           <div class="badge-visual" data-badge-image-status="${badge.image_status || "ready"}">
             ${badgeVisual(badge)}
           </div>
           <strong>${escapeHtml(badge.name)}</strong>
+          ${options.onlyEarned ? `<span class="badge-state">${escapeHtml(statusText)}</span>` : ""}
           <p>${escapeHtml(badge.condition)}</p>
         </article>
       `).join("")}
@@ -1133,6 +1396,16 @@ function renderRules() {
   `;
 }
 
+function updateBadgeOverviewBridge() {
+  if (typeof window === "undefined") return;
+  const student = state.student ? { ...state.student, progress: state.student.progress || {} } : {};
+  window.__BIOQUEST_BADGE_OVERVIEW_STATE__ = {
+    unit_id: mission.unit_id,
+    student,
+    progress: student.progress || {}
+  };
+}
+
 function renderApp() {
   if (!screen) return;
   const views = {
@@ -1152,7 +1425,12 @@ function renderApp() {
   screen.innerHTML = `${state.notice ? `<div class="notice">${escapeHtml(state.notice)}</div>` : ""}${(views[state.screen] || renderLogin)()}`;
   updateNav();
   bindScreenEvents();
-  if (typeof window !== "undefined" && window.BioQuestCharacterLayout?.enhance) window.BioQuestCharacterLayout.enhance();
+  updateBadgeOverviewBridge();
+  if (typeof window !== "undefined" && window.BioQuestCharacterLayout?.enhance) window.BioQuestCharacterLayout.enhance({ force: true });
+  if (pendingScrollReset) {
+    pendingScrollReset = false;
+    resetScrollToTop();
+  }
 }
 
 function updateNav() {
@@ -1238,8 +1516,16 @@ if (typeof window !== "undefined") {
     scoreAttempt,
     buildBackendPayload,
     evaluateReflection,
+    orderedOptions,
+    orderedMappingItems,
+    orderedMappingChoices,
+    formatSelected,
+    mergeStudentProgress,
+    applyBackendSubmitResponse,
     titleAvatarPath,
     renderBrief,
+    renderDigestiveSystemFallbackFigure,
+    renderScan,
     renderQuestionEvidence,
     renderCheckpoint,
     renderReview,

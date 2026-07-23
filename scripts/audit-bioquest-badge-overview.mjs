@@ -6,41 +6,8 @@ import vm from "node:vm";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const version = "20260715-achievement-order-v1";
-const sharedVersionOverrides = new Map([
-  ["prototype-life-world", "20260715-brief-scene-unified-u1u7-v1"],
-  ["prototype-scientific-method", "20260715-brief-scene-unified-u1u7-v1"],
-  ["prototype-lab-entry", "20260715-brief-scene-unified-u1u7-v1"],
-  ["prototype-microscope-use", "20260715-brief-scene-unified-u1u7-v1"],
-  ["prototype-cell-basic-unit", "20260721-cell-basic-unit-required-gates-v1"],
-  ["prototype-cell-structure", "20260721-cell-structure-scrolltop-v1"],
-  ["prototype-cell-observation", "20260716-cell-observation-guest-local-v1"],
-  ["prototype-cell-transport", "20260721-cell-transport-q07-inactive-cache-v1"],
-  ["prototype-biological-organization", "20260716-biological-organization-title-count-v1"],
-  ["prototype-scale", "20260717-scale-user-review-v2"],
-  ["prototype-nutrients-energy", "20260721-title-avatar-webp-v1"],
-  ["prototype-nutrient-test", "20260720-nutrient-test-starch-glucose-only-v2"],
-  ["prototype-enzymes", "20260718-enzymes-badges-v1"],
-  ["prototype-photosynthesis", "20260721-photosynthesis-q09-inactive-cache-v1"],
-  ["prototype-human-nutrition", "20260719-human-nutrition-qa-v1"],
-  ["prototype-plant-transport-structures", "20260720-plant-transport-structures-extension-v2"],
-  ["prototype-plant-material-transport", "20260720-plant-material-transport-badges-v1"],
-  ["prototype-cardiovascular-components", "20260720-cardiovascular-components-brief-visible-v2"],
-  ["prototype-human-circulation", "20260720-human-circulation-badges-v1"],
-  ["prototype-stimulus-response", "20260721-stimulus-response-badges-cd-v1"],
-  ["prototype-nervous-system", "20260721-title-avatar-webp-v1"],
-  ["prototype-endocrine-system", "20260721-title-avatar-webp-v1"],
-  ["prototype-behavior-sensing", "20260721-title-avatar-webp-v1"],
-  ["prototype-respiration-homeostasis", "20260721-respiration-homeostasis-p1-v1"],
-  ["prototype-excretion-water-homeostasis", "20260713-login-busy-v1"],
-  ["prototype-temperature-glucose-homeostasis", "20260713-login-busy-v1"],
-  ["prototype-cell-division", "20260713-login-busy-v1"],
-  ["prototype-asexual-reproduction", "20260713-login-busy-v1"],
-  ["prototype-sexual-reproduction", "20260713-login-busy-v1"]
-]);
-const sharedIndexHookOverrides = new Map([
-  ["prototype-human-circulation", "20260721-title-avatar-webp-v1"]
-]);
+const version = "20260723-achievements-title-overview-v1";
+const sharedLayoutVersion = "20260723-achievements-title-overview-v1";
 const readyUnits = [
   "prototype-life-world",
   "prototype-scientific-method",
@@ -85,7 +52,7 @@ for (const token of [
   "BADGE_OVERVIEW_VERSION",
   "bq-unit-badge-summary-grid",
   "pending 或本機候選徽章不列入正式總覽",
-  "insertAdjacentElement(\"afterend\", overviewPanel)",
+  "insertBefore(titleCard",
   "overviewPanels.slice(1).forEach"
 ]) assert(sharedJs.includes(token), `shared badge overview JS token missing: ${token}`);
 assert(!sharedJs.includes("insertAdjacentElement(\"beforebegin\", overviewPanel)"), "badge overview must not be inserted before unit badge panel");
@@ -103,9 +70,8 @@ for (const token of [
 for (const folder of readyUnits) {
   const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
   const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
-  const expectedSharedVersion = sharedIndexHookOverrides.get(folder) || "20260721-title-avatar-webp-v1";
-  assert(index.includes(`bioquest-character-layout.css?v=${expectedSharedVersion}`), `${folder}: shared CSS cache not updated`);
-  assert(index.includes(`bioquest-character-layout.js?v=${expectedSharedVersion}`), `${folder}: shared JS cache not updated`);
+  assert(index.includes(`bioquest-character-layout.css?v=${sharedLayoutVersion}`), `${folder}: shared CSS cache not updated`);
+  assert(index.includes(`bioquest-character-layout.js?v=${sharedLayoutVersion}`), `${folder}: shared JS cache not updated`);
   assert(!app.includes("aggregate.badges.map"), `${folder}: legacy whole-book badge renderer still expands aggregate.badges`);
   assert(!app.includes("目前沒有亮起的徽章"), `${folder}: legacy whole-book empty text remains`);
   assert(!app.includes("已收集</span><strong>${badge}"), `${folder}: legacy collected badge text remains`);
@@ -172,7 +138,7 @@ for (const folder of ["prototype-human-nutrition", "prototype-plant-transport-st
   const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
   const wallStart = app.indexOf("function renderBadgeWall");
   const wallBlock = app.slice(wallStart, app.indexOf("function renderRules", wallStart));
-  assert(wallBlock.includes('badge.image_status === "pending"'), `${folder}: badge wall must branch on image_status pending`);
+  assert(wallBlock.includes("image_status") && wallBlock.includes('"ready"'), `${folder}: badge wall must branch on badge image status`);
   assert(wallBlock.includes("bq-badge-asset-pending"), `${folder}: badge wall must render controlled pending fallback`);
 }
 
