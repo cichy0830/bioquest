@@ -202,37 +202,25 @@ textarea { resize: vertical; min-height: 116px; }
 .digestive-system-canvas {
   position: relative;
   overflow: hidden;
-  min-height: 260px;
+  aspect-ratio: 16 / 9;
   border-radius: 10px;
-  background:
-    linear-gradient(180deg, rgba(240, 248, 246, 0.88), rgba(252, 248, 237, 0.86));
+  background: rgba(240, 248, 246, 0.88);
 }
-.digestive-body-outline {
+.digestive-system-media,
+.digestive-system-media img,
+.digestive-hotspot-layer {
   position: absolute;
-  inset: 9% 18%;
-  border: 2px solid rgba(42, 79, 76, 0.32);
-  border-radius: 48% 48% 40% 40%;
+  inset: 0;
 }
-.digestive-track,
-.digestive-gland {
-  position: absolute;
+.digestive-system-media img {
   display: block;
-  border-radius: 999px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
-.digestive-track {
-  border: 4px solid rgba(54, 111, 99, 0.58);
-  background: rgba(54, 111, 99, 0.12);
+.digestive-hotspot-layer {
+  pointer-events: none;
 }
-.digestive-track-mouth { width: 18%; height: 8%; left: 40%; top: 8%; }
-.digestive-track-esophagus { width: 5%; height: 31%; left: 47%; top: 15%; }
-.digestive-track-stomach { width: 23%; height: 14%; left: 44%; top: 42%; transform: rotate(-10deg); }
-.digestive-track-intestine { width: 40%; height: 30%; left: 31%; top: 56%; border-radius: 35%; }
-.digestive-gland {
-  border: 3px dashed rgba(206, 129, 35, 0.7);
-  background: rgba(240, 175, 82, 0.16);
-}
-.digestive-gland-upper { width: 24%; height: 12%; left: 27%; top: 39%; }
-.digestive-gland-lower { width: 19%; height: 9%; left: 52%; top: 52%; }
 .digestive-hotspot {
   position: absolute;
   width: 22px;
@@ -240,6 +228,7 @@ textarea { resize: vertical; min-height: 116px; }
   border: 2px solid rgba(31, 68, 65, 0.32);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.42);
+  pointer-events: auto;
 }
 .digestive-hotspot-1 { left: 48%; top: 15%; }
 .digestive-hotspot-2 { left: 36%; top: 20%; }
@@ -501,7 +490,7 @@ textarea { resize: vertical; min-height: 116px; }
   .identity-confirm span { color: var(--muted); }
   .prep-owl-hero { grid-template-columns: 1fr; text-align: center; }
   .prep-owl-hero img { width: min(250px, 70vw); margin: 0 auto; }
-  .digestive-system-canvas { min-height: 220px; }
+  .digestive-system-canvas { aspect-ratio: 16 / 9; }
   .sequence-item { grid-template-columns: 42px minmax(0,1fr); }
   .sequence-actions { grid-column: 1 / -1; }
   .sequence-actions .icon-btn { flex: 1; }

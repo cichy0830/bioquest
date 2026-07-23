@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-  const VERSION = "20260723-human-nutrition-user-review-v1";
+  const VERSION = "20260723-human-nutrition-approved-visuals-v1";
   const QUESTION_VERSION = "20260723-human-nutrition-digestive-classification-v2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -60,13 +60,13 @@ const assets = {
   briefingSceneHook: "assets/human-nutrition-briefing-azhe-wide.webp",
   briefingSceneMobileHook: "",
   ambientBackgroundHook: "assets/human-nutrition-entry-wide.webp",
-  questionDigestiveMap: "human-nutrition-digestive-map",
-  questionEnzymeCards: "human-nutrition-enzyme-cards",
-  questionVilliEvidence: "human-nutrition-villi-evidence"
+  digestiveSystemMap: "assets/human-nutrition-digestive-system-map.webp",
+  digestiveSystemMap1440: "assets/sizes/human-nutrition-digestive-system-map-1440w.webp",
+  digestiveSystemMap960: "assets/sizes/human-nutrition-digestive-system-map-960w.webp",
 };
 
 const plannedBadgeAsset = (id) => `shared-assets/badges/human_nutrition/badge-human_nutrition-${id}.webp`;
-const badgeAsset = () => "";
+const badgeAsset = (id) => `../shared-assets/badges/human_nutrition/badge-human_nutrition-${id}.webp`;
 const reflectionRules = {
   conceptTerms: ["消化", "吸收", "消化道", "消化腺", "食物流向", "口腔", "食道", "胃", "胃腺", "小腸", "腸腺", "大腸", "肛門", "唾液腺", "肝臟", "胰臟", "酵素", "膽汁", "脂質", "蛋白質", "澱粉", "絨毛", "血液", "養分運送"],
   irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "午餐", "放假"],
@@ -93,8 +93,9 @@ const badges = [
   display_order: index + 1,
   badge_image_path: badgeAsset(badge.id),
   planned_badge_image_path: plannedBadgeAsset(badge.id),
-  image_status: "controlled_pending",
-  badge_image_status: "controlled_pending",
+  image_status: "ready",
+  badge_image_status: "USER_APPROVED",
+  ready_for_wiring: true,
   is_gold_badge: badge.id === "human_nutrition_flawless"
 }));
 
@@ -1026,20 +1027,19 @@ function renderBrief() {
 
 function renderDigestiveSystemFallbackFigure() {
   const hotspots = ["mouth", "salivary_gland", "pharynx", "esophagus", "stomach", "liver", "pancreas", "small_intestine", "large_intestine", "rectum_anus", "gastric_gland", "intestinal_gland"];
+  const versioned = (src) => `${src}?v=${VERSION}`;
   return `
-    <figure class="digestive-system-figure" data-digestive-system-figure data-asset-status="awaiting_approved_visual">
-      <div class="digestive-system-canvas" role="img" aria-label="人體消化系統示意圖待正式圖核准，目前以中性結構預留圖例與互動點位。">
-        <div class="digestive-body-outline" aria-hidden="true">
-          <span class="digestive-track digestive-track-mouth"></span>
-          <span class="digestive-track digestive-track-esophagus"></span>
-          <span class="digestive-track digestive-track-stomach"></span>
-          <span class="digestive-track digestive-track-intestine"></span>
-          <span class="digestive-gland digestive-gland-upper"></span>
-          <span class="digestive-gland digestive-gland-lower"></span>
+    <figure class="digestive-system-figure" data-digestive-system-figure data-asset-status="ready">
+      <div class="digestive-system-canvas has-approved-image" aria-label="人體消化系統圖，搭配下方圖例觀察食物通過路線與分泌消化液的支援構造。">
+        <picture class="digestive-system-media">
+          <source media="(max-width: 680px)" srcset="${versioned(assets.digestiveSystemMap960)} 960w, ${versioned(assets.digestiveSystemMap1440)} 1440w" sizes="100vw">
+          <img src="${versioned(assets.digestiveSystemMap)}" srcset="${versioned(assets.digestiveSystemMap960)} 960w, ${versioned(assets.digestiveSystemMap1440)} 1440w, ${versioned(assets.digestiveSystemMap)} 1600w" sizes="(max-width: 680px) 100vw, min(100vw, 920px)" alt="人體消化系統圖，保留互動點位與圖例供辨識。">
+        </picture>
+        <div class="digestive-hotspot-layer" aria-label="消化系統互動點位">
+          ${hotspots.map((id, index) => `<button class="digestive-hotspot digestive-hotspot-${index + 1}" type="button" data-digestive-hotspot="${id}" aria-label="消化系統互動點位"></button>`).join("")}
         </div>
-        ${hotspots.map((id, index) => `<button class="digestive-hotspot digestive-hotspot-${index + 1}" type="button" data-digestive-hotspot="${id}" aria-label="消化系統互動點位待正式圖接線"></button>`).join("")}
       </div>
-      <figcaption>人體消化系統圖已預留正式接線位置；核准素材到位後會以同一圖例區分食物通過路線與分泌消化液的支援構造。</figcaption>
+      <figcaption>觀察人體消化系統圖，再用圖例區分食物通過路線與分泌消化液的支援構造。</figcaption>
       <div class="digestive-legend" aria-label="圖例">
         <span><i class="legend-track"></i>食物通過路線</span>
         <span><i class="legend-gland"></i>消化液支援構造</span>

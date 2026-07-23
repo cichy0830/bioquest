@@ -23,7 +23,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-human-nutrition/app.js" });
 
 const api = context.window.__human_nutritionTest;
-assert.equal(api.VERSION, "20260723-human-nutrition-user-review-v1");
+assert.equal(api.VERSION, "20260723-human-nutrition-approved-visuals-v1");
 assert.equal(api.QUESTION_VERSION, "20260723-human-nutrition-digestive-classification-v2");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -107,12 +107,19 @@ for (const qid of ["q10", "q11", "q12"]) {
 }
 assert.equal(api.assets.ambientBackgroundHook, "assets/human-nutrition-entry-wide.webp");
 assert.equal(api.assets.owlPrep, "assets/owl-human-nutrition-prep-report.webp");
+assert.equal(api.assets.digestiveSystemMap, "assets/human-nutrition-digestive-system-map.webp");
+assert.equal(api.assets.digestiveSystemMap1440, "assets/sizes/human-nutrition-digestive-system-map-1440w.webp");
+assert.equal(api.assets.digestiveSystemMap960, "assets/sizes/human-nutrition-digestive-system-map-960w.webp");
 assert(!api.renderReflection().includes("bq-report-assistant"), "local report owl should be injected by shared layout");
 assert(api.renderBrief().includes("bq-brief-scene-stage"), "shared dual-role brief stage missing");
 assert(api.renderBrief().includes("你好，測試學生"), "brief must confirm logged-in identity");
-assert(api.renderDigestiveSystemFallbackFigure().includes("data-digestive-system-figure"), "digestive figure fallback hook missing");
+assert(api.renderDigestiveSystemFallbackFigure().includes('data-asset-status="ready"'), "digestive figure approved visual hook missing");
+assert(api.renderDigestiveSystemFallbackFigure().includes("human-nutrition-digestive-system-map-960w.webp"), "digestive figure responsive 960w asset missing");
+assert(api.renderDigestiveSystemFallbackFigure().includes("human-nutrition-digestive-system-map-1440w.webp"), "digestive figure responsive 1440w asset missing");
+assert(api.renderDigestiveSystemFallbackFigure().includes(`?v=${api.VERSION}`), "digestive figure image URL must use runtime cache key");
 assert(api.renderScan().includes("data-digestive-hotspot=\"gastric_gland\""), "gastric gland overlay hook missing");
-assert(api.badges.every((badge) => badge.image_status === "controlled_pending" && badge.badge_image_path === ""), "U15 badges must not request unapproved images");
+assert(api.badges.every((badge) => badge.image_status === "ready" && badge.badge_image_status === "USER_APPROVED" && badge.badge_image_path.includes("../shared-assets/badges/human_nutrition/")), "U15 badges must use approved shared WebP images");
+assert.equal(api.badges.filter((badge) => badge.is_gold_badge).map((badge) => badge.id).join(","), "human_nutrition_flawless", "flawless must remain the only gold badge");
 
 const q01 = api.questions.find((question) => question.id === "q01");
 const q02 = api.questions.find((question) => question.id === "q02");
@@ -187,7 +194,7 @@ const backendPatch = {
   current_title_id: "concept_solver",
   current_title: "概念解謎者",
   unit_badge_summary_patch_json: JSON.stringify([
-    { unit_id: "human_nutrition", earned_count: 3, total_badges: 13, earned_badges: [{ badge_id: "human_nutrition_entry", badge_image_path: "" }, { badge_id: "food_path_sequencer", badge_image_path: "" }, { badge_id: "human_nutrition_flawless", badge_image_path: "" }] }
+    { unit_id: "human_nutrition", earned_count: 3, total_badges: 13, earned_badges: [{ badge_id: "human_nutrition_entry", badge_image_path: "shared-assets/badges/human_nutrition/badge-human_nutrition-human_nutrition_entry.webp" }, { badge_id: "food_path_sequencer", badge_image_path: "shared-assets/badges/human_nutrition/badge-human_nutrition-food_path_sequencer.webp" }, { badge_id: "human_nutrition_flawless", badge_image_path: "shared-assets/badges/human_nutrition/badge-human_nutrition-human_nutrition_flawless.webp" }] }
   ]),
   badges_json: JSON.stringify([{ badge_id: "human_nutrition_entry" }])
 };

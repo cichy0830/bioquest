@@ -67,7 +67,7 @@ appVersionOverrides.set("photosynthesis", "20260721-photosynthesis-q09-inactive-
 appVersionOverrides.set("biological_organization", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("cell_transport", "20260721-cell-transport-q07-inactive-cache-v1");
 appVersionOverrides.set("plant_material_transport", "20260720-plant-material-transport-badges-v1");
-appVersionOverrides.set("human_nutrition", "20260723-human-nutrition-user-review-v1");
+appVersionOverrides.set("human_nutrition", "20260723-human-nutrition-approved-visuals-v1");
 appVersionOverrides.set("plant_material_transport", "20260720-plant-material-transport-badges-v1");
 appVersionOverrides.set("plant_transport_structures", "20260720-plant-transport-structures-extension-v2");
 appVersionOverrides.set("cardiovascular_components", "20260720-cardiovascular-components-brief-visible-v2");

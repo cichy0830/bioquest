@@ -111,6 +111,8 @@ async function inspect(mode, screen, viewport) {
       titleBeforeOverview: Boolean(titleCard && overview && (titleCard.compareDocumentPosition(overview) & Node.DOCUMENT_POSITION_FOLLOWING)),
       titleIsFirstAchievementChild: Boolean(titleCard && firstAchievementChild === titleCard),
       resultBadgeCards: document.querySelectorAll(".result-stack .badge-wall .badge").length,
+      resultBadgeImages: [...document.querySelectorAll(".result-stack .badge-wall .badge-visual img")].filter((img) => img.complete && img.naturalWidth > 0).length,
+      resultBadgeImageCacheOk: [...document.querySelectorAll(".result-stack .badge-wall .badge-visual img")].every((img) => img.currentSrc.includes("20260723-human-nutrition-approved-visuals-v1")),
       horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 2,
       visibleTitleImages: [...document.querySelectorAll(".bq-title-avatar-card img, .title-avatar-card.achievements img")].filter((img) => img.complete && img.naturalWidth > 0).length
     };
@@ -121,6 +123,8 @@ async function inspect(mode, screen, viewport) {
   assert.equal(snapshot.horizontalOverflow, false, `${mode}/${screen}/${viewport.width}: horizontal overflow`);
   if (screen === "result") {
     assert.equal(snapshot.resultBadgeCards, 3, `${mode}/${viewport.width}: result must show current earned badges`);
+    assert.equal(snapshot.resultBadgeImages, 3, `${mode}/${viewport.width}: earned badge images must load`);
+    assert.equal(snapshot.resultBadgeImageCacheOk, true, `${mode}/${viewport.width}: earned badge image URLs must include current cache`);
     if (mode === "guest") {
       assert(snapshot.text.includes("guest 測試：本次預估"), "guest result copy missing");
       assert(snapshot.text.includes("不列入正式累積"), "guest formal exclusion missing");
