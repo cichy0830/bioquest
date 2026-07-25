@@ -3,7 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260718-temperature-glucose-homeostasis-v1";
+const VERSION = "20260725-temperature-glucose-homeostasis-qa-fixes-v1";
+const QUESTION_VERSION = "20260718-temperature-glucose-homeostasis-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -24,7 +25,6 @@ const mission = {
 };
 
 const assets = {
-  mentorFallback: "../shared-assets/mentor-feedback/mentor-feedback-stable.webp",
   owlLogin: "../shared-assets/login/bioquest-login-cover-wide.webp",
   owlPrep: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   owlReport: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
@@ -119,7 +119,7 @@ function createEmptyState() {
     attempt_session_token: "",
     attempt_session_id: "",
     previous_attempt_id: "",
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     optionOrders: {},
     answers: {},
@@ -320,7 +320,7 @@ function beginLocalAttempt(student) {
     attempt_id: attemptId,
     attempt_session_token: `guest_${attemptId}`,
     attempt_session_id: `guest_session_${attemptId}`,
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     screen: "brief",
     completedScreens: ["login", "brief"]
@@ -351,9 +351,9 @@ async function handleLogin(useGuest) {
       action: "startAttempt",
       student_id: student.student_id,
       unit_id: mission.unit_id,
-      question_version: VERSION
+      question_version: QUESTION_VERSION
     });
-    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== VERSION) {
+    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== QUESTION_VERSION) {
       throw new Error("backend_registry_not_ready");
     }
     state = {
@@ -370,6 +370,7 @@ async function handleLogin(useGuest) {
     };
     saveState();
     renderApp();
+    resetScreenScroll();
   } catch (error) {
     state = createEmptyState();
     saveState();
@@ -378,6 +379,28 @@ async function handleLogin(useGuest) {
         ? "後台版本尚未更新，請通知老師。"
         : "無法連線或讀取 Google Sheet 學生資料，請稍後重試或通知老師。";
     }
+  }
+}
+
+function resetScreenScroll() {
+  const reset = () => {
+    if (typeof window !== "undefined" && typeof window.scrollTo === "function") window.scrollTo(0, 0);
+    if (typeof document !== "undefined") {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      document.querySelector(".main-stage")?.scrollTo?.(0, 0);
+    }
+  };
+  reset();
+  if (typeof window !== "undefined" && typeof window.setTimeout === "function") {
+    window.setTimeout(() => reset(), 0);
+    window.setTimeout(() => reset(), 64);
+  }
+  if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+    window.requestAnimationFrame(() => {
+      reset();
+      window.requestAnimationFrame(() => reset());
+    });
   }
 }
 
@@ -392,6 +415,7 @@ function setScreen(nextScreen) {
   }
   saveState();
   renderApp();
+  resetScreenScroll();
 }
 
 function canUseNav(target) {
@@ -763,6 +787,9 @@ function renderLogin() {
 
 function renderBrief() {
   const titleInfo = titleAndProgress();
+  const identityLine = state.student?.is_guest
+    ? "你好，老師測試帳號｜guest 測試身分"
+    : `你好，${escapeHtml(state.student?.student_name || "同學")}｜${escapeHtml(state.student?.class_name || "")} ${escapeHtml(state.student?.seat_no || "")}｜${escapeHtml(state.student?.student_id || "")}`;
   const sceneAttrs = `${assets.briefingSceneHook ? ` data-briefing-scene-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
   const sceneMedia = assets.briefingSceneHook
     ? `<picture class="brief-scene-media">
@@ -783,6 +810,7 @@ function renderBrief() {
         <div class="scene-copy bq-brief-scene-caption">
           <p class="eyebrow">${mission.mission_area}</p>
           <h2>${mission.mission_title}</h2>
+          <p class="lead">${identityLine}</p>
           <p>恆定調節站收到體溫與血糖警報。請協助判讀身體如何用負回饋，把偏高或偏低的狀態往適當範圍拉回。</p>
           <p class="muted">目前稱號：${escapeHtml(titleInfo.current.title)}｜${titleInfo.totalExp} EXP</p>
         </div>
@@ -905,7 +933,7 @@ function renderReview() {
   const feedback = conceptFeedback();
   const stateName = result.accuracy >= 1 && result.hint_used_count === 0 ? "excellent" : result.accuracy >= .86 ? "strong" : result.accuracy >= .64 ? "stable" : result.accuracy >= .4 ? "needs_review" : "retry_ready";
   return `
-    <div class="mission-layout review-layout" data-feedback-state="${stateName}">
+    <div class="stack review-layout" data-feedback-state="${stateName}">
       <section class="panel">
         <p class="eyebrow">概念回饋</p>
         <h2>先整理你目前的恆定調節判讀線索</h2>
@@ -922,11 +950,6 @@ function renderReview() {
         </div>
         <button class="primary" data-next="reflection">前往任務回報</button>
       </section>
-      <aside class="panel mentor-card" data-feedback-state="${stateName}">
-        <img src="../shared-assets/mentor-feedback/mentor-feedback-${stateName}.webp" alt="阿澤老師回饋" onerror="this.src='${assets.mentorFallback}'">
-        <h3>${feedbackTitle(stateName)}</h3>
-        <p>請把不確定的概念轉成課堂上想確認的方向。</p>
-      </aside>
     </div>
   `;
 }
@@ -947,16 +970,6 @@ function misconceptionText(tag) { return {
   feedback_direction_confusion:"建議再把體溫與血糖都用偏高/偏低判斷調節方向。",
   temperature_glucose_unit_boundary_confusion:"建議再確認單元邊界：本單元聚焦體溫與血糖；腎臟排泄屬 U25，細胞分裂屬 U27。"
 }[tag] || tag; }
-
-function feedbackTitle(stateName) {
-  return {
-    excellent: "概念連線非常穩定",
-    strong: "概念掌握良好",
-    stable: "可以再補幾個線索",
-    needs_review: "適合回到證據慢慢整理",
-    retry_ready: "先整理關鍵概念再挑戰"
-  }[stateName];
-}
 
 function renderReflection() {
   return `
@@ -1014,7 +1027,7 @@ function renderResult() {
           <button class="secondary" data-next="rules">查看規則</button>
         </div>
       </section>
-      ${renderBadgeWall(result.earned_badges)}
+      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode: resultMode(result) })}
     </div>
   `;
 }
@@ -1047,39 +1060,45 @@ function creditStatusText(result) {
 }
 
 function renderAchievements() {
-  const result = state.result || scoreAttempt();
-  const titleInfo = titleAndProgress(state.student, result.unit_credited_exp);
-  const credit = creditStatusText(result);
   return `
-    <div class="stack achievements-stack">
-      <section class="panel title-card">
-        <p class="eyebrow">全冊稱號</p>
-        <div class="title-card-content">
-          <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
-          <div>
-            <h2>${escapeHtml(titleInfo.current.title)}</h2>
-            <p>${credit.status === "verified" ? `${titleInfo.totalExp} EXP｜稱號進度 ${titleInfo.progressPercent}%` : credit.resultLine}</p>
-            <p>${credit.status === "verified" ? (titleInfo.next ? `距離 ${titleInfo.next.title} 還差 ${titleInfo.remaining} EXP` : "已達最高稱號，後續 EXP 仍會累積。") : credit.note}</p>
-          </div>
-        </div>
-      </section>
-      ${renderBadgeWall(result.earned_badges)}
+    <div class="stack achievements-stack" data-bq-achievements-overview-only="true">
     </div>
   `;
 }
 
-function renderBadgeWall(earned = []) {
+function resultMode(result = state.result || scoreAttempt()) {
+  const status = result?.verification_status || (state.student?.is_guest ? "local_guest" : "pending_backend");
+  if (state.student?.is_guest || status === "local_guest") return "guest";
+  if (status === "server_verified" || status === "server_verified_credited") return "verified";
+  return "pending";
+}
+
+function renderBadgeWall(earned = [], options = {}) {
   const earnedSet = new Set(earned);
+  const mode = options.mode || resultMode();
+  const badgeList = options.onlyEarned
+    ? [...earnedSet].map((id) => badges.find((badge) => badge.id === id)).filter(Boolean)
+    : badges;
+  const badgeVisual = (badge) => badge.image_status !== "ready" || !badge.badge_image_path
+    ? `<span class="bq-badge-asset-pending" role="img" aria-label="${escapeHtml(badge.name)}素材待接">徽章素材待接</span>`
+    : `<img src="${badge.badge_image_path}?v=${VERSION}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('fallback'); this.remove();">`;
+  const statusText = {
+    verified: "本次正式取得",
+    pending: "本次可能取得，待後台確認",
+    guest: "guest 測試徽章，不列入正式累積"
+  }[mode] || "本次可能取得，待後台確認";
   return `<section class="panel">
-    <p class="eyebrow">徽章收藏牆</p>
-    <h2>本單元 17 枚徽章</h2>
+    <p class="eyebrow">${options.onlyEarned ? "本次徽章" : "徽章收藏牆"}</p>
+    <h2>${options.onlyEarned ? "本次取得徽章" : `本單元 ${badges.length} 枚徽章`}</h2>
+    ${options.onlyEarned && !badgeList.length ? `<p class="muted">本次尚未取得徽章；正式徽章累積以後台確認為準。</p>` : ""}
     <div class="badge-wall">
-      ${badges.map((badge) => `
+      ${badgeList.map((badge) => `
         <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
-          <div class="badge-visual ${badge.image_status === "pending" ? "asset-missing" : ""}" data-badge-image-status="${escapeHtml(badge.image_status || "ready")}">
-            ${badge.image_status === "pending" ? "" : `<img src="${badge.badge_image_path}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('asset-missing'); this.remove();">`}
+          <div class="badge-visual" data-badge-image-status="${escapeHtml(badge.image_status || "pending")}">
+            ${badgeVisual(badge)}
           </div>
           <strong>${escapeHtml(badge.name)}</strong>
+          ${options.onlyEarned ? `<span class="badge-state">${escapeHtml(statusText)}</span>` : ""}
           <p>${escapeHtml(badge.condition)}</p>
         </article>
       `).join("")}
@@ -1184,7 +1203,10 @@ function bindScreenEvents() {
   textarea?.addEventListener("input", () => { state.reflection.question = textarea.value; saveState(); });
   confident?.addEventListener("input", () => { state.reflection.confident = confident.value; saveState(); });
   confidence?.addEventListener("change", () => { state.reflection.confidence = confidence.value; saveState(); });
-  screen.querySelector("#submitMission")?.addEventListener("click", submitMission);
+  screen.querySelector("#submitMission")?.addEventListener("click", (event) => {
+    event.currentTarget?.blur?.();
+    submitMission();
+  });
 }
 
 if (typeof document !== "undefined") {
@@ -1198,6 +1220,7 @@ if (typeof document !== "undefined") {
 if (typeof window !== "undefined") {
   window.__temperature_glucose_homeostasisTest = {
     VERSION,
+    QUESTION_VERSION,
     mission,
     assets,
     badges,
