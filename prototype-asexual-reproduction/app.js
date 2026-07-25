@@ -3,7 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260718-asexual-reproduction-v1";
+const VERSION = "20260725-asexual-reproduction-qa-fixes-v1";
+const QUESTION_VERSION = "20260718-asexual-reproduction-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -740,7 +741,7 @@ function createEmptyState() {
     attempt_session_token: "",
     attempt_session_id: "",
     previous_attempt_id: "",
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     optionOrders: {},
     answers: {},
@@ -761,7 +762,7 @@ function loadState() {
   if (typeof localStorage === "undefined") return createEmptyState();
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey) || "null");
-    return parsed && parsed.question_version ? { ...createEmptyState(), ...parsed } : createEmptyState();
+    return parsed && parsed.question_version ? { ...createEmptyState(), ...parsed, question_version: QUESTION_VERSION } : createEmptyState();
   } catch (error) {
     return createEmptyState();
   }
@@ -843,6 +844,66 @@ function stableShuffle(items, seed) {
     [copy[index], copy[swap]] = [copy[swap], copy[index]];
   }
   return copy;
+}
+
+function mappingGroup(question, itemId) {
+  return question.answer?.[itemId] || "";
+}
+
+function hasSingleBoundaryMappingGroup(question, ids) {
+  const groups = ids.map((id) => mappingGroup(question, id));
+  let changes = 0;
+  for (let index = 1; index < groups.length; index += 1) {
+    if (groups[index] !== groups[index - 1]) changes += 1;
+  }
+  return changes <= 1 && new Set(groups).size > 1;
+}
+
+function degroupMappingOrder(question, orderedIds) {
+  const canonical = question.items.map((item) => item.id);
+  if (!hasSingleBoundaryMappingGroup(question, orderedIds) && !orderedIds.every((id, index) => id === canonical[index])) return [...orderedIds];
+  const buckets = new Map();
+  orderedIds.forEach((id) => {
+    const group = mappingGroup(question, id);
+    if (!buckets.has(group)) buckets.set(group, []);
+    buckets.get(group).push(id);
+  });
+  const groups = [...buckets.entries()].sort((a, b) => b[1].length - a[1].length || orderedIds.indexOf(a[1][0]) - orderedIds.indexOf(b[1][0]));
+  const ids = [];
+  let previousGroup = "";
+  while (ids.length < orderedIds.length) {
+    const candidate = groups.find(([group, values]) => values.length && group !== previousGroup) || groups.find(([, values]) => values.length);
+    if (!candidate) break;
+    const [group, values] = candidate;
+    ids.push(values.shift());
+    previousGroup = group;
+    groups.sort((a, b) => b[1].length - a[1].length || orderedIds.indexOf(a[1][0]) - orderedIds.indexOf(b[1][0]));
+  }
+  if (ids.every((id, index) => id === canonical[index]) && ids.length > 2) [ids[1], ids[2]] = [ids[2], ids[1]];
+  return ids;
+}
+
+function orderedMappingItems(question) {
+  const key = `${question.id}_items`;
+  if (!state.optionOrders[key]) {
+    const ids = question.items.map((item) => item.id);
+    state.optionOrders[key] = degroupMappingOrder(question, stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}-items`));
+  }
+  const source = Object.fromEntries(question.items.map((item) => [item.id, item]));
+  return state.optionOrders[key].map((id) => source[id]).filter(Boolean);
+}
+
+function orderedMappingChoices(question) {
+  const key = `${question.id}_choices`;
+  if (!state.optionOrders[key]) {
+    const ids = question.choices.map((item) => item.id);
+    state.optionOrders[key] = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}-choices`);
+    if (state.optionOrders[key].every((id, index) => id === ids[index]) && ids.length > 1) {
+      [state.optionOrders[key][0], state.optionOrders[key][1]] = [state.optionOrders[key][1], state.optionOrders[key][0]];
+    }
+  }
+  const source = Object.fromEntries(question.choices.map((item) => [item.id, item]));
+  return state.optionOrders[key].map((id) => source[id]).filter(Boolean);
 }
 
 function orderedOptions(question) {
@@ -935,7 +996,7 @@ function normalizeBackendStudent(data, inputId) {
 
 function beginLocalAttempt(student) {
   const attemptId = uid("asexual_reproduction_guest_attempt");
-  state = { ...createEmptyState(), student, attempt_id: attemptId, attempt_session_token: `guest_${attemptId}`, attempt_session_id: `guest_session_${attemptId}`, question_version: VERSION, verification_mode: "local_guest", screen: "brief", completedScreens: ["login", "brief"] };
+  state = { ...createEmptyState(), student, attempt_id: attemptId, attempt_session_token: `guest_${attemptId}`, attempt_session_id: `guest_session_${attemptId}`, question_version: QUESTION_VERSION, verification_mode: "local_guest", screen: "brief", completedScreens: ["login", "brief"] };
   saveState();
 }
 
@@ -953,6 +1014,7 @@ async function handleLogin(useGuest) {
   if (useGuest || studentId === "guest") {
     beginLocalAttempt(roster.guest);
     renderApp();
+    resetScreenScroll();
     return;
   }
   try {
@@ -963,9 +1025,9 @@ async function handleLogin(useGuest) {
       action: "startAttempt",
       student_id: student.student_id,
       unit_id: mission.unit_id,
-      question_version: VERSION
+      question_version: QUESTION_VERSION
     });
-    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== VERSION) {
+    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== QUESTION_VERSION) {
       throw new Error("backend_registry_not_ready");
     }
     state = {
@@ -975,13 +1037,14 @@ async function handleLogin(useGuest) {
       attempt_session_token: startData.attempt_session_token,
       attempt_session_id: startData.attempt_session_id,
       previous_attempt_id: startData.previous_attempt_id || "",
-      question_version: startData.question_version,
+      question_version: QUESTION_VERSION,
       verification_mode: startData.verification_mode,
       screen: "brief",
       completedScreens: ["login", "brief"]
     };
     saveState();
     renderApp();
+    resetScreenScroll();
   } catch (error) {
     state = createEmptyState();
     saveState();
@@ -990,6 +1053,30 @@ async function handleLogin(useGuest) {
         ? "後台版本尚未更新，請通知老師。"
         : "無法連線或讀取 Google Sheet 學生資料，請稍後重試或通知老師。";
     }
+  }
+}
+
+function resetScrollContainers() {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+  const stage = document.querySelector(".main-stage");
+  if (stage) {
+    if (typeof stage.scrollTo === "function") stage.scrollTo(0, 0);
+    stage.scrollTop = 0;
+  }
+}
+
+function resetScreenScroll() {
+  resetScrollContainers();
+  if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+    window.requestAnimationFrame(() => {
+      resetScrollContainers();
+      window.requestAnimationFrame(resetScrollContainers);
+    });
+  } else if (typeof setTimeout === "function") {
+    setTimeout(resetScrollContainers, 0);
   }
 }
 
@@ -1004,6 +1091,7 @@ function setScreen(nextScreen) {
   }
   saveState();
   renderApp();
+  resetScreenScroll();
 }
 
 function canUseNav(target) {
@@ -1354,6 +1442,7 @@ async function submitMission() {
   });
   saveState();
   renderApp();
+  resetScreenScroll();
 }
 
 function renderLogin() {
@@ -1379,9 +1468,13 @@ function renderLogin() {
 
 function renderBrief() {
   const titleInfo = titleAndProgress();
+  const student = state.student || {};
+  const identityLine = student.is_guest
+    ? "你好，老師測試帳號｜guest 測試身分"
+    : `你好，${student.student_name || "同學"}｜${student.class_name || "班級未填"} ${student.seat_no || "座號未填"}｜${student.student_id || "學號未填"}`;
   const sceneAttrs = `${assets.briefingSceneHook ? ` data-briefing-scene-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
   const sceneMedia = assets.briefingSceneHook ? `<picture class="brief-scene-media">${assets.briefingSceneMobileHook ? `<source srcset="${assets.briefingSceneMobileHook}" media="(max-width: 640px)">` : ""}<img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="無性生殖簡報主視覺" onerror="this.closest('.brief-scene-media')?.classList.add('asset-missing')"></picture>` : `<div class="brief-scene-fallback bq-brief-scene-missing" role="img" aria-label="生命延續資料庫場景待接"><strong>生命延續資料庫</strong><span>正式簡報圖核准後，會在此呈現阿澤老師與無性生殖樣本分類場景。</span></div>`;
-  return `<div class="wide-layout"><section class="panel hero-panel brief-hero"><figure class="brief-scene asexual-reproduction-brief-scene bq-brief-scene-stage" data-bq-brief-dual-role="true"${sceneAttrs}>${sceneMedia}<img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'"></figure><div class="scene-copy bq-brief-scene-caption"><p class="eyebrow">${mission.mission_area}</p><h2>${mission.mission_title}</h2><p>生命延續資料庫收到多份繁殖樣本。請協助分辨無性生殖的核心特徵、常見方式與相鄰單元邊界。</p><p class="muted">目前稱號：${escapeHtml(titleInfo.current.title)}｜${titleInfo.totalExp} EXP</p></div><div class="button-row"><button class="primary" data-next="scan">查看進關卡提醒</button><button class="secondary" data-next="rules">先看規則</button></div></section></div>`;
+  return `<div class="wide-layout"><section class="panel hero-panel brief-hero"><figure class="brief-scene asexual-reproduction-brief-scene bq-brief-scene-stage" data-bq-brief-dual-role="true"${sceneAttrs}>${sceneMedia}<img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'"></figure><div class="scene-copy bq-brief-scene-caption"><p class="eyebrow">${mission.mission_area}</p><h2>${mission.mission_title}</h2><p class="identity-check">${escapeHtml(identityLine)}</p><p>生命延續資料庫收到多份繁殖樣本。請協助分辨無性生殖的核心特徵、常見方式與相鄰單元邊界。</p><p class="muted">目前稱號：${escapeHtml(titleInfo.current.title)}｜${titleInfo.totalExp} EXP</p></div><div class="button-row"><button class="primary" data-next="scan">查看進關卡提醒</button><button class="secondary" data-next="rules">先看規則</button></div></section></div>`;
 }
 
 
@@ -1442,12 +1535,13 @@ function renderChoiceQuestion(question) {
 
 function renderMappingQuestion(question) {
   const current = state.answers[question.id] || {};
-  return `<div class="mapping-list">${question.items.map((item) => `
+  const choices = orderedMappingChoices(question);
+  return `<div class="mapping-list">${orderedMappingItems(question).map((item) => `
     <label class="mapping-row">
       <span>${escapeHtml(item.label)}</span>
       <select data-map-question="${question.id}" data-map-item="${item.id}">
         <option value="">尚未選擇</option>
-        ${question.choices.map((choice) => `<option value="${choice.id}" ${current[item.id] === choice.id ? "selected" : ""}>${escapeHtml(choice.text)}</option>`).join("")}
+        ${choices.map((choice) => `<option value="${choice.id}" ${current[item.id] === choice.id ? "selected" : ""}>${escapeHtml(choice.text)}</option>`).join("")}
       </select>
     </label>
   `).join("")}</div>`;
@@ -1494,7 +1588,7 @@ function renderReview() {
   const result = scoreAttempt();
   const feedback = conceptFeedback();
   const stateName = result.accuracy >= 1 && result.hint_used_count === 0 ? "excellent" : result.accuracy >= .86 ? "strong" : result.accuracy >= .64 ? "stable" : result.accuracy >= .4 ? "needs_review" : "retry_ready";
-  return `<div class="mission-layout review-layout" data-feedback-state="${stateName}"><section class="panel"><p class="eyebrow">概念回饋</p><h2>先整理你目前的無性生殖判讀線索</h2><p class="lead">這裡不只看分數，也會整理你可以再閱讀或帶到課堂討論的無性生殖概念。</p><div class="feedback-columns"><article><h3>目前較穩定</h3><ul>${(feedback.stable.length ? feedback.stable.slice(0, 6) : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article><article><h3>建議再確認</h3><ul>${(feedback.missed.length ? feedback.missed.map(misconceptionText) : ["目前沒有明顯需要補強的迷思標籤"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article></div><button class="primary" data-next="reflection">前往任務回報</button></section><aside class="panel mentor-card" data-feedback-state="${stateName}"><img src="../shared-assets/mentor-feedback/mentor-feedback-${stateName}.webp" alt="阿澤老師回饋" onerror="this.src='${assets.mentorFallback}'"><h3>${feedbackTitle(stateName)}</h3><p>請把不確定的概念轉成課堂上想確認的方向。</p></aside></div>`;
+  return `<div class="mission-layout review-layout" data-feedback-state="${stateName}"><section class="panel"><p class="eyebrow">概念回饋</p><h2>先整理你目前的無性生殖判讀線索</h2><p class="lead">這裡不只看分數，也會整理你可以再閱讀或帶到課堂討論的無性生殖概念。</p><div class="feedback-columns"><article><h3>目前較穩定</h3><ul>${(feedback.stable.length ? feedback.stable.slice(0, 6) : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article><article><h3>建議再確認</h3><ul>${(feedback.missed.length ? feedback.missed.map(misconceptionText) : ["目前沒有明顯需要補強的迷思標籤"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article></div><button class="primary" data-next="reflection">前往任務回報</button></section></div>`;
 }
 
 
@@ -1559,7 +1653,7 @@ function renderResult() {
           <button class="secondary" data-next="rules">查看規則</button>
         </div>
       </section>
-      ${renderBadgeWall(result.earned_badges)}
+      ${renderBadgeWall(result.earned_badges, { onlyEarned: true })}
     </div>
   `;
 }
@@ -1593,34 +1687,29 @@ function creditStatusText(result) {
 }
 
 function renderAchievements() {
-  const result = state.result || scoreAttempt();
-  const titleInfo = titleAndProgress(state.student, result.unit_credited_exp);
-  const credit = creditStatusText(result);
   return `
-    <div class="stack achievements-stack">
-      <section class="panel title-card">
-        <p class="eyebrow">全冊稱號</p>
-        <div class="title-card-content">
-          <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
-          <div>
-            <h2>${escapeHtml(titleInfo.current.title)}</h2>
-            <p>${credit.status === "verified" ? `${titleInfo.totalExp} EXP｜稱號進度 ${titleInfo.progressPercent}%` : credit.resultLine}</p>
-            <p>${credit.status === "verified" ? (titleInfo.next ? `距離 ${titleInfo.next.title} 還差 ${titleInfo.remaining} EXP` : "已達最高稱號，後續 EXP 仍會累積。") : credit.note}</p>
-          </div>
-        </div>
-      </section>
-      ${renderBadgeWall(result.earned_badges)}
+    <div class="stack achievements-stack" data-bq-achievements-overview-only="true">
     </div>
   `;
 }
 
-function renderBadgeWall(earned = []) {
+function renderBadgeWall(earned = [], options = {}) {
   const earnedSet = new Set(earned);
+  const visibleBadges = options.onlyEarned
+    ? [...earnedSet].map((id) => badges.find((badge) => badge.id === id)).filter(Boolean)
+    : badges;
+  if (options.onlyEarned && visibleBadges.length === 0) {
+    return `<section class="panel">
+      <p class="eyebrow">本次取得徽章</p>
+      <h2>本次尚未取得新徽章</h2>
+      <p class="muted">完成任務後會依本次表現列出實際取得的徽章；正式圖未核准前不請求不存在的圖檔。</p>
+    </section>`;
+  }
   return `<section class="panel">
     <p class="eyebrow">徽章收藏牆</p>
-    <h2>本單元 17 枚徽章</h2>
+    <h2>${options.onlyEarned ? "本次取得徽章" : "本單元 17 枚徽章"}</h2>
     <div class="badge-wall">
-      ${badges.map((badge) => `
+      ${visibleBadges.map((badge) => `
         <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
           <div class="badge-visual ${badge.image_status === "pending" ? "asset-missing" : ""}" data-badge-image-status="${escapeHtml(badge.image_status || "ready")}">
             ${badge.image_status === "pending" ? "" : `<img src="${badge.badge_image_path}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('asset-missing'); this.remove();">`}
@@ -1730,6 +1819,7 @@ if (typeof document !== "undefined") {
 if (typeof window !== "undefined") {
   window.__asexual_reproductionTest = {
     VERSION,
+    QUESTION_VERSION,
     mission,
     assets,
     badges,
@@ -1739,6 +1829,8 @@ if (typeof window !== "undefined") {
     createEmptyState,
     answerValue,
     isCorrect,
+    orderedMappingItems,
+    orderedMappingChoices,
     scoreAttempt,
     buildBackendPayload,
     evaluateReflection,
