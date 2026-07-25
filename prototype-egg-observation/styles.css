@@ -332,6 +332,7 @@ textarea { resize: vertical; min-height: 116px; }
 }
 .evidence-card { border-color: rgba(47,159,104,.26); background: #f5fbef; color: var(--ink); overflow-x: auto; }
 .question-asset {
+  position: relative;
   margin: 12px 0;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -346,11 +347,53 @@ textarea { resize: vertical; min-height: 116px; }
   background: #eef8e7;
 }
 .question-asset figcaption {
+  display: flex;
+  gap: 8px 12px;
+  flex-wrap: wrap;
   padding: 10px 12px;
   color: var(--muted);
   font-size: 13px;
   font-weight: 800;
 }
+.question-asset figcaption strong { color: var(--green-dark); }
+.egg-cross-section-figure picture {
+  display: block;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #eef8e7;
+}
+.egg-cross-section-figure img {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+}
+.egg-hotspot-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  aspect-ratio: 16 / 9;
+  pointer-events: none;
+}
+.egg-hotspot {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(255,255,255,.95);
+  border-radius: 999px;
+  color: #442906;
+  background: rgba(245, 179, 58, .94);
+  box-shadow: 0 2px 12px rgba(64, 42, 12, .24);
+  font-size: 14px;
+  font-weight: 900;
+}
+.egg-hotspot.shell { left: 22%; top: 55%; }
+.egg-hotspot.albumen { left: 43%; top: 47%; }
+.egg-hotspot.yolk { left: 59%; top: 52%; }
+.egg-hotspot.air-cell { left: 79%; top: 38%; }
 .question-asset.asset-fallback::before {
   content: "素材接線已預留";
   display: grid;

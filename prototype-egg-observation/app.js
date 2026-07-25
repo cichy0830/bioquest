@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260725-egg-observation-readiness-v1";
+const VERSION = "20260725-egg-observation-batch-a-v1";
 const QUESTION_VERSION = "20260718-egg-observation-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -27,16 +27,27 @@ const mission = {
 const assets = {
   mentorFallback: "../shared-assets/mentor-feedback/mentor-feedback-stable.webp",
   owlLogin: "../shared-assets/login/bioquest-login-cover-wide.webp",
-  owlPrep: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
-  owlReport: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
+  owlPrep: "assets/owl-egg-observation-prep.webp",
+  owlReport: "assets/owl-egg-observation-report.webp",
   owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "",
   briefingSceneMobileHook: "",
-  ambientBackgroundHook: ""
+  ambientBackgroundHook: "",
+  crossSectionImage: "assets/egg-observation-cross-section-hotspot-base.webp",
+  crossSectionImage1440: "assets/egg-observation-cross-section-hotspot-base-1440w.webp",
+  crossSectionImage960: "assets/egg-observation-cross-section-hotspot-base-960w.webp"
 };
 
-const badgeAsset = () => "";
+const readyBadgeIds = new Set([
+  "egg_observation_entry",
+  "raw_egg_safety_guard",
+  "egg_cross_section_labeler",
+  "egg_observation_flawless"
+]);
+const badgeAsset = (id) => readyBadgeIds.has(id)
+  ? `../shared-assets/badges/egg_observation/badge-egg_observation-${id}.webp`
+  : "";
 const reflectionRules = {
   "conceptTerms": [
     "蛋的觀察",
@@ -175,7 +186,7 @@ const badges = [
     "再探蛋觀察精熟進步",
     "再挑戰完整完成且正確率進步。"
   ]
-].map(([id, name, condition]) => ({ id, name, condition, badge_image_path: badgeAsset(id), image_status: "pending" }));
+].map(([id, name, condition]) => ({ id, name, condition, badge_image_path: badgeAsset(id), image_status: readyBadgeIds.has(id) ? "ready" : "pending" }));
 
 const structureChoices = [
   {
@@ -1413,7 +1424,27 @@ function conceptLabel(concept) { return {egg_observation_safety:"安全觀察",e
 
 function renderQuestionEvidence(qid) {
   if (qid === "egg_observation_q04") return `<div class="evidence-card"><strong>安全流程卡</strong><p>先找出安全準備與清理應放在哪兩端，再安排外部觀察、剖面觀察與紀錄的位置。</p></div>`;
-  if (qid === "egg_observation_q05") return `<figure class="evidence-card"><strong>剖面辨識圖待接</strong><p>正式雞蛋剖面圖核准前，先依「外層硬殼、透明區、黃色圓形區、鈍端空氣空間」的文字線索完成配對。</p></figure>`;
+  if (qid === "egg_observation_q05") return `
+    <figure class="question-asset egg-cross-section-figure">
+      <picture>
+        <source srcset="${assets.crossSectionImage960}?v=${VERSION}" media="(max-width: 640px)">
+        <source srcset="${assets.crossSectionImage1440}?v=${VERSION}" media="(max-width: 1180px)">
+        <img src="${assets.crossSectionImage}?v=${VERSION}" alt="未標註的雞蛋剖面觀察圖，含蛋殼、透明區、黃色圓形區與鈍端空氣空間" onerror="this.closest('.question-asset')?.classList.add('asset-fallback'); this.remove();">
+      </picture>
+      <div class="egg-hotspot-layer" aria-hidden="true">
+        <span class="egg-hotspot shell">A</span>
+        <span class="egg-hotspot albumen">B</span>
+        <span class="egg-hotspot yolk">C</span>
+        <span class="egg-hotspot air-cell">D</span>
+      </div>
+      <figcaption>
+        <strong>剖面觀察位置</strong>
+        <span>A：外層硬殼</span>
+        <span>B：透明或半透明部分</span>
+        <span>C：黃色圓形部分</span>
+        <span>D：鈍端空氣空間</span>
+      </figcaption>
+    </figure>`;
   if (qid === "egg_observation_q12") return `<div class="evidence-card"><strong>紀錄判讀卡</strong><p>先描述看到的位置與外觀，再寫出你推測的構造或功能；不要把推測直接寫成已觀察事實。</p></div>`;
   return "";
 }

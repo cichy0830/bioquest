@@ -39,7 +39,7 @@ try {
     });
     page.on("dialog", (dialog) => dialog.accept());
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260725-egg-observation-readiness-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260725-egg-observation-batch-a-v1`);
     await page.locator("#guestBtn").click();
     await page.locator('[data-next="scan"]').click();
     assert.equal(await page.locator(".prep-owl-hero").count(), 1, "prep owl hero missing");
@@ -53,6 +53,19 @@ try {
     }, Q(4));
     await page.locator('[data-section-next="checkpoint1"]').click();
     await page.locator(`select[data-map-question="${Q(5)}"]`).first().waitFor();
+    await page.locator(".egg-cross-section-figure img").waitFor();
+    await page.waitForFunction(() => {
+      const img = document.querySelector(".egg-cross-section-figure img");
+      return Boolean(img && img.complete && img.naturalWidth > 0 && img.naturalHeight > 0);
+    });
+    const crossSection = await page.locator(".egg-cross-section-figure img").evaluate((img) => ({
+      naturalWidth: img.naturalWidth,
+      naturalHeight: img.naturalHeight,
+      currentSrc: img.currentSrc
+    }));
+    assert(crossSection.naturalWidth > 0 && crossSection.naturalHeight > 0, "q05 cross-section image should load");
+    assert(crossSection.currentSrc.includes("egg-observation-cross-section-hotspot-base"), "q05 should use approved cross-section assets");
+    assert.equal(await page.locator(".egg-hotspot").count(), 4, "q05 should show four neutral A-D hotspots");
     await answerMapping(page, Q(5), { outer_hard_shell: "eggshell", translucent_region: "albumen", yellow_round_region: "yolk", blunt_end_air_space: "air_cell" });
     await answerMapping(page, Q(6), { eggshell: "protects_inside", albumen: "water_and_cushion", yolk: "nutrient_supply", air_cell: "air_space" });
     await answerChoice(page, Q(7), "yolk_nutrient_not_embryo");

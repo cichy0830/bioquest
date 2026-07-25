@@ -28,15 +28,21 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-egg-observation/app.js" });
 const api = context.window.__egg_observationTest;
 
-assert.equal(api.VERSION, "20260725-egg-observation-readiness-v1");
+assert.equal(api.VERSION, "20260725-egg-observation-batch-a-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-egg-observation-v1");
 assert.equal(api.mission.unit_id, "egg_observation");
 assert.equal(api.questions.length, 14);
 assert.equal(api.badges.length, 17);
+assert.equal(api.assets.owlPrep, "assets/owl-egg-observation-prep.webp");
+assert.equal(api.assets.owlReport, "assets/owl-egg-observation-report.webp");
 assert(source.includes("BioQuestLoginUX?.begin"));
 assert(!source.includes("待審素材"));
 assert(!source.includes("u29-egg-observation-review"));
-assert(fs.readFileSync(path.join(root, "styles.css"), "utf8").includes("正式徽章素材待接"));
+const readyBadgeIds = JSON.parse(JSON.stringify(api.badges.filter((badge) => badge.image_status === "ready").map((badge) => badge.id).sort()));
+assert.deepEqual(readyBadgeIds, ["egg_cross_section_labeler", "egg_observation_entry", "egg_observation_flawless", "raw_egg_safety_guard"]);
+assert.equal(api.badges.filter((badge) => badge.image_status === "pending").length, 13);
+assert(api.badges.find((badge) => badge.id === "egg_cross_section_labeler").badge_image_path.includes("shared-assets/badges/egg_observation/badge-egg_observation-egg_cross_section_labeler.webp"));
+assert(fs.readFileSync(path.join(root, "styles.css"), "utf8").includes("egg-hotspot-layer"));
 
 const Q = (n) => `egg_observation_q${String(n).padStart(2, "0")}`;
 const answers = {
@@ -111,6 +117,11 @@ assert.equal(payload.question_logs.find((log) => log.question_id === Q(13)).anal
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(13)).teacher_group_id, "unit_boundary_control");
 assert(api.renderCheckpoint("checkpoint2").includes("mapping-list"));
 assert(api.renderCheckpoint("checkpoint3").includes("mapping-list"));
+const crossSectionEvidence = api.renderQuestionEvidence(Q(5));
+assert(crossSectionEvidence.includes("egg-cross-section-figure"));
+assert(crossSectionEvidence.includes("egg-observation-cross-section-hotspot-base.webp?v=20260725-egg-observation-batch-a-v1"));
+assert(crossSectionEvidence.includes("egg-hotspot shell"));
+assert(!crossSectionEvidence.includes("剖面辨識圖待接"));
 assert.equal(api.assets.briefingSceneHook, "");
 assert.equal(api.assets.ambientBackgroundHook, "");
 assert(api.renderBrief().includes("brief-scene-fallback"));
