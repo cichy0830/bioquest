@@ -20,7 +20,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
   background:
     linear-gradient(135deg, rgba(220, 235, 233, .5), rgba(200, 215, 234, .38) 48%, rgba(241, 223, 187, .42)),
-    url("assets/asexual-reproduction-ambient-wide.webp?v=20260726-asexual-reproduction-backgrounds-v1"),
+    url("assets/asexual-reproduction-ambient-wide.webp?v=20260727-asexual-reproduction-evidence-v1"),
     radial-gradient(circle at 18% 18%, rgba(107, 151, 221, .18), transparent 26%),
     radial-gradient(circle at 82% 12%, rgba(232, 151, 67, .24), transparent 24%),
     radial-gradient(circle at 72% 78%, rgba(75, 171, 140, .18), transparent 28%),
@@ -325,6 +325,71 @@ textarea { resize: vertical; min-height: 116px; }
   line-height: 1.65;
 }
 .evidence-card { border-color: rgba(47,159,104,.26); background: #f5fbef; color: var(--ink); overflow-x: auto; }
+.u28-evidence-figure {
+  overflow: visible;
+}
+.u28-evidence-frame {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(47,159,104,.24);
+  border-radius: 8px;
+  background: #eef8e7;
+}
+.u28-evidence-picture,
+.u28-evidence-picture img {
+  display: block;
+  width: 100%;
+}
+.u28-evidence-picture img {
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+}
+.u28-evidence-figure figcaption {
+  margin-top: 10px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 900;
+}
+.u28-evidence-note {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+.u28-evidence-overlay {
+  position: absolute;
+  top: 4%;
+  left: 50%;
+  width: min(72%, 820px);
+  max-height: 54%;
+  padding: 10px;
+  overflow: auto;
+  transform: translateX(-50%);
+  border: 1px solid rgba(47,159,104,.28);
+  border-radius: 8px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 12px 28px rgba(36,83,47,.14);
+}
+.u28-evidence-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.u28-evidence-table th,
+.u28-evidence-table td {
+  padding: 5px 6px;
+  border-bottom: 1px solid rgba(47,159,104,.16);
+  text-align: left;
+  vertical-align: top;
+}
+.u28-evidence-table th {
+  color: var(--green-dark);
+  font-weight: 900;
+}
+.u28-evidence-cards {
+  display: none;
+}
 .question-asset {
   margin: 12px 0;
   overflow: hidden;
@@ -513,6 +578,40 @@ textarea { resize: vertical; min-height: 116px; }
   .sequence-actions { grid-column: 1 / -1; }
   .sequence-actions .icon-btn { flex: 1; }
   .button-row, .actions, .multi-check-row { display: grid; grid-template-columns: 1fr; }
+  .u28-evidence-overlay {
+    position: static;
+    width: 100%;
+    max-height: none;
+    margin-top: 10px;
+    transform: none;
+    box-shadow: none;
+  }
+  .u28-evidence-table {
+    display: none;
+  }
+  .u28-evidence-cards {
+    display: grid;
+    gap: 8px;
+  }
+  .u28-evidence-data-card {
+    display: grid;
+    gap: 4px;
+    padding: 9px 10px;
+    border: 1px solid rgba(47,159,104,.18);
+    border-radius: 8px;
+    background: rgba(255,255,255,.9);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .u28-evidence-data-card strong,
+  .u28-evidence-data-card b {
+    color: var(--green-dark);
+  }
+  .u28-evidence-data-card span {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 6px;
+  }
 }
 
 @media (max-width: 560px) {

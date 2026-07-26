@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260726-asexual-reproduction-backgrounds-v1";
+const VERSION = "20260727-asexual-reproduction-evidence-v1";
 const QUESTION_VERSION = "20260718-asexual-reproduction-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -33,7 +33,35 @@ const assets = {
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "assets/asexual-reproduction-briefing-azhe-wide.webp",
   briefingSceneMobileHook: "",
-  ambientBackgroundHook: "assets/asexual-reproduction-ambient-wide.webp"
+  ambientBackgroundHook: "assets/asexual-reproduction-ambient-wide.webp",
+  evidenceOverlaySpec: "assets/asexual-reproduction-evidence-overlay-spec.json",
+  evidenceQ05Main: "assets/asexual-reproduction-q05-hydra-budding-observation.webp",
+  evidenceQ05Medium: "assets/asexual-reproduction-q05-hydra-budding-observation-960.webp",
+  evidenceQ05Mobile: "assets/asexual-reproduction-q05-hydra-budding-observation-390.webp",
+  evidenceQ12Main: "assets/asexual-reproduction-q12-cutting-materials-data.webp",
+  evidenceQ12Medium: "assets/asexual-reproduction-q12-cutting-materials-data-960.webp",
+  evidenceQ12Mobile: "assets/asexual-reproduction-q12-cutting-materials-data-390.webp"
+};
+
+const evidenceOverlayContract = {
+  q05: {
+    caption: "請觀察親代外側是否有連接構造。",
+    alt: "顯微觀察圖，呈現一個水螅個體外側有連接的較小個體雛形。",
+    scaffold: "先看新個體雛形是連在親代外側，還是由斷片、孢子或種子開始。"
+  },
+  q12: {
+    caption: "請比較繁殖材料來源與新植株外觀紀錄。",
+    alt: "扦插觀察資料，呈現母株、枝條材料與數株新植株的來源、葉形、花色與株高範圍。",
+    scaffold: "先讀資料中的枝條來源、母株代號與新植株外觀，再判斷資料支持哪一類關係。",
+    columns: ["樣本", "繁殖材料來源", "葉形", "花色", "株高範圍"],
+    rows: [
+      ["母株甲", "—", "橢圓深綠葉", "紫紅花", "28-31 cm"],
+      ["枝條材料 A", "甲株枝條", "橢圓深綠葉", "尚未開花", "8-10 cm"],
+      ["新株 A", "甲株枝條", "橢圓深綠葉", "紫紅花", "24-29 cm"],
+      ["新株 B", "甲株枝條", "橢圓深綠葉", "紫紅花", "26-31 cm"],
+      ["新株 C", "甲株枝條", "橢圓深綠葉", "紫紅花", "25-30 cm"]
+    ]
+  }
 };
 
 const badgeAsset = () => "";
@@ -792,6 +820,10 @@ function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
 }
 
+function assetUrl(path) {
+  return `${path}?v=${VERSION}`;
+}
+
 function normalizeText(value) {
   return String(value || "").replace(/\s+/g, "").toLowerCase();
 }
@@ -1509,10 +1541,50 @@ function conceptLabel(concept) { return {asexual_definition:"無性生殖定義"
 
 function renderQuestionEvidence(qid) {
   if (qid === "asexual_reproduction_q04") return `<div class="evidence-card"><strong>樣本分類卡</strong><p>觀察新個體出現的位置與來源，再配對到較適合的無性生殖方式。</p></div>`;
-  if (qid === "asexual_reproduction_q05") return `<div class="evidence-card"><strong>側芽觀察卡</strong><p>親代身體側邊出現小突起，逐漸形成新個體。</p></div>`;
+  if (qid === "asexual_reproduction_q05") return renderQ05Evidence();
   if (qid === "asexual_reproduction_q06") return `<div class="evidence-card"><strong>塊莖流程卡</strong><p>請依「親代形成帶芽構造」到「新植株形成」的順序整理。</p></div>`;
-  if (qid === "asexual_reproduction_q12") return `<div class="evidence-card"><strong>扦插資料卡</strong><p>新植株由同一親代的枝條發育而來，用來判斷後代相似性。</p></div>`;
+  if (qid === "asexual_reproduction_q12") return renderQ12Evidence();
   return "";
+}
+
+function renderEvidencePicture({ kind, main, medium, mobile, alt }) {
+  return `<picture class="u28-evidence-picture">
+    <source srcset="${assetUrl(mobile)}" media="(max-width: 520px)">
+    <source srcset="${assetUrl(medium)}" media="(max-width: 980px)">
+    <img src="${assetUrl(main)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async" data-evidence-image="${kind}" onerror="this.closest('.u28-evidence-figure')?.classList.add('asset-missing')">
+  </picture>`;
+}
+
+function renderQ05Evidence() {
+  const data = evidenceOverlayContract.q05;
+  return `<figure class="evidence-card u28-evidence-figure u28-q05-evidence" data-evidence-id="q05-hydra-budding">
+    <div class="u28-evidence-frame">
+      ${renderEvidencePicture({ kind: "q05", main: assets.evidenceQ05Main, medium: assets.evidenceQ05Medium, mobile: assets.evidenceQ05Mobile, alt: data.alt })}
+    </div>
+    <figcaption>${escapeHtml(data.caption)}</figcaption>
+    <p class="u28-evidence-note">${escapeHtml(data.scaffold)}</p>
+  </figure>`;
+}
+
+function renderQ12Evidence() {
+  const data = evidenceOverlayContract.q12;
+  const header = data.columns.map((column) => `<th scope="col">${escapeHtml(column)}</th>`).join("");
+  const rows = data.rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("");
+  const cards = data.rows.map((row) => `<article class="u28-evidence-data-card"><strong>${escapeHtml(row[0])}</strong>${data.columns.slice(1).map((column, index) => `<span><b>${escapeHtml(column)}</b>${escapeHtml(row[index + 1])}</span>`).join("")}</article>`).join("");
+  return `<figure class="evidence-card u28-evidence-figure u28-q12-evidence" data-evidence-id="q12-cutting-materials" data-overlay-contract-src="${assetUrl(assets.evidenceOverlaySpec)}">
+    <div class="u28-evidence-frame u28-evidence-frame-with-overlay">
+      ${renderEvidencePicture({ kind: "q12", main: assets.evidenceQ12Main, medium: assets.evidenceQ12Medium, mobile: assets.evidenceQ12Mobile, alt: data.alt })}
+      <div class="u28-evidence-overlay" aria-label="比較資料">
+        <table class="u28-evidence-table">
+          <thead><tr>${header}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="u28-evidence-cards">${cards}</div>
+      </div>
+    </div>
+    <figcaption>${escapeHtml(data.caption)}</figcaption>
+    <p class="u28-evidence-note">${escapeHtml(data.scaffold)}</p>
+  </figure>`;
 }
 
 
@@ -1822,6 +1894,7 @@ if (typeof window !== "undefined") {
     QUESTION_VERSION,
     mission,
     assets,
+    evidenceOverlayContract,
     badges,
     questions,
     state: () => state,

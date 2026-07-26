@@ -1,0 +1,132 @@
+{
+  "unit_id": "asexual_reproduction",
+  "finding": "F-U28-04",
+  "batch_id": "u28-asexual-reproduction-f-u28-04-evidence-candidates-superseding",
+  "created_at": "2026-07-26T23:42:00+08:00",
+  "status": "USER_APPROVED_READY_FOR_WIRING",
+  "supersedes": "01_視覺資產/待審素材/2026-07-26/u28-asexual-reproduction-f-u28-04-evidence-candidates/",
+  "superseded_reason": "使用者退回第一版：太抽象。新版改用具體水螅與具體扦插材料。",
+  "scope": "pending review q05/q12 concrete evidence candidates only; no prototype/shared-assets/portal/Apps Script/_publish writes",
+  "runtime_candidates_pending_approval": [],
+  "evidence_assets": [
+    {
+      "question_id": "asexual_reproduction_q05",
+      "asset_id": "hydra_budding_observation_concrete_base",
+      "base_webp": "u28-f-u28-04-q05-hydra-budding-observation-concrete.webp",
+      "visual_type": "zero-text concrete hydra observation image",
+      "caption": "請觀察親代外側是否有連接構造。",
+      "alt": "顯微觀察圖，呈現一個水螅個體外側有連接的較小個體雛形。",
+      "scaffold": "先看新個體雛形是連在親代外側，還是由斷片、孢子或種子開始。",
+      "forbidden_caption_alt": [
+        "出芽生殖",
+        "小芽長大成新個體",
+        "親代身體側邊出現小突起，逐漸形成新個體",
+        "答案是出芽",
+        "不是斷裂生殖"
+      ],
+      "mobile_390_preview_review_only": "previews/u28-f-u28-04-q05-concrete-390-preview-review.webp",
+      "runtime_guidance": {
+        "base_image_zero_text": true,
+        "minimum_mobile_width_px": 390,
+        "do_not_write_answer_in_caption_or_alt": true
+      },
+      "responsive_derivatives": [
+        "sizes/u28-f-u28-04-q05-concrete-960w.webp",
+        "sizes/u28-f-u28-04-q05-concrete-390w.webp"
+      ]
+    },
+    {
+      "question_id": "asexual_reproduction_q12",
+      "asset_id": "cutting_materials_trait_data_concrete_base",
+      "base_webp": "u28-f-u28-04-q12-cutting-materials-data-base-concrete.webp",
+      "visual_type": "zero-text concrete plant cutting materials image plus web-rendered data table/stacked cards",
+      "caption": "請比較繁殖材料來源與新植株外觀紀錄。",
+      "alt": "扦插觀察資料，呈現母株、枝條材料與數株新植株的來源、葉形、花色與株高範圍。",
+      "scaffold": "先讀資料中的枝條來源、母株代號與新植株外觀，再判斷資料支持哪一類關係。",
+      "forbidden_caption_alt": [
+        "同一親代",
+        "後代相似",
+        "遺傳特徵大致相同",
+        "無性生殖後代通常相似",
+        "正解是 A",
+        "不用精卵結合"
+      ],
+      "columns": [
+        "樣本",
+        "繁殖材料來源",
+        "葉形",
+        "花色",
+        "株高範圍"
+      ],
+      "rows": [
+        {
+          "sample": "母株甲",
+          "source": "—",
+          "leaf": "橢圓深綠葉",
+          "flower": "紫紅花",
+          "height": "28–31 cm"
+        },
+        {
+          "sample": "枝條材料 A",
+          "source": "甲株枝條",
+          "leaf": "橢圓深綠葉",
+          "flower": "尚未開花",
+          "height": "8–10 cm"
+        },
+        {
+          "sample": "新株 A",
+          "source": "甲株枝條",
+          "leaf": "橢圓深綠葉",
+          "flower": "紫紅花",
+          "height": "24–29 cm"
+        },
+        {
+          "sample": "新株 B",
+          "source": "甲株枝條",
+          "leaf": "橢圓深綠葉",
+          "flower": "紫紅花",
+          "height": "26–31 cm"
+        },
+        {
+          "sample": "新株 C",
+          "source": "甲株枝條",
+          "leaf": "橢圓深綠葉",
+          "flower": "紫紅花",
+          "height": "25–30 cm"
+        }
+      ],
+      "desktop_overlay": "Render table text into the blank top-center panel or equivalent web layer; keep caption outside image.",
+      "mobile_390_overlay": "Use stacked cards. Each card keeps sample, material source, leaf shape, flower color, and height range readable without horizontal scrolling.",
+      "mobile_390_preview_review_only": "previews/u28-f-u28-04-q12-cutting-materials-overlay-390-preview-review.webp",
+      "runtime_guidance": {
+        "base_image_zero_text": true,
+        "draw_data_with_html_or_svg_overlay": true,
+        "minimum_mobile_width_px": 390,
+        "do_not_write_answer_in_caption_or_alt": true
+      },
+      "responsive_derivatives": [
+        "sizes/u28-f-u28-04-q12-concrete-960w.webp",
+        "sizes/u28-f-u28-04-q12-concrete-390w.webp"
+      ]
+    }
+  ],
+  "web_component_contract": {
+    "q05": "Use the approved q05 concrete hydra base WebP as an evidence figure. Caption/alt may use the allowed neutral wording only.",
+    "q12": "Use the approved q12 concrete cutting-materials base WebP plus this JSON to render a desktop data table or mobile stacked cards. The base image itself remains zero text.",
+    "forbidden_runtime": "Do not wire contact sheet, preview WebP, generated source, rejected first-version assets, or old text evidence cards that state the conclusion."
+  },
+  "approved_at": "2026-07-27T00:00:00+08:00",
+  "runtime_candidate": true,
+  "ready_for_wiring": true,
+  "source_review_json": "01_視覺資產/待審素材/2026-07-26/u28-asexual-reproduction-f-u28-04-evidence-candidates-superseding/u28-f-u28-04-evidence-overlay-spec-superseding-review.json",
+  "source_review_sha256": "8047431d91caa1dfc515128ab614161205e2fb483ccecd205fded7f51c537e4b",
+  "formal_runtime_candidates": [
+    "01_視覺資產/已核准素材/2026-07-27/u28-asexual-reproduction-f-u28-04-evidence/u28-f-u28-04-q05-hydra-budding-observation-concrete.webp",
+    "01_視覺資產/已核准素材/2026-07-27/u28-asexual-reproduction-f-u28-04-evidence/sizes/u28-f-u28-04-q05-concrete-960w.webp",
+    "01_視覺資產/已核准素材/2026-07-27/u28-asexual-reproduction-f-u28-04-evidence/sizes/u28-f-u28-04-q05-concrete-390w.webp",
+    "01_視覺資產/已核准素材/2026-07-27/u28-asexual-reproduction-f-u28-04-evidence/u28-f-u28-04-q12-cutting-materials-data-base-concrete.webp",
+    "01_視覺資產/已核准素材/2026-07-27/u28-asexual-reproduction-f-u28-04-evidence/sizes/u28-f-u28-04-q12-concrete-960w.webp",
+    "01_視覺資產/已核准素材/2026-07-27/u28-asexual-reproduction-f-u28-04-evidence/sizes/u28-f-u28-04-q12-concrete-390w.webp",
+    "01_視覺資產/已核准素材/2026-07-27/u28-asexual-reproduction-f-u28-04-evidence/u28-f-u28-04-evidence-overlay-spec-superseding.json"
+  ]
+}

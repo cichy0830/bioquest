@@ -80,7 +80,7 @@ appVersionOverrides.set("respiration_homeostasis", "20260722-respiration-homeost
 appVersionOverrides.set("excretion_water_homeostasis", "20260718-excretion-water-homeostasis-v1");
 appVersionOverrides.set("temperature_glucose_homeostasis", "20260726-temperature-glucose-briefing-scene-v1");
 appVersionOverrides.set("cell_division", "20260726-cell-division-briefing-scene-v1");
-appVersionOverrides.set("asexual_reproduction", "20260726-asexual-reproduction-backgrounds-v1");
+appVersionOverrides.set("asexual_reproduction", "20260727-asexual-reproduction-evidence-v1");
 appVersionOverrides.set("sexual_reproduction", "20260726-sexual-reproduction-backgrounds-v1");
 
 function assert(condition, message) {
