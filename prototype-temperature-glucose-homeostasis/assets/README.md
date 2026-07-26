@@ -1,6 +1,14 @@
 # U26 temperature_glucose_homeostasis assets
 
-本資料夾目前不放待審圖。U26 視覺尚未由使用者核准，因此 runtime 只使用 CSS/HTML fallback，避免 404 或誤接未核准素材。
+本資料夾只放已核准 runtime 素材與中性 fallback 所需檔案。U26 F-U26-04 的 q07 / q12 科學圖表已由使用者核准，其餘 briefing scene、prep/report owl 與徽章仍未核准，runtime 不得接入待審圖。
+
+已核准圖表素材：
+
+- `u26-f-u26-04-q07-body-temperature-chart-base.svg`：q07 體溫曲線零文字底圖。
+- `u26-f-u26-04-q12-glucose-insulin-chart-base.svg`：q12 血糖 / 胰島素曲線零文字底圖。
+- `u26-f-u26-04-chart-data-overlay-spec.json`：q07 / q12 中文軸標、刻度、圖例、事件、caption / alt 與資料點契約，用於 QA 對照。
+
+禁止接入 runtime：approved archive 的 `record_only/`、contact sheet、review preview、HTML preview、`_generated_sources` 或待審來源路徑。
 
 正式素材核准後建議 hook：
 

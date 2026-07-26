@@ -59,6 +59,36 @@ async function answerMapping(page, qid, mapping) {
   }
 }
 
+async function expectEvidenceChart(page, chartId, assetName) {
+  const chart = page.locator(`.u26-evidence-chart[data-chart-id="${chartId}"]`);
+  await chart.waitFor();
+  const box = await chart.boundingBox();
+  assert(box && box.width > 280 && box.height > 180, `${chartId} should be visibly sized`);
+  const details = await chart.evaluate((node, expectedAsset) => {
+    const svg = node.querySelector("svg");
+    const image = node.querySelector("image");
+    const text = node.textContent || "";
+    const href = image?.getAttribute("href") || "";
+    return {
+      hasSvg: !!svg,
+      href,
+      text,
+      pointCount: node.querySelectorAll(".u26-chart-point").length,
+      lineCount: node.querySelectorAll(".u26-chart-line").length,
+      overflows: node.getBoundingClientRect().right > window.innerWidth + 1,
+      hasAsset: href.includes(expectedAsset)
+    };
+  }, assetName);
+  assert.equal(details.hasSvg, true, `${chartId} should render inline svg`);
+  assert.equal(details.hasAsset, true, `${chartId} should use approved asset`);
+  assert(details.href.includes("20260726-temperature-glucose-charts-v1"), `${chartId} href should include chart cache`);
+  assert(details.pointCount >= 5, `${chartId} should render data points`);
+  assert(details.lineCount >= 1, `${chartId} should render data line`);
+  assert.equal(details.overflows, false, `${chartId} should not overflow viewport`);
+  assert(!details.text.includes("休息後逐漸往平常範圍回復"), `${chartId} should not leak old q07 conclusion`);
+  assert(!details.text.includes("飯後血糖可能先升高"), `${chartId} should not leak old q12 conclusion`);
+}
+
 try {
   for (const mode of ["guest", "pending", "verified"]) {
     for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
@@ -169,7 +199,7 @@ try {
           return { ok: true, json: async () => ({ ok: true }) };
         };
       }, { runtimeMode: mode, questionVersion: "20260718-temperature-glucose-homeostasis-v1" });
-      await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260725-temperature-glucose-homeostasis-qa-fixes-v1`);
+      await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260726-temperature-glucose-charts-v1`);
       if (mode === "guest") {
         await page.locator("#guestBtn").click();
         await page.locator(".scene-copy").waitFor();
@@ -188,6 +218,7 @@ try {
       await answerChoice(page, Q(2), "negative_feedback_opposite_adjustment");
       await answerMapping(page, Q(3), { human: "endotherm", sparrow: "endotherm", lizard: "ectotherm", frog: "ectotherm" });
       await expectResetAfter(page, () => page.locator('[data-section-next="checkpoint1"]').click(), "checkpoint2");
+      await expectEvidenceChart(page, "q07-body-temperature", "u26-f-u26-04-q07-body-temperature-chart-base.svg");
       await answerChoice(page, Q(4), "hot_sweating_vasodilation");
       await answerChoice(page, Q(5), "cold_shivering_vasoconstriction");
       await answerChoice(page, Q(6), "sweating_cools_and_loses_water");
@@ -196,6 +227,7 @@ try {
         window.__temperature_glucose_homeostasisTest.state().answers[`${qid}_sequence`] = ["body_temperature_high", "activate_heat_loss_response", "sweating_or_vasodilation_increases_heat_loss", "temperature_returns_toward_range"];
       }, Q(8));
       await expectResetAfter(page, () => page.locator('[data-section-next="checkpoint2"]').click(), "checkpoint3");
+      await expectEvidenceChart(page, "q12-glucose-insulin", "u26-f-u26-04-q12-glucose-insulin-chart-base.svg");
       await answerChoice(page, Q(9), "blood_glucose_returns_to_range");
       await answerChoice(page, Q(10), "high_glucose_insulin_lowers");
       await answerChoice(page, Q(11), "low_glucose_glucagon_raises");

@@ -1,0 +1,242 @@
+{
+  "unit_id": "temperature_glucose_homeostasis",
+  "finding": "F-U26-04",
+  "status": "USER_APPROVED_READY_FOR_WIRING",
+  "created_at": "2026-07-25T22:05:00+08:00",
+  "scope": "approved runtime candidates for q07/q12 chart base SVG + overlay data only; no prototype/shared-assets/portal/Apps Script/_publish writes",
+  "base_assets_are_zero_text": true,
+  "charts": [
+    {
+      "asset_id": "body_temperature_data_card",
+      "question_id": "temperature_glucose_homeostasis_q07",
+      "title": "運動後休息期間的體溫紀錄",
+      "x_label": "跑步後時間（分鐘）",
+      "y_label": "體溫（°C，簡化示意）",
+      "x_domain": [
+        0,
+        40
+      ],
+      "y_domain": [
+        36.5,
+        38.0
+      ],
+      "x_ticks": [
+        0,
+        10,
+        20,
+        30,
+        40
+      ],
+      "y_ticks": [
+        36.5,
+        37.0,
+        37.5,
+        38.0
+      ],
+      "range_band": {
+        "y_min": 36.5,
+        "y_max": 37.5,
+        "label": "平常範圍"
+      },
+      "event_marker": {
+        "x": 0,
+        "label": "跑步結束，開始休息"
+      },
+      "caption": "請讀取曲線、資料點與平常範圍，再選出最合理的解讀。",
+      "alt": "折線圖，橫軸為跑步後時間，縱軸為體溫，含平常範圍帶與 5 個資料點。",
+      "scaffold": "先看橫軸時間，再看體溫資料點和「平常範圍」的相對位置。",
+      "forbidden_caption_alt": [
+        "體溫逐漸回復",
+        "回到平常範圍",
+        "散熱反應使體溫下降",
+        "正解是調節成功"
+      ],
+      "svg_base_asset": "u26-f-u26-04-q07-body-temperature-chart-base.svg",
+      "base_preview_review_only": "record_only/previews/u26-f-u26-04-q07-body-temperature-base-preview-review.webp",
+      "overlay_preview_review_only": "record_only/previews/u26-f-u26-04-q07-body-temperature-overlay-preview-review.webp",
+      "mobile_390_preview_review_only": "record_only/previews/u26-f-u26-04-q07-body-temperature-overlay-390-preview-review.webp",
+      "view_box": {
+        "width": 960,
+        "height": 600,
+        "plot_area": {
+          "left": 92,
+          "top": 62,
+          "width": 760,
+          "height": 420
+        }
+      },
+      "series": [
+        {
+          "id": "body_temperature",
+          "label": "體溫",
+          "color": "#e65f46",
+          "points": [
+            {
+              "x": 0,
+              "y": 38.0
+            },
+            {
+              "x": 10,
+              "y": 37.8
+            },
+            {
+              "x": 20,
+              "y": 37.4
+            },
+            {
+              "x": 30,
+              "y": 37.1
+            },
+            {
+              "x": 40,
+              "y": 37.0
+            }
+          ]
+        }
+      ],
+      "runtime_guidance": {
+        "base_svg_zero_text": true,
+        "draw_labels_ticks_legend_with_svg_or_html_overlay": true,
+        "minimum_mobile_width_px": 390,
+        "recommended_svg_viewbox": "0 0 960 600",
+        "do_not_use_bitmap_text": true,
+        "do_not_write_conclusion_in_caption_or_alt": true
+      },
+      "runtime_candidate": true,
+      "approval_status": "USER_APPROVED_READY_FOR_WIRING"
+    },
+    {
+      "asset_id": "glucose_curve_cards",
+      "question_id": "temperature_glucose_homeostasis_q12",
+      "title": "飯後血糖與胰島素相對量紀錄",
+      "x_label": "飯後時間（小時）",
+      "y_label": "相對指數（飯前 = 100）",
+      "x_domain": [
+        0,
+        3
+      ],
+      "y_domain": [
+        80,
+        160
+      ],
+      "x_ticks": [
+        0,
+        0.5,
+        1,
+        2,
+        3
+      ],
+      "y_ticks": [
+        80,
+        100,
+        120,
+        140,
+        160
+      ],
+      "range_band": {
+        "y_min": 90,
+        "y_max": 110,
+        "label": "血糖平常範圍"
+      },
+      "caption": "請比較兩條曲線與血糖平常範圍，再選出最合理的資料解讀。",
+      "alt": "雙折線圖，橫軸為飯後時間，縱軸為相對指數，包含血糖相對指數、胰島素相對量與血糖平常範圍帶。",
+      "scaffold": "先找飯後時間，再比較兩條曲線在 0.5 到 3 小時之間的變化方向。",
+      "forbidden_caption_alt": [
+        "血糖先升後降",
+        "胰島素上升後血糖下降",
+        "胰島素降低血糖",
+        "回到範圍"
+      ],
+      "svg_base_asset": "u26-f-u26-04-q12-glucose-insulin-chart-base.svg",
+      "base_preview_review_only": "record_only/previews/u26-f-u26-04-q12-glucose-insulin-base-preview-review.webp",
+      "overlay_preview_review_only": "record_only/previews/u26-f-u26-04-q12-glucose-insulin-overlay-preview-review.webp",
+      "mobile_390_preview_review_only": "record_only/previews/u26-f-u26-04-q12-glucose-insulin-overlay-390-preview-review.webp",
+      "view_box": {
+        "width": 960,
+        "height": 600,
+        "plot_area": {
+          "left": 92,
+          "top": 62,
+          "width": 760,
+          "height": 420
+        }
+      },
+      "series": [
+        {
+          "id": "blood_glucose_relative_index",
+          "label": "血糖相對指數",
+          "color": "#f08a24",
+          "points": [
+            {
+              "x": 0,
+              "y": 100
+            },
+            {
+              "x": 0.5,
+              "y": 140
+            },
+            {
+              "x": 1,
+              "y": 155
+            },
+            {
+              "x": 2,
+              "y": 120
+            },
+            {
+              "x": 3,
+              "y": 105
+            }
+          ]
+        },
+        {
+          "id": "insulin_relative_amount",
+          "label": "胰島素相對量",
+          "color": "#6f67d8",
+          "points": [
+            {
+              "x": 0,
+              "y": 100
+            },
+            {
+              "x": 0.5,
+              "y": 130
+            },
+            {
+              "x": 1,
+              "y": 150
+            },
+            {
+              "x": 2,
+              "y": 140
+            },
+            {
+              "x": 3,
+              "y": 105
+            }
+          ]
+        }
+      ],
+      "runtime_guidance": {
+        "base_svg_zero_text": true,
+        "draw_labels_ticks_legend_with_svg_or_html_overlay": true,
+        "minimum_mobile_width_px": 390,
+        "recommended_svg_viewbox": "0 0 960 600",
+        "do_not_use_bitmap_text": true,
+        "do_not_write_conclusion_in_caption_or_alt": true
+      },
+      "runtime_candidate": true,
+      "approval_status": "USER_APPROVED_READY_FOR_WIRING"
+    }
+  ],
+  "web_component_contract": {
+    "figure_structure": "<figure class=\"u26-evidence-chart\" data-chart-id=\"...\"><svg viewBox=\"0 0 960 600\" role=\"img\" aria-label=\"...\"><image href=\"base.svg\" .../><g class=\"chart-label-layer\">...</g></svg><figcaption>allowed caption</figcaption></figure>",
+    "label_layer": "Render title, x/y axis labels, tick values, range-band label, q07 event label, and q12 legend labels as SVG <text> or HTML overlay from this JSON. Do not place text inside the base SVG.",
+    "responsive": "At 390px width, keep viewBox 960x600 scaled to full card width; use font sizes about 10-12px visual equivalent after scaling, or equivalent CSS clamp; avoid clipping tick labels.",
+    "forbidden_runtime": "No old text-only evidence card; no conclusion-leaking caption/alt; no imagegen text; no contact sheet, review preview, HTML preview, or generated/review source as runtime."
+  },
+  "approved_at": "2026-07-26T00:00:00+08:00",
+  "runtime_candidate": true,
+  "approved_archive": "01_視覺資產/已核准素材/2026-07-26/u26-temperature-glucose-homeostasis-science-charts/",
+  "source_review_folder": "01_視覺資產/待審素材/2026-07-25/u26-temperature-glucose-homeostasis-f-u26-04-science-charts/"
+}

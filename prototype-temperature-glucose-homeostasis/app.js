@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260725-temperature-glucose-homeostasis-qa-fixes-v1";
+const VERSION = "20260726-temperature-glucose-charts-v1";
 const QUESTION_VERSION = "20260718-temperature-glucose-homeostasis-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -33,6 +33,47 @@ const assets = {
   briefingSceneHook: "",
   briefingSceneMobileHook: "",
   ambientBackgroundHook: ""
+};
+
+const chartEvidence = {
+  temperature_glucose_homeostasis_q07: {
+    chartId: "q07-body-temperature",
+    asset: "assets/u26-f-u26-04-q07-body-temperature-chart-base.svg",
+    title: "運動後休息期間的體溫紀錄",
+    xLabel: "跑步後時間（分鐘）",
+    yLabel: "體溫（°C，簡化示意）",
+    xDomain: [0, 40],
+    yDomain: [36.5, 38],
+    xTicks: [0, 10, 20, 30, 40],
+    yTicks: [36.5, 37, 37.5, 38],
+    rangeLabel: "平常範圍",
+    eventLabel: "跑步結束，開始休息",
+    caption: "請讀取曲線、資料點與平常範圍，再選出最合理的解讀。",
+    alt: "折線圖，橫軸為跑步後時間，縱軸為體溫，含平常範圍帶與 5 個資料點。",
+    scaffold: "先看橫軸時間，再看體溫資料點和「平常範圍」的相對位置。",
+    series: [
+      { id: "body_temperature", label: "體溫", color: "#e65f46", points: [[0, 38], [10, 37.8], [20, 37.4], [30, 37.1], [40, 37]] }
+    ]
+  },
+  temperature_glucose_homeostasis_q12: {
+    chartId: "q12-glucose-insulin",
+    asset: "assets/u26-f-u26-04-q12-glucose-insulin-chart-base.svg",
+    title: "飯後血糖與胰島素相對量紀錄",
+    xLabel: "飯後時間（小時）",
+    yLabel: "相對指數（飯前 = 100）",
+    xDomain: [0, 3],
+    yDomain: [80, 160],
+    xTicks: [0, 0.5, 1, 2, 3],
+    yTicks: [80, 100, 120, 140, 160],
+    rangeLabel: "血糖平常範圍",
+    caption: "請比較兩條曲線與血糖平常範圍，再選出最合理的資料解讀。",
+    alt: "雙折線圖，橫軸為飯後時間，縱軸為相對指數，包含血糖相對指數、胰島素相對量與血糖平常範圍帶。",
+    scaffold: "先找飯後時間，再比較兩條曲線在 0.5 到 3 小時之間的變化方向。",
+    series: [
+      { id: "blood_glucose_relative_index", label: "血糖相對指數", color: "#f08a24", points: [[0, 100], [0.5, 140], [1, 155], [2, 120], [3, 105]] },
+      { id: "insulin_relative_amount", label: "胰島素相對量", color: "#6f67d8", points: [[0, 100], [0.5, 130], [1, 150], [2, 140], [3, 105]] }
+    ]
+  }
 };
 
 const badgeAsset = () => "";
@@ -81,12 +122,12 @@ const questions = [
   {id:"temperature_glucose_homeostasis_q04",section:"checkpoint2",concept:"hot_response",type:"choice",answer:"hot_sweating_vasodilation",prompt:"天氣炎熱或運動後體溫偏高時，下列哪組反應最有助於散熱？",hint:"找出能讓熱比較容易散出去的反應。",misconception:"hot_response_confusion",options:[{id:"hot_sweating_vasodilation",text:"流汗增加、皮膚血管擴張，幫助散熱"},{id:"hot_shivering",text:"發抖增加產熱，讓體溫更高"},{id:"hot_vasoconstriction",text:"皮膚血管收縮，減少散熱"},{id:"hot_glucagon",text:"升糖素讓血糖上升就是散熱"}]},
   {id:"temperature_glucose_homeostasis_q05",section:"checkpoint2",concept:"cold_response",type:"choice",answer:"cold_shivering_vasoconstriction",prompt:"環境寒冷、體溫偏低時，下列哪組反應較有助於維持體溫？",hint:"找出能減少散熱或增加產熱的反應。",misconception:"cold_response_confusion",options:[{id:"cold_shivering_vasoconstriction",text:"發抖增加產熱、皮膚血管收縮減少散熱"},{id:"cold_sweat_more",text:"大量流汗增加散熱"},{id:"cold_vasodilation",text:"皮膚血管擴張讓熱更快散出"},{id:"cold_insulin",text:"胰島素降低血糖就是保溫"}]},
   {id:"temperature_glucose_homeostasis_q06",section:"checkpoint2",concept:"sweating_water_heat",type:"choice",answer:"sweating_cools_and_loses_water",prompt:"關於流汗，下列哪個說法最符合本單元範圍？",hint:"同時想一想流汗和散熱、水分流失之間的關係。",misconception:"sweating_only_water_or_only_heat",options:[{id:"sweating_cools_and_loses_water",text:"流汗蒸發可幫助散熱，但也會讓身體失去水分"},{id:"sweating_no_water_loss",text:"流汗只會降溫，不會造成水分流失"},{id:"sweating_heats_body",text:"流汗一定讓體溫上升"},{id:"sweating_makes_urine",text:"汗水在皮膚上直接變成尿液"}]},
-  {id:"temperature_glucose_homeostasis_q07",section:"checkpoint2",concept:"temperature_data",type:"choice",answer:"body_temp_returns_to_range_data",prompt:"一位同學運動後體溫升高，休息並補充水分後，體溫逐漸回到平常範圍。哪個解讀較合理？",hint:"先比較體溫變化方向，再判斷是否接近適當範圍。",misconception:"temperature_data_misread",options:[{id:"body_temp_returns_to_range_data",text:"身體可能啟動散熱反應，使體溫往適當範圍回復"},{id:"temperature_fixed_forever",text:"體溫完全不可能有任何波動"},{id:"kidney_forms_heat",text:"腎臟形成尿液就是體溫下降的唯一原因"},{id:"cell_division_heats",text:"這表示染色體正在平均分配"}]},
+  {id:"temperature_glucose_homeostasis_q07",section:"checkpoint2",concept:"temperature_data",type:"choice",answer:"body_temp_returns_to_range_data",prompt:"請根據「運動後休息期間的體溫紀錄曲線圖」判斷，下列哪個解讀較合理？",hint:"先看橫軸時間、縱軸體溫，再比較資料點是否接近圖中的平常範圍帶。",misconception:"temperature_data_misread",options:[{id:"body_temp_returns_to_range_data",text:"身體可能啟動散熱反應，使體溫往適當範圍回復"},{id:"temperature_fixed_forever",text:"體溫完全不可能有任何波動"},{id:"kidney_forms_heat",text:"腎臟形成尿液就是體溫下降的唯一原因"},{id:"cell_division_heats",text:"這表示染色體正在平均分配"}]},
   {id:"temperature_glucose_homeostasis_q08",section:"checkpoint2",concept:"temperature_feedback_sequence",type:"sequence",answer:["body_temperature_high","activate_heat_loss_response","sweating_or_vasodilation_increases_heat_loss","temperature_returns_toward_range"],prompt:"請拖曳排序：體溫偏高時，負回饋調節的大方向。",hint:"先找偏離狀態，再排出身體啟動反應、增加散熱，最後回到範圍附近。",misconception:"temperature_feedback_order_confusion",steps:[{id:"body_temperature_high",label:"體溫偏高，超出平常範圍"},{id:"activate_heat_loss_response",label:"身體啟動散熱方向的反應"},{id:"sweating_or_vasodilation_increases_heat_loss",label:"流汗或皮膚血管擴張讓散熱增加"},{id:"temperature_returns_toward_range",label:"體溫往適當範圍回復"}]},
   {id:"temperature_glucose_homeostasis_q09",section:"checkpoint3",concept:"blood_glucose_range",type:"choice",answer:"blood_glucose_returns_to_range",prompt:"飯後血糖升高，過一段時間又回到平常範圍附近。哪個解讀較合理？",hint:"先看血糖是否從偏高往範圍附近回復。",misconception:"glucose_data_misread",options:[{id:"blood_glucose_returns_to_range",text:"身體可能啟動血糖調節，使血糖往適當範圍回復"},{id:"glucose_never_changes",text:"血糖完全不會受飲食影響"},{id:"sweating_controls_glucose_only",text:"流汗是降低血糖的唯一方法"},{id:"alveoli_store_glucose",text:"肺泡會暫時儲存葡萄糖"}]},
   {id:"temperature_glucose_homeostasis_q10",section:"checkpoint3",concept:"high_glucose_insulin",type:"choice",answer:"high_glucose_insulin_lowers",prompt:"血糖偏高時，下列哪個方向較符合本單元的基礎概念？",hint:"用負回饋想：偏高時，調節方向應讓血糖往哪裡移動。",misconception:"insulin_direction_confusion",options:[{id:"high_glucose_insulin_lowers",text:"胰島素有助於讓血糖降低，往適當範圍回復"},{id:"high_glucose_glucagon",text:"升糖素讓血糖繼續升高"},{id:"high_glucose_no_response",text:"血糖偏高時身體完全不會調節"},{id:"high_glucose_cold_response",text:"發抖是降低血糖的主要反應"}]},
   {id:"temperature_glucose_homeostasis_q11",section:"checkpoint3",concept:"low_glucose_glucagon",type:"choice",answer:"low_glucose_glucagon_raises",prompt:"長時間未進食、血糖偏低時，下列哪個方向較符合本單元的基礎概念？",hint:"用負回饋想：偏低時，調節方向應讓血糖往哪裡移動。",misconception:"glucagon_direction_confusion",options:[{id:"low_glucose_glucagon_raises",text:"升糖素有助於讓血糖升高，往適當範圍回復"},{id:"low_glucose_insulin_more",text:"胰島素讓血糖繼續降低"},{id:"low_glucose_sweating",text:"流汗就是升高血糖的主要反應"},{id:"low_glucose_cell_wall",text:"細胞壁會直接提高血糖"}]},
-  {id:"temperature_glucose_homeostasis_q12",section:"checkpoint3",concept:"glucose_curve",type:"choice",answer:"insulin_data_returns_glucose_range",prompt:"一張飯後血糖曲線顯示血糖先升高，之後逐漸下降並接近平常範圍。哪個解讀較合理？",hint:"觀察曲線方向：先偏高，後來是否往適當範圍回復。",misconception:"glucose_curve_misread",options:[{id:"insulin_data_returns_glucose_range",text:"血糖偏高後可能受胰島素等調節影響，逐漸回到範圍附近"},{id:"curve_means_no_homeostasis",text:"只要曲線有變化，就代表沒有恆定"},{id:"curve_is_temperature",text:"這張血糖曲線只能用來判斷體溫"},{id:"curve_is_urine",text:"曲線一定代表尿液路徑"}]},
+  {id:"temperature_glucose_homeostasis_q12",section:"checkpoint3",concept:"glucose_curve",type:"choice",answer:"insulin_data_returns_glucose_range",prompt:"請根據「飯後血糖與胰島素相對量曲線圖」判斷，下列哪個解讀較合理？",hint:"先看橫軸時間，再比較兩條曲線在 0.5 到 3 小時之間的變化方向。",misconception:"glucose_curve_misread",options:[{id:"insulin_data_returns_glucose_range",text:"血糖偏高後可能受胰島素等調節影響，逐漸回到範圍附近"},{id:"curve_means_no_homeostasis",text:"只要曲線有變化，就代表沒有恆定"},{id:"curve_is_temperature",text:"這張血糖曲線只能用來判斷體溫"},{id:"curve_is_urine",text:"曲線一定代表尿液路徑"}]},
   {id:"temperature_glucose_homeostasis_q13",section:"checkpoint3",concept:"feedback_direction_compare",type:"mapping",answer:{body_temperature_high:"increase_heat_loss",body_temperature_low:"conserve_or_make_heat",blood_glucose_high:"lower_glucose",blood_glucose_low:"raise_glucose"},prompt:"請把偏離狀態配對到較合適的負回饋調節方向。",hint:"先判斷每個狀態是偏高或偏低，再選會把它拉回適當範圍的方向。",misconception:"feedback_direction_confusion",items:[{id:"body_temperature_high",label:"體溫偏高"},{id:"body_temperature_low",label:"體溫偏低"},{id:"blood_glucose_high",label:"血糖偏高"},{id:"blood_glucose_low",label:"血糖偏低"}],choices:feedbackDirectionChoices},
   {id:"temperature_glucose_homeostasis_q14",section:"checkpoint3",concept:"unit_boundary_control",type:"choice",answer:"glucose_temperature_belongs_homeostasis",prompt:"下列哪一個情境最適合放在「體溫與血糖的恆定」本單元核心檢核？",hint:"找出和體溫或血糖偏離後，透過反向調節回到範圍附近最直接相關的情境。",misconception:"temperature_glucose_unit_boundary_confusion",options:[{id:"glucose_temperature_belongs_homeostasis",text:"飯後血糖偏高後逐漸回到範圍，或體溫偏高後增加散熱"},{id:"kidney_urine_belongs_excretion_water",text:"腎臟形成尿液並協助排出代謝廢物與多餘水分"},{id:"chromosome_division",text:"分裂前染色體複製並平均分配到子細胞"},{id:"cell_wall_support",text:"細胞壁提供植物細胞支持與保護"}]}
 ];
@@ -849,13 +890,91 @@ function renderQuestion(question) {
 
 function conceptLabel(concept) { return {homeostasis_range:"恆定範圍",negative_feedback:"負回饋",endotherm_ectotherm:"內外溫動物",hot_response:"熱時散熱",cold_response:"冷時保溫",sweating_water_heat:"流汗與水分",temperature_data:"體溫資料",temperature_feedback_sequence:"體溫回饋排序",blood_glucose_range:"血糖範圍",high_glucose_insulin:"血糖偏高",low_glucose_glucagon:"血糖偏低",glucose_curve:"血糖曲線",feedback_direction_compare:"調節方向",unit_boundary_control:"單元邊界"}[concept] || concept; }
 
+function chartCoord(chart, point) {
+  const plot = { left: 92, top: 62, width: 760, height: 420 };
+  const [xMin, xMax] = chart.xDomain;
+  const [yMin, yMax] = chart.yDomain;
+  return {
+    x: plot.left + ((point[0] - xMin) / (xMax - xMin)) * plot.width,
+    y: plot.top + ((yMax - point[1]) / (yMax - yMin)) * plot.height
+  };
+}
+
+function renderChartTicks(chart) {
+  const xTicks = chart.xTicks.map((tick) => {
+    const { x } = chartCoord(chart, [tick, chart.yDomain[0]]);
+    return `<text class="u26-chart-tick x-tick" x="${x.toFixed(2)}" y="528" text-anchor="middle">${escapeHtml(tick)}</text>`;
+  }).join("");
+  const yTicks = chart.yTicks.map((tick) => {
+    const { y } = chartCoord(chart, [chart.xDomain[0], tick]);
+    return `<text class="u26-chart-tick y-tick" x="66" y="${(y + 8).toFixed(2)}" text-anchor="end">${escapeHtml(tick)}</text>`;
+  }).join("");
+  return `${xTicks}${yTicks}`;
+}
+
+function renderChartSeries(chart) {
+  return chart.series.map((series) => {
+    const points = series.points.map((point) => {
+      const { x, y } = chartCoord(chart, point);
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    }).join(" ");
+    const circles = series.points.map((point) => {
+      const { x, y } = chartCoord(chart, point);
+      return `<circle class="u26-chart-point" data-series-id="${escapeHtml(series.id)}" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="8" fill="${escapeHtml(series.color)}"></circle>`;
+    }).join("");
+    return `<polyline class="u26-chart-line" data-series-id="${escapeHtml(series.id)}" points="${points}" stroke="${escapeHtml(series.color)}"></polyline>${circles}`;
+  }).join("");
+}
+
+function renderChartLegend(chart) {
+  const startX = chart.series.length > 1 ? 590 : 700;
+  return chart.series.map((series, index) => {
+    const y = 86 + index * 34;
+    return `
+      <g class="u26-chart-legend-item" data-series-id="${escapeHtml(series.id)}">
+        <line x1="${startX}" y1="${y}" x2="${startX + 44}" y2="${y}" stroke="${escapeHtml(series.color)}"></line>
+        <circle cx="${startX + 22}" cy="${y}" r="7" fill="${escapeHtml(series.color)}"></circle>
+        <text x="${startX + 58}" y="${y + 9}">${escapeHtml(series.label)}</text>
+      </g>
+    `;
+  }).join("");
+}
+
+function renderChartEvidence(qid) {
+  const chart = chartEvidence[qid];
+  if (!chart) return "";
+  const rangeTextY = qid === "temperature_glucose_homeostasis_q07" ? 222 : 348;
+  const eventLabel = chart.eventLabel ? `<text class="u26-chart-event-label" x="112" y="92">${escapeHtml(chart.eventLabel)}</text>` : "";
+  return `
+    <figure class="u26-evidence-chart" data-chart-id="${escapeHtml(chart.chartId)}">
+      <p class="u26-chart-scaffold">${escapeHtml(chart.scaffold)}</p>
+      <svg viewBox="0 0 960 600" role="img" aria-label="${escapeHtml(chart.alt)}" preserveAspectRatio="xMidYMid meet">
+        <image class="u26-chart-base" href="${escapeHtml(chart.asset)}?v=${VERSION}" x="0" y="0" width="960" height="600"></image>
+        <g class="u26-chart-label-layer">
+          <title>${escapeHtml(chart.title)}</title>
+          <text class="u26-chart-title" x="480" y="40" text-anchor="middle">${escapeHtml(chart.title)}</text>
+          ${renderChartTicks(chart)}
+          <text class="u26-chart-axis-label x-axis" x="472" y="572" text-anchor="middle">${escapeHtml(chart.xLabel)}</text>
+          <text class="u26-chart-axis-label y-axis" x="34" y="272" text-anchor="middle" transform="rotate(-90 34 272)">${escapeHtml(chart.yLabel)}</text>
+          <text class="u26-chart-range-label" x="710" y="${rangeTextY}">${escapeHtml(chart.rangeLabel)}</text>
+          ${eventLabel}
+          ${renderChartSeries(chart)}
+          ${renderChartLegend(chart)}
+        </g>
+      </svg>
+      <figcaption>${escapeHtml(chart.caption)}</figcaption>
+    </figure>
+  `;
+}
+
 function renderQuestionEvidence(qid) {
   if (["temperature_glucose_homeostasis_q01", "temperature_glucose_homeostasis_q02"].includes(qid)) return `<div class="evidence-card"><strong>恆定概念卡</strong><p>身體狀態可有小幅波動；負回饋會把偏高或偏低的狀態往適當範圍拉回。</p></div>`;
   if (qid === "temperature_glucose_homeostasis_q03") return `<div class="evidence-card"><strong>動物體溫特性卡</strong><p>比較例子是否較能靠體內調節維持體溫，或較容易受外界環境影響。</p></div>`;
   if (["temperature_glucose_homeostasis_q04", "temperature_glucose_homeostasis_q05", "temperature_glucose_homeostasis_q06"].includes(qid)) return `<div class="evidence-card"><strong>體溫反應卡</strong><p>熱時看散熱，冷時看保溫或產熱；流汗同時和散熱、水分流失相關。</p></div>`;
-  if (qid === "temperature_glucose_homeostasis_q07") return `<div class="evidence-card"><strong>體溫資料卡</strong><p>運動後體溫偏高，休息後逐漸往平常範圍回復。</p></div>`;
+  if (qid === "temperature_glucose_homeostasis_q07") return renderChartEvidence(qid);
   if (qid === "temperature_glucose_homeostasis_q08") return `<div class="evidence-card"><strong>流程排序卡</strong><p>先找偏離狀態，再追蹤身體啟動調節反應與回到範圍的大方向。</p></div>`;
-  if (["temperature_glucose_homeostasis_q09", "temperature_glucose_homeostasis_q12"].includes(qid)) return `<div class="evidence-card"><strong>血糖資料卡</strong><p>飯後血糖可能先升高，之後逐漸往平常範圍附近回復。</p></div>`;
+  if (qid === "temperature_glucose_homeostasis_q09") return `<div class="evidence-card"><strong>血糖資料卡</strong><p>飯後血糖可能先升高，之後逐漸往平常範圍附近回復。</p></div>`;
+  if (qid === "temperature_glucose_homeostasis_q12") return renderChartEvidence(qid);
   if (["temperature_glucose_homeostasis_q10", "temperature_glucose_homeostasis_q11", "temperature_glucose_homeostasis_q13"].includes(qid)) return `<div class="evidence-card"><strong>血糖調節方向卡</strong><p>判斷偏高或偏低，再選擇能把血糖往適當範圍拉回的方向。</p></div>`;
   if (qid === "temperature_glucose_homeostasis_q14") return `<div class="evidence-card"><strong>單元邊界卡</strong><p>本單元聚焦體溫與血糖的負回饋調節；腎臟排泄、細胞分裂與細胞構造屬相鄰單元。</p></div>`;
   return "";
@@ -1223,6 +1342,7 @@ if (typeof window !== "undefined") {
     QUESTION_VERSION,
     mission,
     assets,
+    chartEvidence,
     badges,
     questions,
     state: () => state,

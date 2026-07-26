@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-hidden="true">
+<rect width="960" height="600" rx="28" fill="#f7fbff"/>
+<rect x="92" y="62" width="760" height="420" rx="18" fill="#ffffff" stroke="#b9d1df" stroke-width="2"/>
+<rect x="92" y="202.00" width="760" height="280.00" fill="#d7f2e3" opacity="0.8"/>
+<line x1="92.00" y1="62" x2="92.00" y2="482" stroke="#d8e5ee" stroke-width="1"/>
+<line x1="282.00" y1="62" x2="282.00" y2="482" stroke="#d8e5ee" stroke-width="1"/>
+<line x1="472.00" y1="62" x2="472.00" y2="482" stroke="#d8e5ee" stroke-width="1"/>
+<line x1="662.00" y1="62" x2="662.00" y2="482" stroke="#d8e5ee" stroke-width="1"/>
+<line x1="852.00" y1="62" x2="852.00" y2="482" stroke="#d8e5ee" stroke-width="1"/>
+<line x1="92" y1="482.00" x2="852" y2="482.00" stroke="#d8e5ee" stroke-width="1"/>
+<line x1="92" y1="342.00" x2="852" y2="342.00" stroke="#d8e5ee" stroke-width="1"/>
+<line x1="92" y1="202.00" x2="852" y2="202.00" stroke="#d8e5ee" stroke-width="1"/>
+<line x1="92" y1="62.00" x2="852" y2="62.00" stroke="#d8e5ee" stroke-width="1"/>
+<line x1="92.00" y1="62" x2="92.00" y2="482" stroke="#6e7f8d" stroke-width="3" stroke-dasharray="8 10" opacity="0.9"/>
+<line x1="92" y1="482" x2="852" y2="482" stroke="#28425a" stroke-width="4" stroke-linecap="round"/>
+<line x1="92" y1="62" x2="92" y2="482" stroke="#28425a" stroke-width="4" stroke-linecap="round"/>
+<line x1="92.00" y1="482.00" x2="92.00" y2="494.00" stroke="#28425a" stroke-width="3" stroke-linecap="round"/>
+<line x1="282.00" y1="482.00" x2="282.00" y2="494.00" stroke="#28425a" stroke-width="3" stroke-linecap="round"/>
+<line x1="472.00" y1="482.00" x2="472.00" y2="494.00" stroke="#28425a" stroke-width="3" stroke-linecap="round"/>
+<line x1="662.00" y1="482.00" x2="662.00" y2="494.00" stroke="#28425a" stroke-width="3" stroke-linecap="round"/>
+<line x1="852.00" y1="482.00" x2="852.00" y2="494.00" stroke="#28425a" stroke-width="3" stroke-linecap="round"/>
+<line x1="80.00" y1="482.00" x2="92.00" y2="482.00" stroke="#28425a" stroke-width="3" stroke-linecap="round"/>
+<line x1="80.00" y1="342.00" x2="92.00" y2="342.00" stroke="#28425a" stroke-width="3" stroke-linecap="round"/>
+<line x1="80.00" y1="202.00" x2="92.00" y2="202.00" stroke="#28425a" stroke-width="3" stroke-linecap="round"/>
+<line x1="80.00" y1="62.00" x2="92.00" y2="62.00" stroke="#28425a" stroke-width="3" stroke-linecap="round"/>
+<polyline points="92.00,62.00 282.00,118.00 472.00,230.00 662.00,314.00 852.00,342.00" fill="none" stroke="#e65f46" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="92.00" cy="62.00" r="9" fill="#e65f46" stroke="#ffffff" stroke-width="3"/>
+<circle cx="282.00" cy="118.00" r="9" fill="#e65f46" stroke="#ffffff" stroke-width="3"/>
+<circle cx="472.00" cy="230.00" r="9" fill="#e65f46" stroke="#ffffff" stroke-width="3"/>
+<circle cx="662.00" cy="314.00" r="9" fill="#e65f46" stroke="#ffffff" stroke-width="3"/>
+<circle cx="852.00" cy="342.00" r="9" fill="#e65f46" stroke="#ffffff" stroke-width="3"/>
+</svg>

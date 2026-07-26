@@ -359,6 +359,71 @@ textarea { resize: vertical; min-height: 116px; }
   color: var(--green-dark);
   font-weight: 900;
 }
+.u26-evidence-chart {
+  margin: 14px 0;
+  padding: 12px;
+  border: 1px solid rgba(47,159,104,.28);
+  border-radius: 8px;
+  background: rgba(248, 252, 244, .96);
+  overflow: hidden;
+}
+.u26-evidence-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+}
+.u26-chart-base { opacity: .52; }
+.u26-chart-title,
+.u26-chart-axis-label,
+.u26-chart-tick,
+.u26-chart-range-label,
+.u26-chart-event-label,
+.u26-chart-legend-item text {
+  fill: #1f3346;
+  font-family: inherit;
+  font-weight: 900;
+  paint-order: stroke;
+  stroke: rgba(255,255,255,.88);
+  stroke-width: 5px;
+  stroke-linejoin: round;
+}
+.u26-chart-title { font-size: 34px; }
+.u26-chart-axis-label { font-size: 30px; }
+.u26-chart-tick { font-size: 28px; }
+.u26-chart-range-label,
+.u26-chart-event-label,
+.u26-chart-legend-item text { font-size: 27px; }
+.u26-chart-line {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 2px 3px rgba(31,51,70,.18));
+}
+.u26-chart-point {
+  stroke: #fff;
+  stroke-width: 4;
+  filter: drop-shadow(0 2px 3px rgba(31,51,70,.22));
+}
+.u26-chart-legend-item line {
+  stroke-width: 8;
+  stroke-linecap: round;
+}
+.u26-chart-scaffold {
+  margin: 0 0 8px;
+  color: var(--green-dark);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.55;
+}
+.u26-evidence-chart figcaption {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.55;
+}
 .mapping-list { display: grid; gap: 10px; margin-top: 12px; }
 .mapping-row {
   grid-template-columns: minmax(0, .85fr) minmax(190px, 1fr);
