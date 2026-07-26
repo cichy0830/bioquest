@@ -23,7 +23,11 @@ const units = [
   ["prototype-photosynthesis", "bg-photosynthesis-briefing-azhe-wide"],
   ["prototype-endocrine-system", "endocrine-system-briefing-azhe-wide.webp"],
   ["prototype-behavior-sensing", "behavior-sensing-briefing-azhe-wide.webp"],
-  ["prototype-respiration-homeostasis", "respiration-homeostasis-briefing-azhe-wide.webp"]
+  ["prototype-respiration-homeostasis", "respiration-homeostasis-briefing-azhe-wide.webp"],
+  ["prototype-temperature-glucose-homeostasis", "temperature-glucose-homeostasis-briefing-azhe-wide.webp"],
+  ["prototype-cell-division", "cell-division-briefing-azhe-wide.webp"],
+  ["prototype-asexual-reproduction", "asexual-reproduction-briefing-azhe-wide.webp"],
+  ["prototype-sexual-reproduction", "sexual-reproduction-briefing-azhe-wide.webp"]
 ];
 
 function assert(condition, message) {

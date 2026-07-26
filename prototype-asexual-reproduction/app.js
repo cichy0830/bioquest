@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260725-asexual-reproduction-qa-fixes-v1";
+const VERSION = "20260726-asexual-reproduction-backgrounds-v1";
 const QUESTION_VERSION = "20260718-asexual-reproduction-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -31,9 +31,9 @@ const assets = {
   owlReport: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  briefingSceneHook: "",
+  briefingSceneHook: "assets/asexual-reproduction-briefing-azhe-wide.webp",
   briefingSceneMobileHook: "",
-  ambientBackgroundHook: ""
+  ambientBackgroundHook: "assets/asexual-reproduction-ambient-wide.webp"
 };
 
 const badgeAsset = () => "";
@@ -1473,7 +1473,7 @@ function renderBrief() {
     ? "你好，老師測試帳號｜guest 測試身分"
     : `你好，${student.student_name || "同學"}｜${student.class_name || "班級未填"} ${student.seat_no || "座號未填"}｜${student.student_id || "學號未填"}`;
   const sceneAttrs = `${assets.briefingSceneHook ? ` data-briefing-scene-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
-  const sceneMedia = assets.briefingSceneHook ? `<picture class="brief-scene-media">${assets.briefingSceneMobileHook ? `<source srcset="${assets.briefingSceneMobileHook}" media="(max-width: 640px)">` : ""}<img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="無性生殖簡報主視覺" onerror="this.closest('.brief-scene-media')?.classList.add('asset-missing')"></picture>` : `<div class="brief-scene-fallback bq-brief-scene-missing" role="img" aria-label="生命延續資料庫場景待接"><strong>生命延續資料庫</strong><span>正式簡報圖核准後，會在此呈現阿澤老師與無性生殖樣本分類場景。</span></div>`;
+  const sceneMedia = assets.briefingSceneHook ? `<picture class="brief-scene-media">${assets.briefingSceneMobileHook ? `<source srcset="${assets.briefingSceneMobileHook}?v=${VERSION}" media="(max-width: 640px)">` : ""}<img class="bq-brief-scene-image" src="${assets.briefingSceneHook}?v=${VERSION}" alt="無性生殖簡報主視覺" onerror="this.closest('.brief-scene-media')?.classList.add('asset-missing')"></picture>` : `<div class="brief-scene-fallback bq-brief-scene-missing" role="img" aria-label="生命延續資料庫場景待接"><strong>生命延續資料庫</strong><span>正式簡報圖核准後，會在此呈現阿澤老師與無性生殖樣本分類場景。</span></div>`;
   return `<div class="wide-layout"><section class="panel hero-panel brief-hero"><figure class="brief-scene asexual-reproduction-brief-scene bq-brief-scene-stage" data-bq-brief-dual-role="true"${sceneAttrs}>${sceneMedia}<img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'"></figure><div class="scene-copy bq-brief-scene-caption"><p class="eyebrow">${mission.mission_area}</p><h2>${mission.mission_title}</h2><p class="identity-check">${escapeHtml(identityLine)}</p><p>生命延續資料庫收到多份繁殖樣本。請協助分辨無性生殖的核心特徵、常見方式與相鄰單元邊界。</p><p class="muted">目前稱號：${escapeHtml(titleInfo.current.title)}｜${titleInfo.totalExp} EXP</p></div><div class="button-row"><button class="primary" data-next="scan">查看進關卡提醒</button><button class="secondary" data-next="rules">先看規則</button></div></section></div>`;
 }
 

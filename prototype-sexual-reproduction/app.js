@@ -3,7 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260718-sexual-reproduction-v1";
+const VERSION = "20260726-sexual-reproduction-backgrounds-v1";
+const QUESTION_VERSION = "20260718-sexual-reproduction-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -30,9 +31,9 @@ const assets = {
   owlReport: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  briefingSceneHook: "",
+  briefingSceneHook: "assets/sexual-reproduction-briefing-azhe-wide.webp",
   briefingSceneMobileHook: "",
-  ambientBackgroundHook: ""
+  ambientBackgroundHook: "assets/sexual-reproduction-ambient-wide.webp"
 };
 
 const badgeAsset = () => "";
@@ -715,7 +716,7 @@ function createEmptyState() {
     attempt_session_token: "",
     attempt_session_id: "",
     previous_attempt_id: "",
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     optionOrders: {},
     answers: {},
@@ -736,7 +737,7 @@ function loadState() {
   if (typeof localStorage === "undefined") return createEmptyState();
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey) || "null");
-    return parsed && parsed.question_version ? { ...createEmptyState(), ...parsed } : createEmptyState();
+    return parsed && parsed.question_version ? { ...createEmptyState(), ...parsed, question_version: QUESTION_VERSION } : createEmptyState();
   } catch (error) {
     return createEmptyState();
   }
@@ -910,7 +911,7 @@ function normalizeBackendStudent(data, inputId) {
 
 function beginLocalAttempt(student) {
   const attemptId = uid("sexual_reproduction_guest_attempt");
-  state = { ...createEmptyState(), student, attempt_id: attemptId, attempt_session_token: `guest_${attemptId}`, attempt_session_id: `guest_session_${attemptId}`, question_version: VERSION, verification_mode: "local_guest", screen: "brief", completedScreens: ["login", "brief"] };
+  state = { ...createEmptyState(), student, attempt_id: attemptId, attempt_session_token: `guest_${attemptId}`, attempt_session_id: `guest_session_${attemptId}`, question_version: QUESTION_VERSION, verification_mode: "local_guest", screen: "brief", completedScreens: ["login", "brief"] };
   saveState();
 }
 
@@ -938,9 +939,9 @@ async function handleLogin(useGuest) {
       action: "startAttempt",
       student_id: student.student_id,
       unit_id: mission.unit_id,
-      question_version: VERSION
+      question_version: QUESTION_VERSION
     });
-    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== VERSION) {
+    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== QUESTION_VERSION) {
       throw new Error("backend_registry_not_ready");
     }
     state = {
@@ -950,7 +951,7 @@ async function handleLogin(useGuest) {
       attempt_session_token: startData.attempt_session_token,
       attempt_session_id: startData.attempt_session_id,
       previous_attempt_id: startData.previous_attempt_id || "",
-      question_version: startData.question_version,
+      question_version: QUESTION_VERSION,
       verification_mode: startData.verification_mode,
       screen: "brief",
       completedScreens: ["login", "brief"]
@@ -1357,7 +1358,7 @@ function renderLogin() {
 function renderBrief() {
   const titleInfo = titleAndProgress();
   const sceneAttrs = `${assets.briefingSceneHook ? ` data-briefing-scene-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
-  const sceneMedia = assets.briefingSceneHook ? `<picture class="brief-scene-media">${assets.briefingSceneMobileHook ? `<source srcset="${assets.briefingSceneMobileHook}" media="(max-width: 640px)">` : ""}<img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="有性生殖簡報主視覺" onerror="this.closest('.brief-scene-media')?.classList.add('asset-missing')"></picture>` : `<div class="brief-scene-fallback bq-brief-scene-missing" role="img" aria-label="生命延續資料庫場景待接"><strong>生命延續資料庫</strong><span>正式簡報圖核准後，會在此呈現阿澤老師與有性生殖判讀場景。</span></div>`;
+  const sceneMedia = assets.briefingSceneHook ? `<picture class="brief-scene-media">${assets.briefingSceneMobileHook ? `<source srcset="${assets.briefingSceneMobileHook}?v=${VERSION}" media="(max-width: 640px)">` : ""}<img class="bq-brief-scene-image" src="${assets.briefingSceneHook}?v=${VERSION}" alt="有性生殖簡報主視覺" onerror="this.closest('.brief-scene-media')?.classList.add('asset-missing')"></picture>` : `<div class="brief-scene-fallback bq-brief-scene-missing" role="img" aria-label="生命延續資料庫場景待接"><strong>生命延續資料庫</strong><span>正式簡報圖核准後，會在此呈現阿澤老師與有性生殖判讀場景。</span></div>`;
   return `<div class="wide-layout"><section class="panel hero-panel brief-hero"><figure class="brief-scene sexual-reproduction-brief-scene bq-brief-scene-stage" data-bq-brief-dual-role="true"${sceneAttrs}>${sceneMedia}<img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'"></figure><div class="scene-copy bq-brief-scene-caption"><p class="eyebrow">${mission.mission_area}</p><h2>${mission.mission_title}</h2><p>生命延續資料庫收到有性生殖樣本。請協助判斷配子、受精、親代來源、後代差異與相鄰單元邊界。</p><p class="muted">目前稱號：${escapeHtml(titleInfo.current.title)}｜${titleInfo.totalExp} EXP</p></div><div class="button-row"><button class="primary" data-next="scan">查看進關卡提醒</button><button class="secondary" data-next="rules">先看規則</button></div></section></div>`;
 }
 
@@ -1705,6 +1706,7 @@ if (typeof document !== "undefined") {
 if (typeof window !== "undefined") {
   window.__sexual_reproductionTest = {
     VERSION,
+    QUESTION_VERSION,
     mission,
     assets,
     badges,

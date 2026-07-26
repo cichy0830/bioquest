@@ -150,6 +150,11 @@ textarea { resize: vertical; min-height: 116px; }
   background-position: center;
 }
 .cell-division-brief-scene {
+  --bq-brief-avatar-left: 74% !important;
+  --bq-brief-avatar-bottom: 0.5% !important;
+  --bq-brief-avatar-height: 100% !important;
+  --bq-brief-avatar-max-width: 34% !important;
+  --bq-brief-avatar-max-height: 98% !important;
   display: block;
   width: 100%;
   min-height: 0;
@@ -159,11 +164,11 @@ textarea { resize: vertical; min-height: 116px; }
 .cell-division-brief-scene .bq-brief-student-avatar {
   position: absolute;
   z-index: 2;
-  right: 7%;
-  bottom: 4%;
+  right: 4%;
+  bottom: -5%;
   width: auto;
-  height: 88%;
-  max-width: 38%;
+  height: 112%;
+  max-width: 50%;
   object-fit: contain;
   object-position: center bottom;
   filter: drop-shadow(0 18px 24px rgba(8, 48, 41, .25));
@@ -205,20 +210,7 @@ textarea { resize: vertical; min-height: 116px; }
   font-weight: 800;
   line-height: 1.65;
 }
-.cell-division-brief-scene::after {
-  content: "";
-  position: absolute;
-  right: 9%;
-  bottom: 9%;
-  width: min(36%, 310px);
-  aspect-ratio: 1;
-  border-radius: 44% 56% 46% 54%;
-  background:
-    radial-gradient(circle at 46% 42%, #f7f4d1 0 7%, transparent 7.5%),
-    radial-gradient(circle at 62% 36%, rgba(255,255,255,.8) 0 5%, transparent 5.5%),
-    linear-gradient(135deg, rgba(31,121,68,.75), rgba(157,213,96,.62));
-  opacity: .72;
-}
+.cell-division-brief-scene::after { content: none; }
 .scene-copy {
   position: relative;
   z-index: 1;
@@ -501,10 +493,10 @@ textarea { resize: vertical; min-height: 116px; }
     padding: 0;
   }
   .cell-division-brief-scene .bq-brief-student-avatar {
-    right: 4%;
-    bottom: 3%;
-    height: 84%;
-    max-width: 42%;
+    right: 2%;
+    bottom: -4%;
+    height: 108%;
+    max-width: 52%;
   }
   .brief-scene-fallback { inset: 10px; }
   .scene-copy {

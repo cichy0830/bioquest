@@ -10,6 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-temperature-glucose-homeostasis")
   : sourceRoot;
+const CACHE_VERSION = "20260726-temperature-glucose-briefing-scene-v1";
 const Q = (n) => `temperature_glucose_homeostasis_q${String(n).padStart(2, "0")}`;
 const browser = await chromium.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" });
 
@@ -81,7 +82,7 @@ async function expectEvidenceChart(page, chartId, assetName) {
   }, assetName);
   assert.equal(details.hasSvg, true, `${chartId} should render inline svg`);
   assert.equal(details.hasAsset, true, `${chartId} should use approved asset`);
-  assert(details.href.includes("20260726-temperature-glucose-charts-v1"), `${chartId} href should include chart cache`);
+  assert(details.href.includes(CACHE_VERSION), `${chartId} href should include runtime cache`);
   assert(details.pointCount >= 5, `${chartId} should render data points`);
   assert(details.lineCount >= 1, `${chartId} should render data line`);
   assert.equal(details.overflows, false, `${chartId} should not overflow viewport`);
@@ -199,7 +200,7 @@ try {
           return { ok: true, json: async () => ({ ok: true }) };
         };
       }, { runtimeMode: mode, questionVersion: "20260718-temperature-glucose-homeostasis-v1" });
-      await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260726-temperature-glucose-charts-v1`);
+      await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=${CACHE_VERSION}`);
       if (mode === "guest") {
         await page.locator("#guestBtn").click();
         await page.locator(".scene-copy").waitFor();

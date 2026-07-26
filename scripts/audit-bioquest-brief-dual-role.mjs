@@ -172,29 +172,29 @@ const allUnits = [
     unitId: "temperature_glucose_homeostasis",
     folder: "prototype-temperature-glucose-homeostasis",
     storageKey: "bioquest_temperature_glucose_homeostasis_state_v1",
-    missingSceneAllowed: true,
-    missingSceneHook: "temperature-glucose-homeostasis-briefing-azhe-wide.webp"
+    questionVersion: "20260718-temperature-glucose-homeostasis-v1",
+    azhe: { left: 0.06, right: 0.34, top: 0.06, bottom: 0.99 }
   },
   {
     unitId: "cell_division",
     folder: "prototype-cell-division",
     storageKey: "bioquest_cell_division_state_v1",
-    missingSceneAllowed: true,
-    missingSceneHook: "cell-division-briefing-azhe-wide.webp"
+    questionVersion: "20260718-cell-division-v1",
+    azhe: { left: 0.07, right: 0.36, top: 0.06, bottom: 0.99 }
   },
   {
     unitId: "asexual_reproduction",
     folder: "prototype-asexual-reproduction",
     storageKey: "bioquest_asexual_reproduction_state_v1",
-    missingSceneAllowed: true,
-    missingSceneHook: "asexual-reproduction-briefing-azhe-wide.webp"
+    questionVersion: "20260718-asexual-reproduction-v1",
+    azhe: { left: 0.06, right: 0.34, top: 0.06, bottom: 0.99 }
   },
   {
     unitId: "sexual_reproduction",
     folder: "prototype-sexual-reproduction",
     storageKey: "bioquest_sexual_reproduction_state_v1",
-    missingSceneAllowed: true,
-    missingSceneHook: "sexual-reproduction-briefing-azhe-wide.webp"
+    questionVersion: "20260718-sexual-reproduction-v1",
+    azhe: { left: 0.07, right: 0.35, top: 0.06, bottom: 0.99 }
   }
 ];
 
@@ -449,7 +449,10 @@ async function auditUnit(browser, baseUrl, unit, viewport) {
 }
 
 const { server, port } = await startServer();
-const browser = await chromium.launch({ headless: true, channel: "chrome" });
+const browser = await chromium.launch({
+  headless: true,
+  executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+});
 const results = [];
 try {
   const baseUrl = `http://127.0.0.1:${port}`;

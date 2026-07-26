@@ -78,10 +78,10 @@ appVersionOverrides.set("endocrine_system", "20260722-endocrine-system-briefing-
 appVersionOverrides.set("behavior_sensing", "20260722-behavior-sensing-briefing-scene-v1");
 appVersionOverrides.set("respiration_homeostasis", "20260722-respiration-homeostasis-briefing-scene-v1");
 appVersionOverrides.set("excretion_water_homeostasis", "20260718-excretion-water-homeostasis-v1");
-appVersionOverrides.set("temperature_glucose_homeostasis", "20260726-temperature-glucose-charts-v1");
-appVersionOverrides.set("cell_division", "20260725-cell-division-qa-fixes-v1");
-appVersionOverrides.set("asexual_reproduction", "20260725-asexual-reproduction-qa-fixes-v1");
-appVersionOverrides.set("sexual_reproduction", "20260718-sexual-reproduction-v1");
+appVersionOverrides.set("temperature_glucose_homeostasis", "20260726-temperature-glucose-briefing-scene-v1");
+appVersionOverrides.set("cell_division", "20260726-cell-division-briefing-scene-v1");
+appVersionOverrides.set("asexual_reproduction", "20260726-asexual-reproduction-backgrounds-v1");
+appVersionOverrides.set("sexual_reproduction", "20260726-sexual-reproduction-backgrounds-v1");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);

@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260725-cell-division-qa-fixes-v1";
+const VERSION = "20260726-cell-division-briefing-scene-v1";
 const QUESTION_VERSION = "20260718-cell-division-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -31,8 +31,8 @@ const assets = {
   owlReport: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  briefingSceneHook: "",
-  briefingSceneMobileHook: "",
+  briefingSceneHook: "assets/cell-division-briefing-azhe-wide.webp",
+  briefingSceneMobileHook: "assets/cell-division-briefing-azhe-mobile.webp",
   ambientBackgroundHook: ""
 };
 
@@ -839,8 +839,8 @@ function renderBrief() {
   const sceneAttrs = `${assets.briefingSceneHook ? ` data-briefing-scene-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
   const sceneMedia = assets.briefingSceneHook
     ? `<picture class="brief-scene-media">
-        ${assets.briefingSceneMobileHook ? `<source srcset="${assets.briefingSceneMobileHook}" media="(max-width: 640px)">` : ""}
-        <img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="細胞的分裂簡報主視覺" onerror="this.closest('.brief-scene-media')?.classList.add('asset-missing')">
+        ${assets.briefingSceneMobileHook ? `<source srcset="${assets.briefingSceneMobileHook}?v=${VERSION}" media="(max-width: 640px)">` : ""}
+        <img class="bq-brief-scene-image" src="${assets.briefingSceneHook}?v=${VERSION}" alt="細胞的分裂簡報主視覺" onerror="this.closest('.brief-scene-media')?.classList.add('asset-missing')">
       </picture>`
     : `<div class="brief-scene-fallback bq-brief-scene-missing" role="img" aria-label="微觀研究站場景待接">
         <strong>微觀研究站</strong>

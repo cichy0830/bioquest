@@ -1,6 +1,11 @@
 # U26 temperature_glucose_homeostasis assets
 
-本資料夾只放已核准 runtime 素材與中性 fallback 所需檔案。U26 F-U26-04 的 q07 / q12 科學圖表已由使用者核准，其餘 briefing scene、prep/report owl 與徽章仍未核准，runtime 不得接入待審圖。
+本資料夾只放已核准 runtime 素材與中性 fallback 所需檔案。U26 F-U26-01 briefing scene 與 F-U26-04 q07 / q12 科學圖表已由使用者核准；prep/report owl 與徽章仍未核准，runtime 不得接入待審圖。
+
+已核准簡報素材：
+
+- `temperature-glucose-homeostasis-briefing-azhe-wide.webp`：簡報頁阿澤老師正式場景，來源為 approved archive `u26-temperature-glucose-homeostasis-briefing-azhe-f-u26-01.webp`。
+- `temperature-glucose-homeostasis-briefing-azhe-mobile.webp`：簡報頁手機 `<picture>` source，來源為 approved archive `sizes/u26-temperature-glucose-homeostasis-briefing-azhe-f-u26-01-960w.webp`。
 
 已核准圖表素材：
 
@@ -13,8 +18,6 @@
 正式素材核准後建議 hook：
 
 - `temperature-glucose-homeostasis-entry-wide.webp`：一般頁純背景。
-- `temperature-glucose-homeostasis-briefing-azhe-wide.webp`：簡報頁 safe scene。
-- `temperature-glucose-homeostasis-briefing-azhe-mobile.webp`：若視覺線另提供手機版，再接入 `<picture>`。
 - `temperature-glucose-homeostasis-prep-owl.webp`：準備頁單元專屬貓頭鷹。
 - `temperature-glucose-homeostasis-report-owl.webp`：若需要單元專屬回報貓頭鷹，需先由視覺線核准。
 
