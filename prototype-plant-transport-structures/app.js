@@ -3,7 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260720-plant-transport-structures-extension-v2";
+const VERSION = "20260727-plant-transport-structures-ui-fixes-v1";
+const QUESTION_VERSION = "20260727-plant-transport-structures-q03-continuity-v3";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -58,14 +59,10 @@ const assets = {
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "assets/plant-transport-structures-briefing-azhe-wide.webp",
   briefingSceneMobileHook: "",
-  ambientBackgroundHook: "plant-transport-structures-entry-wide",
   evidenceOverview: "assets/plant-transport-structures-evidence-overview.webp",
-  questionRootHair: "plant-transport-structures-root-hair",
-  questionVascularBundle: "plant-transport-structures-vascular-bundle",
-  questionXylemPhloem: "plant-transport-structures-xylem-phloem",
-  questionLeafVein: "plant-transport-structures-leaf-vein"
 };
 
+const assetUrl = (src) => `${src}?v=${VERSION}`;
 const badgeAsset = (id) => `../shared-assets/badges/plant_transport_structures/badge-plant_transport_structures-${id}.webp`;
 const reflectionRules = {
   conceptTerms: ["根毛", "維管束", "木質部", "韌皮部", "葉脈", "蒸散作用", "形成層", "水分", "礦物質", "養分", "根", "莖", "葉", "氣孔", "光合作用", "運輸"],
@@ -99,7 +96,7 @@ const correctSequence = sequenceSteps.map((step) => step.id);
 const questions = [
   {id:"q01",section:"checkpoint1",concept:"transport_need",type:"choice",answer:"transport_structure",prompt:"植物的葉片製造養分，根吸收水分與礦物質。這些物質要到達其他部位，最需要哪一類構造協助？",hint:"想想不同部位交換物質時，需要通過哪類管線。",misconception:"no_transport_needed",options:[{id:"transport_structure",text:"運輸構造"},{id:"petal_color",text:"花瓣顏色"},{id:"seed_coat",text:"種子外殼"},{id:"pollen_shape",text:"花粉形狀"}]},
   {id:"q02",section:"checkpoint1",concept:"root_hair_absorption",type:"choice",answer:"root_hair_absorption",prompt:"根表面有許多細小根毛，較能幫助植物完成哪一件事？",hint:"觀察根毛的位置，再想根和土壤接觸時主要取得什麼。",misconception:"leaf_absorbs_water_mainly",options:[{id:"root_hair_absorption",text:"增加接觸面積，吸收水分與礦物質"},{id:"pollen",text:"製造花粉"},{id:"glucose",text:"直接製造葡萄糖"},{id:"thick_leaf",text:"讓葉片變厚"}]},
-  {id:"q03",section:"checkpoint1",concept:"vascular_bundle",type:"mapping",prompt:"請將植物部位和較相關的運輸構造線索配對。",hint:"先看每個部位的位置，再想它和吸收、連接或葉片運輸有什麼關係。",misconception:"transport_only_in_stem",items:[{id:"root",label:"根"},{id:"stem",label:"莖"},{id:"leaf",label:"葉"}],choices:[{id:"root_hair_and_transport",text:"根毛吸收水分與礦物質，內部有運輸構造"},{id:"vascular_bundle_connection",text:"維管束連接根與葉"},{id:"vein_transport",text:"葉脈含維管束，和水分及養分運輸有關"}],answer:{root:"root_hair_and_transport",stem:"vascular_bundle_connection",leaf:"vein_transport"}},
+  {id:"q03",section:"checkpoint1",concept:"vascular_bundle",type:"choice",answer:"continuous_vascular_bundle_system",prompt:"關於根、莖、葉中的運輸構造，下列哪個說法最符合本單元概念？",hint:"想想水分、礦物質與葉片製造的養分需要在根、莖、葉之間移動；運輸構造應該是連續系統，還是分成互不相連的三套系統？",misconception:"vascular_bundle_separate_system_confusion",options:[{id:"continuous_vascular_bundle_system",text:"根、莖、葉中的維管束彼此連續，形成同一套運輸系統；維管束包含木質部與韌皮部。"},{id:"separate_root_stem_leaf_bundles",text:"根、莖、葉各有自己的維管束，但三套構造互不連接，所以只能在各部位內運輸。"},{id:"stem_only_vascular_bundle",text:"只有莖中才有維管束，根與葉主要靠表面直接完成所有物質運輸。"},{id:"unrelated_root_stem_leaf_structures",text:"根毛、莖內維管束與葉脈是三套互不相關的構造，功能不用連在一起判斷。"}]},
   {id:"q04",section:"checkpoint1",concept:"stem_transport_support",type:"choice",answer:"vascular_bundle",prompt:"若把植物莖想成連接根和葉的通道，莖內哪一類構造最直接和物質運輸有關？",hint:"想想成束排列、像管線一樣連接上下部位的構造。",misconception:"transport_only_in_stem",options:[{id:"vascular_bundle",text:"維管束"},{id:"pollen",text:"花粉"},{id:"pericarp",text:"果皮"},{id:"petal",text:"花瓣"}]},
   {id:"q05",section:"checkpoint2",concept:"xylem_phloem_roles",type:"mapping",prompt:"請將運輸構造與主要運輸內容配對。",hint:"先分辨是根吸收來的物質，還是葉片製造出來的養分。",misconception:"xylem_phloem_confusion",items:[{id:"xylem",label:"木質部"},{id:"phloem",label:"韌皮部"}],choices:[{id:"water_and_minerals",text:"水分與礦物質"},{id:"photosynthetic_nutrients",text:"光合作用製造的養分"}],answer:{xylem:"water_and_minerals",phloem:"photosynthetic_nutrients"}},
   {id:"q06",section:"checkpoint2",concept:"xylem_function",type:"choice",answer:"xylem",prompt:"根吸收的水分和礦物質，主要會經由哪一類構造往莖、葉運送？",hint:"注意題目中的水分和礦物質。",misconception:"xylem_phloem_confusion",options:[{id:"xylem",text:"木質部"},{id:"phloem",text:"韌皮部"},{id:"pollen_tube",text:"花粉管"},{id:"stoma_wall",text:"氣孔外壁"}]},
@@ -142,7 +139,7 @@ function createEmptyState() {
     attempt_session_token: "",
     attempt_session_id: "",
     previous_attempt_id: "",
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     optionOrders: {},
     answers: {},
@@ -163,7 +160,7 @@ function loadState() {
   if (typeof localStorage === "undefined") return createEmptyState();
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey) || "null");
-    return parsed && parsed.question_version ? { ...createEmptyState(), ...parsed } : createEmptyState();
+    return parsed && parsed.question_version ? { ...createEmptyState(), ...parsed, question_version: QUESTION_VERSION } : createEmptyState();
   } catch (error) {
     return createEmptyState();
   }
@@ -343,7 +340,7 @@ function beginLocalAttempt(student) {
     attempt_id: attemptId,
     attempt_session_token: `guest_${attemptId}`,
     attempt_session_id: `guest_session_${attemptId}`,
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     screen: "brief",
     completedScreens: ["login", "brief"]
@@ -363,7 +360,7 @@ async function handleLogin(useGuest) {
   await window.BioQuestLoginUX?.paint();
   if (useGuest || studentId === "guest") {
     beginLocalAttempt(roster.guest);
-    renderApp();
+    renderApp({ resetScroll: true });
     return;
   }
   try {
@@ -374,9 +371,9 @@ async function handleLogin(useGuest) {
       action: "startAttempt",
       student_id: student.student_id,
       unit_id: mission.unit_id,
-      question_version: VERSION
+      question_version: QUESTION_VERSION
     });
-    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== VERSION) {
+    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== QUESTION_VERSION) {
       throw new Error("backend_registry_not_ready");
     }
     state = {
@@ -392,7 +389,7 @@ async function handleLogin(useGuest) {
       completedScreens: ["login", "brief"]
     };
     saveState();
-    renderApp();
+    renderApp({ resetScroll: true });
   } catch (error) {
     state = createEmptyState();
     saveState();
@@ -414,7 +411,33 @@ function setScreen(nextScreen) {
     if (!state.completedScreens.includes(nextScreen)) state.completedScreens.push(nextScreen);
   }
   saveState();
-  renderApp();
+  renderApp({ resetScroll: true });
+}
+
+function resetScrollPosition({ focus = false } = {}) {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  const containers = [
+    document.scrollingElement,
+    document.documentElement,
+    document.body,
+    document.querySelector(".main-stage")
+  ].filter(Boolean);
+  const applyReset = () => {
+    try { window.scrollTo({ top: 0, left: 0, behavior: "auto" }); } catch (error) { window.scrollTo(0, 0); }
+    containers.forEach((node) => {
+      if (typeof node.scrollTo === "function") node.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      node.scrollTop = 0;
+      node.scrollLeft = 0;
+    });
+  };
+  applyReset();
+  window.requestAnimationFrame?.(() => {
+    applyReset();
+    if (focus && screen) {
+      screen.setAttribute("tabindex", "-1");
+      screen.focus?.({ preventScroll: true });
+    }
+  });
 }
 
 function canUseNav(target) {
@@ -444,7 +467,7 @@ async function flushHintEvents(ids = Object.keys(state.hintEventStatus)) {
         attempt_id: state.attempt_id,
         attempt_session_token: state.attempt_session_token,
         question_id: questionId,
-        question_version: state.question_version
+        question_version: state.question_version || QUESTION_VERSION
       });
       state.hintEventStatus[questionId] = "sent";
     } catch (error) {
@@ -645,7 +668,7 @@ function buildBackendPayload(result = scoreAttempt()) {
     attempt_id: state.attempt_id,
     attempt_session_token: state.attempt_session_token,
     previous_attempt_id: state.previous_attempt_id,
-    question_version: state.question_version,
+    question_version: state.question_version || QUESTION_VERSION,
     raw_answers: rawAnswers,
     raw_answers_json: JSON.stringify(rawAnswers),
     question_logs: result.logs.map((log) => ({
@@ -741,7 +764,7 @@ async function submitMission() {
     submitted_at: state.submitLockedAt
   });
   saveState();
-  renderApp();
+  renderApp({ resetScroll: true });
 }
 
 function renderLogin() {
@@ -767,7 +790,7 @@ function renderLogin() {
 
 function renderBrief() {
   const sceneAttrs = `${assets.briefingSceneHook ? ` data-briefing-scene-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
-  const sceneMedia = `<picture class="bq-brief-scene-media">${assets.briefingSceneMobileHook ? `<source media="(max-width: 680px)" srcset="${assets.briefingSceneMobileHook}">` : ""}<img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="阿澤老師在植物運輸構造任務場景中引導學生"></picture>`;
+  const sceneMedia = `<picture class="bq-brief-scene-media">${assets.briefingSceneMobileHook ? `<source media="(max-width: 680px)" srcset="${assetUrl(assets.briefingSceneMobileHook)}">` : ""}<img class="bq-brief-scene-image" src="${assetUrl(assets.briefingSceneHook)}" alt="阿澤老師在植物運輸構造任務場景中引導學生"></picture>`;
   return `
     <div class="wide-layout">
       <section class="panel hero-panel brief-hero">
@@ -790,7 +813,7 @@ function renderBrief() {
 }
 
 function renderScan() {
-  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入綠植運輸管線站前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚根吸收、木質部運水與韌皮部運養分。</h3><p>根毛增加接觸面積；維管束連接根、莖與葉；葉脈也包含運輸構造。</p></div></div><figure class="prep-overview-figure"><img src="${assets.evidenceOverview}" alt="植物運輸構造概念總覽圖" onerror="this.closest('.prep-overview-figure').hidden=true"><figcaption>概念總覽圖僅供進入關卡前建立情境；作答仍以題幹與選項為準。</figcaption></figure><div class="concept-grid"><article><strong>根毛</strong><p>協助吸收水分與礦物質。</p></article><article><strong>維管束</strong><p>在根、莖、葉之間形成運輸管線。</p></article><article><strong>木質部與韌皮部</strong><p>分別連結水分礦物質與葉片製造的養分。</p></article><article><strong>蒸散</strong><p>從土壤、根、木質部到葉片的水分路徑。</p></article></div><button class="primary" data-next="checkpoint1">開始綠植管線辨識</button></section></div>`;
+  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入綠植運輸管線站前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assetUrl(assets.owlPrep)}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚根吸收、木質部運水與韌皮部運養分。</h3><p>根毛增加接觸面積；維管束連接根、莖與葉；葉脈也包含運輸構造。</p></div></div><figure class="prep-overview-figure"><img src="${assetUrl(assets.evidenceOverview)}" alt="植物運輸構造概念總覽圖" onerror="this.closest('.prep-overview-figure').hidden=true"><figcaption>概念總覽圖僅供進入關卡前建立情境；作答仍以題幹與選項為準。</figcaption></figure><div class="concept-grid"><article><strong>根毛</strong><p>協助吸收水分與礦物質。</p></article><article><strong>維管束</strong><p>在根、莖、葉之間形成運輸管線。</p></article><article><strong>木質部與韌皮部</strong><p>分別連結水分礦物質與葉片製造的養分。</p></article><article><strong>蒸散</strong><p>從土壤、根、木質部到葉片的水分路徑。</p></article></div><button class="primary" data-next="checkpoint1">開始綠植管線辨識</button></section></div>`;
 }
 
 function renderCheckpoint(section) {
@@ -816,7 +839,6 @@ function renderQuestion(question) {
 function conceptLabel(concept) { return {transport_need:"植物運輸需求",root_hair_absorption:"根毛吸收",vascular_bundle:"維管束",stem_transport_support:"莖的運輸構造",xylem_phloem_roles:"木質部與韌皮部",xylem_function:"木質部",phloem_function:"韌皮部",leaf_vein_transport:"葉脈運輸",transpiration_basic:"蒸散與水分路徑",cambium_basic:"形成層"}[concept] || concept; }
 
 function renderQuestionEvidence(qid) {
-  if (qid === "q03") return `<div class="evidence-card"><strong>根、莖、葉線索卡</strong><p>根接觸土壤、莖連接上下部位、葉片有葉脈；請完成每一列配對。</p></div>`;
   if (qid === "q08") return `<div class="evidence-card"><strong>葉脈觀察卡</strong><p>葉脈會連接葉片內外的運輸構造；請判斷它不只是外觀紋路的原因。</p></div>`;
   return "";
 }
@@ -914,7 +936,7 @@ function renderReview() {
   `;
 }
 
-function misconceptionText(tag) { return {no_transport_needed:"植物不同部位交換物質時需要運輸構造。",leaf_absorbs_water_mainly:"根毛可增加和土壤接觸的面積，協助吸收水分與礦物質。",transport_only_in_stem:"根、莖、葉都可找到和運輸相關的構造。",xylem_phloem_confusion:"比較根吸收的水分、礦物質和葉片製造的養分。",all_nutrients_from_roots:"葉片可製造養分，並需運送到其他部位。",leaf_vein_only_support:"葉脈含有維管束，和運輸有關。",transpiration_only_waste:"蒸散作用與根吸水、木質部運水的連續關係有關。",bark_wood_bundle_confusion:"形成層和木本植物莖增粗有關。"}[tag] || tag; }
+function misconceptionText(tag) { return {no_transport_needed:"植物不同部位交換物質時需要運輸構造。",leaf_absorbs_water_mainly:"根毛可增加和土壤接觸的面積，協助吸收水分與礦物質。",transport_only_in_stem:"根、莖、葉都可找到和運輸相關的構造。",vascular_bundle_separate_system_confusion:"根、莖、葉中的維管束彼此連續，並包含木質部與韌皮部。",xylem_phloem_confusion:"比較根吸收的水分、礦物質和葉片製造的養分。",all_nutrients_from_roots:"葉片可製造養分，並需運送到其他部位。",leaf_vein_only_support:"葉脈含有維管束，和運輸有關。",transpiration_only_waste:"蒸散作用與根吸水、木質部運水的連續關係有關。",bark_wood_bundle_confusion:"形成層和木本植物莖增粗有關。"}[tag] || tag; }
 
 function feedbackTitle(stateName) {
   return {
@@ -987,7 +1009,7 @@ function renderResult() {
           <button class="secondary" data-next="rules">查看規則</button>
         </div>
       </section>
-      ${renderBadgeWall(result.earned_badges)}
+      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode })}
     </div>
   `;
 }
@@ -1017,10 +1039,8 @@ function ledgerRow(label, value) {
 }
 
 function renderAchievements() {
-  const result = state.result || scoreAttempt();
   return `
-    <div class="stack achievements-stack">
-      ${renderBadgeWall(result.earned_badges, { unitAchievements: true })}
+    <div class="stack achievements-stack" data-bq-achievements-overview-only="true">
     </div>
   `;
 }
@@ -1028,23 +1048,46 @@ function renderAchievements() {
 function renderBadgeWall(earned = [], options = {}) {
   const earnedSet = new Set(earned);
   const unitAttributes = options.unitAchievements ? ` data-bq-unit-achievements="${mission.unit_id}"` : "";
-  const badgeVisual = (badge) => badge.image_status === "pending"
-    ? `<span class="bq-badge-asset-pending" role="img" aria-label="${escapeHtml(badge.name)}素材待接">徽章素材待接</span>`
-    : `<img src="${badge.badge_image_path}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('asset-missing'); this.remove();">`;
+  const mode = options.mode || resultMode();
+  const visibleBadges = options.onlyEarned
+    ? [...earnedSet].map((id) => badges.find((badge) => badge.id === id)).filter(Boolean)
+    : badges;
+  const readyBadges = visibleBadges.filter((badge) => badge.image_status === "ready" && badge.badge_image_path);
+  const pendingEarned = options.onlyEarned
+    ? visibleBadges.filter((badge) => badge.image_status !== "ready" || !badge.badge_image_path)
+    : [];
+  const statusText = {
+    verified: "本次正式取得",
+    pending: "本次可能取得，待後台確認",
+    guest: "guest 測試徽章，不列入正式累積"
+  }[mode] || "本次可能取得，待後台確認";
+  const badgeVisual = (badge) => `<img src="${badge.badge_image_path}?v=${VERSION}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('asset-missing'); this.remove();">`;
+  if (options.onlyEarned && visibleBadges.length === 0) {
+    return `<section class="panel">
+      <p class="eyebrow">本次徽章</p>
+      <h2>本次尚未取得新徽章</h2>
+      <p class="muted">完成任務後會依本次表現列出實際取得的徽章；正式累積以後台確認為準。</p>
+    </section>`;
+  }
   return `<section class="panel"${unitAttributes}>
-    <p class="eyebrow">${options.unitAchievements ? "本單元成就" : "徽章收藏牆"}</p>
-    <h2>本單元 13 枚徽章</h2>
-    <div class="badge-wall">
-      ${badges.map((badge) => `
+    <p class="eyebrow">${options.onlyEarned ? "本次徽章" : options.unitAchievements ? "本單元成就" : "徽章收藏牆"}</p>
+    <h2>${options.onlyEarned ? "本次取得徽章" : "本單元 13 枚徽章"}</h2>
+    ${readyBadges.length ? `<div class="badge-wall">
+      ${readyBadges.map((badge) => `
         <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
           <div class="badge-visual" data-badge-image-status="${badge.image_status || "ready"}">
             ${badgeVisual(badge)}
           </div>
           <strong>${escapeHtml(badge.name)}</strong>
+          ${options.onlyEarned ? `<span class="badge-state">${escapeHtml(statusText)}</span>` : ""}
           <p>${escapeHtml(badge.condition)}</p>
         </article>
       `).join("")}
-    </div>
+    </div>` : ""}
+    ${pendingEarned.length ? `<div class="pending-earned-summary" role="status">
+      <strong>另有 ${pendingEarned.length} 枚徽章條件本次達成，正式圖核准後才會顯示圖像。</strong>
+      <p>${pendingEarned.map((badge) => escapeHtml(badge.name)).join("、")}</p>
+    </div>` : ""}
   </section>`;
 }
 
@@ -1067,7 +1110,7 @@ function renderRules() {
   `;
 }
 
-function renderApp() {
+function renderApp(options = {}) {
   if (!screen) return;
   const views = {
     login: renderLogin,
@@ -1087,6 +1130,7 @@ function renderApp() {
   updateNav();
   bindScreenEvents();
   if (typeof window !== "undefined" && window.BioQuestCharacterLayout?.enhance) window.BioQuestCharacterLayout.enhance();
+  if (options.resetScroll) resetScrollPosition({ focus: true });
 }
 
 function updateNav() {
@@ -1159,6 +1203,7 @@ if (typeof document !== "undefined") {
 if (typeof window !== "undefined") {
   window.__plant_transport_structuresTest = {
     VERSION,
+    QUESTION_VERSION,
     mission,
     assets,
     badges,

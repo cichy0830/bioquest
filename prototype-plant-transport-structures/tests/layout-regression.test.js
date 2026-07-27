@@ -12,15 +12,34 @@ try {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
     const page = await browser.newPage({ viewport });
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260720-plant-transport-structures-extension-v2`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260727-plant-transport-structures-ui-fixes-v1`);
     await page.locator("#guestBtn").click();
+    await page.evaluate(() => window.scrollTo(0, 520));
     await page.locator('[data-next="scan"]').click();
+    await page.waitForFunction(() => window.scrollY === 0);
     const prep = page.locator(".prep-owl-hero");
     assert.equal(await prep.count(), 1, "prep owl hero missing");
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "horizontal overflow");
+    await page.evaluate(() => window.scrollTo(0, 520));
     await page.locator('[data-next="checkpoint1"]').click();
-    assert.ok(await page.locator('[data-question-id="q03"] select').count() === 3, "mapping rows missing");
+    await page.waitForFunction(() => window.scrollY === 0);
+    assert.equal(await page.locator('[data-question-id="q03"] select').count(), 0, "q03 legacy mapping select should be removed");
+    assert.equal(await page.locator('[data-question-id="q03"] [data-answer="q03"]').count(), 4, "q03 should render four choice options");
     assert.ok(await page.locator('[data-question-id="q09"]').count() === 0, "checkpoint routing leaked later question");
+    const backgroundProbe = await page.evaluate(() => {
+      const before = getComputedStyle(document.body, "::before");
+      const panel = getComputedStyle(document.querySelector(".question-card"));
+      return {
+        image: before.backgroundImage,
+        opacity: Number(before.opacity),
+        panelBackground: panel.backgroundColor,
+        evidenceAsBackground: before.backgroundImage.includes("plant-transport-structures-evidence-overview")
+      };
+    });
+    assert.equal(backgroundProbe.evidenceAsBackground, false, "evidence overview must not be used as checkpoint background");
+    assert.ok(backgroundProbe.image.includes("linear-gradient") || backgroundProbe.image.includes("repeating-linear-gradient"), "ambient background layer missing");
+    assert.ok(backgroundProbe.opacity > 0.4, "ambient background layer should be visible");
+    assert.ok(backgroundProbe.panelBackground.includes("rgba"), "question cards should keep a readable translucent surface");
     await page.evaluate(() => {
       const api = window.__plant_transport_structuresTest;
       const answers = {};
@@ -99,9 +118,23 @@ try {
       api.renderApp();
     });
     assert.equal(await page.locator(".title-card:visible").count(), 0, "legacy title card should be removed");
+    assert.equal(await page.locator('[data-bq-unit-achievements="plant_transport_structures"]').count(), 0, "achievements should not duplicate unit badge wall");
     assert.equal(await page.locator(".bq-title-avatar-card img:visible").count(), 1, "achievement title avatar should be visible exactly once");
     assert.equal(await page.locator("[data-bq-badge-overview]").count(), 1, "badge overview should be injected exactly once");
     assert.equal(await page.locator(".bq-unit-badge-summary").count(), 52, "badge overview should keep 52 unit summary cards");
+    await page.evaluate(() => {
+      const api = window.__plant_transport_structuresTest;
+      const current = api.state();
+      api.setState({
+        ...current,
+        screen: "result",
+        result: { ...api.scoreAttempt(), earned_badges: ["plant_transport_structures_entry", "vascular_bundle_mapper"], verification_status: "local_guest" }
+      });
+      api.renderApp();
+    });
+    assert.equal(await page.locator(".badge-wall img").count(), 1, "only ready earned badge images should be requested");
+    assert.equal(await page.locator(".pending-earned-summary").count(), 1, "pending earned badges should use a controlled summary");
+    assert.equal(await page.locator("body").evaluate((body) => body.innerText.includes("徽章素材待接")), false, "result should not show pending badges as broken asset cards");
     await page.close();
   }
 } finally { await browser.close(); }

@@ -139,7 +139,12 @@ for (const folder of ["prototype-human-nutrition", "prototype-plant-transport-st
   const wallStart = app.indexOf("function renderBadgeWall");
   const wallBlock = app.slice(wallStart, app.indexOf("function renderRules", wallStart));
   assert(wallBlock.includes("image_status") && wallBlock.includes('"ready"'), `${folder}: badge wall must branch on badge image status`);
-  assert(wallBlock.includes("bq-badge-asset-pending"), `${folder}: badge wall must render controlled pending fallback`);
+  if (folder === "prototype-plant-transport-structures") {
+    assert(wallBlock.includes("pending-earned-summary"), `${folder}: badge wall must summarize earned badges whose images are still pending`);
+    assert(!wallBlock.includes("徽章素材待接"), `${folder}: result must not show pending assets as broken-looking badge cards`);
+  } else {
+    assert(wallBlock.includes("bq-badge-asset-pending"), `${folder}: badge wall must render controlled pending fallback`);
+  }
 }
 
 console.log(JSON.stringify({

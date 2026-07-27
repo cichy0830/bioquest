@@ -1,7 +1,8 @@
 :root {
   --ink: #173025;
   --muted: #62776c;
-  --panel: rgba(255, 255, 255, 0.9);
+  --panel: rgba(255, 255, 255, 0.76);
+  --panel-strong: rgba(255, 255, 255, 0.94);
   --line: rgba(44, 126, 85, 0.22);
   --green: #2f9f68;
   --green-dark: #18694a;
@@ -13,6 +14,7 @@
 
 * { box-sizing: border-box; }
 body {
+  position: relative;
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
@@ -20,10 +22,26 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
   background:
     linear-gradient(120deg, rgba(246, 237, 218, .66), rgba(221, 241, 232, .68)),
-    radial-gradient(circle at 82% 16%, rgba(232, 151, 67, .22), transparent 22%),
+    linear-gradient(32deg, transparent 0 58%, rgba(232, 151, 67, .16) 58% 64%, transparent 64%),
+    repeating-linear-gradient(96deg, transparent 0 54px, rgba(24, 105, 74, .06) 54px 56px, transparent 56px 108px),
     linear-gradient(135deg, #dcefe7, #b9d7cc 45%, #f3dcb6);
   background-attachment: fixed;
   background-size: cover;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(116deg, rgba(24, 105, 74, .24), transparent 34%, rgba(216, 155, 50, .12) 68%, transparent),
+    linear-gradient(22deg, transparent 0 46%, rgba(47, 159, 104, .16) 46% 49%, transparent 49%),
+    repeating-linear-gradient(102deg, transparent 0 34px, rgba(24, 105, 74, .09) 34px 36px, transparent 36px 68px),
+    repeating-linear-gradient(8deg, transparent 0 64px, rgba(19, 138, 143, .06) 64px 66px, transparent 66px 124px);
+  opacity: .78;
+  mix-blend-mode: multiply;
 }
 
 button, input, textarea, select { font: inherit; }
@@ -34,7 +52,7 @@ table { width: 100%; border-collapse: collapse; }
 th, td { padding: 10px; border: 1px solid rgba(44, 126, 85, .18); background: rgba(255,255,255,.82); text-align: left; }
 th { color: #fff; background: var(--green-dark); }
 
-.app-shell { display: grid; grid-template-columns: 292px 1fr; min-height: 100vh; }
+.app-shell { position: relative; z-index: 1; display: grid; grid-template-columns: 292px 1fr; min-height: 100vh; }
 .side-panel {
   display: flex;
   flex-direction: column;
@@ -88,8 +106,11 @@ th { color: #fff; background: var(--green-dark); }
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
   box-shadow: var(--shadow);
+}
+.question-card, .action-panel, .result-panel {
+  background: var(--panel-strong);
 }
 .hero-panel { min-height: 540px; }
 .hero-title { font-size: clamp(34px,5vw,62px); line-height: 1.05; letter-spacing: 0; }
@@ -141,9 +162,8 @@ textarea { resize: vertical; min-height: 116px; }
   border-radius: 8px;
   padding: 26px;
   background:
-    linear-gradient(90deg, rgba(9, 65, 56, .82), rgba(18, 108, 91, .28) 58%, rgba(255,255,255,.08)),
-    radial-gradient(circle at 76% 22%, rgba(255, 217, 145, .68) 0 6%, transparent 6.6%),
-    radial-gradient(ellipse at 74% 62%, rgba(224, 137, 79, .42) 0 17%, transparent 17.8%),
+    linear-gradient(90deg, rgba(9, 65, 56, .82), rgba(18, 108, 91, .30) 58%, rgba(255,255,255,.08)),
+    repeating-linear-gradient(118deg, rgba(239, 181, 103, .24) 0 14px, transparent 14px 36px),
     linear-gradient(125deg, #0b4b4b 0%, #287e72 56%, #f0bd78 100%);
   background-size: cover;
   background-position: center;
@@ -362,7 +382,7 @@ textarea { resize: vertical; min-height: 116px; }
   margin: 0 auto 12px;
   overflow: hidden;
   border-radius: 50%;
-  background: radial-gradient(circle, #fff8d2 0 35%, #b9e3b5 36% 72%, #2d8a5a 73%);
+  background: linear-gradient(145deg, #fff8d2 0%, #b9e3b5 58%, #2d8a5a 100%);
 }
 .badge-visual > img {
   width: 100%;
@@ -374,6 +394,26 @@ textarea { resize: vertical; min-height: 116px; }
 }
 .badge-visual.asset-missing { background: rgba(230, 239, 230, .72); border: 1px dashed rgba(36, 98, 65, .38); }
 .badge-visual.asset-missing::before { content: "正式徽章素材待接"; max-width: 62px; color: #476452; font-size: 11px; line-height: 1.35; text-align: center; font-weight: 800; }
+.badge-state {
+  display: inline-block;
+  margin: 0 0 8px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #23613f;
+  background: rgba(231, 248, 223, .9);
+  font-size: 12px;
+  font-weight: 900;
+}
+.pending-earned-summary {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px dashed rgba(36, 98, 65, .36);
+  border-radius: 8px;
+  background: rgba(247, 251, 244, .9);
+  color: #244734;
+  line-height: 1.65;
+}
+.pending-earned-summary p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
 .badge strong { display: block; margin-bottom: 8px; }
 .badge p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
 
@@ -405,9 +445,14 @@ textarea { resize: vertical; min-height: 116px; }
   .sequence-actions { grid-column: 1 / -1; }
   .sequence-actions .icon-btn { flex: 1; }
   .button-row, .actions, .multi-check-row { display: grid; grid-template-columns: 1fr; }
+  body::before { opacity: .62; }
 }
 
 @media (max-width: 560px) {
+  :root {
+    --panel: rgba(255, 255, 255, 0.84);
+    --panel-strong: rgba(255, 255, 255, 0.96);
+  }
   .panel { padding: 16px; }
   .hero-title { font-size: 34px; }
   .brief-scene { min-height: 560px; }
