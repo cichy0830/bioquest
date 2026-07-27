@@ -35,7 +35,8 @@ const units = [
   ["temperature_glucose_homeostasis", "prototype-temperature-glucose-homeostasis"],
   ["cell_division", "prototype-cell-division"],
   ["asexual_reproduction", "prototype-asexual-reproduction"],
-  ["sexual_reproduction", "prototype-sexual-reproduction"]
+  ["sexual_reproduction", "prototype-sexual-reproduction"],
+  ["egg_observation", "prototype-egg-observation"]
 ];
 
 const layoutJsPath = path.join(root, "shared-assets", "bioquest-character-layout.js");
@@ -82,6 +83,7 @@ appVersionOverrides.set("temperature_glucose_homeostasis", "20260726-temperature
 appVersionOverrides.set("cell_division", "20260726-cell-division-briefing-scene-v1");
 appVersionOverrides.set("asexual_reproduction", "20260727-asexual-reproduction-evidence-v1");
 appVersionOverrides.set("sexual_reproduction", "20260726-sexual-reproduction-backgrounds-v1");
+appVersionOverrides.set("egg_observation", "20260727-egg-observation-tranche1-v1");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -107,7 +109,7 @@ function badgeInventory(source, folder) {
     const explicit = match[2].match(/badge_image_path:\s*["']([^"']+)["']/)?.[1] || "";
     return { id: match[1], explicit };
   });
-  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components" || folder === "prototype-human-circulation" || folder === "prototype-stimulus-response" || folder === "prototype-nervous-system" || folder === "prototype-endocrine-system" || folder === "prototype-behavior-sensing" || folder === "prototype-respiration-homeostasis" || folder === "prototype-excretion-water-homeostasis" || folder === "prototype-temperature-glucose-homeostasis" || folder === "prototype-cell-division" || folder === "prototype-asexual-reproduction" || folder === "prototype-sexual-reproduction")) {
+  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components" || folder === "prototype-human-circulation" || folder === "prototype-stimulus-response" || folder === "prototype-nervous-system" || folder === "prototype-endocrine-system" || folder === "prototype-behavior-sensing" || folder === "prototype-respiration-homeostasis" || folder === "prototype-excretion-water-homeostasis" || folder === "prototype-temperature-glucose-homeostasis" || folder === "prototype-cell-division" || folder === "prototype-asexual-reproduction" || folder === "prototype-sexual-reproduction" || folder === "prototype-egg-observation")) {
     const dynamicTemplate = source.match(/const badgeAsset = \(id\) => `([^`]+)`/)?.[1] || "";
     const readyTemplate = source.match(/`([^`]*badge-[^`]*-\$\{id\}\.webp[^`]*)`/)?.[1] || "";
     return [...block.matchAll(/\[\s*["']([^"']+)["']\s*,\s*["'][^"']+["']\s*,\s*["'][^"']+["']\s*\]/g)].map((match) => {

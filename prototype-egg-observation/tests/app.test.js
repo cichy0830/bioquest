@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-egg-observation/app.js" });
 const api = context.window.__egg_observationTest;
 
-assert.equal(api.VERSION, "20260725-egg-observation-batch-a-v1");
+assert.equal(api.VERSION, "20260727-egg-observation-tranche1-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-egg-observation-v1");
 assert.equal(api.mission.unit_id, "egg_observation");
 assert.equal(api.questions.length, 14);
@@ -42,6 +42,10 @@ const readyBadgeIds = JSON.parse(JSON.stringify(api.badges.filter((badge) => bad
 assert.deepEqual(readyBadgeIds, ["egg_cross_section_labeler", "egg_observation_entry", "egg_observation_flawless", "raw_egg_safety_guard"]);
 assert.equal(api.badges.filter((badge) => badge.image_status === "pending").length, 13);
 assert(api.badges.find((badge) => badge.id === "egg_cross_section_labeler").badge_image_path.includes("shared-assets/badges/egg_observation/badge-egg_observation-egg_cross_section_labeler.webp"));
+for (const badge of api.badges.filter((item) => item.image_status === "ready")) {
+  const localPath = badge.badge_image_path.replace(/^\.\.\//, "");
+  assert(fs.existsSync(path.resolve(root, "..", localPath)), `${badge.id} approved badge image should exist`);
+}
 assert(fs.readFileSync(path.join(root, "styles.css"), "utf8").includes("egg-hotspot-layer"));
 
 const Q = (n) => `egg_observation_q${String(n).padStart(2, "0")}`;
@@ -119,15 +123,20 @@ assert(api.renderCheckpoint("checkpoint2").includes("mapping-list"));
 assert(api.renderCheckpoint("checkpoint3").includes("mapping-list"));
 const crossSectionEvidence = api.renderQuestionEvidence(Q(5));
 assert(crossSectionEvidence.includes("egg-cross-section-figure"));
-assert(crossSectionEvidence.includes("egg-observation-cross-section-hotspot-base.webp?v=20260725-egg-observation-batch-a-v1"));
+assert(crossSectionEvidence.includes("egg-observation-cross-section-hotspot-base.webp?v=20260727-egg-observation-tranche1-v1"));
 assert(crossSectionEvidence.includes("egg-hotspot shell"));
 assert(!crossSectionEvidence.includes("剖面辨識圖待接"));
 assert.equal(api.assets.briefingSceneHook, "");
 assert.equal(api.assets.ambientBackgroundHook, "");
 assert(api.renderBrief().includes("brief-scene-fallback"));
+assert(api.renderBrief().includes("你好，測試學生"));
+assert(api.studentIdentityLine().includes("701班"));
+assert(!api.renderReview().includes("mentor-card"));
 assert(!api.renderReflection().includes("bq-report-assistant"));
 assert(fs.readFileSync(path.join(root, "index.html"), "utf8").includes("data-report-owl-src"));
 assert(api.renderResult().includes("提交後本次作答已鎖定"));
+const deprecatedPendingText = "\u5fbd\u7ae0\u7d20\u6750" + "\u5f85\u63a5";
+assert(!api.renderResult().includes(deprecatedPendingText));
 assert(api.renderAchievements().includes("data-bq-achievements-overview-only"));
 assert(!api.renderAchievements().includes("本單元 17 枚徽章"));
 console.log("prototype-egg-observation app regression passed");

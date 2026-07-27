@@ -37,7 +37,8 @@ const readyUnits = [
   "prototype-temperature-glucose-homeostasis",
   "prototype-cell-division",
   "prototype-asexual-reproduction",
-  "prototype-sexual-reproduction"
+  "prototype-sexual-reproduction",
+  "prototype-egg-observation"
 ];
 
 function assert(condition, message) {

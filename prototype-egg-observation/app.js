@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260725-egg-observation-batch-a-v1";
+const VERSION = "20260727-egg-observation-tranche1-v1";
 const QUESTION_VERSION = "20260718-egg-observation-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -886,6 +886,31 @@ function titleAndProgress(student = state.student, localGain = 0) {
   };
 }
 
+function studentIdentityLine(student = state.student) {
+  if (!student) return "尚未登入";
+  if (student.is_guest) return "guest 測試身分｜不列入正式統計";
+  const parts = [
+    student.class_name ? `${student.class_name}班` : "",
+    student.seat_no ? `${student.seat_no}號` : "",
+    student.student_id ? `學號 ${student.student_id}` : ""
+  ].filter(Boolean);
+  return parts.join("｜") || "已連接正式學生帳號";
+}
+
+function resetScreenScroll() {
+  if (typeof window === "undefined") return;
+  const apply = () => {
+    window.scrollTo?.(0, 0);
+    if (document?.documentElement) document.documentElement.scrollTop = 0;
+    if (document?.body) document.body.scrollTop = 0;
+    const stage = document?.querySelector?.(".main-stage");
+    if (stage) stage.scrollTop = 0;
+  };
+  apply();
+  const raf = window.requestAnimationFrame || ((callback) => setTimeout(callback, 0));
+  raf(apply);
+}
+
 async function requestBackend(params) {
   const queryParams = params.action === "getStudentAndAttemptStatus"
     ? { ...params, _: String(Date.now()) }
@@ -941,6 +966,7 @@ async function handleLogin(useGuest) {
   if (useGuest || studentId === "guest") {
     beginLocalAttempt(roster.guest);
     renderApp();
+    resetScreenScroll();
     return;
   }
   try {
@@ -970,6 +996,7 @@ async function handleLogin(useGuest) {
     };
     saveState();
     renderApp();
+    resetScreenScroll();
   } catch (error) {
     state = createEmptyState();
     saveState();
@@ -992,6 +1019,7 @@ function setScreen(nextScreen) {
   }
   saveState();
   renderApp();
+  resetScreenScroll();
 }
 
 function canUseNav(target) {
@@ -1358,6 +1386,7 @@ async function submitMission() {
   });
   saveState();
   renderApp();
+  resetScreenScroll();
 }
 
 function renderLogin() {
@@ -1383,9 +1412,10 @@ function renderLogin() {
 
 function renderBrief() {
   const titleInfo = titleAndProgress();
+  const studentName = state.student?.student_name || "同學";
   const sceneAttrs = `${assets.briefingSceneHook ? ` data-briefing-scene-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
   const sceneMedia = assets.briefingSceneHook ? `<picture class="brief-scene-media">${assets.briefingSceneMobileHook ? `<source srcset="${assets.briefingSceneMobileHook}" media="(max-width: 640px)">` : ""}<img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="蛋的觀察簡報主視覺" onerror="this.closest('.brief-scene-media')?.classList.add('asset-missing')"></picture>` : `<div class="brief-scene-fallback bq-brief-scene-missing" role="img" aria-label="生命延續資料庫場景待接"><strong>生命延續資料庫</strong><span>正式簡報圖核准後，會在此呈現阿澤老師與蛋的觀察判讀場景。</span></div>`;
-  return `<div class="wide-layout"><section class="panel hero-panel brief-hero"><figure class="brief-scene egg-observation-brief-scene bq-brief-scene-stage" data-bq-brief-dual-role="true"${sceneAttrs}>${sceneMedia}<img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'"></figure><div class="scene-copy bq-brief-scene-caption"><p class="eyebrow">${mission.mission_area}</p><h2>${mission.mission_title}</h2><p>生命延續資料庫收到雞蛋樣本。請依外部與剖面證據，判斷蛋殼、蛋白、蛋黃、氣室、胚盤與繫帶的觀察線索，並守住 U28-U31 邊界。</p><p class="muted">目前稱號：${escapeHtml(titleInfo.current.title)}｜${titleInfo.totalExp} EXP</p></div><div class="button-row"><button class="primary" data-next="scan">查看進關卡提醒</button><button class="secondary" data-next="rules">先看規則</button></div></section></div>`;
+  return `<div class="wide-layout"><section class="panel hero-panel brief-hero"><figure class="brief-scene egg-observation-brief-scene bq-brief-scene-stage" data-bq-brief-dual-role="true"${sceneAttrs}>${sceneMedia}<img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'"></figure><div class="scene-copy bq-brief-scene-caption"><p class="eyebrow">${mission.mission_area}</p><h2>${mission.mission_title}</h2><p class="identity-confirm">你好，${escapeHtml(studentName)}｜${escapeHtml(studentIdentityLine())}</p><p>生命延續資料庫收到雞蛋樣本。請依外部與剖面證據，判斷蛋殼、蛋白、蛋黃、氣室、胚盤與繫帶的觀察線索，並守住 U28-U31 邊界。</p><p class="muted">目前稱號：${escapeHtml(titleInfo.current.title)}｜${titleInfo.totalExp} EXP</p></div><div class="button-row"><button class="primary" data-next="scan">查看進關卡提醒</button><button class="secondary" data-next="rules">先看規則</button></div></section></div>`;
 }
 
 
@@ -1521,7 +1551,7 @@ function renderReview() {
   const result = scoreAttempt();
   const feedback = conceptFeedback();
   const stateName = result.accuracy >= 1 && result.hint_used_count === 0 ? "excellent" : result.accuracy >= .86 ? "strong" : result.accuracy >= .64 ? "stable" : result.accuracy >= .4 ? "needs_review" : "retry_ready";
-  return `<div class="mission-layout review-layout" data-feedback-state="${stateName}"><section class="panel"><p class="eyebrow">概念回饋</p><h2>先整理你目前的蛋的觀察判讀線索</h2><p class="lead">這裡不只看分數，也會整理你可以再閱讀或帶到課堂討論的蛋的觀察概念。</p><div class="feedback-columns"><article><h3>目前較穩定</h3><ul>${(feedback.stable.length ? feedback.stable.slice(0, 6) : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article><article><h3>建議再確認</h3><ul>${(feedback.missed.length ? feedback.missed.map(misconceptionText) : ["目前沒有明顯需要補強的迷思標籤"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article></div><button class="primary" data-next="reflection">前往任務回報</button></section><aside class="panel mentor-card" data-feedback-state="${stateName}"><img src="../shared-assets/mentor-feedback/mentor-feedback-${stateName}.webp" alt="阿澤老師回饋" onerror="this.src='${assets.mentorFallback}'"><h3>${feedbackTitle(stateName)}</h3><p>請把不確定的概念轉成課堂上想確認的方向。</p></aside></div>`;
+  return `<div class="mission-layout review-layout" data-feedback-state="${stateName}"><section class="panel"><p class="eyebrow">概念回饋</p><h2>先整理你目前的蛋的觀察判讀線索</h2><p class="lead">這裡不只看分數，也會整理你可以再閱讀或帶到課堂討論的蛋的觀察概念。</p><div class="feedback-columns"><article><h3>目前較穩定</h3><ul>${(feedback.stable.length ? feedback.stable.slice(0, 6) : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article><article><h3>建議再確認</h3><ul>${(feedback.missed.length ? feedback.missed.map(misconceptionText) : ["目前沒有明顯需要補強的迷思標籤"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul></article></div><button class="primary" data-next="reflection">前往任務回報</button></section></div>`;
 }
 
 
@@ -1640,7 +1670,7 @@ function renderBadgeWall(earned = [], options = {}) {
     ? [...earnedSet].map((id) => badges.find((badge) => badge.id === id)).filter(Boolean)
     : badges;
   const badgeVisual = (badge) => badge.image_status !== "ready" || !badge.badge_image_path
-    ? `<span class="bq-badge-asset-pending" role="img" aria-label="${escapeHtml(badge.name)}素材待接">徽章素材待接</span>`
+    ? `<span class="bq-badge-asset-pending" role="img" aria-label="${escapeHtml(badge.name)}圖像準備中">圖像準備中</span>`
     : `<img src="${badge.badge_image_path}?v=${VERSION}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('fallback'); this.remove();">`;
   const statusText = {
     verified: "本次正式取得",
@@ -1777,6 +1807,8 @@ if (typeof window !== "undefined") {
     buildBackendPayload,
     evaluateReflection,
     titleAvatarPath,
+    studentIdentityLine,
+    resetScreenScroll,
     renderBrief,
     renderQuestionEvidence,
     renderCheckpoint,

@@ -35,7 +35,7 @@ for (const rule of [
 const readyFolders = [...portal.matchAll(/status:\s*"ready"[\s\S]*?url:\s*"([^"?]+)(?:\?[^"/]*)?"/g)]
   .map((match) => match[1].replace(/\/$/, ""))
   .filter((folder) => folder !== "prototype-plant-material-transport");
-assert(readyFolders.length === 28, `expected 28 ready units excluding U17 badge-layout exception, found ${readyFolders.length}`);
+assert(readyFolders.length === 29, `expected 29 ready units excluding U17 badge-layout exception, found ${readyFolders.length}`);
 
 const audit = readyFolders.map((folder) => {
   const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
