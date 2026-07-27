@@ -1,0 +1,20 @@
+{
+  "unit_id": "plant_material_transport",
+  "cache_version": "20260716-plant-material-transport-publish-v1",
+  "scope": "U17 source-to-publish sync only",
+  "approved_assets": {
+    "unit_assets": "not landed",
+    "badge_assets": "not landed",
+    "behavior": "CSS/HTML fallback only; no pending review asset connected"
+  },
+  "checks": [
+    "node --check prototype-plant-material-transport/app.js",
+    "prototype-plant-material-transport/tests/app.test.js",
+    "prototype-plant-material-transport/tests/layout-regression.test.js at 1440x900 and 390x844",
+    "scripts/audit-bioquest-ready-ui.mjs",
+    "scripts/audit-bioquest-badge-overview.mjs",
+    "scripts/check-bioquest-publish-assets.mjs",
+    "git -C _publish/bioquest diff --check"
+  ],
+  "result": "passed"
+}

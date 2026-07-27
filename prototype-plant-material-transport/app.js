@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260720-plant-material-transport-badges-v1";
+const VERSION = "20260727-plant-material-transport-current-ia-retry-v1";
 const QUESTION_VERSION = "20260720-plant-material-transport-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -69,7 +69,7 @@ const assets = {
   questionBagTranspirationData: "plant-material-transport-bag-transpiration-data"
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/plant_material_transport/badge-plant_material_transport-${id}.webp`;
+const badgeAsset = (id) => `../shared-assets/badges/plant_material_transport/badge-plant_material_transport-${id}.webp?v=${VERSION}`;
 const reflectionRules = {
   conceptTerms: ["植物體內運輸", "水分", "礦物質", "根毛", "木質部", "韌皮部", "葉片製造養分", "糖類養分", "光合作用", "蒸散作用", "氣孔", "有色水", "套袋水珠", "控制變因", "運輸方向", "資料判讀", "根", "莖", "葉"],
   irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "午餐", "放假"],
@@ -381,6 +381,7 @@ async function handleLogin(useGuest) {
   if (useGuest || studentId === "guest") {
     beginLocalAttempt(roster.guest);
     renderApp();
+    resetScreenScroll();
     return;
   }
   try {
@@ -410,6 +411,7 @@ async function handleLogin(useGuest) {
     };
     saveState();
     renderApp();
+    resetScreenScroll();
   } catch (error) {
     state = createEmptyState();
     saveState();
@@ -432,12 +434,34 @@ function setScreen(nextScreen) {
   }
   saveState();
   renderApp();
+  resetScreenScroll();
+}
+
+function resetScreenScroll() {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  const mainStage = document.querySelector(".main-stage");
+  const reset = () => {
+    window.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+    if (mainStage) mainStage.scrollTop = 0;
+  };
+  reset();
+  window.requestAnimationFrame?.(reset);
+}
+
+function resetForRelogin() {
+  state = createEmptyState();
+  state.notice = "請重新登入以開始新的挑戰。";
+  saveState();
+  renderApp();
+  resetScreenScroll();
 }
 
 function canUseNav(target) {
   if (target === "rules") return true;
   if (!state.student) return target === "login";
-  if (state.submitted) return ["result", "achievements", "rules"].includes(target);
+  if (state.submitted) return ["login", "result", "achievements", "rules"].includes(target);
   return state.completedScreens.includes(target);
 }
 
@@ -480,6 +504,7 @@ function setAnswer(questionId, value) {
   if (question.type === "mapping" && value && Object.entries(value).some(([key, selected]) => selected && selected !== question.answer[key])) markHint(questionId).then(renderApp);
   saveState();
   renderApp();
+  resetScreenScroll();
 }
 
 function toggleSetAnswer(questionId, optionId) {
@@ -759,6 +784,7 @@ async function submitMission() {
   });
   saveState();
   renderApp();
+  resetScreenScroll();
 }
 
 function renderLogin() {
@@ -1003,9 +1029,10 @@ function renderResult() {
         <div class="button-row">
           <button class="primary" data-next="achievements">查看成就</button>
           <button class="secondary" data-next="rules">查看規則</button>
+          <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
         </div>
       </section>
-      ${renderBadgeWall(result.earned_badges)}
+      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode })}
     </div>
   `;
 }
@@ -1035,30 +1062,46 @@ function ledgerRow(label, value) {
 }
 
 function renderAchievements() {
-  const result = state.result || scoreAttempt();
   return `
-    <div class="stack achievements-stack">
-      ${renderBadgeWall(result.earned_badges, { unitAchievements: true })}
+    <div class="stack achievements-stack" data-bq-achievements-overview-only="true">
+      <section class="panel action-panel">
+        <p class="eyebrow">再挑戰</p>
+        <h2>重新登入後開始新的挑戰</h2>
+        <p class="muted">本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。</p>
+        <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
+      </section>
     </div>
   `;
 }
 
 function renderBadgeWall(earned = [], options = {}) {
   const earnedSet = new Set(earned);
-  const unitAttributes = options.unitAchievements ? ` data-bq-unit-achievements="${mission.unit_id}"` : "";
-  const badgeVisual = (badge) => badge.image_status === "pending"
-    ? `<span class="bq-badge-asset-pending" role="img" aria-label="${escapeHtml(badge.name)}素材待接">徽章素材待接</span>`
+  const mode = options.mode || resultMode();
+  const badgeList = options.onlyEarned
+    ? [...earnedSet]
+        .map((id) => badges.find((badge) => badge.id === id))
+        .filter((badge) => badge?.image_status === "ready" && badge.badge_image_path)
+    : badges;
+  const badgeVisual = (badge) => badge.image_status !== "ready" || !badge.badge_image_path
+    ? `<span class="bq-badge-asset-pending" role="img" aria-label="${escapeHtml(badge.name)}圖像準備中">圖像準備中</span>`
     : `<img src="${badge.badge_image_path}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('asset-missing'); this.remove();">`;
-  return `<section class="panel"${unitAttributes}>
-    <p class="eyebrow">${options.unitAchievements ? "本單元成就" : "徽章收藏牆"}</p>
-    <h2>本單元 13 枚徽章</h2>
+  const statusText = {
+    verified: "本次正式取得",
+    pending: "本次可能取得，待後台確認",
+    guest: "guest 測試徽章，不列入正式累積"
+  }[mode] || "本次可能取得，待後台確認";
+  return `<section class="panel">
+    <p class="eyebrow">${options.onlyEarned ? "本次徽章" : "徽章收藏牆"}</p>
+    <h2>${options.onlyEarned ? "本次取得徽章" : `本單元 ${badges.length} 枚徽章`}</h2>
+    ${options.onlyEarned && !badgeList.length ? `<p class="muted">本次尚未取得可顯示的正式徽章；正式徽章累積以後台確認為準。</p>` : ""}
     <div class="badge-wall">
-      ${badges.map((badge) => `
+      ${badgeList.map((badge) => `
         <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
           <div class="badge-visual" data-badge-image-status="${escapeHtml(badge.image_status || "ready")}">
             ${badgeVisual(badge)}
           </div>
           <strong>${escapeHtml(badge.name)}</strong>
+          ${options.onlyEarned ? `<span class="badge-state">${escapeHtml(statusText)}</span>` : ""}
           <p>${escapeHtml(badge.condition)}</p>
         </article>
       `).join("")}
@@ -1079,7 +1122,10 @@ function renderRules() {
           <li>回報空白可提交但 0 EXP；具體且與植物體內物質運輸概念相關的問題才會取得回報 EXP。</li>
           <li>稱號進度 23,400 EXP 封頂；全冊理論可累積 26,000 EXP。</li>
         </ul>
-        <button class="secondary" data-next="${state.student ? state.screen === "rules" ? "brief" : state.screen : "login"}">返回任務</button>
+        <div class="button-row">
+          <button class="secondary" data-next="${state.submitted ? "result" : state.student ? state.screen === "rules" ? "brief" : state.screen : "login"}">返回任務</button>
+          ${state.submitted ? `<button class="secondary" data-relogin="true">重新登入／再挑戰</button>` : ""}
+        </div>
       </section>
     </div>
   `;
@@ -1123,6 +1169,7 @@ function updateNav() {
 function bindScreenEvents() {
   screen.querySelector("#loginBtn")?.addEventListener("click", () => handleLogin(false));
   screen.querySelector("#guestBtn")?.addEventListener("click", () => handleLogin(true));
+  screen.querySelectorAll("[data-relogin]").forEach((button) => button.addEventListener("click", resetForRelogin));
   screen.querySelectorAll("[data-next]").forEach((button) => button.addEventListener("click", () => setScreen(button.dataset.next)));
   screen.querySelectorAll("[data-section-next]").forEach((button) => button.addEventListener("click", () => nextAfterSection(button.dataset.sectionNext)));
   screen.querySelectorAll("[data-answer]").forEach((button) => button.addEventListener("click", () => setAnswer(button.dataset.answer, button.dataset.value)));
@@ -1168,7 +1215,9 @@ function bindScreenEvents() {
 
 if (typeof document !== "undefined") {
   navButtons.forEach((button) => button.addEventListener("click", () => {
-    if (canUseNav(button.dataset.nav)) setScreen(button.dataset.nav);
+    if (!canUseNav(button.dataset.nav)) return;
+    if (state.submitted && button.dataset.nav === "login") resetForRelogin();
+    else setScreen(button.dataset.nav);
   }));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", renderApp);
   else renderApp();
@@ -1197,6 +1246,10 @@ if (typeof window !== "undefined") {
     renderReview,
     renderReflection,
     renderResult,
-    renderAchievements
+    renderAchievements,
+    resetScreenScroll,
+    resetForRelogin,
+    canUseNav,
+    loadAttempts
   };
 }
