@@ -72,7 +72,7 @@ appVersionOverrides.set("human_nutrition", "20260723-human-nutrition-approved-vi
 appVersionOverrides.set("plant_transport_structures", "20260727-plant-transport-structures-relogin-v1");
 appVersionOverrides.set("cardiovascular_components", "20260727-cardiovascular-components-relogin-v1");
 appVersionOverrides.set("human_circulation", "20260727-human-circulation-relogin-v1");
-appVersionOverrides.set("stimulus_response", "20260721-stimulus-response-badges-cd-v1");
+appVersionOverrides.set("stimulus_response", "20260727-stimulus-response-relogin-v1");
 appVersionOverrides.set("nervous_system", "20260721-nervous-system-minimal-p1-v1");
 appVersionOverrides.set("endocrine_system", "20260722-endocrine-system-briefing-scene-v1");
 appVersionOverrides.set("behavior_sensing", "20260722-behavior-sensing-briefing-scene-v1");

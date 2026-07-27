@@ -49,7 +49,7 @@ try {
     });
     page.on("dialog", (dialog) => dialog.accept());
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260721-stimulus-response-badges-cd-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260727-stimulus-response-relogin-v1`);
     await page.locator("#guestBtn").click();
     await page.locator(".bq-brief-scene-stage").waitFor();
     const briefSnapshot = await page.evaluate(() => {
@@ -126,14 +126,42 @@ try {
     await page.locator("#submitMission").click();
     await page.locator(".result-panel").waitFor();
     assert(await page.locator(".result-panel").textContent().then((text) => text.includes("460 / 500 EXP")), "blank reflection guest result should be 460/500");
+    assert.equal(await page.locator(".result-stack [data-relogin]").count(), 1, "result should expose relogin entry");
+    assert(await page.locator(".result-stack").textContent().then((text) => text.includes("本次取得徽章")), "result should show earned-only badge section");
+    assert(await page.locator(".result-stack").textContent().then((text) => !text.includes("本單元 15 枚徽章")), "result must not render full unit badge catalog");
     await page.locator('[data-next="achievements"]').click();
     await page.locator(".achievements-stack").waitFor();
-    assert.equal(await page.locator("[data-bq-unit-achievements] .badge").count(), 15, "all 15 unit badges should render before shared title");
-    assert.equal(await page.locator("[data-bq-unit-achievements] .badge-visual:not(.asset-missing) img").count(), 15, "all fifteen approved badge images should render");
-    assert.equal(await page.locator("[data-bq-unit-achievements] .badge-visual.asset-missing").count(), 0, "no U20 badges should remain controlled pending");
+    assert.equal(await page.locator(".achievements-stack[data-bq-achievements-overview-only='true']").count(), 1, "achievements should opt into overview-only layout");
+    assert.equal(await page.locator(".achievements-stack [data-relogin]").count(), 1, "achievements should expose relogin entry");
+    assert.equal(await page.locator(".achievements-stack [data-bq-unit-achievements]").count(), 0, "achievements must not render unit badge wall");
+    assert(await page.locator(".achievements-stack").textContent().then((text) => !text.includes("本單元 15 枚徽章")), "achievements must not show full unit badge catalog heading");
     assert.equal(await page.locator(".bq-title-avatar-card").count(), 1, "shared title avatar should be exactly one");
     assert.equal(await page.locator(".bq-all-unit-badge-overview").count(), 1, "whole-book overview missing");
+    assert.equal(await page.locator(".bq-unit-badge-summary").count(), 52, "whole-book overview should keep 52 summaries");
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "achievement horizontal overflow");
+    await page.locator('[data-nav="rules"]').click();
+    await page.locator(".rule-list").waitFor();
+    assert.equal(await page.locator("[data-relogin]").count(), 1, "rules should expose relogin entry after submit");
+    await page.locator('[data-next="result"]').click();
+    await page.locator(".result-panel").waitFor();
+    await page.locator('[data-nav="login"]').click();
+    await page.locator("#guestBtn").waitFor();
+    const resetSnapshot = await page.evaluate(() => {
+      const state = window.__stimulus_responseTest.state();
+      const attempts = JSON.parse(localStorage.getItem("bioquest_attempts_v1") || "[]");
+      return {
+        screen: state.screen,
+        student: state.student,
+        attemptId: state.attempt_id,
+        submitted: state.submitted,
+        attemptsCount: attempts.length
+      };
+    });
+    assert.equal(resetSnapshot.screen, "login", "sidebar login should reset submitted state to login");
+    assert.equal(resetSnapshot.student, null, "relogin reset should clear current student");
+    assert.equal(resetSnapshot.attemptId, "", "relogin reset should clear current attempt");
+    assert.equal(resetSnapshot.submitted, false, "relogin reset should clear submitted flag");
+    assert(resetSnapshot.attemptsCount >= 1, "relogin reset should preserve local attempts history");
     assert.deepEqual(failedImages, [], "image requests should not fail");
     assert.deepEqual(consoleErrors, [], "console/page errors during full flow");
     await page.close();

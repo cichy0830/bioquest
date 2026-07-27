@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-stimulus-response/app.js" });
 const api = context.window.__stimulus_responseTest;
 
-assert.equal(api.VERSION, "20260721-stimulus-response-badges-cd-v1");
+assert.equal(api.VERSION, "20260727-stimulus-response-relogin-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-stimulus-response-ready-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -146,10 +146,48 @@ assert(api.renderScan().includes("prep-owl-hero"));
 assert(!api.renderReview().includes("<img"), "review mentor image must be injected once by shared helper");
 assert(!api.renderReflection().includes("bq-report-assistant"));
 assert(fs.readFileSync(path.join(root, "index.html"), "utf8").includes("data-report-owl-src"));
+api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "guest_result", attempt_session_token: "guest", question_version: api.QUESTION_VERSION, answers, reflection: { question: "" }, result: api.scoreAttempt(), submitted: true });
 assert(api.renderResult().includes("提交後本次作答已鎖定"));
 assert(api.renderResult().includes("正式認列 / 累積增量 0"));
-assert(api.renderAchievements().includes('data-bq-unit-achievements="stimulus_response"'));
-assert(api.renderAchievements().includes("本單元 15 枚徽章"));
+assert(api.renderResult().includes('data-relogin="true"'));
+assert(api.renderResult().includes("本次取得徽章"));
+assert(!api.renderResult().includes("本單元 15 枚徽章"));
+assert(api.renderAchievements().includes('data-bq-achievements-overview-only="true"'));
+assert(api.renderAchievements().includes('data-relogin="true"'));
+assert(!api.renderAchievements().includes('data-bq-unit-achievements="stimulus_response"'));
+assert(!api.renderAchievements().includes("本單元 15 枚徽章"));
 assert(!api.renderAchievements().includes("學生稱號角色"));
 assert(!api.renderAchievements().includes("全冊稱號"));
+assert(api.renderRules().includes('data-relogin="true"'));
+assert.equal(api.canUseNav("login"), true);
+store.set("bioquest_attempts_v1", JSON.stringify([{ attempt_id: "history_1", unit_id: "stimulus_response" }]));
+api.setState({
+  student: {
+    student_id: "S70102",
+    class_name: "701",
+    seat_no: "02",
+    student_name: "正式學生",
+    progress: {
+      total_exp: 8600,
+      current_title_id: "systems_investigator",
+      unit_badge_summary_json: JSON.stringify([{ unit_id: "human_circulation", earned_count: 4 }])
+    }
+  },
+  attempt_id: "submitted_attempt",
+  attempt_session_token: "submitted_token",
+  submitted: true,
+  screen: "result",
+  answers,
+  result: api.scoreAttempt()
+});
+assert.equal(api.canUseNav("login"), true);
+api.resetForRelogin();
+assert.equal(api.state().screen, "login");
+assert.equal(api.state().student, null);
+assert.equal(api.state().attempt_id, "");
+assert.equal(JSON.parse(store.get("bioquest_attempts_v1")).length, 1);
+const snapshot = api.loadVerifiedSnapshot();
+assert.equal(snapshot.student_id, "S70102");
+assert.equal(snapshot.progress.total_exp, 8600);
+assert(snapshot.progress.unit_badge_summary_json.includes("human_circulation"));
 console.log("prototype-stimulus-response app regression passed");

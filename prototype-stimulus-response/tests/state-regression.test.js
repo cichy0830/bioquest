@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-stimulus-response")
   : sourceRoot;
-const VERSION = "20260721-stimulus-response-badges-cd-v1";
+const VERSION = "20260727-stimulus-response-relogin-v1";
 const STORAGE_KEY = "bioquest_stimulus_response_state_v1";
 const QUESTION_VERSION = "20260718-stimulus-response-ready-v1";
 const UNIT_ID = "stimulus_response";
@@ -100,7 +100,9 @@ try {
         assert(resultText.includes("guest 測試：本次預估 500/500 EXP，不列入正式累積"), "guest result should show local estimate only");
         assert(resultText.includes("正式認列 / 累積增量 0"), "guest result should keep official delta at zero");
       }
-      assert(resultText.includes("本單元 15 枚徽章"), "result badge heading should show 15 badges");
+      assert(resultText.includes("本次取得徽章"), "result should show earned-only badge section");
+      assert(!resultText.includes("本單元 15 枚徽章"), "result must not render full unit badge catalog");
+      assert.equal(await page.locator(".result-stack [data-relogin]").count(), 1, "result should expose relogin entry");
       assert.deepEqual(failedImages, [], "result image requests should not fail");
       assert.deepEqual(consoleErrors, [], "result console/page errors should not occur");
       await page.close();
@@ -108,7 +110,6 @@ try {
       ({ page, consoleErrors, failedImages } = await openSeededPage(browser, viewport, status, "achievements"));
       await page.locator(".achievements-stack").waitFor();
       const snapshot = await page.evaluate(() => {
-        const unit = document.querySelector("[data-bq-unit-achievements]");
         const title = document.querySelector(".bq-title-avatar-card");
         const overview = document.querySelector(".bq-all-unit-badge-overview");
         const nodes = [...document.querySelectorAll("#screen *")];
@@ -117,13 +118,15 @@ try {
           overviewCount: document.querySelectorAll(".bq-all-unit-badge-overview").length,
           summaryCount: document.querySelectorAll(".bq-unit-badge-summary").length,
           localTitleCardCount: document.querySelectorAll(".achievements-stack .title-card:not(.bq-title-avatar-card)").length,
-          unitBeforeTitle: unit && title ? nodes.indexOf(unit) < nodes.indexOf(title) : false,
-          unitBeforeOverview: unit && overview ? nodes.indexOf(unit) < nodes.indexOf(overview) : false,
-          badgeCountBeforeTitle: title ? [...document.querySelectorAll("[data-bq-unit-achievements] .badge")].filter((badge) => nodes.indexOf(badge) < nodes.indexOf(title)).length : 0,
-          readyBadgeCount: document.querySelectorAll("[data-bq-unit-achievements] .badge-visual:not(.asset-missing) img").length,
-          readyBadgeUrls: [...document.querySelectorAll("[data-bq-unit-achievements] .badge-visual:not(.asset-missing) img")].map((img) => img.currentSrc || img.src || ""),
+          overviewOnlyCount: document.querySelectorAll(".achievements-stack[data-bq-achievements-overview-only='true']").length,
+          unitWallCount: document.querySelectorAll(".achievements-stack [data-bq-unit-achievements]").length,
+          titleBeforeOverview: title && overview ? nodes.indexOf(title) < nodes.indexOf(overview) : false,
+          readyBadgeCount: document.querySelectorAll(".achievements-stack .badge-visual:not(.asset-missing) img").length,
+          readyBadgeUrls: [...document.querySelectorAll(".achievements-stack .badge-visual:not(.asset-missing) img")].map((img) => img.currentSrc || img.src || ""),
           titleText: title?.textContent || "",
-          pendingBadgeCount: document.querySelectorAll("[data-bq-unit-achievements] .badge-visual.asset-missing").length,
+          pendingBadgeCount: document.querySelectorAll(".achievements-stack .badge-visual.asset-missing").length,
+          reloginCount: document.querySelectorAll(".achievements-stack [data-relogin]").length,
+          pageText: document.querySelector(".achievements-stack")?.textContent || "",
           hasOverflow: document.documentElement.scrollWidth > innerWidth
         };
       });
@@ -131,12 +134,13 @@ try {
       assert.equal(snapshot.overviewCount, 1, "whole-book overview should be exactly one");
       assert.equal(snapshot.summaryCount, 52, "whole-book overview should keep 52 summaries");
       assert.equal(snapshot.localTitleCardCount, 0, "legacy local title card must not render");
-      assert.equal(snapshot.unitBeforeTitle, true, "unit badge panel should appear before title card");
-      assert.equal(snapshot.unitBeforeOverview, true, "unit badge panel should appear before whole-book overview");
-      assert.equal(snapshot.badgeCountBeforeTitle, 15, "all 15 unit badges must appear before title card");
-      assert.equal(snapshot.readyBadgeCount, 15, "all 15 approved U20 badges should render real images");
-      assert.equal(snapshot.pendingBadgeCount, 0, "U20 should have no controlled pending badge fallback after final approval");
-      assert(snapshot.readyBadgeUrls.every((url) => url.includes(`?v=${VERSION}`)), "ready badge URLs must carry runtime cache busting");
+      assert.equal(snapshot.overviewOnlyCount, 1, "achievements should opt into overview-only layout");
+      assert.equal(snapshot.unitWallCount, 0, "achievements must not render unit badge wall");
+      assert.equal(snapshot.titleBeforeOverview, true, "title card should appear before whole-book overview");
+      assert.equal(snapshot.readyBadgeCount, 0, "achievements overview-only page must not render unit badge images");
+      assert.equal(snapshot.pendingBadgeCount, 0, "achievements overview-only page must not render pending badge placeholders");
+      assert.equal(snapshot.reloginCount, 1, "achievements should expose one relogin entry");
+      assert(!snapshot.pageText.includes("本單元 15 枚徽章"), "achievements must not show full unit badge catalog heading");
       if (status === "verified") {
         assert(snapshot.titleText.includes("8600 EXP"), "verified title card should use StudentProgress total");
         assert(!snapshot.titleText.includes("13600"), "verified title card must ignore localStorage attempt EXP");
