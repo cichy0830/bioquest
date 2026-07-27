@@ -12,7 +12,7 @@ try {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
     const page = await browser.newPage({ viewport });
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260727-plant-transport-structures-ui-fixes-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260727-plant-transport-structures-approved-assets-v1`);
     await page.locator("#guestBtn").click();
     await page.evaluate(() => window.scrollTo(0, 520));
     await page.locator('[data-next="scan"]').click();
@@ -27,16 +27,19 @@ try {
     assert.equal(await page.locator('[data-question-id="q03"] [data-answer="q03"]').count(), 4, "q03 should render four choice options");
     assert.ok(await page.locator('[data-question-id="q09"]').count() === 0, "checkpoint routing leaked later question");
     const backgroundProbe = await page.evaluate(() => {
+      const body = getComputedStyle(document.body);
       const before = getComputedStyle(document.body, "::before");
       const panel = getComputedStyle(document.querySelector(".question-card"));
       return {
+        bodyImage: body.backgroundImage,
         image: before.backgroundImage,
         opacity: Number(before.opacity),
         panelBackground: panel.backgroundColor,
-        evidenceAsBackground: before.backgroundImage.includes("plant-transport-structures-evidence-overview")
+        evidenceAsBackground: body.backgroundImage.includes("plant-transport-structures-evidence-overview") || before.backgroundImage.includes("plant-transport-structures-evidence-overview")
       };
     });
     assert.equal(backgroundProbe.evidenceAsBackground, false, "evidence overview must not be used as checkpoint background");
+    assert.ok(backgroundProbe.bodyImage.includes("plant-transport-structures-ambient-background-neutral"), "approved neutral background asset missing");
     assert.ok(backgroundProbe.image.includes("linear-gradient") || backgroundProbe.image.includes("repeating-linear-gradient"), "ambient background layer missing");
     assert.ok(backgroundProbe.opacity > 0.4, "ambient background layer should be visible");
     assert.ok(backgroundProbe.panelBackground.includes("rgba"), "question cards should keep a readable translucent surface");
@@ -54,7 +57,7 @@ try {
         student: { student_id: "guest", student_name: "老師測試帳號", is_guest: true },
         attempt_id: "layout_guest",
         attempt_session_token: "guest",
-        question_version: api.VERSION,
+        question_version: api.QUESTION_VERSION,
         answers,
         reflection: { question: "我想確認木質部和韌皮部的運輸差異。" }
       });
@@ -133,9 +136,11 @@ try {
       api.renderApp();
     });
     const deprecatedPendingText = "\u5fbd\u7ae0\u7d20\u6750" + "\u5f85\u63a5";
-    assert.equal(await page.locator(".badge-wall img").count(), 1, "only ready earned badge images should be requested");
-    assert.equal(await page.locator(".pending-earned-summary").count(), 1, "pending earned badges should use a controlled summary");
+    const deprecatedApprovalCopy = "\u6b63\u5f0f\u5716\u6838\u51c6\u5f8c" + "\u624d\u6703\u986f\u793a\u5716\u50cf";
+    assert.equal(await page.locator(".badge-wall img").count(), 2, "all earned badges with approved images should be requested");
+    assert.equal(await page.locator(".pending-earned-summary").count(), 0, "approved badges should not use pending earned summary");
     assert.equal(await page.locator("body").evaluate((body, text) => body.innerText.includes(text), deprecatedPendingText), false, "result should not show deprecated pending asset text");
+    assert.equal(await page.locator("body").evaluate((body, text) => body.innerText.includes(text), deprecatedApprovalCopy), false, "result should not show pending asset approval copy after wiring");
     await page.close();
   }
 } finally { await browser.close(); }

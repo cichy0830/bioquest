@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260727-plant-transport-structures-ui-fixes-v1";
+const VERSION = "20260727-plant-transport-structures-approved-assets-v1";
 const QUESTION_VERSION = "20260727-plant-transport-structures-q03-continuity-v3";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -71,7 +71,21 @@ const reflectionRules = {
   copiedDirections: ["根毛吸收水分與礦物質", "根、莖、葉和維管束的關係", "木質部和韌皮部運輸什麼", "葉脈和運輸的關係", "蒸散作用與水分運輸", "形成層與莖增粗", "根吸收的物質和葉片製造的養分"]
 };
 
-const readyBadgeIds = new Set(["plant_transport_structures_entry", "plant_transport_structures_flawless"]);
+const readyBadgeIds = new Set([
+  "plant_transport_structures_entry",
+  "transport_need_mapper",
+  "root_hair_absorber",
+  "vascular_bundle_mapper",
+  "xylem_water_mineral_carrier",
+  "phloem_nutrient_carrier",
+  "leaf_vein_connector",
+  "transpiration_basic_linker",
+  "plant_transport_structure_interpreter",
+  "plant_transport_misconception_reviser",
+  "plant_transport_structures_flawless",
+  "plant_transport_reflection_reporter",
+  "retry_growth_plant_transport_structures"
+]);
 const badges = [
   ["plant_transport_structures_entry", "綠植管線入門徽章", "完成綠植管線辨識任務。"],
   ["transport_need_mapper", "植物運輸需求徽章", "能判斷植物需要運輸構造。"],
@@ -1053,9 +1067,6 @@ function renderBadgeWall(earned = [], options = {}) {
     ? [...earnedSet].map((id) => badges.find((badge) => badge.id === id)).filter(Boolean)
     : badges;
   const readyBadges = visibleBadges.filter((badge) => badge.image_status === "ready" && badge.badge_image_path);
-  const pendingEarned = options.onlyEarned
-    ? visibleBadges.filter((badge) => badge.image_status !== "ready" || !badge.badge_image_path)
-    : [];
   const statusText = {
     verified: "本次正式取得",
     pending: "本次可能取得，待後台確認",
@@ -1083,10 +1094,6 @@ function renderBadgeWall(earned = [], options = {}) {
           <p>${escapeHtml(badge.condition)}</p>
         </article>
       `).join("")}
-    </div>` : ""}
-    ${pendingEarned.length ? `<div class="pending-earned-summary" role="status">
-      <strong>另有 ${pendingEarned.length} 枚徽章條件本次達成，正式圖核准後才會顯示圖像。</strong>
-      <p>${pendingEarned.map((badge) => escapeHtml(badge.name)).join("、")}</p>
     </div>` : ""}
   </section>`;
 }

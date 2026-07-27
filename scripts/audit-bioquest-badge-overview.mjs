@@ -140,8 +140,12 @@ for (const folder of ["prototype-human-nutrition", "prototype-plant-transport-st
   const wallBlock = app.slice(wallStart, app.indexOf("function renderRules", wallStart));
   assert(wallBlock.includes("image_status") && wallBlock.includes('"ready"'), `${folder}: badge wall must branch on badge image status`);
   if (folder === "prototype-plant-transport-structures") {
-    assert(wallBlock.includes("pending-earned-summary"), `${folder}: badge wall must summarize earned badges whose images are still pending`);
-    assert(!wallBlock.includes("徽章素材待接"), `${folder}: result must not show pending assets as broken-looking badge cards`);
+    const deprecatedPendingText = "\u5fbd\u7ae0\u7d20\u6750" + "\u5f85\u63a5";
+    const readyMatch = app.match(/const readyBadgeIds = new Set\(\[([\s\S]*?)\]\);/);
+    const readyCount = readyMatch ? [...readyMatch[1].matchAll(/"([^"]+)"/g)].length : 0;
+    assert(readyCount === 13, `${folder}: all 13 active badges must be ready after approved wiring`);
+    assert(!wallBlock.includes("pending-earned-summary"), `${folder}: approved badges must not render pending earned summaries`);
+    assert(!wallBlock.includes(deprecatedPendingText), `${folder}: result must not show pending assets as broken-looking badge cards`);
   } else {
     assert(wallBlock.includes("bq-badge-asset-pending"), `${folder}: badge wall must render controlled pending fallback`);
   }
