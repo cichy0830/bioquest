@@ -1,0 +1,258 @@
+[
+  {
+    "base": "source",
+    "mode": "guest",
+    "viewport": "desktop",
+    "file": "prototype-cardiovascular-components/tests/artifacts/20260720-u18-brief-visible-v2-final/u18-source-guest-desktop-1440x900.png",
+    "info": {
+      "screen": "brief",
+      "currentSrc": "file:///Users/biomin/Documents/Codex/%E7%94%9F%E7%89%A9%E7%A7%91%E8%87%AA%E4%B8%BB%E5%AD%B8%E7%BF%92%E7%B6%B2%E9%A0%81/prototype-cardiovascular-components/assets/cardiovascular-components-briefing-azhe-wide.webp",
+      "naturalWidth": 1672,
+      "naturalHeight": 941,
+      "objectFit": "contain",
+      "stageBackgroundImage": true,
+      "stageBackgroundSize": "contain",
+      "avatarCount": 1,
+      "stage": [
+        1046,
+        588
+      ],
+      "image": [
+        1044,
+        586
+      ],
+      "avatar": [
+        617,
+        39,
+        313,
+        545
+      ]
+    },
+    "errors": [],
+    "failed": []
+  },
+  {
+    "base": "source",
+    "mode": "guest",
+    "viewport": "mobile",
+    "file": "prototype-cardiovascular-components/tests/artifacts/20260720-u18-brief-visible-v2-final/u18-source-guest-mobile-390x844.png",
+    "info": {
+      "screen": "brief",
+      "currentSrc": "file:///Users/biomin/Documents/Codex/%E7%94%9F%E7%89%A9%E7%A7%91%E8%87%AA%E4%B8%BB%E5%AD%B8%E7%BF%92%E7%B6%B2%E9%A0%81/prototype-cardiovascular-components/assets/cardiovascular-components-briefing-azhe-wide.webp",
+      "naturalWidth": 1672,
+      "naturalHeight": 941,
+      "objectFit": "contain",
+      "stageBackgroundImage": true,
+      "stageBackgroundSize": "contain",
+      "avatarCount": 1,
+      "stage": [
+        328,
+        185
+      ],
+      "image": [
+        326,
+        183
+      ],
+      "avatar": [
+        193,
+        13,
+        98,
+        170
+      ]
+    },
+    "errors": [],
+    "failed": []
+  },
+  {
+    "base": "source",
+    "mode": "verified",
+    "viewport": "desktop",
+    "file": "prototype-cardiovascular-components/tests/artifacts/20260720-u18-brief-visible-v2-final/u18-source-verified-desktop-1440x900.png",
+    "info": {
+      "screen": "brief",
+      "currentSrc": "file:///Users/biomin/Documents/Codex/%E7%94%9F%E7%89%A9%E7%A7%91%E8%87%AA%E4%B8%BB%E5%AD%B8%E7%BF%92%E7%B6%B2%E9%A0%81/prototype-cardiovascular-components/assets/cardiovascular-components-briefing-azhe-wide.webp",
+      "naturalWidth": 1672,
+      "naturalHeight": 941,
+      "objectFit": "contain",
+      "stageBackgroundImage": true,
+      "stageBackgroundSize": "contain",
+      "avatarCount": 1,
+      "stage": [
+        1046,
+        588
+      ],
+      "image": [
+        1044,
+        586
+      ],
+      "avatar": [
+        617,
+        39,
+        313,
+        545
+      ]
+    },
+    "errors": [],
+    "failed": []
+  },
+  {
+    "base": "source",
+    "mode": "verified",
+    "viewport": "mobile",
+    "file": "prototype-cardiovascular-components/tests/artifacts/20260720-u18-brief-visible-v2-final/u18-source-verified-mobile-390x844.png",
+    "info": {
+      "screen": "brief",
+      "currentSrc": "file:///Users/biomin/Documents/Codex/%E7%94%9F%E7%89%A9%E7%A7%91%E8%87%AA%E4%B8%BB%E5%AD%B8%E7%BF%92%E7%B6%B2%E9%A0%81/prototype-cardiovascular-components/assets/cardiovascular-components-briefing-azhe-wide.webp",
+      "naturalWidth": 1672,
+      "naturalHeight": 941,
+      "objectFit": "contain",
+      "stageBackgroundImage": true,
+      "stageBackgroundSize": "contain",
+      "avatarCount": 1,
+      "stage": [
+        328,
+        185
+      ],
+      "image": [
+        326,
+        183
+      ],
+      "avatar": [
+        193,
+        13,
+        98,
+        170
+      ]
+    },
+    "errors": [],
+    "failed": []
+  },
+  {
+    "base": "publish",
+    "mode": "guest",
+    "viewport": "desktop",
+    "file": "prototype-cardiovascular-components/tests/artifacts/20260720-u18-brief-visible-v2-final/u18-publish-guest-desktop-1440x900.png",
+    "info": {
+      "screen": "brief",
+      "currentSrc": "file:///Users/biomin/Documents/Codex/%E7%94%9F%E7%89%A9%E7%A7%91%E8%87%AA%E4%B8%BB%E5%AD%B8%E7%BF%92%E7%B6%B2%E9%A0%81/_publish/bioquest/prototype-cardiovascular-components/assets/cardiovascular-components-briefing-azhe-wide.webp",
+      "naturalWidth": 1672,
+      "naturalHeight": 941,
+      "objectFit": "contain",
+      "stageBackgroundImage": true,
+      "stageBackgroundSize": "contain",
+      "avatarCount": 1,
+      "stage": [
+        1046,
+        588
+      ],
+      "image": [
+        1044,
+        586
+      ],
+      "avatar": [
+        617,
+        39,
+        313,
+        545
+      ]
+    },
+    "errors": [],
+    "failed": []
+  },
+  {
+    "base": "publish",
+    "mode": "guest",
+    "viewport": "mobile",
+    "file": "prototype-cardiovascular-components/tests/artifacts/20260720-u18-brief-visible-v2-final/u18-publish-guest-mobile-390x844.png",
+    "info": {
+      "screen": "brief",
+      "currentSrc": "file:///Users/biomin/Documents/Codex/%E7%94%9F%E7%89%A9%E7%A7%91%E8%87%AA%E4%B8%BB%E5%AD%B8%E7%BF%92%E7%B6%B2%E9%A0%81/_publish/bioquest/prototype-cardiovascular-components/assets/cardiovascular-components-briefing-azhe-wide.webp",
+      "naturalWidth": 1672,
+      "naturalHeight": 941,
+      "objectFit": "contain",
+      "stageBackgroundImage": true,
+      "stageBackgroundSize": "contain",
+      "avatarCount": 1,
+      "stage": [
+        328,
+        185
+      ],
+      "image": [
+        326,
+        183
+      ],
+      "avatar": [
+        193,
+        13,
+        98,
+        170
+      ]
+    },
+    "errors": [],
+    "failed": []
+  },
+  {
+    "base": "publish",
+    "mode": "verified",
+    "viewport": "desktop",
+    "file": "prototype-cardiovascular-components/tests/artifacts/20260720-u18-brief-visible-v2-final/u18-publish-verified-desktop-1440x900.png",
+    "info": {
+      "screen": "brief",
+      "currentSrc": "file:///Users/biomin/Documents/Codex/%E7%94%9F%E7%89%A9%E7%A7%91%E8%87%AA%E4%B8%BB%E5%AD%B8%E7%BF%92%E7%B6%B2%E9%A0%81/_publish/bioquest/prototype-cardiovascular-components/assets/cardiovascular-components-briefing-azhe-wide.webp",
+      "naturalWidth": 1672,
+      "naturalHeight": 941,
+      "objectFit": "contain",
+      "stageBackgroundImage": true,
+      "stageBackgroundSize": "contain",
+      "avatarCount": 1,
+      "stage": [
+        1046,
+        588
+      ],
+      "image": [
+        1044,
+        586
+      ],
+      "avatar": [
+        617,
+        39,
+        313,
+        545
+      ]
+    },
+    "errors": [],
+    "failed": []
+  },
+  {
+    "base": "publish",
+    "mode": "verified",
+    "viewport": "mobile",
+    "file": "prototype-cardiovascular-components/tests/artifacts/20260720-u18-brief-visible-v2-final/u18-publish-verified-mobile-390x844.png",
+    "info": {
+      "screen": "brief",
+      "currentSrc": "file:///Users/biomin/Documents/Codex/%E7%94%9F%E7%89%A9%E7%A7%91%E8%87%AA%E4%B8%BB%E5%AD%B8%E7%BF%92%E7%B6%B2%E9%A0%81/_publish/bioquest/prototype-cardiovascular-components/assets/cardiovascular-components-briefing-azhe-wide.webp",
+      "naturalWidth": 1672,
+      "naturalHeight": 941,
+      "objectFit": "contain",
+      "stageBackgroundImage": true,
+      "stageBackgroundSize": "contain",
+      "avatarCount": 1,
+      "stage": [
+        328,
+        185
+      ],
+      "image": [
+        326,
+        183
+      ],
+      "avatar": [
+        193,
+        13,
+        98,
+        170
+      ]
+    },
+    "errors": [],
+    "failed": []
+  }
+]

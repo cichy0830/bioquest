@@ -1,0 +1,30 @@
+{
+  "unit_id": "cardiovascular_components",
+  "cache_version": "20260716-cardiovascular-components-v1",
+  "portal_status": "testing",
+  "prototype_folder": "prototype-cardiovascular-components",
+  "question_count": 15,
+  "badge_count": 14,
+  "visual_policy": "No pending visual review assets are referenced. CSS/HTML fallback and safe hooks only.",
+  "checks": [
+    "node --check prototype-cardiovascular-components/app.js",
+    "prototype-cardiovascular-components/tests/app.test.js",
+    "prototype-cardiovascular-components/tests/layout-regression.test.js at 1440x900 and 390x844",
+    "BIOQUEST_AUDIT_ROOT=_publish/bioquest prototype-cardiovascular-components/tests/app.test.js",
+    "BIOQUEST_AUDIT_ROOT=_publish/bioquest prototype-cardiovascular-components/tests/layout-regression.test.js at 1440x900 and 390x844",
+    "scripts/audit-bioquest-ready-ui.mjs",
+    "scripts/audit-bioquest-badge-overview.mjs",
+    "scripts/check-bioquest-publish-assets.mjs",
+    "git -C _publish/bioquest diff --check"
+  ],
+  "pending_assets": [
+    "cardiovascular-components-briefing-azhe-wide",
+    "cardiovascular-components-briefing-azhe-mobile",
+    "cardiovascular-components-entry-wide",
+    "cardiovascular-components-heart-map",
+    "cardiovascular-components-vessel-compare",
+    "cardiovascular-components-blood-components",
+    "cardiovascular-components-pulse-pressure",
+    "shared-assets/badges/cardiovascular_components/*.webp"
+  ]
+}

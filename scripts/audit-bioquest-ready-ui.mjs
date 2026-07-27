@@ -70,7 +70,7 @@ appVersionOverrides.set("cell_transport", "20260721-cell-transport-q07-inactive-
 appVersionOverrides.set("plant_material_transport", "20260727-plant-material-transport-badges-c-v1");
 appVersionOverrides.set("human_nutrition", "20260723-human-nutrition-approved-visuals-v1");
 appVersionOverrides.set("plant_transport_structures", "20260727-plant-transport-structures-relogin-v1");
-appVersionOverrides.set("cardiovascular_components", "20260720-cardiovascular-components-brief-visible-v2");
+appVersionOverrides.set("cardiovascular_components", "20260727-cardiovascular-components-relogin-v1");
 appVersionOverrides.set("human_circulation", "20260720-human-circulation-badges-v1");
 appVersionOverrides.set("stimulus_response", "20260721-stimulus-response-badges-cd-v1");
 appVersionOverrides.set("nervous_system", "20260721-nervous-system-minimal-p1-v1");
