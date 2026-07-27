@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260727-plant-transport-structures-approved-assets-v1";
+const VERSION = "20260727-plant-transport-structures-badge-path-v1";
 const QUESTION_VERSION = "20260727-plant-transport-structures-q03-continuity-v3";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -63,7 +63,7 @@ const assets = {
 };
 
 const assetUrl = (src) => `${src}?v=${VERSION}`;
-const badgeAsset = (id) => `../shared-assets/badges/plant_transport_structures/badge-plant_transport_structures-${id}.webp`;
+const badgeAsset = (id) => `../shared-assets/badges/plant_transport_structures/badge-plant_transport_structures-${id}.webp?v=${VERSION}`;
 const reflectionRules = {
   conceptTerms: ["根毛", "維管束", "木質部", "韌皮部", "葉脈", "蒸散作用", "形成層", "水分", "礦物質", "養分", "根", "莖", "葉", "氣孔", "光合作用", "運輸"],
   irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "午餐", "放假"],
@@ -1072,7 +1072,7 @@ function renderBadgeWall(earned = [], options = {}) {
     pending: "本次可能取得，待後台確認",
     guest: "guest 測試徽章，不列入正式累積"
   }[mode] || "本次可能取得，待後台確認";
-  const badgeVisual = (badge) => `<img src="${badge.badge_image_path}?v=${VERSION}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('asset-missing'); this.remove();">`;
+  const badgeVisual = (badge) => `<img src="${badge.badge_image_path}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('asset-missing'); this.remove();">`;
   if (options.onlyEarned && visibleBadges.length === 0) {
     return `<section class="panel">
       <p class="eyebrow">本次徽章</p>

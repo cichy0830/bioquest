@@ -12,7 +12,7 @@ const context = { console, window: null, document: { readyState: "loading", quer
 context.window = context; context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-plant-transport-structures/app.js" });
 const api = context.window.__plant_transport_structuresTest;
-assert.equal(api.VERSION, "20260727-plant-transport-structures-approved-assets-v1");
+assert.equal(api.VERSION, "20260727-plant-transport-structures-badge-path-v1");
 assert.equal(api.QUESTION_VERSION, "20260727-plant-transport-structures-q03-continuity-v3");
 assert.equal(api.mission.unit_id, "plant_transport_structures");
 assert.equal(api.questions.length, 14);
@@ -24,12 +24,17 @@ assert.equal(api.questions.find((question) => question.id === "q03")?.misconcept
 assert.equal(api.badges.length, 13);
 assert(!api.badges.some((badge) => badge.id === "cambium_basic_identifier"));
 assert.equal(api.badges.filter((badge) => badge.image_status === "ready").length, 13);
-for (const badge of api.badges) assert.equal(badge.badge_image_path.endsWith(`${badge.id}.webp`), true, badge.id);
+for (const badge of api.badges) {
+  const expectedFile = `../shared-assets/badges/plant_transport_structures/badge-plant_transport_structures-${badge.id}.webp`;
+  assert.equal(badge.badge_image_path, `${expectedFile}?v=${api.VERSION}`, badge.id);
+  assert.equal(badge.badge_image_path.includes("badge-plant-transport-structures-"), false, badge.id);
+  assert.ok(fs.existsSync(path.resolve(root, expectedFile)), `missing badge image: ${badge.id}`);
+}
 assert(source.includes("BioQuestLoginUX?.begin"));
 const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
 assert(styles.includes("repeating-linear-gradient"));
-assert(styles.includes("plant-transport-structures-ambient-background-neutral.webp?v=20260727-plant-transport-structures-approved-assets-v1"));
-assert(styles.includes("plant-transport-structures-ambient-background-neutral-390w.webp?v=20260727-plant-transport-structures-approved-assets-v1"));
+assert(styles.includes("plant-transport-structures-ambient-background-neutral.webp?v=20260727-plant-transport-structures-badge-path-v1"));
+assert(styles.includes("plant-transport-structures-ambient-background-neutral-390w.webp?v=20260727-plant-transport-structures-badge-path-v1"));
 const bodyAmbientCss = styles.slice(styles.indexOf("body {"), styles.indexOf("button, input"));
 const bodyBeforeCss = styles.slice(styles.indexOf("body::before"), styles.indexOf("button, input"));
 const briefSceneCss = styles.slice(styles.indexOf(".brief-scene {"), styles.indexOf(".scene-copy"));

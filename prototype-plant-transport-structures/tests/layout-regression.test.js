@@ -12,7 +12,7 @@ try {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
     const page = await browser.newPage({ viewport });
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260727-plant-transport-structures-approved-assets-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260727-plant-transport-structures-badge-path-v1`);
     await page.locator("#guestBtn").click();
     await page.evaluate(() => window.scrollTo(0, 520));
     await page.locator('[data-next="scan"]').click();
@@ -45,6 +45,11 @@ try {
     assert.ok(backgroundProbe.panelBackground.includes("rgba"), "question cards should keep a readable translucent surface");
     await page.evaluate(() => {
       const api = window.__plant_transport_structuresTest;
+      const badBadgePath = api.badges.find((badge) => {
+        const expected = `../shared-assets/badges/plant_transport_structures/badge-plant_transport_structures-${badge.id}.webp?v=${api.VERSION}`;
+        return badge.badge_image_path !== expected || badge.badge_image_path.includes("badge-plant-transport-structures-");
+      });
+      if (badBadgePath) throw new Error(`invalid badge path: ${badBadgePath.id}`);
       const answers = {};
       for (const question of api.directQuestions) {
         if (question.type === "choice") answers[question.id] = question.answer;
