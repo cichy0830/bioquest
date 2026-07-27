@@ -11,9 +11,23 @@ const browser = await chromium.launch({ executablePath: "/Applications/Google Ch
 try {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
     const page = await browser.newPage({ viewport });
-    await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260727-plant-transport-structures-badge-path-v1`);
-    await page.locator("#guestBtn").click();
+    await page.addInitScript(() => {
+      window.__backendActions = [];
+      window.fetch = async (url, options = {}) => {
+        let action = "";
+        try {
+          if (options.body) action = JSON.parse(options.body).action || "";
+          else action = new URL(url).searchParams.get("action") || "";
+        } catch (error) {
+          action = String(url);
+        }
+        window.__backendActions.push(action);
+        return { ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) };
+      };
+    });
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260727-plant-transport-structures-relogin-v1`);
+    await page.evaluate(() => document.querySelector("#guestBtn")?.click());
+    await page.waitForFunction(() => window.__plant_transport_structuresTest.state().screen === "brief");
     await page.evaluate(() => window.scrollTo(0, 520));
     await page.locator('[data-next="scan"]').click();
     await page.waitForFunction(() => window.scrollY === 0);
@@ -130,6 +144,80 @@ try {
     assert.equal(await page.locator(".bq-title-avatar-card img:visible").count(), 1, "achievement title avatar should be visible exactly once");
     assert.equal(await page.locator("[data-bq-badge-overview]").count(), 1, "badge overview should be injected exactly once");
     assert.equal(await page.locator(".bq-unit-badge-summary").count(), 52, "badge overview should keep 52 unit summary cards");
+    await page.evaluate(() => {
+      const api = window.__plant_transport_structuresTest;
+      const current = api.state();
+      localStorage.setItem("bioquest_attempts_v1", JSON.stringify([{ attempt_id: "history_attempt", unit_id: "plant_transport_structures" }]));
+      api.setState({
+        ...current,
+        screen: "rules",
+        submitted: true,
+        student: {
+          student_id: "S99999",
+          student_name: "測試學生",
+          is_guest: false,
+          progress: {
+            total_exp: 3880,
+            current_title_id: "concept_solver",
+            unit_badge_summary_json: JSON.stringify([{ unit_id: "cell_basic_unit", earned_count: 6, total_count: 8 }])
+          }
+        },
+        result: { ...api.scoreAttempt(), verification_status: "server_verified", unit_credited_exp: 500, exp_delta: 500 },
+        completedScreens: ["login", "result", "achievements", "rules"]
+      });
+      api.renderApp({ resetScroll: true });
+    });
+    assert.equal(await page.locator('[data-relogin="true"]').count(), 1, "submitted rules should offer relogin");
+    await page.locator('[data-next="result"]').click();
+    await page.locator(".result-panel").waitFor();
+    assert.equal(await page.locator(".result-panel").count(), 1, "submitted rules back should return to result");
+    await page.evaluate(() => {
+      const api = window.__plant_transport_structuresTest;
+      const current = api.state();
+      api.setState({ ...current, screen: "achievements" });
+      api.renderApp({ resetScroll: true });
+    });
+    assert.equal(await page.locator('[data-relogin="true"]').count(), 1, "submitted achievements should offer relogin");
+    await page.evaluate(() => window.scrollTo(0, 520));
+    await page.locator('[data-nav="login"]').click();
+    await page.locator("#studentId").waitFor();
+    await page.waitForFunction(() => window.scrollY === 0);
+    const resetProbe = await page.evaluate(() => {
+      const api = window.__plant_transport_structuresTest;
+      return {
+        screen: api.state().screen,
+        student: api.state().student,
+        attempt_id: api.state().attempt_id,
+        submitted: api.state().submitted,
+        attempts: api.loadAttempts().length,
+        snapshotStudent: api.loadVerifiedSnapshot()?.student_id,
+        snapshotExp: api.loadVerifiedSnapshot()?.progress?.total_exp,
+        backendActions: window.__backendActions
+      };
+    });
+    assert.equal(resetProbe.screen, "login", "sidebar login should reset to login");
+    assert.equal(resetProbe.student, null, "relogin should clear current student");
+    assert.equal(resetProbe.attempt_id, "", "relogin should clear current attempt");
+    assert.equal(resetProbe.submitted, false, "relogin should clear submitted state");
+    assert.equal(resetProbe.attempts, 1, "relogin should preserve attempts history");
+    assert.equal(resetProbe.snapshotStudent, "S99999", "relogin should preserve verified progress snapshot");
+    assert.equal(resetProbe.snapshotExp, 3880, "relogin should preserve verified EXP snapshot");
+    assert.deepEqual(resetProbe.backendActions, [], "relogin reset should not call backend");
+    await page.evaluate(() => document.querySelector("#guestBtn")?.click());
+    await page.waitForFunction(() => window.__plant_transport_structuresTest.state().screen === "brief");
+    const guestProbe = await page.evaluate(() => {
+      const api = window.__plant_transport_structuresTest;
+      return {
+        screen: api.state().screen,
+        guest: api.state().student?.is_guest,
+        attempt_id: api.state().attempt_id,
+        backendActions: window.__backendActions
+      };
+    });
+    assert.equal(guestProbe.screen, "brief", "guest relogin should start a fresh local attempt");
+    assert.equal(guestProbe.guest, true, "guest relogin should stay local");
+    assert.ok(guestProbe.attempt_id.startsWith("plant_transport_structures_guest_attempt"), "guest relogin should create a fresh local attempt id");
+    assert.deepEqual(guestProbe.backendActions, [], "guest relogin should not call backend");
     await page.evaluate(() => {
       const api = window.__plant_transport_structuresTest;
       const current = api.state();

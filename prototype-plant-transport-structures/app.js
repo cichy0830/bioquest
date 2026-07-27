@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260727-plant-transport-structures-badge-path-v1";
+const VERSION = "20260727-plant-transport-structures-relogin-v1";
 const QUESTION_VERSION = "20260727-plant-transport-structures-q03-continuity-v3";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -11,6 +11,7 @@ const REVISION_EXP_POOL = 180;
 const storageKey = "bioquest_plant_transport_structures_state_v1";
 const attemptsKey = "bioquest_attempts_v1";
 const pendingQueueKey = "bioquest_pending_backend_queue_v1";
+const verifiedSnapshotKey = "bioquest_plant_transport_structures_verified_snapshot_v1";
 const screen = typeof document !== "undefined" ? document.querySelector("#screen") : null;
 const navButtons = typeof document !== "undefined" ? [...document.querySelectorAll("[data-nav]")] : [];
 const studentMini = typeof document !== "undefined" ? document.querySelector("#studentMini") : null;
@@ -200,6 +201,32 @@ function saveAttemptRecord(attempt) {
   localStorage.setItem(attemptsKey, JSON.stringify(attempts));
 }
 
+function loadVerifiedSnapshot() {
+  if (typeof localStorage === "undefined") return null;
+  try {
+    return JSON.parse(localStorage.getItem(verifiedSnapshotKey) || "null");
+  } catch (error) {
+    return null;
+  }
+}
+
+function saveVerifiedSnapshot(student = state.student) {
+  if (typeof localStorage === "undefined" || !student || student.is_guest) return;
+  const progress = student.progress || {};
+  localStorage.setItem(verifiedSnapshotKey, JSON.stringify({
+    student_id: student.student_id,
+    class_name: student.class_name,
+    seat_no: student.seat_no,
+    student_name: student.student_name,
+    profile_gender: student.profile_gender || "male",
+    total_exp: Number(progress.total_exp ?? student.total_exp ?? 0),
+    current_title_id: progress.current_title_id || student.current_title_id || "",
+    current_title: progress.current_title || student.current_title || "",
+    title_avatar_path: progress.title_avatar_path || student.title_avatar_path || "",
+    progress
+  }));
+}
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
 }
@@ -381,6 +408,7 @@ async function handleLogin(useGuest) {
     if (message) message.textContent = "正在連接 BioQuest 學習後台，請稍候……";
     const loginData = await requestBackend({ action: "getStudentAndAttemptStatus", student_id: studentId, unit_id: mission.unit_id });
     const student = normalizeBackendStudent(loginData, studentId);
+    saveVerifiedSnapshot(student);
     const startData = await requestBackend({
       action: "startAttempt",
       student_id: student.student_id,
@@ -454,10 +482,18 @@ function resetScrollPosition({ focus = false } = {}) {
   });
 }
 
+function resetForRelogin() {
+  saveVerifiedSnapshot();
+  state = createEmptyState();
+  state.notice = "請重新登入以開始新的挑戰。";
+  saveState();
+  renderApp({ resetScroll: true });
+}
+
 function canUseNav(target) {
   if (target === "rules") return true;
   if (!state.student) return target === "login";
-  if (state.submitted) return ["result", "achievements", "rules"].includes(target);
+  if (state.submitted) return ["login", "result", "achievements", "rules"].includes(target);
   return state.completedScreens.includes(target);
 }
 
@@ -712,6 +748,7 @@ function applyBackendSubmitResponse(response, localResult) {
     state.student.current_title_id = progress.current_title_id || state.student.current_title_id;
     state.student.current_title = progress.current_title || state.student.current_title;
     state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path;
+    saveVerifiedSnapshot(state.student);
   }
   if (!verified) return { ...localResult, backend_response: response };
   return {
@@ -1021,6 +1058,7 @@ function renderResult() {
         <div class="button-row">
           <button class="primary" data-next="achievements">查看成就</button>
           <button class="secondary" data-next="rules">查看規則</button>
+          <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
         </div>
       </section>
       ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode })}
@@ -1055,6 +1093,12 @@ function ledgerRow(label, value) {
 function renderAchievements() {
   return `
     <div class="stack achievements-stack" data-bq-achievements-overview-only="true">
+      <section class="panel action-panel">
+        <p class="eyebrow">再挑戰</p>
+        <h2>重新登入後開始新的挑戰</h2>
+        <p class="muted">本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。</p>
+        <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
+      </section>
     </div>
   `;
 }
@@ -1111,7 +1155,10 @@ function renderRules() {
           <li>回報空白可提交但 0 EXP；具體且與植物的運輸構造概念相關的問題才會取得回報 EXP。</li>
           <li>稱號進度 23,400 EXP 封頂；全冊理論可累積 26,000 EXP。</li>
         </ul>
-        <button class="secondary" data-next="${state.student ? state.screen === "rules" ? "brief" : state.screen : "login"}">返回任務</button>
+        <div class="button-row">
+          <button class="secondary" data-next="${state.submitted ? "result" : state.student ? state.screen === "rules" ? "brief" : state.screen : "login"}">返回任務</button>
+          ${state.submitted ? `<button class="secondary" data-relogin="true">重新登入／再挑戰</button>` : ""}
+        </div>
       </section>
     </div>
   `;
@@ -1156,6 +1203,7 @@ function updateNav() {
 function bindScreenEvents() {
   screen.querySelector("#loginBtn")?.addEventListener("click", () => handleLogin(false));
   screen.querySelector("#guestBtn")?.addEventListener("click", () => handleLogin(true));
+  screen.querySelectorAll("[data-relogin]").forEach((button) => button.addEventListener("click", resetForRelogin));
   screen.querySelectorAll("[data-next]").forEach((button) => button.addEventListener("click", () => setScreen(button.dataset.next)));
   screen.querySelectorAll("[data-section-next]").forEach((button) => button.addEventListener("click", () => nextAfterSection(button.dataset.sectionNext)));
   screen.querySelectorAll("[data-answer]").forEach((button) => button.addEventListener("click", () => setAnswer(button.dataset.answer, button.dataset.value)));
@@ -1201,7 +1249,9 @@ function bindScreenEvents() {
 
 if (typeof document !== "undefined") {
   navButtons.forEach((button) => button.addEventListener("click", () => {
-    if (canUseNav(button.dataset.nav)) setScreen(button.dataset.nav);
+    if (!canUseNav(button.dataset.nav)) return;
+    if (state.submitted && button.dataset.nav === "login") resetForRelogin();
+    else setScreen(button.dataset.nav);
   }));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", renderApp);
   else renderApp();
@@ -1232,6 +1282,10 @@ if (typeof window !== "undefined") {
     renderReflection,
     renderResult,
     renderAchievements,
-    renderApp
+    renderApp,
+    resetForRelogin,
+    canUseNav,
+    loadAttempts,
+    loadVerifiedSnapshot
   };
 }

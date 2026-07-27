@@ -12,7 +12,7 @@ const context = { console, window: null, document: { readyState: "loading", quer
 context.window = context; context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-plant-transport-structures/app.js" });
 const api = context.window.__plant_transport_structuresTest;
-assert.equal(api.VERSION, "20260727-plant-transport-structures-badge-path-v1");
+assert.equal(api.VERSION, "20260727-plant-transport-structures-relogin-v1");
 assert.equal(api.QUESTION_VERSION, "20260727-plant-transport-structures-q03-continuity-v3");
 assert.equal(api.mission.unit_id, "plant_transport_structures");
 assert.equal(api.questions.length, 14);
@@ -33,8 +33,8 @@ for (const badge of api.badges) {
 assert(source.includes("BioQuestLoginUX?.begin"));
 const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
 assert(styles.includes("repeating-linear-gradient"));
-assert(styles.includes("plant-transport-structures-ambient-background-neutral.webp?v=20260727-plant-transport-structures-badge-path-v1"));
-assert(styles.includes("plant-transport-structures-ambient-background-neutral-390w.webp?v=20260727-plant-transport-structures-badge-path-v1"));
+assert(styles.includes("plant-transport-structures-ambient-background-neutral.webp?v=20260727-plant-transport-structures-relogin-v1"));
+assert(styles.includes("plant-transport-structures-ambient-background-neutral-390w.webp?v=20260727-plant-transport-structures-relogin-v1"));
 const bodyAmbientCss = styles.slice(styles.indexOf("body {"), styles.indexOf("button, input"));
 const bodyBeforeCss = styles.slice(styles.indexOf("body::before"), styles.indexOf("button, input"));
 const briefSceneCss = styles.slice(styles.indexOf(".brief-scene {"), styles.indexOf(".scene-copy"));
@@ -89,6 +89,7 @@ assert(resultHtml.includes("本次取得徽章"));
 assert(!resultHtml.includes(deprecatedApprovalCopy));
 assert(!resultHtml.includes("pending-earned-summary"));
 assert(!resultHtml.includes(deprecatedPendingText));
+assert(resultHtml.includes('data-relogin="true"'));
 api.setState({ student: { student_id: "guest", is_guest: true }, result: { ...api.scoreAttempt(), verification_status: "local_guest" } });
 resultHtml = api.renderResult();
 assert(resultHtml.includes("guest 測試"));
@@ -99,7 +100,39 @@ resultHtml = api.renderResult();
 assert(resultHtml.includes("本單元正式認列"));
 const achievementsHtml = api.renderAchievements();
 assert(achievementsHtml.includes("data-bq-achievements-overview-only"));
+assert(achievementsHtml.includes('data-relogin="true"'));
 assert(!achievementsHtml.includes("title-card"));
 assert(!achievementsHtml.includes("全冊稱號"));
 assert(!achievementsHtml.includes('data-bq-unit-achievements="plant_transport_structures"'));
+api.setState({
+  student: {
+    student_id: "S99999",
+    class_name: "701",
+    seat_no: "99",
+    student_name: "測試學生",
+    is_guest: false,
+    progress: {
+      total_exp: 3880,
+      current_title_id: "concept_solver",
+      unit_badge_summary_json: JSON.stringify([{ unit_id: "cell_basic_unit", earned_count: 6, total_count: 8 }])
+    }
+  },
+  attempt_id: "submitted_attempt",
+  attempt_session_token: "server_token",
+  question_version: api.QUESTION_VERSION,
+  submitted: true,
+  screen: "result",
+  result: api.scoreAttempt()
+});
+store.set("bioquest_attempts_v1", JSON.stringify([{ attempt_id: "history_attempt", unit_id: "plant_transport_structures" }]));
+assert.equal(api.canUseNav("login"), true);
+api.resetForRelogin();
+assert.equal(api.state().screen, "login");
+assert.equal(api.state().student, null);
+assert.equal(api.state().attempt_id, "");
+assert.equal(api.state().submitted, false);
+assert.equal(api.loadAttempts().length, 1);
+assert.equal(api.loadVerifiedSnapshot().student_id, "S99999");
+assert.equal(api.loadVerifiedSnapshot().progress.total_exp, 3880);
+assert(api.loadVerifiedSnapshot().progress.unit_badge_summary_json.includes("cell_basic_unit"));
 console.log("prototype-plant-transport-structures app regression passed");
