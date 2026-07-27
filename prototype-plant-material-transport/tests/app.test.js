@@ -15,7 +15,7 @@ const context = { console, window: null, document: { readyState: "loading", quer
 context.window = context; context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-plant-material-transport/app.js" });
 const api = context.window.__plant_material_transportTest;
-assert.equal(api.VERSION, "20260727-plant-material-transport-current-ia-retry-v1");
+assert.equal(api.VERSION, "20260727-plant-material-transport-badges-c-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-plant-material-transport-canonical-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -25,17 +25,18 @@ assert(source.includes("startData.question_version !== QUESTION_VERSION"), "star
 assert.equal(api.mission.unit_id, "plant_material_transport");
 assert.equal(api.questions.length, 14);
 assert.equal(api.badges.length, 13);
-assert.equal(api.badges.filter((badge) => badge.image_status === "ready").length, 8);
-assert.equal(api.badges.filter((badge) => badge.image_status === "pending").length, 5);
+assert.equal(api.badges.filter((badge) => badge.image_status === "ready").length, 13);
+assert.equal(api.badges.filter((badge) => badge.image_status === "pending").length, 0);
 assert(source.includes("BioQuestLoginUX?.begin"));
 assert(source.includes("bq-badge-asset-pending"));
-for (const id of ["transport_overview_mapper", "water_mineral_absorber", "transpiration_flow_linker", "transport_evidence_reader"]) {
+for (const id of api.badges.map((badge) => badge.id)) {
   const badge = api.badges.find((item) => item.id === id);
   assert.equal(badge?.image_status, "ready", `${id} should be ready`);
   assert.ok(badge.badge_image_path.includes(`?v=${api.VERSION}`), `${id} badge image should carry runtime cache`);
   const cleanBadgePath = badge.badge_image_path.split("?")[0];
   assert(fs.existsSync(path.resolve(root, cleanBadgePath.replace("../", ""))) || fs.existsSync(path.resolve(root, cleanBadgePath)), `${id} asset should exist`);
 }
+assert.equal(api.badges.filter((badge) => badge.id.includes("flawless")).length, 1);
 
 const answers = { q01: "material_transport", q02: "root_hair_soil_contact", q03: { water: "root_source", minerals: "root_source", sugar: "leaf_source" }, q04: "water_moves_up_inside", q05: "root_xylem_upward", q06: "phloem", q07: "roots_water_leaves_sugar", q08: "phloem_to_needed_parts", q09_sequence: ["soil_contact", "root_water_entry", "xylem_upward_transport", "water_reaches_leaf", "transpiration_from_stoma"], q10: "transpiration_transport_link", q11: "water_loss_and_gas_exchange", q12: "more_leaves_more_water_drops", q13: ["plant_type_size", "leaf_area", "light_time", "temperature"], q14: "xylem_water_phloem_sugar" };
 api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "plant_material_transport_test", attempt_session_token: "guest", question_version: api.QUESTION_VERSION, answers, reflection: { question: "" } });

@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260727-plant-material-transport-current-ia-retry-v1";
+const VERSION = "20260727-plant-material-transport-badges-c-v1";
 const QUESTION_VERSION = "20260720-plant-material-transport-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -98,9 +98,14 @@ const badges = [
     "water_mineral_absorber",
     "xylem_upward_carrier",
     "phloem_nutrient_dispatcher",
+    "nutrient_source_classifier",
     "transpiration_flow_linker",
+    "stomata_balance_judge",
     "transport_evidence_reader",
-    "plant_material_transport_flawless"
+    "plant_material_misconception_reviser",
+    "plant_material_transport_flawless",
+    "plant_material_transport_reflection_reporter",
+    "retry_growth_plant_material_transport"
   ]);
   return { id, name, condition, badge_image_path: badgeAsset(id), image_status: readyIds.has(id) ? "ready" : "pending" };
 });

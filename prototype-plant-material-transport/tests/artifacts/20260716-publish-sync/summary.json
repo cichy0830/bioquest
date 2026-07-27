@@ -1,10 +1,10 @@
 {
   "unit_id": "plant_material_transport",
-  "cache_version": "20260716-plant-material-transport-publish-v1",
+  "cache_version": "20260727-plant-material-transport-badges-c-v1",
   "scope": "U17 source-to-publish sync only",
   "approved_assets": {
     "unit_assets": "not landed",
-    "badge_assets": "not landed",
+    "badge_assets": "13/13 ready; badges C five approved 192 WebP wired on 2026-07-27",
     "behavior": "CSS/HTML fallback only; no pending review asset connected"
   },
   "checks": [

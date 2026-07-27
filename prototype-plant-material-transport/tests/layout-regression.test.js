@@ -74,7 +74,7 @@ try {
     page.on("response", (response) => {
       if (response.status() >= 400 && /\.(?:png|jpg|jpeg|webp|svg)(?:\?|$)/i.test(response.url())) image404s.push(`${response.status()} ${response.url()}`);
     });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260727-plant-material-transport-current-ia-retry-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260727-plant-material-transport-badges-c-v1`);
     await page.locator("#guestBtn").click();
     await expectAtTop(page, "guest login");
     await forceScroll(page);
@@ -126,7 +126,7 @@ try {
     assert.equal(await page.locator(".result-stack .badge-wall img").count(), readyEarnedCount, "result should only render earned badges with ready images");
     assert.equal(await page.locator(".result-stack .bq-badge-asset-pending").count(), 0, "result should not show pending badge placeholders");
     const resultBadgeSrcs = await page.locator(".result-stack .badge-wall img").evaluateAll((imgs) => imgs.map((img) => img.currentSrc));
-    assert.equal(resultBadgeSrcs.every((src) => src.includes("20260727-plant-material-transport-current-ia-retry-v1")), true, "ready badge srcs should carry runtime cache");
+    assert.equal(resultBadgeSrcs.every((src) => src.includes("20260727-plant-material-transport-badges-c-v1")), true, "ready badge srcs should carry runtime cache");
     await forceScroll(page);
     await page.locator('[data-next="achievements"]').click();
     await page.locator(".achievements-stack").waitFor();
