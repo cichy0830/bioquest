@@ -393,7 +393,14 @@ textarea { resize: vertical; min-height: 116px; }
   object-fit: contain;
 }
 .badge-visual.asset-missing { background: rgba(230, 239, 230, .72); border: 1px dashed rgba(36, 98, 65, .38); }
-.badge-visual.asset-missing::before { content: "正式徽章素材待接"; max-width: 62px; color: #476452; font-size: 11px; line-height: 1.35; text-align: center; font-weight: 800; }
+.badge-visual.asset-missing::before {
+  content: "";
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid rgba(36, 98, 65, .45);
+  background: linear-gradient(145deg, rgba(255, 255, 255, .88), rgba(185, 227, 181, .56));
+}
 .badge-state {
   display: inline-block;
   margin: 0 0 8px;

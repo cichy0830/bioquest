@@ -132,9 +132,10 @@ try {
       });
       api.renderApp();
     });
+    const deprecatedPendingText = "\u5fbd\u7ae0\u7d20\u6750" + "\u5f85\u63a5";
     assert.equal(await page.locator(".badge-wall img").count(), 1, "only ready earned badge images should be requested");
     assert.equal(await page.locator(".pending-earned-summary").count(), 1, "pending earned badges should use a controlled summary");
-    assert.equal(await page.locator("body").evaluate((body) => body.innerText.includes("徽章素材待接")), false, "result should not show pending badges as broken asset cards");
+    assert.equal(await page.locator("body").evaluate((body, text) => body.innerText.includes(text), deprecatedPendingText), false, "result should not show deprecated pending asset text");
     await page.close();
   }
 } finally { await browser.close(); }
