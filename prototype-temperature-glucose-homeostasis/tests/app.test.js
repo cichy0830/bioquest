@@ -28,11 +28,13 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-temperature-glucose-homeostasis/app.js" });
 const api = context.window.__temperature_glucose_homeostasisTest;
 
-assert.equal(api.VERSION, "20260726-temperature-glucose-briefing-scene-v1");
+assert.equal(api.VERSION, "20260728-temperature-glucose-homeostasis-relogin-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-temperature-glucose-homeostasis-v1");
 assert.equal(api.mission.unit_id, "temperature_glucose_homeostasis");
 assert.equal(api.questions.length, 14);
 assert.equal(api.badges.length, 17);
+assert(api.badges.every((badge) => badge.image_status === "controlled_pending"));
+assert(api.badges.every((badge) => badge.badge_image_path === ""));
 assert(source.includes("BioQuestLoginUX?.begin"));
 assert(!source.includes("待審素材"));
 assert(!source.includes("u26-temperature-glucose-homeostasis-review"));
@@ -41,7 +43,8 @@ assert(fs.existsSync(path.join(root, "assets", "u26-f-u26-04-q12-glucose-insulin
 assert(fs.existsSync(path.join(root, "assets", "u26-f-u26-04-chart-data-overlay-spec.json")));
 assert(fs.existsSync(path.join(root, "assets", "temperature-glucose-homeostasis-briefing-azhe-wide.webp")));
 assert(fs.existsSync(path.join(root, "assets", "temperature-glucose-homeostasis-briefing-azhe-mobile.webp")));
-assert(!fs.readFileSync(path.join(root, "styles.css"), "utf8").includes("正式徽章素材待接"));
+const staleBadgeText = ["徽章", "素材", "待接"].join("");
+assert(!fs.readFileSync(path.join(root, "styles.css"), "utf8").includes(staleBadgeText));
 
 const Q = (n) => `temperature_glucose_homeostasis_q${String(n).padStart(2, "0")}`;
 const answers = {
@@ -101,6 +104,7 @@ api.setState({
 const payload = api.buildBackendPayload(api.scoreAttempt());
 assert.equal(payload.unit_id, "temperature_glucose_homeostasis");
 assert.equal(payload.question_version, api.QUESTION_VERSION);
+assert.notEqual(payload.question_version, api.VERSION);
 assert.equal(payload.question_logs.length, 14);
 assert.deepEqual(payload.raw_answers[Q(8)], answers[`${Q(8)}_sequence`]);
 assert.deepEqual(payload.raw_answers[Q(3)], answers[Q(3)]);
@@ -142,8 +146,46 @@ assert(fs.readFileSync(path.join(root, "index.html"), "utf8").includes("data-rep
 assert(api.renderReview().includes("feedback-columns"));
 assert(!api.renderReview().includes("mentor-card"));
 assert(api.renderResult().includes("提交後本次作答已鎖定"));
+assert(api.renderResult().includes("重新登入／再挑戰"));
 assert(api.renderResult().includes("本次取得徽章"));
 assert(!api.renderResult().includes("本單元 17 枚徽章"));
+assert(!api.renderResult().includes("<img"));
+assert(api.renderResult().includes("圖像待核准"));
+assert(!api.renderResult().includes(staleBadgeText));
 assert(api.renderAchievements().includes("data-bq-achievements-overview-only"));
+assert(api.renderAchievements().includes("重新登入／再挑戰"));
+assert(!api.renderAchievements().includes('data-bq-unit-achievements="temperature_glucose_homeostasis"'));
+assert(!api.renderAchievements().includes("title-card"));
 assert(!api.renderAchievements().includes("學生稱號角色"));
+api.setState({
+  student: {
+    student_id: "S99999",
+    class_name: "701",
+    seat_no: "99",
+    student_name: "測試學生",
+    total_exp: 8200,
+    progress: {
+      total_exp: 8200,
+      current_title_id: "systems_investigator",
+      title_avatar_path: "../shared-assets/title-avatars/title-06-systems_investigator-male.webp",
+      unit_badge_summary_json: "[]"
+    }
+  },
+  attempt_id: "server",
+  attempt_session_token: "token",
+  question_version: api.QUESTION_VERSION,
+  answers,
+  submitted: true,
+  screen: "result",
+  result: api.scoreAttempt()
+});
+assert.equal(api.canUseNav("login"), true);
+assert.equal(api.canUseNav("checkpoint1"), false);
+assert(api.renderRules().includes('data-next="result"'));
+assert(api.renderRules().includes("重新登入／再挑戰"));
+api.resetForRelogin();
+assert.equal(api.state().screen, "login");
+assert.equal(api.state().student, null);
+assert.equal(api.loadVerifiedSnapshot().student_id, "S99999");
+assert.equal(api.loadVerifiedSnapshot().total_exp, 8200);
 console.log("prototype-temperature-glucose-homeostasis app regression passed");

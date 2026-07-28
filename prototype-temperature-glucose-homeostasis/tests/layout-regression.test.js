@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-temperature-glucose-homeostasis")
   : sourceRoot;
-const CACHE_VERSION = "20260726-temperature-glucose-briefing-scene-v1";
+const CACHE_VERSION = "20260728-temperature-glucose-homeostasis-relogin-v1";
 const Q = (n) => `temperature_glucose_homeostasis_q${String(n).padStart(2, "0")}`;
 const browser = await chromium.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" });
 
@@ -242,10 +242,19 @@ try {
       assert.equal(await page.locator(".bq-report-assistant").count(), 1, "report owl should be exactly one");
       await expectResetAfter(page, () => page.locator("#submitMission").click(), "result");
       assert(await page.locator(".result-panel").textContent().then((text) => text.includes("460 / 500 EXP")), `${mode} blank reflection result should be 460/500`);
+      assert.equal(await page.locator(".result-panel [data-relogin]").count(), 1, `${mode} result relogin missing`);
       assert.equal(await page.locator(".result-panel + section .badge").count(), 14, `${mode} result should show only earned badges`);
+      assert.equal(await page.locator(".result-panel + section .badge-visual img").count(), 0, `${mode} result should not request pending badge images`);
+      assert.equal(await page.locator(".result-stack").textContent().then((text) => text.includes(["徽章", "素材", "待接"].join("")) || text.includes("缺圖")), false, `${mode} result has stale missing-badge text`);
       await expectResetAfter(page, () => page.locator('[data-next="achievements"]').click(), "achievements");
       assert.equal(await page.locator(".bq-all-unit-badge-overview").count(), 1, "whole-book overview missing");
       assert.equal(await page.locator(".title-avatar-card.achievements, .bq-title-progress-card").count() >= 1, true, "title card missing");
+      assert.equal(await page.locator(".achievements-stack [data-bq-unit-achievements], .achievements-stack .badge-wall").count(), 0, `${mode} achievements must not render unit badge wall`);
+      assert.equal(await page.locator(".achievements-stack [data-relogin]").count(), 1, `${mode} achievements relogin missing`);
+      await page.locator('[data-nav="rules"]').click();
+      await page.locator(".rule-list").waitFor();
+      assert.equal(await page.locator("[data-relogin]").count(), 1, `${mode} rules relogin missing`);
+      assert.equal(await page.locator('[data-next="result"]').count(), 1, `${mode} rules should return result after submit`);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "achievement horizontal overflow");
       assert.deepEqual(failedImages, [], "image requests should not fail");
       assert.deepEqual(consoleErrors, [], "console/page errors during full flow");

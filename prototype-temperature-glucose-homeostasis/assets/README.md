@@ -21,4 +21,4 @@
 - `temperature-glucose-homeostasis-prep-owl.webp`：準備頁單元專屬貓頭鷹。
 - `temperature-glucose-homeostasis-report-owl.webp`：若需要單元專屬回報貓頭鷹，需先由視覺線核准。
 
-17 枚正式徽章預留於 `../shared-assets/badges/temperature_glucose_homeostasis/`。圖檔落地前，收藏牆顯示中性「正式徽章素材待接」狀態並保留亮燈/灰階條件，不使用幾何徽章 placeholder。
+17 枚正式徽章預留於 `../shared-assets/badges/temperature_glucose_homeostasis/`。圖檔經使用者核准前，result 只可顯示本次達成的中性「圖像待核准」狀態，不建立不存在的圖片請求，也不在 achievements 輸出本單元徽章牆。
