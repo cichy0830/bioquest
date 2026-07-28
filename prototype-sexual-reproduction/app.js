@@ -3,13 +3,14 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260729-sexual-reproduction-q12-evidence-v1";
+const VERSION = "20260729-sexual-reproduction-ia-relogin-v1";
 const QUESTION_VERSION = "20260718-sexual-reproduction-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
 const storageKey = "bioquest_sexual_reproduction_state_v1";
 const attemptsKey = "bioquest_attempts_v1";
+const verifiedSnapshotKey = "bioquest_sexual_reproduction_verified_snapshot_v1";
 const pendingQueueKey = "bioquest_pending_backend_queue_v1";
 const screen = typeof document !== "undefined" ? document.querySelector("#screen") : null;
 const navButtons = typeof document !== "undefined" ? [...document.querySelectorAll("[data-nav]")] : [];
@@ -200,7 +201,7 @@ const badges = [
     "再探配子會合精熟進步",
     "再挑戰完整完成且正確率進步。"
   ]
-].map(([id, name, condition]) => ({ id, name, condition, badge_image_path: badgeAsset(id), image_status: "pending" }));
+].map(([id, name, condition]) => ({ id, name, condition, badge_image_path: badgeAsset(id), image_status: "controlled_pending" }));
 
 const fertilizationChoices = [
   {
@@ -786,6 +787,32 @@ function saveAttemptRecord(attempt) {
   localStorage.setItem(attemptsKey, JSON.stringify(attempts));
 }
 
+function loadVerifiedSnapshot() {
+  if (typeof localStorage === "undefined") return null;
+  try {
+    return JSON.parse(localStorage.getItem(verifiedSnapshotKey) || "null");
+  } catch (error) {
+    return null;
+  }
+}
+
+function saveVerifiedSnapshot(student = state.student) {
+  if (typeof localStorage === "undefined" || !student || student.is_guest) return;
+  const progress = student.progress || {};
+  localStorage.setItem(verifiedSnapshotKey, JSON.stringify({
+    student_id: student.student_id,
+    class_name: student.class_name,
+    seat_no: student.seat_no,
+    student_name: student.student_name,
+    profile_gender: student.profile_gender || "male",
+    total_exp: Number(progress.total_exp ?? student.total_exp ?? 0),
+    current_title_id: progress.current_title_id || student.current_title_id || "",
+    current_title: progress.current_title || student.current_title || "",
+    title_avatar_path: progress.title_avatar_path || student.title_avatar_path || "",
+    progress
+  }));
+}
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
 }
@@ -956,6 +983,7 @@ async function handleLogin(useGuest) {
   if (useGuest || studentId === "guest") {
     beginLocalAttempt(roster.guest);
     renderApp();
+    resetScreenScroll();
     return;
   }
   try {
@@ -983,8 +1011,10 @@ async function handleLogin(useGuest) {
       screen: "brief",
       completedScreens: ["login", "brief"]
     };
+    saveVerifiedSnapshot(student);
     saveState();
     renderApp();
+    resetScreenScroll();
   } catch (error) {
     state = createEmptyState();
     saveState();
@@ -993,6 +1023,30 @@ async function handleLogin(useGuest) {
         ? "後台版本尚未更新，請通知老師。"
         : "無法連線或讀取 Google Sheet 學生資料，請稍後重試或通知老師。";
     }
+  }
+}
+
+function resetScrollContainers() {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  if (typeof window.scrollTo === "function") window.scrollTo(0, 0);
+  if (document.documentElement) document.documentElement.scrollTop = 0;
+  if (document.body) document.body.scrollTop = 0;
+  const stage = document.querySelector(".main-stage");
+  if (stage) {
+    if (typeof stage.scrollTo === "function") stage.scrollTo(0, 0);
+    stage.scrollTop = 0;
+  }
+}
+
+function resetScreenScroll() {
+  resetScrollContainers();
+  if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+    window.requestAnimationFrame(() => {
+      resetScrollContainers();
+      window.requestAnimationFrame(resetScrollContainers);
+    });
+  } else if (typeof setTimeout === "function") {
+    setTimeout(resetScrollContainers, 0);
   }
 }
 
@@ -1007,13 +1061,23 @@ function setScreen(nextScreen) {
   }
   saveState();
   renderApp();
+  resetScreenScroll();
 }
 
 function canUseNav(target) {
   if (target === "rules") return true;
   if (!state.student) return target === "login";
-  if (state.submitted) return ["result", "achievements", "rules"].includes(target);
+  if (state.submitted) return ["login", "result", "achievements", "rules"].includes(target);
   return state.completedScreens.includes(target);
+}
+
+function resetForRelogin() {
+  saveVerifiedSnapshot();
+  state = createEmptyState();
+  state.notice = "請重新登入以開始新的挑戰。";
+  saveState();
+  renderApp();
+  resetScreenScroll();
 }
 
 async function markHint(questionId) {
@@ -1292,6 +1356,7 @@ function applyBackendSubmitResponse(response, localResult) {
     state.student.current_title_id = progress.current_title_id || state.student.current_title_id;
     state.student.current_title = progress.current_title || state.student.current_title;
     state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path;
+    saveVerifiedSnapshot(state.student);
   }
   if (!verified) return { ...localResult, backend_response: response };
   return {
@@ -1359,6 +1424,7 @@ async function submitMission() {
   });
   saveState();
   renderApp();
+  resetScreenScroll();
 }
 
 function renderLogin() {
@@ -1587,9 +1653,10 @@ function renderResult() {
         <div class="button-row">
           <button class="primary" data-next="achievements">查看成就</button>
           <button class="secondary" data-next="rules">查看規則</button>
+          <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
         </div>
       </section>
-      ${renderBadgeWall(result.earned_badges)}
+      ${renderBadgeWall(result.earned_badges, { onlyEarned: true })}
     </div>
   `;
 }
@@ -1623,40 +1690,40 @@ function creditStatusText(result) {
 }
 
 function renderAchievements() {
-  const result = state.result || scoreAttempt();
-  const titleInfo = titleAndProgress(state.student, result.unit_credited_exp);
-  const credit = creditStatusText(result);
   return `
-    <div class="stack achievements-stack">
-      <section class="panel title-card">
-        <p class="eyebrow">全冊稱號</p>
-        <div class="title-card-content">
-          <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
-          <div>
-            <h2>${escapeHtml(titleInfo.current.title)}</h2>
-            <p>${credit.status === "verified" ? `${titleInfo.totalExp} EXP｜稱號進度 ${titleInfo.progressPercent}%` : credit.resultLine}</p>
-            <p>${credit.status === "verified" ? (titleInfo.next ? `距離 ${titleInfo.next.title} 還差 ${titleInfo.remaining} EXP` : "已達最高稱號，後續 EXP 仍會累積。") : credit.note}</p>
-          </div>
-        </div>
+    <div class="stack achievements-stack" data-bq-achievements-overview-only="true">
+      <section class="panel action-panel">
+        <p class="eyebrow">再挑戰</p>
+        <h2>重新登入後開始新的挑戰</h2>
+        <p class="muted">本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。</p>
+        <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
       </section>
-      ${renderBadgeWall(result.earned_badges)}
     </div>
   `;
 }
 
-function renderBadgeWall(earned = []) {
+function renderBadgeWall(earned = [], options = {}) {
   const earnedSet = new Set(earned);
+  const earnedBadges = [...earnedSet].map((id) => badges.find((badge) => badge.id === id)).filter(Boolean);
+  const visibleBadges = options.onlyEarned ? earnedBadges : badges;
+  if (options.onlyEarned && visibleBadges.length === 0) {
+    return `<section class="panel">
+      <p class="eyebrow">本次取得項目</p>
+      <h2>本次尚未取得新項目</h2>
+      <p class="muted">完成任務後會依本次表現列出實際取得的項目；正式圖尚未核准前不請求不存在的圖檔。</p>
+    </section>`;
+  }
   return `<section class="panel">
-    <p class="eyebrow">徽章收藏牆</p>
-    <h2>本單元 17 枚徽章</h2>
-    <div class="badge-wall">
-      ${badges.map((badge) => `
+    <p class="eyebrow">${options.onlyEarned ? "本次取得項目" : "本單元項目"}</p>
+    <h2>${options.onlyEarned ? "本次實際取得" : "本單元 17 項"}</h2>
+    <div class="${options.onlyEarned ? "earned-badge-list" : "badge-wall"}">
+      ${visibleBadges.map((badge) => `
         <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
-          <div class="badge-visual ${badge.image_status === "pending" ? "asset-missing" : ""}" data-badge-image-status="${escapeHtml(badge.image_status || "ready")}">
-            ${badge.image_status === "pending" ? "" : `<img src="${badge.badge_image_path}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('asset-missing'); this.remove();">`}
-          </div>
+          ${badge.image_status === "ready" && badge.badge_image_path
+            ? `<div class="badge-visual" data-badge-image-status="ready"><img src="${badge.badge_image_path}?v=${VERSION}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('fallback'); this.remove();"></div>`
+            : `<code>${escapeHtml(badge.id)}</code>`}
           <strong>${escapeHtml(badge.name)}</strong>
-          <p>${escapeHtml(badge.condition)}</p>
+          ${options.onlyEarned ? "" : `<p>${escapeHtml(badge.condition)}</p>`}
         </article>
       `).join("")}
     </div>
@@ -1664,7 +1731,7 @@ function renderBadgeWall(earned = []) {
 }
 
 function renderRules() {
-  return `<div class="stack"><section class="panel"><p class="eyebrow">成就規則</p><h2>本單元 EXP 與再挑戰規則</h2><ul class="rule-list"><li>本單元最高認列 ${UNIT_EXP_CAP} EXP；零提示全對是最高路徑。</li><li>提示後修正仍可取得 EXP，但低於直接答對。</li><li>提交後本次作答鎖定；再挑戰必須重新登入並完整完成。</li><li>回報空白可提交但 0 EXP；具體且與有性生殖、配子、受精、親代來源、後代差異、受精位置、授粉與受精或 U30 邊界相關的問題才會取得回報 EXP。</li><li>稱號進度 23,400 EXP 封頂；全冊理論可累積 26,000 EXP。</li></ul><button class="secondary" data-next="${state.student ? state.screen === "rules" ? "brief" : state.screen : "login"}">返回任務</button></section></div>`;
+  return `<div class="stack"><section class="panel"><p class="eyebrow">成就規則</p><h2>本單元 EXP 與再挑戰規則</h2><ul class="rule-list"><li>本單元最高認列 ${UNIT_EXP_CAP} EXP；零提示全對是最高路徑。</li><li>提示後修正仍可取得 EXP，但低於直接答對。</li><li>提交後本次作答鎖定；再挑戰必須重新登入並完整完成。</li><li>回報空白可提交但 0 EXP；具體且與有性生殖、配子、受精、親代來源、後代差異、受精位置、授粉與受精或 U30 邊界相關的問題才會取得回報 EXP。</li><li>稱號進度 23,400 EXP 封頂；全冊理論可累積 26,000 EXP。</li></ul><div class="button-row"><button class="secondary" data-next="${state.submitted ? "result" : state.student ? state.screen === "rules" ? "brief" : state.screen : "login"}">返回任務</button>${state.submitted ? `<button class="secondary" data-relogin="true">重新登入／再挑戰</button>` : ""}</div></section></div>`;
 }
 
 
@@ -1706,6 +1773,7 @@ function updateNav() {
 function bindScreenEvents() {
   screen.querySelector("#loginBtn")?.addEventListener("click", () => handleLogin(false));
   screen.querySelector("#guestBtn")?.addEventListener("click", () => handleLogin(true));
+  screen.querySelectorAll("[data-relogin]").forEach((button) => button.addEventListener("click", resetForRelogin));
   screen.querySelectorAll("[data-next]").forEach((button) => button.addEventListener("click", () => setScreen(button.dataset.next)));
   screen.querySelectorAll("[data-section-next]").forEach((button) => button.addEventListener("click", () => nextAfterSection(button.dataset.sectionNext)));
   screen.querySelectorAll("[data-answer]").forEach((button) => button.addEventListener("click", () => setAnswer(button.dataset.answer, button.dataset.value)));
@@ -1751,7 +1819,9 @@ function bindScreenEvents() {
 
 if (typeof document !== "undefined") {
   navButtons.forEach((button) => button.addEventListener("click", () => {
-    if (canUseNav(button.dataset.nav)) setScreen(button.dataset.nav);
+    if (!canUseNav(button.dataset.nav)) return;
+    if (state.submitted && button.dataset.nav === "login") resetForRelogin();
+    else setScreen(button.dataset.nav);
   }));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", renderApp);
   else renderApp();
@@ -1768,6 +1838,11 @@ if (typeof window !== "undefined") {
     state: () => state,
     setState: (next) => { state = { ...createEmptyState(), ...next }; },
     createEmptyState,
+    loadAttempts,
+    loadVerifiedSnapshot,
+    saveVerifiedSnapshot,
+    resetForRelogin,
+    canUseNav,
     answerValue,
     isCorrect,
     scoreAttempt,
@@ -1780,6 +1855,7 @@ if (typeof window !== "undefined") {
     renderReview,
     renderReflection,
     renderResult,
-    renderAchievements
+    renderAchievements,
+    renderRules
   };
 }
