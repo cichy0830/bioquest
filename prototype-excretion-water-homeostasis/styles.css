@@ -331,6 +331,97 @@ textarea { resize: vertical; min-height: 116px; }
   line-height: 1.65;
 }
 .evidence-card { border-color: rgba(47,159,104,.26); background: #f5fbef; color: var(--ink); overflow-x: auto; }
+.water-chart {
+  display: grid;
+  gap: 10px;
+  min-width: 286px;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid rgba(47,159,104,.28);
+  border-radius: 8px;
+  background: #fff;
+}
+.chart-title {
+  color: var(--green-dark);
+  font-weight: 900;
+}
+.chart-y-label, .chart-axis-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+.chart-plot {
+  display: grid;
+  grid-template-columns: 44px minmax(210px, 1fr);
+  gap: 8px;
+  min-height: 178px;
+}
+.chart-ticks {
+  display: grid;
+  align-content: space-between;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  text-align: right;
+}
+.chart-bars {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(82px, 1fr));
+  align-items: end;
+  gap: 16px;
+  min-height: 178px;
+  padding: 12px 12px 0;
+  border-left: 2px solid rgba(36, 98, 65, .45);
+  border-bottom: 2px solid rgba(36, 98, 65, .45);
+  background: repeating-linear-gradient(0deg, rgba(36, 98, 65, .08) 0 1px, transparent 1px 28px);
+}
+.chart-group {
+  display: grid;
+  gap: 6px;
+  align-items: end;
+  height: 100%;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+.chart-bar-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(26px, 1fr));
+  align-items: end;
+  gap: 8px;
+  height: 140px;
+}
+.water-bar {
+  display: grid;
+  align-items: start;
+  justify-items: center;
+  min-height: 16px;
+  height: var(--bar-height);
+  border-radius: 6px 6px 0 0;
+  color: #123421;
+  font-size: 11px;
+  font-weight: 900;
+}
+.water-bar.water-in { background: rgba(86, 174, 117, .78); }
+.water-bar.urine-out { background: rgba(216, 155, 50, .78); }
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+.chart-legend i {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 4px;
+  border-radius: 4px;
+  vertical-align: -2px;
+}
+.chart-legend .water-in { background: rgba(86, 174, 117, .78); }
+.chart-legend .urine-out { background: rgba(216, 155, 50, .78); }
 .question-asset {
   margin: 12px 0;
   overflow: hidden;
@@ -463,7 +554,7 @@ textarea { resize: vertical; min-height: 116px; }
   object-fit: contain;
 }
 .badge-visual.asset-missing { background: rgba(230, 239, 230, .72); border: 1px dashed rgba(36, 98, 65, .38); }
-.badge-visual.asset-missing::before { content: "正式徽章素材待接"; max-width: 62px; color: #476452; font-size: 11px; line-height: 1.35; text-align: center; font-weight: 800; }
+.badge-visual.asset-missing::before { content: ""; display: block; width: 18px; height: 18px; border-radius: 50%; background: rgba(71, 100, 82, .36); }
 .badge strong { display: block; margin-bottom: 8px; }
 .badge p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
 

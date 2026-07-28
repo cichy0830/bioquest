@@ -10,4 +10,4 @@
 - `excretion-water-homeostasis-prep-owl.webp`：準備頁單元專屬貓頭鷹。
 - `excretion-water-homeostasis-report-owl.webp`：若需要單元專屬回報貓頭鷹，需先由視覺線核准。
 
-17 枚正式徽章預留於 `../shared-assets/badges/excretion_water_homeostasis/`。圖檔落地前，收藏牆顯示中性「正式徽章素材待接」狀態並保留亮燈/灰階條件，不使用幾何徽章 placeholder。
+17 枚正式徽章預留於 `../shared-assets/badges/excretion_water_homeostasis/`。圖檔落地前，U25 badge catalog 維持 `controlled_pending`：result 只顯示本次實際取得且已有正式圖的徽章，achievements 交由 shared title/52-grid overview 顯示正式累積，不輸出本單元徽章牆或不存在的徽章圖片。

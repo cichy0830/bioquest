@@ -3,13 +3,15 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260718-excretion-water-homeostasis-v1";
+const VERSION = "20260728-excretion-water-homeostasis-relogin-v1";
+const QUESTION_VERSION = "20260718-excretion-water-homeostasis-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
 const storageKey = "bioquest_excretion_water_homeostasis_state_v1";
 const attemptsKey = "bioquest_attempts_v1";
 const pendingQueueKey = "bioquest_pending_backend_queue_v1";
+const verifiedSnapshotKey = "bioquest_excretion_water_homeostasis_verified_snapshot_v1";
 const screen = typeof document !== "undefined" ? document.querySelector("#screen") : null;
 const navButtons = typeof document !== "undefined" ? [...document.querySelectorAll("[data-nav]")] : [];
 const studentMini = typeof document !== "undefined" ? document.querySelector("#studentMini") : null;
@@ -119,7 +121,7 @@ function createEmptyState() {
     attempt_session_token: "",
     attempt_session_id: "",
     previous_attempt_id: "",
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     optionOrders: {},
     answers: {},
@@ -140,7 +142,7 @@ function loadState() {
   if (typeof localStorage === "undefined") return createEmptyState();
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey) || "null");
-    return parsed && parsed.question_version ? { ...createEmptyState(), ...parsed } : createEmptyState();
+    return parsed && parsed.question_version === QUESTION_VERSION ? { ...createEmptyState(), ...parsed, question_version: QUESTION_VERSION } : createEmptyState();
   } catch (error) {
     return createEmptyState();
   }
@@ -164,6 +166,32 @@ function saveAttemptRecord(attempt) {
   const attempts = loadAttempts().filter((item) => item.attempt_id !== attempt.attempt_id);
   attempts.push(attempt);
   localStorage.setItem(attemptsKey, JSON.stringify(attempts));
+}
+
+function loadVerifiedSnapshot() {
+  if (typeof localStorage === "undefined") return null;
+  try {
+    return JSON.parse(localStorage.getItem(verifiedSnapshotKey) || "null");
+  } catch (error) {
+    return null;
+  }
+}
+
+function saveVerifiedSnapshot(student = state.student) {
+  if (typeof localStorage === "undefined" || !student || student.is_guest) return;
+  const progress = student.progress || {};
+  localStorage.setItem(verifiedSnapshotKey, JSON.stringify({
+    student_id: student.student_id,
+    class_name: student.class_name,
+    seat_no: student.seat_no,
+    student_name: student.student_name,
+    profile_gender: student.profile_gender || "male",
+    total_exp: Number(progress.total_exp ?? student.total_exp ?? 0),
+    current_title_id: progress.current_title_id || student.current_title_id || "",
+    current_title: progress.current_title || student.current_title || "",
+    title_avatar_path: progress.title_avatar_path || student.title_avatar_path || "",
+    progress
+  }));
 }
 
 function escapeHtml(value) {
@@ -253,9 +281,15 @@ function formatSelected(question) {
 function titleAvatarPath(student = state.student) {
   const gender = student?.profile_gender === "female" ? "female" : "male";
   const fallback = `../shared-assets/title-avatars/title-01-trainee_investigator-${gender}.webp`;
-  const rawPath = student?.title_avatar_path || student?.progress?.title_avatar_path || fallback;
-  if (rawPath.startsWith("../") || rawPath.startsWith("http")) return rawPath;
-  if (rawPath.startsWith("shared-assets/")) return `../${rawPath}`;
+  const rawPath = String(student?.title_avatar_path || student?.progress?.title_avatar_path || fallback).trim();
+  if (/^(https?:|data:)/i.test(rawPath)) return fallback;
+  let cleanPath = rawPath.split("#")[0].split("?")[0];
+  cleanPath = cleanPath.replace(/^\.?\//, "");
+  if (cleanPath.startsWith("../")) cleanPath = cleanPath.slice(3);
+  if (cleanPath.startsWith("/")) cleanPath = cleanPath.slice(1);
+  if (cleanPath.startsWith("shared-assets/title-avatars/")) {
+    return `../${cleanPath.replace(/\.(png|jpe?g)$/i, ".webp")}`;
+  }
   return fallback;
 }
 
@@ -320,7 +354,7 @@ function beginLocalAttempt(student) {
     attempt_id: attemptId,
     attempt_session_token: `guest_${attemptId}`,
     attempt_session_id: `guest_session_${attemptId}`,
-    question_version: VERSION,
+    question_version: QUESTION_VERSION,
     verification_mode: "local_guest",
     screen: "brief",
     completedScreens: ["login", "brief"]
@@ -331,11 +365,19 @@ function beginLocalAttempt(student) {
 async function handleLogin(useGuest) {
   const message = document.querySelector("#loginMessage");
   const input = document.querySelector("#studentId");
+  const loginButton = document.querySelector("#loginBtn");
+  const guestButton = document.querySelector("#guestBtn");
   const studentId = useGuest ? "guest" : String(input?.value || "").trim();
   if (!studentId) {
     if (message) message.textContent = "請輸入學號，或使用 guest 測試。";
     return;
   }
+  [loginButton, guestButton].forEach((button) => {
+    if (!button) return;
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+  });
+  if (message) message.textContent = useGuest || studentId === "guest" ? "正在建立 guest 測試任務……" : "正在連接後台資料……";
   window.BioQuestLoginUX?.begin({ guest: useGuest || studentId === "guest" });
   await window.BioQuestLoginUX?.paint();
   if (useGuest || studentId === "guest") {
@@ -347,13 +389,14 @@ async function handleLogin(useGuest) {
     if (message) message.textContent = "正在連接 BioQuest 學習後台，請稍候……";
     const loginData = await requestBackend({ action: "getStudentAndAttemptStatus", student_id: studentId, unit_id: mission.unit_id });
     const student = normalizeBackendStudent(loginData, studentId);
+    saveVerifiedSnapshot(student);
     const startData = await requestBackend({
       action: "startAttempt",
       student_id: student.student_id,
       unit_id: mission.unit_id,
-      question_version: VERSION
+      question_version: QUESTION_VERSION
     });
-    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== VERSION) {
+    if (startData.verification_mode !== "server_verified" || !startData.attempt_session_token || startData.question_version !== QUESTION_VERSION) {
       throw new Error("backend_registry_not_ready");
     }
     state = {
@@ -363,7 +406,7 @@ async function handleLogin(useGuest) {
       attempt_session_token: startData.attempt_session_token,
       attempt_session_id: startData.attempt_session_id,
       previous_attempt_id: startData.previous_attempt_id || "",
-      question_version: startData.question_version,
+      question_version: QUESTION_VERSION,
       verification_mode: startData.verification_mode,
       screen: "brief",
       completedScreens: ["login", "brief"]
@@ -378,6 +421,11 @@ async function handleLogin(useGuest) {
         ? "後台版本尚未更新，請通知老師。"
         : "無法連線或讀取 Google Sheet 學生資料，請稍後重試或通知老師。";
     }
+    [loginButton, guestButton].forEach((button) => {
+      if (!button) return;
+      button.disabled = false;
+      button.removeAttribute("aria-busy");
+    });
   }
 }
 
@@ -394,11 +442,37 @@ function setScreen(nextScreen) {
   renderApp();
 }
 
+function resetViewportScroll() {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  const apply = () => {
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    } catch (error) {
+      try { window.scrollTo(0, 0); } catch (innerError) {}
+    }
+    if (document.documentElement) document.documentElement.scrollTop = 0;
+    if (document.body) document.body.scrollTop = 0;
+    const mainStage = document.querySelector(".main-stage");
+    if (mainStage) mainStage.scrollTop = 0;
+  };
+  apply();
+  if (typeof window.requestAnimationFrame === "function") window.requestAnimationFrame(apply);
+}
+
 function canUseNav(target) {
   if (target === "rules") return true;
   if (!state.student) return target === "login";
-  if (state.submitted) return ["result", "achievements", "rules"].includes(target);
+  if (state.submitted) return ["login", "result", "achievements", "rules"].includes(target);
   return state.completedScreens.includes(target);
+}
+
+function resetForRelogin() {
+  saveVerifiedSnapshot();
+  state = createEmptyState();
+  state.notice = "請重新登入以開始新的挑戰。";
+  saveState();
+  renderApp();
+  resetViewportScroll();
 }
 
 async function markHint(questionId) {
@@ -421,7 +495,7 @@ async function flushHintEvents(ids = Object.keys(state.hintEventStatus)) {
         attempt_id: state.attempt_id,
         attempt_session_token: state.attempt_session_token,
         question_id: questionId,
-        question_version: state.question_version
+        question_version: QUESTION_VERSION
       });
       state.hintEventStatus[questionId] = "sent";
     } catch (error) {
@@ -503,11 +577,23 @@ function nextAfterSection(section) {
 function scoreAttempt() {
   const logs = requiredQuestionIds.map((id) => {
     const correct = isCorrect(id);
+    const hintUsed = Boolean(state.hints[id]);
+    const expAwarded = correct
+      ? Math.round((hintUsed ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / requiredQuestionIds.length)
+      : 0;
     return {
       question_id: id,
       answer: answerValue(id),
+      question_type: questionMap[id].type,
       is_correct: correct,
-      hint_used: Boolean(state.hints[id]),
+      hint_used: hintUsed,
+      corrected_after_hint: correct && hintUsed,
+      exp_type: correct ? (hintUsed ? "revision" : "concept") : "none",
+      exp_awarded: expAwarded,
+      concept_id: questionMap[id].concept,
+      checkpoint_id: checkpointIdForQuestion(id),
+      teacher_group_id: analysisGroupForQuestion(id),
+      verification_status: state.student?.is_guest ? "local_guest" : "client_candidate",
       skill_tag: questionMap[id].concept,
       misconception_tag: correct ? "" : questionMap[id].misconception
     };
@@ -626,17 +712,27 @@ function buildBackendPayload(result = scoreAttempt()) {
     attempt_id: state.attempt_id,
     attempt_session_token: state.attempt_session_token,
     previous_attempt_id: state.previous_attempt_id,
-    question_version: state.question_version,
+    question_version: QUESTION_VERSION,
     raw_answers: rawAnswers,
     raw_answers_json: JSON.stringify(rawAnswers),
     question_logs: result.logs.map((log) => ({
       question_id: log.question_id,
       unit_id: mission.unit_id,
       student_id: state.student.student_id,
-      question_type: questionMap[log.question_id]?.type || "",
+      question_version: QUESTION_VERSION,
+      question_type: log.question_type || questionMap[log.question_id]?.type || "",
       attempt_answer: log.answer,
       answer_json: JSON.stringify(log.answer),
       used_hint: log.hint_used,
+      hint_used: log.hint_used,
+      is_correct: log.is_correct,
+      corrected_after_hint: log.corrected_after_hint,
+      exp_type: log.exp_type,
+      exp_awarded: log.exp_awarded,
+      concept_id: log.concept_id,
+      checkpoint_id: log.checkpoint_id,
+      teacher_group_id: log.teacher_group_id,
+      verification_status: log.verification_status,
       analysis_group: analysisGroupForQuestion(log.question_id),
       skill_tag: log.skill_tag,
       misconception_tag: log.misconception_tag
@@ -649,12 +745,21 @@ function buildBackendPayload(result = scoreAttempt()) {
 }
 
 function analysisGroupForQuestion(questionId) {
-  if (["excretion_water_homeostasis_q01", "excretion_water_homeostasis_q02", "excretion_water_homeostasis_q03"].includes(questionId)) return "excretion_basics";
-  if (["excretion_water_homeostasis_q04", "excretion_water_homeostasis_q05", "excretion_water_homeostasis_q06", "excretion_water_homeostasis_q07"].includes(questionId)) return "urinary_system";
-  if (["excretion_water_homeostasis_q08", "excretion_water_homeostasis_q09", "excretion_water_homeostasis_q10", "excretion_water_homeostasis_q11", "excretion_water_homeostasis_q12"].includes(questionId)) return "water_balance";
-  if (["excretion_water_homeostasis_q13", "excretion_water_homeostasis_q14"].includes(questionId)) return "boundary_misconception";
+  if (["excretion_water_homeostasis_q01", "excretion_water_homeostasis_q02"].includes(questionId)) return "excretion_egestion_boundary";
+  if (["excretion_water_homeostasis_q03", "excretion_water_homeostasis_q12"].includes(questionId)) return "nitrogenous_waste_basics";
+  if (["excretion_water_homeostasis_q04", "excretion_water_homeostasis_q06", "excretion_water_homeostasis_q13"].includes(questionId)) return "urinary_system_functions";
+  if (["excretion_water_homeostasis_q05", "excretion_water_homeostasis_q07"].includes(questionId)) return "urine_path_and_composition";
+  if (["excretion_water_homeostasis_q08", "excretion_water_homeostasis_q09", "excretion_water_homeostasis_q10", "excretion_water_homeostasis_q11"].includes(questionId)) return "water_balance_data";
   if (questionId === "excretion_water_homeostasis_q14") return "unit_boundary_control";
-  return "excretion_basics";
+  return "excretion_egestion_boundary";
+}
+
+function checkpointIdForQuestion(questionId) {
+  if (["excretion_water_homeostasis_q01", "excretion_water_homeostasis_q02", "excretion_water_homeostasis_q03"].includes(questionId)) return "excretion_water_homeostasis_cp1_excretion_basics";
+  if (["excretion_water_homeostasis_q04", "excretion_water_homeostasis_q05", "excretion_water_homeostasis_q06", "excretion_water_homeostasis_q07"].includes(questionId)) return "excretion_water_homeostasis_cp2_urinary_system";
+  if (["excretion_water_homeostasis_q08", "excretion_water_homeostasis_q09", "excretion_water_homeostasis_q10", "excretion_water_homeostasis_q11", "excretion_water_homeostasis_q12"].includes(questionId)) return "excretion_water_homeostasis_cp3_water_balance";
+  if (["excretion_water_homeostasis_q13", "excretion_water_homeostasis_q14"].includes(questionId)) return "excretion_water_homeostasis_cp4_boundary_and_misconceptions";
+  return "";
 }
 
 async function submitAttemptToBackend(payload) {
@@ -672,6 +777,7 @@ function applyBackendSubmitResponse(response, localResult) {
     state.student.current_title_id = progress.current_title_id || state.student.current_title_id;
     state.student.current_title = progress.current_title || state.student.current_title;
     state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path;
+    saveVerifiedSnapshot(state.student);
   }
   if (!verified) return { ...localResult, backend_response: response };
   return {
@@ -823,14 +929,62 @@ function renderQuestion(question) {
 function conceptLabel(concept) { return {excretion_vs_egestion:"排泄排遺",metabolic_waste_basic:"代謝廢物",nitrogenous_waste_basic:"含氮廢物",urinary_system_organs:"泌尿構造",kidney_urine_formation:"腎臟形成尿液",urine_path:"尿液路徑",urine_composition:"尿液成分",water_balance_basic:"水分收支",water_data_interpretation:"資料判讀",unit_boundary_control:"單元邊界"}[concept] || concept; }
 
 function renderQuestionEvidence(qid) {
-  if (["excretion_water_homeostasis_q01", "excretion_water_homeostasis_q02", "excretion_water_homeostasis_q03"].includes(qid)) return `<div class="evidence-card"><strong>代謝廢物概念卡</strong><p>排泄看的是代謝廢物或多餘物質；排遺看的是消化道中的食物殘渣。</p></div>`;
-  if (["excretion_water_homeostasis_q04", "excretion_water_homeostasis_q06", "excretion_water_homeostasis_q13"].includes(qid)) return `<div class="evidence-card"><strong>泌尿構造功能卡</strong><p>用形成、運送、儲存、排出四個功能整理泌尿系統。</p></div>`;
-  if (qid === "excretion_water_homeostasis_q05") return `<div class="evidence-card"><strong>尿液路徑卡</strong><p>先找尿液形成位置，再追蹤運送、暫存與排出的大方向。</p></div>`;
-  if (qid === "excretion_water_homeostasis_q07") return `<div class="evidence-card"><strong>尿液成分卡</strong><p>尿液含水，也可能含尿素、鹽分等物質。</p></div>`;
-  if (["excretion_water_homeostasis_q08", "excretion_water_homeostasis_q09", "excretion_water_homeostasis_q10", "excretion_water_homeostasis_q11"].includes(qid)) return `<div class="evidence-card"><strong>水分收支資料卡</strong><p>比較水分進入與流失，從飲水、流汗與尿量變化判斷水分調節方向。</p></div>`;
-  if (qid === "excretion_water_homeostasis_q12") return `<div class="evidence-card"><strong>含氮廢物卡</strong><p>氨、尿素、尿酸都可作含氮廢物例子，不同動物排出形式不一定相同。</p></div>`;
-  if (qid === "excretion_water_homeostasis_q14") return `<div class="evidence-card"><strong>單元邊界卡</strong><p>本單元聚焦排泄、泌尿與水分收支；肺泡交換、體溫與血糖留在相鄰單元。</p></div>`;
+  if (["excretion_water_homeostasis_q01", "excretion_water_homeostasis_q02", "excretion_water_homeostasis_q03"].includes(qid)) {
+    return `<div class="evidence-card"><strong>廢物來源觀察卡</strong><p>先判斷題目中的物質或殘渣，和細胞活動後產生的廢物、多餘物質較有關，還是和消化道中的未消化或未吸收殘渣較有關；不要只看到「排出」就直接分類。</p></div>`;
+  }
+  if (qid === "excretion_water_homeostasis_q04") {
+    return `<div class="evidence-card"><strong>泌尿構造觀察卡</strong><p>先看構造位在泌尿系統的哪個位置，以及尿液接下來會往哪裡去；再回到題目判斷較合適的功能。</p></div>`;
+  }
+  if (qid === "excretion_water_homeostasis_q05") {
+    return `<div class="evidence-card"><strong>尿液路徑觀察卡</strong><p>先找尿液形成的位置，再追蹤管道、暫存處與排出口；排序時用構造位置判斷，不靠背第幾步。</p></div>`;
+  }
+  if (["excretion_water_homeostasis_q06", "excretion_water_homeostasis_q13"].includes(qid)) {
+    return `<div class="evidence-card"><strong>腎臟與膀胱觀察卡</strong><p>先分辨題目在問形成尿液、運送尿液、暫時儲存，還是排出體外；不要先把功能表直接套上。</p></div>`;
+  }
+  if (qid === "excretion_water_homeostasis_q07") {
+    return `<div class="evidence-card"><strong>尿液成分觀察卡</strong><p>先判斷選項是否只把尿液當成單一物質，或有沒有包含可能被帶走的代謝廢物與多餘物質。</p></div>`;
+  }
+  if (["excretion_water_homeostasis_q08", "excretion_water_homeostasis_q10", "excretion_water_homeostasis_q11"].includes(qid)) {
+    return `<div class="evidence-card"><strong>水分收支觀察卡</strong><p>先分辨哪些情境讓水分進入身體、哪些讓水分離開身體，再比較尿量或尿液濃淡可能如何改變；不要把單一數字當診斷。</p></div>`;
+  }
+  if (qid === "excretion_water_homeostasis_q09") {
+    return `<div class="evidence-card evidence-chart-card">
+      <strong>水分收支觀察資料</strong>
+      <p>先看圖例，再看上午與下午各自的飲水量和尿量柱高，最後只比較變化方向與資料支持的範圍。</p>
+      <div class="water-chart" id="u25-q09-water-intake-urine-output-data-chart" role="img" aria-label="分組長條資料圖：橫軸為觀察時段上午與下午，縱軸為量（mL）。上午飲水量300毫升、尿量120毫升；下午飲水量900毫升、尿量360毫升。">
+        <div class="chart-title">水分收支觀察資料</div>
+        <div class="chart-y-label">量（mL）</div>
+        <div class="chart-plot">
+          <div class="chart-ticks" aria-hidden="true">${[1000,800,600,400,200,0].map((tick) => `<span>${tick}</span>`).join("")}</div>
+          <div class="chart-bars">
+            ${renderWaterChartGroup("上午", 300, 120)}
+            ${renderWaterChartGroup("下午", 900, 360)}
+          </div>
+        </div>
+        <div class="chart-axis-label">觀察時段</div>
+        <div class="chart-legend"><span><i class="water-in"></i>飲水量</span><span><i class="urine-out"></i>尿量</span></div>
+      </div>
+    </div>`;
+  }
+  if (qid === "excretion_water_homeostasis_q12") {
+    return `<div class="evidence-card"><strong>含氮廢物觀察卡</strong><p>先看題目是否在問含氮廢物的例子或形式，再排除食物殘渣、刺激反應或血糖調節等不相關概念。</p></div>`;
+  }
+  if (qid === "excretion_water_homeostasis_q14") {
+    return `<div class="evidence-card"><strong>單元範圍判斷卡</strong><p>先找哪個情境最直接呈現代謝廢物、尿液形成或水分收支；其他熟悉名詞要再確認是否屬於本單元核心。</p></div>`;
+  }
   return "";
+}
+
+function renderWaterChartGroup(label, waterValue, urineValue) {
+  const waterHeight = Math.max(10, Math.round((waterValue / 1000) * 100));
+  const urineHeight = Math.max(10, Math.round((urineValue / 1000) * 100));
+  return `<div class="chart-group">
+    <div class="chart-bar-pair">
+      <span class="water-bar water-in" style="--bar-height:${waterHeight}%" aria-label="${label}飲水量${waterValue}毫升"><b>${waterValue}</b></span>
+      <span class="water-bar urine-out" style="--bar-height:${urineHeight}%" aria-label="${label}尿量${urineValue}毫升"><b>${urineValue}</b></span>
+    </div>
+    <strong>${label}</strong>
+  </div>`;
 }
 
 function renderQuestionControl(question) {
@@ -905,7 +1059,7 @@ function renderReview() {
   const feedback = conceptFeedback();
   const stateName = result.accuracy >= 1 && result.hint_used_count === 0 ? "excellent" : result.accuracy >= .86 ? "strong" : result.accuracy >= .64 ? "stable" : result.accuracy >= .4 ? "needs_review" : "retry_ready";
   return `
-    <div class="mission-layout review-layout" data-feedback-state="${stateName}">
+    <div class="stack review-layout" data-feedback-state="${stateName}">
       <section class="panel">
         <p class="eyebrow">概念回饋</p>
         <h2>先整理你目前的水分廢物判讀線索</h2>
@@ -922,11 +1076,6 @@ function renderReview() {
         </div>
         <button class="primary" data-next="reflection">前往任務回報</button>
       </section>
-      <aside class="panel mentor-card" data-feedback-state="${stateName}">
-        <img src="../shared-assets/mentor-feedback/mentor-feedback-${stateName}.webp" alt="阿澤老師回饋" onerror="this.src='${assets.mentorFallback}'">
-        <h3>${feedbackTitle(stateName)}</h3>
-        <p>請把不確定的概念轉成課堂上想確認的方向。</p>
-      </aside>
     </div>
   `;
 }
@@ -1010,9 +1159,10 @@ function renderResult() {
         <div class="button-row">
           <button class="primary" data-next="achievements">查看成就</button>
           <button class="secondary" data-next="rules">查看規則</button>
+          <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
         </div>
       </section>
-      ${renderBadgeWall(result.earned_badges)}
+      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode: credit.status })}
     </div>
   `;
 }
@@ -1045,39 +1195,42 @@ function creditStatusText(result) {
 }
 
 function renderAchievements() {
-  const result = state.result || scoreAttempt();
-  const titleInfo = titleAndProgress(state.student, result.unit_credited_exp);
-  const credit = creditStatusText(result);
   return `
-    <div class="stack achievements-stack">
-      <section class="panel title-card">
-        <p class="eyebrow">全冊稱號</p>
-        <div class="title-card-content">
-          <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
-          <div>
-            <h2>${escapeHtml(titleInfo.current.title)}</h2>
-            <p>${credit.status === "verified" ? `${titleInfo.totalExp} EXP｜稱號進度 ${titleInfo.progressPercent}%` : credit.resultLine}</p>
-            <p>${credit.status === "verified" ? (titleInfo.next ? `距離 ${titleInfo.next.title} 還差 ${titleInfo.remaining} EXP` : "已達最高稱號，後續 EXP 仍會累積。") : credit.note}</p>
-          </div>
-        </div>
+    <div class="stack achievements-stack" data-bq-achievements-overview-only="true">
+      <section class="panel action-panel">
+        <p class="eyebrow">再挑戰</p>
+        <h2>重新登入後開始新的挑戰</h2>
+        <p class="muted">本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。</p>
+        <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
       </section>
-      ${renderBadgeWall(result.earned_badges)}
     </div>
   `;
 }
 
-function renderBadgeWall(earned = []) {
+function renderBadgeWall(earned = [], options = {}) {
   const earnedSet = new Set(earned);
-  return `<section class="panel">
-    <p class="eyebrow">徽章收藏牆</p>
-    <h2>本單元 17 枚徽章</h2>
+  const badgeList = options.onlyEarned
+    ? [...earnedSet]
+        .map((id) => badges.find((badge) => badge.id === id))
+        .filter((badge) => badge?.image_status === "ready" && badge.badge_image_path)
+    : badges;
+  const statusText = {
+    verified: "本次正式取得",
+    pending: "本次可能取得，待後台確認",
+    guest: "guest 測試徽章，不列入正式累積"
+  }[options.mode || "pending"] || "本次可能取得，待後台確認";
+  return `<section class="panel" data-bq-unit-achievements="${mission.unit_id}">
+    <p class="eyebrow">${options.onlyEarned ? "本次徽章" : "徽章收藏牆"}</p>
+    <h2>${options.onlyEarned ? "本次取得徽章" : `本單元 ${badges.length} 枚徽章`}</h2>
+    ${options.onlyEarned && !badgeList.length ? `<p class="muted">本次尚未取得可顯示的正式徽章；正式徽章累積以後台確認為準。</p>` : ""}
     <div class="badge-wall">
-      ${badges.map((badge) => `
+      ${badgeList.map((badge) => `
         <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
           <div class="badge-visual ${badge.image_status === "pending" ? "asset-missing" : ""}" data-badge-image-status="${escapeHtml(badge.image_status || "ready")}">
             ${badge.image_status === "pending" ? "" : `<img src="${badge.badge_image_path}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('asset-missing'); this.remove();">`}
           </div>
           <strong>${escapeHtml(badge.name)}</strong>
+          ${options.onlyEarned ? `<span class="badge-state">${escapeHtml(statusText)}</span>` : ""}
           <p>${escapeHtml(badge.condition)}</p>
         </article>
       `).join("")}
@@ -1098,7 +1251,10 @@ function renderRules() {
           <li>回報空白可提交但 0 EXP；具體且與排泄/排遺、代謝廢物、含氮廢物、泌尿系統、尿液路徑、尿液成分或水分收支相關的問題才會取得回報 EXP。</li>
           <li>稱號進度 23,400 EXP 封頂；全冊理論可累積 26,000 EXP。</li>
         </ul>
-        <button class="secondary" data-next="${state.student ? state.screen === "rules" ? "brief" : state.screen : "login"}">返回任務</button>
+        <div class="button-row">
+          <button class="secondary" data-next="${state.submitted ? "result" : state.student ? state.screen === "rules" ? "brief" : state.screen : "login"}">返回任務</button>
+          ${state.submitted ? `<button class="secondary" data-relogin="true">重新登入／再挑戰</button>` : ""}
+        </div>
       </section>
     </div>
   `;
@@ -1106,6 +1262,8 @@ function renderRules() {
 
 function renderApp() {
   if (!screen) return;
+  const screenChanged = renderApp.lastScreen !== state.screen;
+  renderApp.lastScreen = state.screen;
   const views = {
     login: renderLogin,
     brief: renderBrief,
@@ -1124,6 +1282,7 @@ function renderApp() {
   updateNav();
   bindScreenEvents();
   if (typeof window !== "undefined" && window.BioQuestCharacterLayout?.enhance) window.BioQuestCharacterLayout.enhance({ force: true });
+  if (screenChanged) resetViewportScroll();
 }
 
 function updateNav() {
@@ -1142,6 +1301,7 @@ function updateNav() {
 function bindScreenEvents() {
   screen.querySelector("#loginBtn")?.addEventListener("click", () => handleLogin(false));
   screen.querySelector("#guestBtn")?.addEventListener("click", () => handleLogin(true));
+  screen.querySelectorAll("[data-relogin]").forEach((button) => button.addEventListener("click", resetForRelogin));
   screen.querySelectorAll("[data-next]").forEach((button) => button.addEventListener("click", () => setScreen(button.dataset.next)));
   screen.querySelectorAll("[data-section-next]").forEach((button) => button.addEventListener("click", () => nextAfterSection(button.dataset.sectionNext)));
   screen.querySelectorAll("[data-answer]").forEach((button) => button.addEventListener("click", () => setAnswer(button.dataset.answer, button.dataset.value)));
@@ -1187,7 +1347,9 @@ function bindScreenEvents() {
 
 if (typeof document !== "undefined") {
   navButtons.forEach((button) => button.addEventListener("click", () => {
-    if (canUseNav(button.dataset.nav)) setScreen(button.dataset.nav);
+    if (!canUseNav(button.dataset.nav)) return;
+    if (state.submitted && button.dataset.nav === "login") resetForRelogin();
+    else setScreen(button.dataset.nav);
   }));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", renderApp);
   else renderApp();
@@ -1196,6 +1358,7 @@ if (typeof document !== "undefined") {
 if (typeof window !== "undefined") {
   window.__excretion_water_homeostasisTest = {
     VERSION,
+    QUESTION_VERSION,
     mission,
     assets,
     badges,
@@ -1203,6 +1366,8 @@ if (typeof window !== "undefined") {
     state: () => state,
     setState: (next) => { state = { ...createEmptyState(), ...next }; },
     createEmptyState,
+    loadAttempts,
+    loadVerifiedSnapshot,
     answerValue,
     isCorrect,
     scoreAttempt,
@@ -1215,6 +1380,10 @@ if (typeof window !== "undefined") {
     renderReview,
     renderReflection,
     renderResult,
-    renderAchievements
+    renderAchievements,
+    renderRules,
+    resetForRelogin,
+    canUseNav,
+    resetViewportScroll
   };
 }
