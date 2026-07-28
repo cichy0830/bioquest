@@ -76,7 +76,7 @@ appVersionOverrides.set("stimulus_response", "20260727-stimulus-response-relogin
 appVersionOverrides.set("nervous_system", "20260728-nervous-system-relogin-v1");
 appVersionOverrides.set("endocrine_system", "20260728-endocrine-system-relogin-v1");
 appVersionOverrides.set("behavior_sensing", "20260728-behavior-sensing-relogin-v1");
-appVersionOverrides.set("respiration_homeostasis", "20260722-respiration-homeostasis-briefing-scene-v1");
+appVersionOverrides.set("respiration_homeostasis", "20260728-respiration-homeostasis-relogin-v1");
 appVersionOverrides.set("excretion_water_homeostasis", "20260718-excretion-water-homeostasis-v1");
 appVersionOverrides.set("temperature_glucose_homeostasis", "20260726-temperature-glucose-briefing-scene-v1");
 appVersionOverrides.set("cell_division", "20260726-cell-division-briefing-scene-v1");
