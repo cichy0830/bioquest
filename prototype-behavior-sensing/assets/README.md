@@ -10,4 +10,4 @@
 - `behavior-sensing-prep-owl.webp`：準備頁單元專屬貓頭鷹。
 - `behavior-sensing-report-owl.webp`：若需要單元專屬回報貓頭鷹，需先由視覺線核准。
 
-15 枚正式徽章預留於 `../shared-assets/badges/behavior_sensing/`。圖檔落地前，收藏牆顯示中性「正式徽章素材待接」狀態並保留亮燈/灰階條件，不使用幾何徽章 placeholder。
+15 枚正式徽章預留於 `../shared-assets/badges/behavior_sensing/`。圖檔落地前維持 `controlled_pending`，runtime 不建立不存在的徽章圖片請求；結果頁只顯示本次實際取得且已有正式圖的徽章，成就頁由 shared title / 52 格全冊總覽呈現正式累積。
