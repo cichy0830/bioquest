@@ -1,0 +1,52 @@
+{
+  "unit_id": "sexual_reproduction",
+  "finding": "F-TRIAGE-U29-EVIDENCE-CONCRETE-01",
+  "question_id": "sexual_reproduction_q12",
+  "batch_id": "u29-sexual-reproduction-f-triage-u29-evidence-concrete-01-q12",
+  "created_at": "2026-07-26T23:58:00+08:00",
+  "status": "USER_APPROVED_READY_FOR_WIRING",
+  "scope": "approved visual overlay contract only; no prototype/shared-assets/portal/Apps Script/_publish writes by visual lane",
+  "visual_type": "zero-text concrete comparison base plus web-rendered data table/stacked cards",
+  "caption": "請比較兩種方式的配子結合與後代特徵紀錄。",
+  "alt": "比較資料表，列出兩種方式的配子結合紀錄及後代特徵差異。",
+  "scaffold": "先看資料中是否記錄配子結合，再比較後代外觀紀錄。",
+  "forbidden_caption_alt": [
+    "乙是有性生殖",
+    "正解是 A",
+    "有性生殖後代差異較多",
+    "無性/有性答案",
+    "答案是有性生殖"
+  ],
+  "columns": [
+    "方式",
+    "繁殖來源 / 觀察紀錄",
+    "後代特徵紀錄"
+  ],
+  "rows": [
+    {
+      "method": "甲方式",
+      "source": "一株母株伸出走莖；未記錄配子結合",
+      "traits": "三株新株葉形、花色接近"
+    },
+    {
+      "method": "乙方式",
+      "source": "兩個親代來源；觀察到配子結合",
+      "traits": "子代尾色與斑紋有不同組合"
+    }
+  ],
+  "desktop_overlay": "Render two comparison cards or a table into the blank lower panels; keep caption outside image.",
+  "mobile_390_overlay": "Use stacked cards with method, reproduction-source observation, and offspring-trait record; no horizontal scrolling.",
+  "runtime_guidance": {
+    "base_image_zero_text": true,
+    "draw_data_with_html_or_svg_overlay": true,
+    "minimum_mobile_width_px": 390,
+    "do_not_write_answer_in_caption_or_alt": true
+  },
+  "forbidden_runtime": "Do not wire contact sheet, preview WebP, generated source, or the old conclusion-writing evidence card.",
+  "approved_at": "2026-07-29T00:00:00+08:00",
+  "approved_archive": "01_視覺資產/已核准素材/2026-07-29/u29-sexual-reproduction-f-triage-u29-evidence-concrete-01-q12",
+  "runtime_candidate": true,
+  "ready_for_wiring": true,
+  "source_review_path": "01_視覺資產/待審素材/2026-07-26/u29-sexual-reproduction-f-triage-u29-evidence-concrete-01-q12/u29-f-triage-evidence-concrete-01-q12-overlay-spec-review.json",
+  "formal_base_image": "01_視覺資產/已核准素材/2026-07-29/u29-sexual-reproduction-f-triage-u29-evidence-concrete-01-q12/u29-f-triage-evidence-concrete-01-q12-comparison-data-base.webp"
+}

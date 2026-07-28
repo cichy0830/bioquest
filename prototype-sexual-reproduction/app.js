@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260726-sexual-reproduction-backgrounds-v1";
+const VERSION = "20260729-sexual-reproduction-q12-evidence-v1";
 const QUESTION_VERSION = "20260718-sexual-reproduction-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -33,7 +33,30 @@ const assets = {
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
   briefingSceneHook: "assets/sexual-reproduction-briefing-azhe-wide.webp",
   briefingSceneMobileHook: "",
-  ambientBackgroundHook: "assets/sexual-reproduction-ambient-wide.webp"
+  ambientBackgroundHook: "assets/sexual-reproduction-ambient-wide.webp",
+  q12EvidenceMain: "assets/sexual-reproduction-q12-comparison-data-base.webp",
+  q12EvidenceWide: "assets/sexual-reproduction-q12-comparison-data-base-1440.webp",
+  q12EvidenceMedium: "assets/sexual-reproduction-q12-comparison-data-base-960.webp",
+  q12OverlaySpec: "assets/sexual-reproduction-q12-overlay-spec.json"
+};
+
+const q12EvidenceContract = {
+  caption: "請比較兩種方式的配子結合與後代特徵紀錄。",
+  alt: "比較資料表，列出兩種方式的配子結合紀錄及後代特徵差異。",
+  scaffold: "先看資料中是否記錄配子結合，再比較後代外觀紀錄。",
+  columns: ["方式", "繁殖來源 / 觀察紀錄", "後代特徵紀錄"],
+  rows: [
+    {
+      method: "甲方式",
+      source: "一株母株伸出走莖；未記錄配子結合",
+      traits: "三株新株葉形、花色接近"
+    },
+    {
+      method: "乙方式",
+      source: "兩個親代來源；觀察到配子結合",
+      traits: "子代尾色與斑紋有不同組合"
+    }
+  ]
 };
 
 const badgeAsset = () => "";
@@ -568,8 +591,8 @@ const questions = [
     "concept": "asexual_sexual_compare",
     "type": "choice",
     "answer": "sexual_reproduction_from_variation_and_fertilization_data",
-    "prompt": "甲方式後代多與親代相似，乙方式後代常有較多差異；乙方式還出現精子與卵結合。乙方式較可能是哪一類？",
-    "hint": "同時看兩個線索：是否精卵結合，以及後代差異是否較多。",
+    "prompt": "請根據「甲方式／乙方式比較資料卡」判斷，乙方式較可能是哪一類？",
+    "hint": "先讀資料卡中是否出現配子結合，再比較後代差異的描述。",
     "misconception": "offspring_variation_misread",
     "options": [
       {
@@ -765,6 +788,10 @@ function saveAttemptRecord(attempt) {
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
+}
+
+function assetUrl(path) {
+  return `${path}?v=${VERSION}`;
 }
 
 function normalizeText(value) {
@@ -1395,8 +1422,35 @@ function conceptLabel(concept) { return {sexual_gamete_fusion:"有性生殖定�
 function renderQuestionEvidence(qid) {
   if (qid === "sexual_reproduction_q04") return `<div class="evidence-card"><strong>概念流程卡</strong><p>請依配子相遇、受精與受精卵開始發育的概念順序整理，不需要背減數分裂步驟。</p></div>`;
   if (qid === "sexual_reproduction_q07") return `<div class="evidence-card"><strong>受精位置卡</strong><p>判斷重點是精子與卵結合的位置在母體內或母體外。</p></div>`;
-  if (qid === "sexual_reproduction_q12") return `<div class="evidence-card"><strong>資料線索卡</strong><p>甲：後代多與親代相似。乙：出現精卵結合，後代常有較多差異。</p></div>`;
+  if (qid === "sexual_reproduction_q12") return renderQ12Evidence();
   return "";
+}
+
+function renderEvidencePicture({ main, wide, medium, alt }) {
+  return `<picture class="u29-evidence-picture">
+    <source srcset="${assetUrl(medium)}" media="(max-width: 700px)">
+    <source srcset="${assetUrl(wide)}" media="(max-width: 1280px)">
+    <img src="${assetUrl(main)}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async" data-evidence-image="q12-comparison" onerror="this.closest('.u29-evidence-figure')?.classList.add('asset-missing')">
+  </picture>`;
+}
+
+function renderQ12Evidence() {
+  const data = q12EvidenceContract;
+  const cards = data.rows.map((row) => `<article class="u29-evidence-data-card">
+    <strong>${escapeHtml(row.method)}</strong>
+    <span><b>${escapeHtml(data.columns[1])}</b>${escapeHtml(row.source)}</span>
+    <span><b>${escapeHtml(data.columns[2])}</b>${escapeHtml(row.traits)}</span>
+  </article>`).join("");
+  return `<figure class="evidence-card u29-evidence-figure u29-q12-evidence" data-evidence-id="q12-comparison-data" data-overlay-contract-src="${assetUrl(assets.q12OverlaySpec)}">
+    <div class="u29-evidence-frame">
+      ${renderEvidencePicture({ main: assets.q12EvidenceMain, wide: assets.q12EvidenceWide, medium: assets.q12EvidenceMedium, alt: data.alt })}
+      <div class="u29-evidence-overlay" aria-label="比較資料">
+        ${cards}
+      </div>
+    </div>
+    <figcaption>${escapeHtml(data.caption)}</figcaption>
+    <p class="u29-evidence-note">${escapeHtml(data.scaffold)}</p>
+  </figure>`;
 }
 
 
