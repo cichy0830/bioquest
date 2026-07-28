@@ -454,8 +454,20 @@ textarea { resize: vertical; min-height: 116px; }
   margin: 0;
   object-fit: contain;
 }
-.badge-visual.asset-missing { background: rgba(230, 239, 230, .72); border: 1px dashed rgba(36, 98, 65, .38); }
-.badge-visual.asset-missing::before { content: "正式徽章素材待接"; max-width: 62px; color: #476452; font-size: 11px; line-height: 1.35; text-align: center; font-weight: 800; }
+.badge-visual.asset-missing,
+.badge-visual.fallback { background: rgba(230, 239, 230, .72); border: 1px dashed rgba(36, 98, 65, .38); }
+.bq-badge-asset-pending {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  color: #476452;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+}
 .badge strong { display: block; margin-bottom: 8px; }
 .badge p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
 

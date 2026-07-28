@@ -13,4 +13,4 @@
 - `cell-division-prep-owl.webp`：準備頁單元專屬貓頭鷹。
 - `cell-division-report-owl.webp`：若需要單元專屬回報貓頭鷹，需先由視覺線核准。
 
-17 枚正式徽章預留於 `../shared-assets/badges/cell_division/`。圖檔落地前，收藏牆顯示中性「正式徽章素材待接」狀態並保留亮燈/灰階條件，不使用幾何徽章 placeholder。
+17 枚正式徽章預留於 `../shared-assets/badges/cell_division/`。圖檔落地前，runtime 僅使用 `controlled_pending` 中性狀態；結算頁只列本次實際 earned，成就頁由共用稱號與 52 格總覽呈現，不請求不存在圖檔。
