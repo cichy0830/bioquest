@@ -3,13 +3,14 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260727-egg-observation-tranche1-v1";
+const VERSION = "20260729-egg-observation-final-preflight-v1";
 const QUESTION_VERSION = "20260718-egg-observation-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
 const storageKey = "bioquest_egg_observation_state_v1";
 const attemptsKey = "bioquest_attempts_v1";
+const verifiedSnapshotKey = "bioquest_egg_observation_verified_snapshot_v1";
 const pendingQueueKey = "bioquest_pending_backend_queue_v1";
 const screen = typeof document !== "undefined" ? document.querySelector("#screen") : null;
 const navButtons = typeof document !== "undefined" ? [...document.querySelectorAll("[data-nav]")] : [];
@@ -413,7 +414,7 @@ const questions = [
     },
     "prompt": "請將雞蛋構造與主要功能配對。",
     "hint": "把外層、透明區、黃色區和鈍端空間分開判斷。",
-    "misconception": "egg_structure_function_confusion",
+    "misconception": "egg_function_match_confusion",
     "items": [
       {
         "id": "eggshell",
@@ -775,6 +776,32 @@ function saveAttemptRecord(attempt) {
   localStorage.setItem(attemptsKey, JSON.stringify(attempts));
 }
 
+function loadVerifiedSnapshot() {
+  if (typeof localStorage === "undefined") return null;
+  try {
+    return JSON.parse(localStorage.getItem(verifiedSnapshotKey) || "null");
+  } catch (error) {
+    return null;
+  }
+}
+
+function saveVerifiedSnapshot(student = state.student) {
+  if (typeof localStorage === "undefined" || !student || student.is_guest) return;
+  const progress = student.progress || {};
+  localStorage.setItem(verifiedSnapshotKey, JSON.stringify({
+    student_id: student.student_id,
+    class_name: student.class_name,
+    seat_no: student.seat_no,
+    student_name: student.student_name,
+    profile_gender: student.profile_gender || "male",
+    total_exp: Number(progress.total_exp ?? student.total_exp ?? 0),
+    current_title_id: progress.current_title_id || student.current_title_id || "",
+    current_title: progress.current_title || student.current_title || "",
+    title_avatar_path: progress.title_avatar_path || student.title_avatar_path || "",
+    progress
+  }));
+}
+
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
 }
@@ -833,10 +860,22 @@ function stableShuffle(items, seed) {
   return copy;
 }
 
+function sameOrder(left, right) {
+  return Array.isArray(left) && Array.isArray(right) && left.length === right.length && left.every((id, index) => id === right[index]);
+}
+
+function avoidCanonicalSequenceCollision(question, order) {
+  if (question.id !== "egg_observation_q04" || question.type !== "sequence" || !sameOrder(order, question.answer)) return order;
+  const next = [...order];
+  if (next.length > 2) [next[1], next[2]] = [next[2], next[1]];
+  else if (next.length > 1) [next[0], next[1]] = [next[1], next[0]];
+  return next;
+}
+
 function orderedOptions(question) {
   if (!state.optionOrders[question.id]) {
     const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
-    state.optionOrders[question.id] = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}`);
+    state.optionOrders[question.id] = avoidCanonicalSequenceCollision(question, stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}`));
   }
   const source = Object.fromEntries((question.type === "sequence" ? question.steps : question.options || []).map((item) => [item.id, item]));
   return state.optionOrders[question.id].map((id) => source[id]).filter(Boolean);
@@ -995,6 +1034,7 @@ async function handleLogin(useGuest) {
       completedScreens: ["login", "brief"]
     };
     saveState();
+    saveVerifiedSnapshot(student);
     renderApp();
     resetScreenScroll();
   } catch (error) {
@@ -1025,8 +1065,17 @@ function setScreen(nextScreen) {
 function canUseNav(target) {
   if (target === "rules") return true;
   if (!state.student) return target === "login";
-  if (state.submitted) return ["result", "achievements", "rules"].includes(target);
+  if (state.submitted) return ["login", "result", "achievements", "rules"].includes(target);
   return state.completedScreens.includes(target);
+}
+
+function resetForRelogin() {
+  saveVerifiedSnapshot();
+  state = createEmptyState();
+  state.notice = "請重新登入以開始新的挑戰。";
+  saveState();
+  renderApp();
+  resetScreenScroll();
 }
 
 async function markHint(questionId) {
@@ -1319,6 +1368,7 @@ function applyBackendSubmitResponse(response, localResult) {
     state.student.current_title_id = progress.current_title_id || state.student.current_title_id;
     state.student.current_title = progress.current_title || state.student.current_title;
     state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path;
+    saveVerifiedSnapshot(state.student);
   }
   if (!verified) return { ...localResult, backend_response: response };
   return {
@@ -1459,7 +1509,7 @@ function renderQuestionEvidence(qid) {
       <picture>
         <source srcset="${assets.crossSectionImage960}?v=${VERSION}" media="(max-width: 640px)">
         <source srcset="${assets.crossSectionImage1440}?v=${VERSION}" media="(max-width: 1180px)">
-        <img src="${assets.crossSectionImage}?v=${VERSION}" alt="未標註的雞蛋剖面觀察圖，含蛋殼、透明區、黃色圓形區與鈍端空氣空間" onerror="this.closest('.question-asset')?.classList.add('asset-fallback'); this.remove();">
+        <img src="${assets.crossSectionImage}?v=${VERSION}" alt="未標註的雞蛋剖面觀察圖，呈現外層硬質邊界、透明或半透明區、黃色圓形區與鈍端空間等可觀察位置" onerror="this.closest('.question-asset')?.classList.add('asset-fallback'); this.remove();">
       </picture>
       <div class="egg-hotspot-layer" aria-hidden="true">
         <span class="egg-hotspot shell">A</span>
@@ -1614,9 +1664,10 @@ function renderResult() {
         <div class="button-row">
           <button class="primary" data-next="achievements">查看成就</button>
           <button class="secondary" data-next="rules">查看規則</button>
+          <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
         </div>
       </section>
-      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode: resultMode(result) })}
+      ${renderBadgeWall(result.earned_badges, { onlyEarned: true })}
     </div>
   `;
 }
@@ -1652,6 +1703,12 @@ function creditStatusText(result) {
 function renderAchievements() {
   return `
     <div class="stack achievements-stack" data-bq-achievements-overview-only="true">
+      <section class="panel action-panel">
+        <p class="eyebrow">再挑戰</p>
+        <h2>重新登入後開始新的挑戰</h2>
+        <p class="muted">本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。</p>
+        <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
+      </section>
     </div>
   `;
 }
@@ -1665,39 +1722,34 @@ function resultMode(result = state.result || scoreAttempt()) {
 
 function renderBadgeWall(earned = [], options = {}) {
   const earnedSet = new Set(earned);
-  const mode = options.mode || resultMode();
-  const badgeList = options.onlyEarned
-    ? [...earnedSet].map((id) => badges.find((badge) => badge.id === id)).filter(Boolean)
-    : badges;
-  const badgeVisual = (badge) => badge.image_status !== "ready" || !badge.badge_image_path
-    ? `<span class="bq-badge-asset-pending" role="img" aria-label="${escapeHtml(badge.name)}圖像準備中">圖像準備中</span>`
-    : `<img src="${badge.badge_image_path}?v=${VERSION}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('fallback'); this.remove();">`;
-  const statusText = {
-    verified: "本次正式取得",
-    pending: "本次可能取得，待後台確認",
-    guest: "guest 測試徽章，不列入正式累積"
-  }[mode] || "本次可能取得，待後台確認";
+  const earnedBadges = [...earnedSet].map((id) => badges.find((badge) => badge.id === id)).filter(Boolean);
+  const visibleBadges = options.onlyEarned ? earnedBadges.filter((badge) => badge.image_status === "ready" && badge.badge_image_path) : badges;
+  const candidateBadges = options.onlyEarned ? earnedBadges.filter((badge) => badge.image_status !== "ready" || !badge.badge_image_path) : [];
+  if (options.onlyEarned && visibleBadges.length === 0 && candidateBadges.length === 0) {
+    return `<section class="panel">
+      <p class="eyebrow">本次取得項目</p>
+      <h2>本次尚未取得新項目</h2>
+      <p class="muted">完成任務後會依本次表現列出實際取得的正式圖像徽章；正式累積以後台確認為準。</p>
+    </section>`;
+  }
   return `<section class="panel">
-    <p class="eyebrow">${options.onlyEarned ? "本次徽章" : "徽章收藏牆"}</p>
-    <h2>${options.onlyEarned ? "本次取得徽章" : `本單元 ${badges.length} 枚徽章`}</h2>
-    ${options.onlyEarned && !badgeList.length ? `<p class="muted">本次尚未取得徽章；正式徽章累積以後台確認為準。</p>` : ""}
-    <div class="badge-wall">
-      ${badgeList.map((badge) => `
+    <p class="eyebrow">${options.onlyEarned ? "本次取得項目" : "本單元項目"}</p>
+    <h2>${options.onlyEarned ? "本次正式圖像徽章" : `本單元 ${badges.length} 項`}</h2>
+    ${visibleBadges.length ? `<div class="${options.onlyEarned ? "earned-badge-list" : "badge-wall"}">
+      ${visibleBadges.map((badge) => `
         <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
-          <div class="badge-visual" data-badge-image-status="${badge.image_status || "pending"}">
-            ${badgeVisual(badge)}
-          </div>
+          <div class="badge-visual" data-badge-image-status="${badge.image_status || "pending"}"><img src="${badge.badge_image_path}?v=${VERSION}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('asset-missing'); this.remove();"></div>
           <strong>${escapeHtml(badge.name)}</strong>
-          ${options.onlyEarned ? `<span class="badge-state">${escapeHtml(statusText)}</span>` : ""}
-          <p>${escapeHtml(badge.condition)}</p>
+          ${options.onlyEarned ? "" : `<p>${escapeHtml(badge.condition)}</p>`}
         </article>
       `).join("")}
-    </div>
+    </div>` : `<p class="muted">本次沒有已核准正式圖像徽章可顯示；正式累積以後台確認為準。</p>`}
+    ${candidateBadges.length ? `<div class="candidate-badge-list" aria-label="本次達成但未列正式圖像的項目"><h3>本次達成候選項目</h3><p class="muted">以下項目等正式圖像核准後才會進入正式徽章圖像展示；本頁不請求不存在的圖檔。</p><ul>${candidateBadges.map((badge) => `<li><strong>${escapeHtml(badge.name)}</strong><span>${escapeHtml(badge.condition)}</span></li>`).join("")}</ul></div>` : ""}
   </section>`;
 }
 
 function renderRules() {
-  return `<div class="stack"><section class="panel"><p class="eyebrow">成就規則</p><h2>本單元 EXP 與再挑戰規則</h2><ul class="rule-list"><li>本單元最高認列 ${UNIT_EXP_CAP} EXP；零提示全對是最高路徑。</li><li>提示後修正仍可取得 EXP，但低於直接答對。</li><li>提交後本次作答鎖定；再挑戰必須重新登入並完整完成。</li><li>回報空白可提交但 0 EXP；具體且與安全觀察、蛋殼、蛋白、蛋黃、氣室、胚盤、繫帶、觀察紀錄或單元邊界相關的問題才會取得回報 EXP。</li><li>稱號進度 23,400 EXP 封頂；全冊理論可累積 26,000 EXP。</li></ul><button class="secondary" data-next="${state.student ? state.screen === "rules" ? "brief" : state.screen : "login"}">返回任務</button></section></div>`;
+  return `<div class="stack"><section class="panel"><p class="eyebrow">成就規則</p><h2>本單元 EXP 與再挑戰規則</h2><ul class="rule-list"><li>本單元最高認列 ${UNIT_EXP_CAP} EXP；零提示全對是最高路徑。</li><li>提示後修正仍可取得 EXP，但低於直接答對。</li><li>提交後本次作答鎖定；再挑戰必須重新登入並完整完成。</li><li>回報空白可提交但 0 EXP；具體且與安全觀察、蛋殼、蛋白、蛋黃、氣室、胚盤、繫帶、觀察紀錄或單元邊界相關的問題才會取得回報 EXP。</li><li>稱號進度 23,400 EXP 封頂；全冊理論可累積 26,000 EXP。</li></ul><div class="button-row"><button class="secondary" data-next="${state.submitted ? "result" : state.student ? state.screen === "rules" ? "brief" : state.screen : "login"}">返回任務</button>${state.submitted ? `<button class="secondary" data-relogin="true">重新登入／再挑戰</button>` : ""}</div></section></div>`;
 }
 
 
@@ -1739,6 +1791,7 @@ function updateNav() {
 function bindScreenEvents() {
   screen.querySelector("#loginBtn")?.addEventListener("click", () => handleLogin(false));
   screen.querySelector("#guestBtn")?.addEventListener("click", () => handleLogin(true));
+  screen.querySelectorAll("[data-relogin]").forEach((button) => button.addEventListener("click", resetForRelogin));
   screen.querySelectorAll("[data-next]").forEach((button) => button.addEventListener("click", () => setScreen(button.dataset.next)));
   screen.querySelectorAll("[data-section-next]").forEach((button) => button.addEventListener("click", () => nextAfterSection(button.dataset.sectionNext)));
   screen.querySelectorAll("[data-answer]").forEach((button) => button.addEventListener("click", () => setAnswer(button.dataset.answer, button.dataset.value)));
@@ -1784,7 +1837,9 @@ function bindScreenEvents() {
 
 if (typeof document !== "undefined") {
   navButtons.forEach((button) => button.addEventListener("click", () => {
-    if (canUseNav(button.dataset.nav)) setScreen(button.dataset.nav);
+    if (!canUseNav(button.dataset.nav)) return;
+    if (state.submitted && button.dataset.nav === "login") resetForRelogin();
+    else setScreen(button.dataset.nav);
   }));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", renderApp);
   else renderApp();
@@ -1801,6 +1856,13 @@ if (typeof window !== "undefined") {
     state: () => state,
     setState: (next) => { state = { ...createEmptyState(), ...next }; },
     createEmptyState,
+    loadAttempts,
+    loadVerifiedSnapshot,
+    saveVerifiedSnapshot,
+    resetForRelogin,
+    canUseNav,
+    orderedOptions,
+    avoidCanonicalSequenceCollision,
     answerValue,
     isCorrect,
     scoreAttempt,
@@ -1815,6 +1877,8 @@ if (typeof window !== "undefined") {
     renderReview,
     renderReflection,
     renderResult,
-    renderAchievements
+    renderAchievements,
+    renderBadgeWall,
+    renderRules
   };
 }

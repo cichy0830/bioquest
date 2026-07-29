@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-egg-observation/app.js" });
 const api = context.window.__egg_observationTest;
 
-assert.equal(api.VERSION, "20260727-egg-observation-tranche1-v1");
+assert.equal(api.VERSION, "20260729-egg-observation-final-preflight-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-egg-observation-v1");
 assert.equal(api.mission.unit_id, "egg_observation");
 assert.equal(api.questions.length, 14);
@@ -47,6 +47,7 @@ for (const badge of api.badges.filter((item) => item.image_status === "ready")) 
   assert(fs.existsSync(path.resolve(root, "..", localPath)), `${badge.id} approved badge image should exist`);
 }
 assert(fs.readFileSync(path.join(root, "styles.css"), "utf8").includes("egg-hotspot-layer"));
+assert(!source.includes("圖像準備中"));
 
 const Q = (n) => `egg_observation_q${String(n).padStart(2, "0")}`;
 const answers = {
@@ -68,6 +69,17 @@ const answers = {
 
 api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "egg_observation_test", attempt_session_token: "guest", question_version: api.QUESTION_VERSION, answers, reflection: { question: "" } });
 for (const question of api.questions) assert.equal(api.isCorrect(question.id), true, question.id);
+const q04 = api.questions.find((question) => question.id === Q(4));
+assert.notDeepEqual(api.avoidCanonicalSequenceCollision(q04, [...q04.answer]), q04.answer, "q04 collision guard should not leave canonical order");
+for (const attemptId of ["seed-alpha", "seed-beta", "seed-gamma", "seed-delta"]) {
+  api.setState({ attempt_id: attemptId });
+  const firstOrder = api.orderedOptions(q04).map((item) => item.id);
+  const secondOrder = api.orderedOptions(q04).map((item) => item.id);
+  assert.deepEqual(firstOrder, secondOrder, `q04 order should be stable for ${attemptId}`);
+  assert.notDeepEqual(firstOrder, q04.answer, `q04 should not initialize as canonical answer for ${attemptId}`);
+}
+assert.equal(api.questions.find((question) => question.id === Q(6)).misconception, "egg_function_match_confusion");
+api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "egg_observation_test", attempt_session_token: "guest", question_version: api.QUESTION_VERSION, answers, reflection: { question: "" } });
 let score = api.scoreAttempt();
 assert.equal(score.correct_count, 14);
 assert.equal(score.unit_credited_exp, 460);
@@ -123,7 +135,8 @@ assert(api.renderCheckpoint("checkpoint2").includes("mapping-list"));
 assert(api.renderCheckpoint("checkpoint3").includes("mapping-list"));
 const crossSectionEvidence = api.renderQuestionEvidence(Q(5));
 assert(crossSectionEvidence.includes("egg-cross-section-figure"));
-assert(crossSectionEvidence.includes("egg-observation-cross-section-hotspot-base.webp?v=20260727-egg-observation-tranche1-v1"));
+assert(crossSectionEvidence.includes("egg-observation-cross-section-hotspot-base.webp?v=20260729-egg-observation-final-preflight-v1"));
+assert(crossSectionEvidence.includes("未標註的雞蛋剖面觀察圖，呈現外層硬質邊界、透明或半透明區、黃色圓形區與鈍端空間等可觀察位置"));
 assert(crossSectionEvidence.includes("egg-hotspot shell"));
 assert(!crossSectionEvidence.includes("剖面辨識圖待接"));
 assert.equal(api.assets.briefingSceneHook, "");
@@ -135,8 +148,50 @@ assert(!api.renderReview().includes("mentor-card"));
 assert(!api.renderReflection().includes("bq-report-assistant"));
 assert(fs.readFileSync(path.join(root, "index.html"), "utf8").includes("data-report-owl-src"));
 assert(api.renderResult().includes("提交後本次作答已鎖定"));
+assert(api.renderResult().includes("data-relogin"));
 const deprecatedPendingText = "\u5fbd\u7ae0\u7d20\u6750" + "\u5f85\u63a5";
 assert(!api.renderResult().includes(deprecatedPendingText));
 assert(api.renderAchievements().includes("data-bq-achievements-overview-only"));
 assert(!api.renderAchievements().includes("本單元 17 枚徽章"));
+assert(api.renderAchievements().includes("重新登入／再挑戰"));
+const earnedMixedHtml = api.renderBadgeWall(["egg_observation_entry", "safe_egg_sequence_tracker"], { onlyEarned: true });
+assert(earnedMixedHtml.includes("badge-egg_observation-egg_observation_entry.webp?v=20260729-egg-observation-final-preflight-v1"));
+assert(earnedMixedHtml.includes("candidate-badge-list"));
+assert(earnedMixedHtml.includes("安全觀察流程員"));
+assert(!earnedMixedHtml.includes("badge-egg_observation-safe_egg_sequence_tracker.webp"));
+assert(!earnedMixedHtml.includes("圖像準備中"));
+api.setState({
+  student: {
+    student_id: "S70102",
+    class_name: "701",
+    seat_no: "02",
+    student_name: "正式學生",
+    progress: {
+      total_exp: 3880,
+      current_title_id: "concept_solver",
+      current_title: "概念解謎者",
+      unit_badge_summary_json: "[{\"unit_id\":\"life_world\",\"earned_count\":2}]"
+    }
+  },
+  attempt_id: "submitted_attempt",
+  attempt_session_id: "session",
+  attempt_session_token: "token",
+  answers,
+  hints: { [Q(5)]: true },
+  reflection: { question: "我想確認胚盤和蛋黃有什麼差別，觀察紀錄裡要怎麼先寫證據再做推論？" },
+  result: api.scoreAttempt(),
+  submitted: true,
+  screen: "result",
+  completedScreens: ["login", "brief", "scan", "checkpoint1", "checkpoint2", "checkpoint3", "review", "reflection", "result", "achievements", "rules"]
+});
+assert.equal(api.canUseNav("login"), true);
+assert.equal(api.canUseNav("checkpoint1"), false);
+api.saveVerifiedSnapshot();
+api.resetForRelogin();
+assert.equal(api.state().screen, "login");
+assert.equal(api.state().student, null);
+assert.equal(api.state().attempt_id, "");
+assert.equal(api.loadVerifiedSnapshot().student_id, "S70102");
+assert.equal(api.loadVerifiedSnapshot().progress.total_exp, 3880);
+assert(api.renderRules().includes("返回任務"));
 console.log("prototype-egg-observation app regression passed");
