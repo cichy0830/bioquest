@@ -36,6 +36,7 @@ function categoryFor(file) {
   if (name.startsWith("asexual-reproduction-q05-hydra-budding-observation")) return ["question_and_ui", 1600];
   if (name.startsWith("asexual-reproduction-q12-cutting-materials-data")) return ["question_and_ui", 1600];
   if (name.startsWith("sexual-reproduction-q12-comparison-data-base")) return ["question_and_ui", 1600];
+  if (name.startsWith("flower-observation-q04-flower-structure-base")) return ["question_and_ui", 1600];
   return ["question_and_ui", 1280];
 }
 
