@@ -56,7 +56,7 @@ const appVersionOverrides = new Map();
 appVersionOverrides.set("life_world", "20260730-life-world-submitted-retry-ia-v1");
 appVersionOverrides.set("scientific_method", "20260730-scientific-method-submitted-retry-ia-v1");
 appVersionOverrides.set("lab_intro", "20260730-lab-intro-submitted-retry-ia-v1");
-appVersionOverrides.set("microscope_use", "20260721-microscope-use-server-verified-v1");
+appVersionOverrides.set("microscope_use", "20260730-microscope-use-submitted-retry-ia-v1");
 appVersionOverrides.set("cell_basic_unit", "20260721-cell-basic-unit-required-gates-v1");
 appVersionOverrides.set("cell_observation", "20260717-badge-icon-cleanup-v1");
 appVersionOverrides.set("cell_structure", "20260721-cell-structure-scrolltop-v1");
@@ -201,7 +201,7 @@ const audit = units.map(([unitId, folder]) => {
     `app.js?v=${expectedAppVersion}`
   ]) assert(index.includes(marker), `${unitId} index hook missing: ${marker}`);
   if (unitId === "microscope_use") {
-    assert(index.includes("styles.css?v=20260721-microscope-use-server-verified-v1"), "microscope_use style cache bust missing");
+    assert(index.includes("styles.css?v=20260730-microscope-use-submitted-retry-ia-v1"), "microscope_use style cache bust missing");
   }
   if (unitId === "cell_basic_unit") {
     assert(index.includes("styles.css?v=20260721-cell-basic-unit-required-gates-v1"), "cell_basic_unit style cache bust missing");
