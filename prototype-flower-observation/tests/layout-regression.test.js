@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-flower-observation")
   : sourceRoot;
-const VERSION = "20260729-flower-observation-build-v1";
+const VERSION = "20260730-flower-observation-approved-visuals-v1";
 const QUESTION_VERSION = "20260725-flower-observation-v1.1";
 const Q = (n) => `flower_observation_q${String(n).padStart(2, "0")}`;
 const viewports = [{ width: 1440, height: 900 }, { width: 390, height: 844 }];
@@ -140,7 +140,38 @@ async function assertTop(page, label) {
   assert(positions.stageTop <= 1, `${label}: main stage should reset to top`);
 }
 
+async function assertScene(page, prefix, { student = false, owl = false } = {}) {
+  const scene = page.locator(`.u31-${prefix}-scene`);
+  await scene.waitFor();
+  assert.equal(await scene.count(), 1, `${prefix} scene should be exactly one`);
+  const background = await scene.locator(".u31-scene-media img").evaluate((img) => ({
+    naturalWidth: img.naturalWidth,
+    naturalHeight: img.naturalHeight,
+    currentSrc: img.currentSrc
+  }));
+  assert(background.naturalWidth > 0, `${prefix} background should load`);
+  assert(background.currentSrc.includes(`v=${VERSION}`), `${prefix} background should carry runtime cache`);
+  const azhe = await scene.locator(".u31-scene-azhe").evaluate((img) => ({
+    naturalWidth: img.naturalWidth,
+    naturalHeight: img.naturalHeight,
+    currentSrc: img.currentSrc
+  }));
+  assert(azhe.naturalWidth > 0, `${prefix} Azhe cutout should load`);
+  assert(azhe.currentSrc.includes(`v=${VERSION}`), `${prefix} Azhe cutout should carry runtime cache`);
+  assert.equal(await scene.locator(".bq-brief-student-avatar").count(), student ? 1 : 0, `${prefix} student avatar count`);
+  assert.equal(await scene.locator(".u31-scene-owl").count(), owl ? 1 : 0, `${prefix} owl count`);
+  if (owl) {
+    const owlImage = await scene.locator(".u31-scene-owl").evaluate((img) => ({
+      naturalWidth: img.naturalWidth,
+      currentSrc: img.currentSrc
+    }));
+    assert(owlImage.naturalWidth > 0, `${prefix} owl should load`);
+    assert(owlImage.currentSrc.includes(`v=${VERSION}`), `${prefix} owl should carry runtime cache`);
+  }
+}
+
 async function completeFlow(page, mode) {
+  await assertScene(page, "login");
   if (mode === "guest") {
     await page.locator("#guestBtn").click();
   } else {
@@ -148,10 +179,12 @@ async function completeFlow(page, mode) {
     await page.locator("#loginBtn").click();
   }
   await page.locator(".identity-confirm").waitFor();
+  await assertScene(page, "brief", { student: true });
   await forceScroll(page);
   await page.locator('[data-next="scan"]').click();
   await assertTop(page, `${mode} brief to scan`);
   assert.equal(await page.locator(".prep-owl-hero").count(), 1, "prep owl hero missing");
+  await assertScene(page, "scan", { owl: true });
   await forceScroll(page);
   await page.locator('[data-next="checkpoint1"]').click();
   await assertTop(page, `${mode} scan to checkpoint1`);
@@ -212,6 +245,7 @@ async function completeFlow(page, mode) {
   await page.locator("#submitMission").click();
   await page.locator(".result-panel").waitFor();
   await assertTop(page, `${mode} reflection to result`);
+  await assertScene(page, "result", { owl: true });
 }
 
 async function assertSubmittedRetry(page, mode) {
@@ -221,8 +255,8 @@ async function assertSubmittedRetry(page, mode) {
     assert(!resultText.includes(text), `result must not show ${text}`);
   }
   assert.equal(await page.locator(".result-stack .badge-state").count(), 0, `${mode} result should not render legacy badge-state markers`);
-  assert.equal(await page.locator(".result-stack .badge-visual img").count(), 0, `${mode} U31 result should not request pending badge images`);
-  assert(await page.locator(".candidate-badge-list").count() >= 1, `${mode} should separate controlled-pending earned candidates`);
+  assert.equal(await page.locator(".result-stack .badge-visual img").count(), 14, `${mode} U31 result should show only the approved badge images earned in this attempt`);
+  assert.equal(await page.locator(".candidate-badge-list").count(), 0, `${mode} should not show controlled-pending candidates after approval`);
   assert.equal(await page.evaluate(() => window.__flower_observationTest.canUseNav("login")), true, `${mode} submitted login should be allowed`);
   assert.equal(await page.evaluate(() => window.__flower_observationTest.canUseNav("checkpoint1")), false, `${mode} submitted checkpoint should stay locked`);
 

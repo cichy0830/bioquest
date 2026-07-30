@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260729-flower-observation-build-v1";
+const VERSION = "20260730-flower-observation-approved-visuals-v1";
 const QUESTION_VERSION = "20260725-flower-observation-v1.1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -27,21 +27,58 @@ const mission = {
 
 const assets = {
   mentorFallback: "../shared-assets/mentor-feedback/mentor-feedback-stable.webp",
-  owlLogin: "../shared-assets/login/bioquest-login-cover-wide.webp",
-  owlPrep: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
-  owlReport: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
-  owlResult: "../shared-assets/characters/owl-bioquest-report-reminder.webp",
+  owlLogin: "assets/u31-flower-observation-owl-scan-cutout.webp",
+  owlPrep: "assets/u31-flower-observation-owl-scan-cutout.webp",
+  owlReport: "assets/u31-flower-observation-owl-result-cutout.webp",
+  owlResult: "assets/u31-flower-observation-owl-result-cutout.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  briefingSceneHook: "",
-  briefingSceneMobileHook: "",
-  ambientBackgroundHook: "",
+  loginScene: "assets/u31-flower-observation-login-background-zero-text.webp",
+  loginScene1440: "assets/u31-flower-observation-login-background-zero-text-1440w.webp",
+  loginScene960: "assets/u31-flower-observation-login-background-zero-text-960w.webp",
+  loginScene390: "assets/u31-flower-observation-login-background-zero-text-390w.webp",
+  briefScene: "assets/u31-flower-observation-brief-background-zero-text.webp",
+  briefScene1440: "assets/u31-flower-observation-brief-background-zero-text-1440w.webp",
+  briefScene960: "assets/u31-flower-observation-brief-background-zero-text-960w.webp",
+  briefScene390: "assets/u31-flower-observation-brief-background-zero-text-390w.webp",
+  scanScene: "assets/u31-flower-observation-scan-background-zero-text.webp",
+  scanScene1440: "assets/u31-flower-observation-scan-background-zero-text-1440w.webp",
+  scanScene960: "assets/u31-flower-observation-scan-background-zero-text-960w.webp",
+  scanScene390: "assets/u31-flower-observation-scan-background-zero-text-390w.webp",
+  resultScene: "assets/u31-flower-observation-result-background-zero-text.webp",
+  resultScene1440: "assets/u31-flower-observation-result-background-zero-text-1440w.webp",
+  resultScene960: "assets/u31-flower-observation-result-background-zero-text-960w.webp",
+  resultScene390: "assets/u31-flower-observation-result-background-zero-text-390w.webp",
+  azheLogin: "assets/u31-flower-observation-azhe-login-cutout.webp",
+  azheBrief: "assets/u31-flower-observation-azhe-brief-cutout.webp",
+  azheScan: "assets/u31-flower-observation-azhe-scan-cutout.webp",
+  azheResult: "assets/u31-flower-observation-azhe-result-cutout.webp",
+  briefingSceneHook: "assets/u31-flower-observation-brief-background-zero-text.webp",
+  briefingSceneMobileHook: "assets/u31-flower-observation-brief-background-zero-text-390w.webp",
+  ambientBackgroundHook: "assets/u31-flower-observation-scan-background-zero-text.webp",
   flowerStructureImage: "assets/flower-observation-q04-flower-structure-base.webp",
   flowerStructureImage1440: "assets/flower-observation-q04-flower-structure-base-1440w.webp",
   flowerStructureImage960: "assets/flower-observation-q04-flower-structure-base-960w.webp",
   flowerStructureImage390: "assets/flower-observation-q04-flower-structure-base-390w.webp"
 };
 
-const readyBadgeIds = new Set([]);
+const readyBadgeIds = new Set([
+  "flower_observation_entry",
+  "flower_safety_guard",
+  "sepal_petal_observer",
+  "flower_parts_labeler",
+  "flower_structure_function_mapper",
+  "stamen_pistil_basic_reader",
+  "pollination_fertilization_separator",
+  "flower_process_sequence_tracker",
+  "ovary_ovule_fruit_seed_mapper",
+  "flower_evidence_recording_reader",
+  "u29_u30_u31_u32_flower_boundary_guardian",
+  "flower_unit_boundary_guardian",
+  "flower_observation_misconception_reviser",
+  "flower_observation_flawless",
+  "flower_observation_reflection_reporter",
+  "retry_growth_flower_observation"
+]);
 const badgeAsset = (id) => readyBadgeIds.has(id)
   ? `../shared-assets/badges/flower_observation/badge-flower_observation-${id}.webp`
   : "";
@@ -674,6 +711,35 @@ function saveVerifiedSnapshot(student = state.student) {
 
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[char]);
+}
+
+function cacheAsset(src) {
+  if (!src) return "";
+  return `${src}${src.includes("?") ? "&" : "?"}v=${VERSION}`;
+}
+
+function renderScenePicture(prefix, alt) {
+  const main = assets[`${prefix}Scene`];
+  const src390 = assets[`${prefix}Scene390`];
+  const src960 = assets[`${prefix}Scene960`];
+  const src1440 = assets[`${prefix}Scene1440`];
+  return `<picture class="u31-scene-media">
+    ${src390 ? `<source srcset="${cacheAsset(src390)}" media="(max-width: 520px)">` : ""}
+    ${src960 ? `<source srcset="${cacheAsset(src960)}" media="(max-width: 900px)">` : ""}
+    ${src1440 ? `<source srcset="${cacheAsset(src1440)}" media="(max-width: 1360px)">` : ""}
+    <img src="${cacheAsset(main)}" alt="${escapeHtml(alt)}" onerror="this.closest('.u31-page-scene')?.classList.add('asset-missing'); this.remove();">
+  </picture>`;
+}
+
+function renderPageScene(prefix, { className = "", studentAvatar = false, owl = false, alt = "" } = {}) {
+  const azhe = assets[`azhe${prefix[0].toUpperCase()}${prefix.slice(1)}`];
+  const owlSrc = prefix === "scan" ? assets.owlPrep : assets.owlResult;
+  return `<figure class="u31-page-scene u31-${prefix}-scene ${className}" data-u31-scene="${prefix}"${studentAvatar ? ' data-bq-brief-dual-role="true"' : ""}>
+    ${renderScenePicture(prefix, alt || "花的觀察任務場景")}
+    <img class="u31-scene-azhe" src="${cacheAsset(azhe)}" alt="阿澤老師" onerror="this.closest('.u31-page-scene')?.classList.add('asset-missing'); this.remove();">
+    ${studentAvatar ? `<img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'">` : ""}
+    ${owl ? `<img class="u31-scene-owl" src="${cacheAsset(owlSrc)}" alt="貓頭鷹助理" onerror="this.closest('.u31-page-scene')?.classList.add('asset-missing'); this.remove();">` : ""}
+  </figure>`;
 }
 
 function normalizeText(value) {
@@ -1314,8 +1380,9 @@ function renderLogin() {
   return `
     <div class="wide-layout login-layout">
       <section class="panel hero-panel">
+        ${renderPageScene("login", { className: "login-scene-panel", alt: "花的觀察登入場景，呈現花部觀察任務的環境" })}
         <p class="eyebrow">生命祕境 BioQuest</p>
-        <h2 class="hero-title">歡迎進入生命祕境</h2>
+        <h2 class="hero-title">花的觀察</h2>
         <p class="lead">請先確認身份。登入後會開啟本次任務簡報。</p>
         <div class="login-card">
           <label for="studentId">學生學號</label>
@@ -1334,14 +1401,12 @@ function renderLogin() {
 function renderBrief() {
   const titleInfo = titleAndProgress();
   const studentName = state.student?.student_name || "同學";
-  const sceneAttrs = `${assets.briefingSceneHook ? ` data-briefing-scene-hook="${assets.briefingSceneHook}"` : ""}${assets.briefingSceneMobileHook ? ` data-mobile-hook="${assets.briefingSceneMobileHook}"` : ""}`;
-  const sceneMedia = assets.briefingSceneHook ? `<picture class="brief-scene-media">${assets.briefingSceneMobileHook ? `<source srcset="${assets.briefingSceneMobileHook}" media="(max-width: 640px)">` : ""}<img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="花的觀察簡報主視覺" onerror="this.closest('.brief-scene-media')?.classList.add('asset-missing')"></picture>` : `<div class="brief-scene-fallback bq-brief-scene-missing" role="img" aria-label="花部觀察資料庫場景待接"><strong>花部觀察資料庫</strong><span>正式簡報圖核准後，會在此呈現阿澤老師與花的觀察判讀場景。</span></div>`;
-  return `<div class="wide-layout"><section class="panel hero-panel brief-hero"><figure class="brief-scene flower-observation-brief-scene bq-brief-scene-stage" data-bq-brief-dual-role="true"${sceneAttrs}>${sceneMedia}<img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'"></figure><div class="scene-copy bq-brief-scene-caption"><p class="eyebrow">${mission.mission_area}</p><h2>${mission.mission_title}</h2><p class="identity-confirm">你好，${escapeHtml(studentName)}｜${escapeHtml(studentIdentityLine())}</p><p>本任務會從花的外觀與構造位置出發，整理萼片、花瓣、雄蕊、雌蕊、授粉、受精，以及果實和種子的形成線索。</p><p class="muted">目前稱號：${escapeHtml(titleInfo.current.title)}｜${titleInfo.totalExp} EXP</p></div><div class="button-row"><button class="primary" data-next="scan">查看進關卡提醒</button><button class="secondary" data-next="rules">先看規則</button></div></section></div>`;
+  return `<div class="wide-layout"><section class="panel hero-panel brief-hero">${renderPageScene("brief", { className: "brief-scene flower-observation-brief-scene bq-brief-scene-stage", studentAvatar: true, alt: "花的觀察簡報場景，呈現阿澤老師與花部觀察任務環境" })}<div class="scene-copy bq-brief-scene-caption"><p class="eyebrow">${mission.mission_area}</p><h2>${mission.mission_title}</h2><p class="identity-confirm">你好，${escapeHtml(studentName)}｜${escapeHtml(studentIdentityLine())}</p><p>本任務會從花的外觀與構造位置出發，整理萼片、花瓣、雄蕊、雌蕊、授粉、受精，以及果實和種子的形成線索。</p><p class="muted">目前稱號：${escapeHtml(titleInfo.current.title)}｜${titleInfo.totalExp} EXP</p></div><div class="button-row"><button class="primary" data-next="scan">查看進關卡提醒</button><button class="secondary" data-next="rules">先看規則</button></div></section></div>`;
 }
 
 
 function renderScan() {
-  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入花部觀察資料庫前，先抓住四個花的觀察線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚哪些是你真的看到的花部位置，哪些是根據證據做出的功能推測。</h3><p>本任務會用安全觀察、花部標記、功能配對、授粉受精流程、觀察紀錄與 U29-U32 邊界，幫你整理花的觀察。</p></div></div><div class="concept-grid"><article><strong>安全觀察</strong><p>取樣需經老師同意，工具使用保持安全，不任意品嘗或破壞植物。</p></article><article><strong>花部構造</strong><p>先看萼片、花瓣、雄蕊與雌蕊的位置，再整理花藥、花絲、柱頭、子房等線索。</p></article><article><strong>證據與推論</strong><p>先描述看到的位置、形態與資料，再推測構造名稱或功能。</p></article><article><strong>守住邊界</strong><p>U29 看有性生殖流程；U30 看蛋構造；U31 看花部觀察；U32 才進入遺傳概念。</p></article></div><button class="primary" data-next="checkpoint1">開始花的觀察任務</button></section></div>`;
+  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入花部觀察資料庫前，先抓住四個花的觀察線索</h2><div class="prep-owl-hero">${renderPageScene("scan", { owl: true, alt: "花的觀察準備場景，呈現觀察任務環境與貓頭鷹助理" })}<div><h3>先分清楚哪些是你真的看到的花部位置，哪些是根據證據做出的功能推測。</h3><p>本任務會用安全觀察、花部標記、功能配對、授粉受精流程、觀察紀錄與 U29-U32 邊界，幫你整理花的觀察。</p></div></div><div class="concept-grid"><article><strong>安全觀察</strong><p>取樣需經老師同意，工具使用保持安全，不任意品嘗或破壞植物。</p></article><article><strong>花部構造</strong><p>先看萼片、花瓣、雄蕊與雌蕊的位置，再整理花藥、花絲、柱頭、子房等線索。</p></article><article><strong>證據與推論</strong><p>先描述看到的位置、形態與資料，再推測構造名稱或功能。</p></article><article><strong>守住邊界</strong><p>U29 看有性生殖流程；U30 看蛋構造；U31 看花部觀察；U32 才進入遺傳概念。</p></article></div><button class="primary" data-next="checkpoint1">開始花的觀察任務</button></section></div>`;
 }
 
 
@@ -1519,6 +1584,7 @@ function renderResult() {
   return `
     <div class="stack result-stack">
       <section class="panel result-panel">
+        ${renderPageScene("result", { owl: true, alt: "花的觀察結算場景，呈現任務完成後的回顧環境與貓頭鷹助理" })}
         <p class="eyebrow">任務結算</p>
         <h2>花部構造觀察任務結算</h2>
         <p class="lock-note">提交後本次作答已鎖定；若要再挑戰，請重新登入並從頭完成。</p>

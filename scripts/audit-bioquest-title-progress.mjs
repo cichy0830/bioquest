@@ -19,7 +19,7 @@ function assert(condition, message) {
 assert(start >= 0 && end > start, "portal units block missing");
 const units = Function(`${portal.slice(start, end)}; return units;`)();
 const readyUnits = units.filter((unit) => unit.status === "ready" && unit.url);
-assert(readyUnits.length === 30, `expected 30 ready units, found ${readyUnits.length}`);
+assert(readyUnits.length === 31, `expected 31 ready units, found ${readyUnits.length}`);
 
 for (const unit of readyUnits) {
   const folder = unit.url.split("/")[0];

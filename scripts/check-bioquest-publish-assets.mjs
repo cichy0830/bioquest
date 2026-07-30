@@ -28,6 +28,8 @@ async function walk(directory) {
 function categoryFor(file) {
   const normalized = file.split(path.sep).join("/").toLowerCase();
   const name = path.basename(normalized);
+  if (name.startsWith("u31-flower-observation-") && name.includes("background")) return ["backgrounds", 1920];
+  if (name.startsWith("u31-flower-observation-") && (name.includes("azhe") || name.includes("owl"))) return ["characters", 1600];
   if (normalized.includes("/badges/") || name.includes("badge")) return ["badges", 384];
   if (normalized.includes("title-avatars") || /(mentor|owl|avatar)/.test(name)) return ["characters", 768];
   if (/(^|\/)(bg-|.*briefing|.*ambient|.*cover|.*entry-wide|.*station-scene)/.test(normalized)) return ["backgrounds", 1920];

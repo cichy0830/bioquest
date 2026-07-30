@@ -28,19 +28,36 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-flower-observation/app.js" });
 const api = context.window.__flower_observationTest;
 
-assert.equal(api.VERSION, "20260729-flower-observation-build-v1");
+assert.equal(api.VERSION, "20260730-flower-observation-approved-visuals-v1");
 assert.equal(api.QUESTION_VERSION, "20260725-flower-observation-v1.1");
 assert.equal(api.mission.unit_id, "flower_observation");
 assert.equal(api.questions.length, 14);
 assert.equal(api.badges.length, 16);
-assert.equal(api.badges.filter((badge) => badge.image_status === "ready").length, 0);
-assert.equal(api.badges.filter((badge) => badge.image_status === "pending").length, 16);
-assert(api.badges.every((badge) => badge.badge_image_path === ""), "U31 badges should stay controlled-pending with empty image paths");
-assert.equal(api.badges.find((badge) => badge.id === "flower_observation_flawless").image_status, "pending");
+assert.equal(api.badges.filter((badge) => badge.image_status === "ready").length, 16);
+assert.equal(api.badges.filter((badge) => badge.image_status === "pending").length, 0);
+assert(api.badges.every((badge) => badge.badge_image_path.includes("../shared-assets/badges/flower_observation/badge-flower_observation-")), "U31 badges should use stable approved shared paths");
+assert.equal(api.badges.find((badge) => badge.id === "flower_observation_flawless").image_status, "ready");
 assert(source.includes("BioQuestLoginUX?.begin"));
 assert(!source.includes("待審素材"));
 assert(!source.includes("_generated_sources"));
 assert(!source.includes("flower-observation-review"));
+for (const key of ["loginScene", "briefScene", "scanScene", "resultScene", "azheLogin", "azheBrief", "azheScan", "azheResult", "owlPrep", "owlResult"]) {
+  assert(api.assets[key], `${key} should be wired to approved U31 runtime assets`);
+  assert(!api.assets[key].includes("review"));
+  assert(!api.assets[key].includes("_generated_sources"));
+}
+for (const file of [
+  "u31-flower-observation-login-background-zero-text.webp",
+  "u31-flower-observation-brief-background-zero-text.webp",
+  "u31-flower-observation-scan-background-zero-text.webp",
+  "u31-flower-observation-result-background-zero-text.webp",
+  "u31-flower-observation-azhe-login-cutout.webp",
+  "u31-flower-observation-azhe-brief-cutout.webp",
+  "u31-flower-observation-azhe-scan-cutout.webp",
+  "u31-flower-observation-azhe-result-cutout.webp",
+  "u31-flower-observation-owl-scan-cutout.webp",
+  "u31-flower-observation-owl-result-cutout.webp"
+]) assert(fs.existsSync(path.join(root, "assets", file)), `${file} missing`);
 assert(fs.existsSync(path.join(root, "assets/flower-observation-q04-flower-structure-base.webp")));
 assert(fs.existsSync(path.join(root, "assets/flower-observation-q04-flower-structure-base-1440w.webp")));
 assert(fs.existsSync(path.join(root, "assets/flower-observation-q04-flower-structure-base-960w.webp")));
@@ -132,15 +149,18 @@ assert(api.renderCheckpoint("checkpoint4").includes("flower_observation_q13"));
 
 const q04Evidence = api.renderQuestionEvidence(Q(4));
 assert(q04Evidence.includes("flower-structure-figure"));
-assert(q04Evidence.includes("flower-observation-q04-flower-structure-base-390w.webp?v=20260729-flower-observation-build-v1"));
+assert(q04Evidence.includes("flower-observation-q04-flower-structure-base-390w.webp?v=20260730-flower-observation-approved-visuals-v1"));
 assert(q04Evidence.includes("未標註的花部構造觀察圖"));
 assert(q04Evidence.includes("target-list"));
 assert.equal((q04Evidence.match(/flower-hotspot/g) || []).length, 5, "q04 should expose a hotspot layer and four target markers");
 assert(api.renderQuestionEvidence(Q(11)).includes("甲花"));
 assert(api.renderQuestionEvidence(Q(12)).includes("觀察與推論紀錄"));
-assert.equal(api.assets.briefingSceneHook, "");
-assert.equal(api.assets.ambientBackgroundHook, "");
-assert(api.renderBrief().includes("brief-scene-fallback"));
+assert(api.assets.briefingSceneHook.includes("u31-flower-observation-brief-background-zero-text.webp"));
+assert(api.assets.ambientBackgroundHook.includes("u31-flower-observation-scan-background-zero-text.webp"));
+assert(!api.renderBrief().includes("brief-scene-fallback"));
+assert(api.renderBrief().includes("u31-flower-observation-brief-background-zero-text"));
+assert(api.renderBrief().includes("u31-flower-observation-azhe-brief-cutout"));
+assert(api.renderBrief().includes("學生稱號角色"));
 assert(api.renderBrief().includes("你好，測試學生"));
 assert(api.studentIdentityLine().includes("701班"));
 assert(!api.renderReview().includes("mentor-card"));
@@ -157,9 +177,15 @@ assert(api.renderAchievements().includes("data-bq-achievements-overview-only"));
 assert(!api.renderAchievements().includes("本單元 16"));
 assert(api.renderAchievements().includes("重新登入／再挑戰"));
 const earnedHtml = api.renderBadgeWall(["flower_observation_entry", "flower_parts_labeler"], { onlyEarned: true });
-assert(!earnedHtml.includes("<img"), "U31 pending badges should not create image requests");
-assert(earnedHtml.includes("candidate-badge-list"));
+assert(earnedHtml.includes("<img"), "U31 ready badges should create approved image requests");
+assert(earnedHtml.includes("?v=20260730-flower-observation-approved-visuals-v1"));
+assert(!earnedHtml.includes("candidate-badge-list"));
 assert(earnedHtml.includes("花部構造標記"));
+
+for (const badge of api.badges) {
+  const file = path.resolve(root, "..", badge.badge_image_path.replace("../", ""));
+  assert(fs.existsSync(file), `${badge.id} image path should exist: ${file}`);
+}
 
 api.setState({
   student: {
