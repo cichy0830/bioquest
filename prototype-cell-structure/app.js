@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260721-cell-structure-scrolltop-v1";
+const VERSION = "20260731-cell-structure-submitted-retry-ia-v1";
 const QUESTION_VERSION = "20260720-cell-structure-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -109,6 +109,20 @@ function normalizeLockedScreen() {
   state.screen = "result";
   unlock("result", "achievements");
   saveState();
+}
+
+function resetForRelogin() {
+  if (structureTransitionTimer) {
+    clearTimeout(structureTransitionTimer);
+    structureTransitionTimer = null;
+  }
+  state = {
+    ...structuredClone(defaultState),
+    lockNotice: "已回到登入頁；既有正式紀錄不會被刪除，重新登入後會建立新的挑戰。"
+  };
+  saveState();
+  render();
+  resetScreenScroll();
 }
 
 function loadState() {
@@ -242,7 +256,12 @@ function renderNav() {
 
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    if (!button.disabled) setScreen(button.dataset.nav);
+    if (button.disabled) return;
+    if (state.submitted_at && button.dataset.nav === "login") {
+      resetForRelogin();
+      return;
+    }
+    setScreen(button.dataset.nav);
   });
 });
 
@@ -1993,15 +2012,52 @@ function renderResult() {
           `).join("")}
         </div>
 
-        <h3>取得徽章</h3>
-        ${renderBadgeCatalog(result.badges)}
+        ${renderResultBadges(result)}
         <div class="actions">
           <button class="primary" id="goAchievements">查看我的成就</button>
           <button class="secondary" id="goRules">查看 EXP 規則</button>
+          <button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button>
         </div>
       </div>
       <div class="owl-frame"><img src="${cellStructureOwlAssets.result}" alt="任務結算貓頭鷹助理"></div>
     </div>
+  `;
+}
+
+function renderResultBadges(result) {
+  const earned = new Set(result.badges || []);
+  const earnedBadges = unitBadgeCatalog.filter((badge) => earned.has(badge.id) || earned.has(badge.name));
+  if (!earnedBadges.length) {
+    const verificationStatus = state.student?.is_guest ? "local_guest" : (result.verification_status || state.verification_mode || "pending_backend");
+    const copy = verificationStatus === "local_guest"
+      ? "guest 測試本次沒有正式取得徽章；正式帳號完成並通過後台確認後才會列入正式累積。"
+      : verificationStatus === "server_verified"
+        ? "本次沒有新增取得的徽章。"
+        : "本次徽章結果待後台確認；尚未列入正式累積。";
+    return `
+      <section class="result-badges">
+        <h3>本次取得徽章</h3>
+        <div class="badge-grid earned-only" data-earned-only="true" data-earned-badge-empty="true">
+          <p class="muted">${copy}</p>
+        </div>
+      </section>
+    `;
+  }
+  return `
+    <section class="result-badges">
+      <h3>本次取得徽章</h3>
+      <div class="badge-grid earned-only" data-earned-only="true">
+        ${earnedBadges.map((badge) => `
+          <div class="badge earned earned-now" data-badge-id="${badge.id}" data-badge-image-hook="${badge.badge_image_path}">
+            <div class="badge-visual ${badge.id === "cell_structure_flawless" ? "gold" : ""}">
+              <img src="${badge.badge_image_path}" alt="${badge.name}">
+            </div>
+            <strong>${badge.name}</strong>
+            <p>${badge.condition}</p>
+          </div>
+        `).join("")}
+      </div>
+    </section>
   `;
 }
 
@@ -2031,23 +2087,6 @@ function aggregateStudent() {
   const totalExp = [...bestByUnit.values()].reduce((sum, value) => sum + value, 0);
   const badges = [...new Set(attempts.flatMap((item) => item.badges || []))];
   return { totalExp, badges, attempts, completedUnits: bestByUnit.size };
-}
-
-function renderBadgeCatalog(earnedBadges) {
-  const earned = new Set(earnedBadges || []);
-  return `
-    <div class="badge-grid">
-      ${unitBadgeCatalog.map((badge) => `
-        <div class="badge ${earned.has(badge.id) || earned.has(badge.name) ? "earned" : "locked"}" data-badge-id="${badge.id}" data-badge-image-hook="${badge.badge_image_path}">
-          <div class="badge-visual ${badge.id === "cell_structure_flawless" ? "gold" : ""}">
-            <img src="${badge.badge_image_path}" alt="${badge.name}">
-          </div>
-          <strong>${badge.name}</strong>
-          <p>${badge.condition}</p>
-        </div>
-      `).join("")}
-    </div>
-  `;
 }
 
 function updateBadgeOverviewBridge() {
@@ -2087,21 +2126,17 @@ function titleForExp(exp) {
 
 function renderAchievements() {
   if (!state.student) return renderLogin();
-  const aggregate = aggregateStudent();
-  const currentResultBadges = state.result?.badges || [];
-  const unitBadges = [...new Set([...aggregate.badges, ...currentResultBadges])];
   return `
     <div class="wide-layout">
-      <div class="panel" data-bq-unit-achievements="true">
-        <p class="eyebrow">本單元成就</p>
-        <h3>細胞工廠的祕密</h3>
-        <p class="muted">本單元可收集的徽章會全部列在這裡，已取得的徽章會以全彩呈現；未取得維持灰階。</p>
-        ${renderBadgeCatalog(unitBadges)}
-      </div>
       <div class="panel bq-all-unit-badge-overview" data-bq-badge-overview="true"></div>
       <div class="panel">
-        <h3>可再挑戰任務</h3>
-        <p>${aggregate.completedUnits || aggregate.attempts.length ? "細胞工廠的祕密" : "完成首次任務後，這裡會出現可再挑戰項目。"}</p>
+        <p class="eyebrow">再挑戰</p>
+        <h3>重新登入後開始新的挑戰</h3>
+        <p>本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。</p>
+        <div class="actions">
+          <button class="secondary" id="achieveResult">返回結算</button>
+          <button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button>
+        </div>
       </div>
     </div>
   `;
@@ -2125,6 +2160,13 @@ function renderRules() {
           ["精熟 EXP", "完整挑戰後表現達成高正確率可獲得。"],
           ["稱號規劃", `稱號採前段較快、後段逐級增加的非線性門檻；全冊理論可累積 ${FULL_BOOK_EXP_MAX.toLocaleString()} EXP，稱號進度以 ${TITLE_PROGRESS_CAP.toLocaleString()} EXP 封頂，達門檻後 EXP 仍照常累積。`]
         ].map(([title, text]) => `<div class="question-row"><strong>${title}</strong><p>${text}</p></div>`).join("")}
+      </div>
+      <div class="panel">
+        <h3>重新開始本單元</h3>
+        <p>${state.submitted_at ? "本次作答已鎖定；如需再挑戰，請重新登入並從登入頁開始。既有正式紀錄不會被刪除。" : "提交後如需再挑戰，請重新登入並從登入頁開始。"}</p>
+        <div class="actions">
+          ${state.submitted_at ? `<button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button>` : ""}
+        </div>
       </div>
     </div>
   `;
@@ -2178,6 +2220,8 @@ function attachCurrentScreen() {
     document.querySelector("#goAchievements").addEventListener("click", () => setScreen("achievements"));
     document.querySelector("#goRules").addEventListener("click", () => setScreen("rules"));
   }
+  if (state.screen === "achievements") document.querySelector("#achieveResult")?.addEventListener("click", () => setScreen("result"));
+  document.querySelectorAll("[data-relogin-action]").forEach((button) => button.addEventListener("click", resetForRelogin));
 }
 
 function render() {
@@ -2224,6 +2268,6 @@ if (typeof window !== "undefined") {
     applyBackendSubmitResponse,
     renderResult,
     renderAchievements,
-    renderBadgeCatalog
+    renderResultBadges
   };
 }
