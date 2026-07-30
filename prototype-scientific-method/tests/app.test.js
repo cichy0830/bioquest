@@ -41,7 +41,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-scientific-method/app.js" });
 
 const api = context.window.__scientificMethodTest;
-assert.equal(api.VERSION, "20260721-scientific-method-server-verified-v1");
+assert.equal(api.VERSION, "20260730-scientific-method-submitted-retry-ia-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-scientific-method-canonical-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert(source.includes("question_version: QUESTION_VERSION"), "backend payload must use QUESTION_VERSION");
@@ -168,6 +168,9 @@ assert.equal(fetchCalls.length, guestCallsBefore, "guest submit must not call ba
 const guestResult = api.renderResult();
 assert(guestResult.includes("guest 測試：本次預估 460/500 EXP，不列入正式累積。"));
 assert(!guestResult.includes("本單元認列 EXP"), "guest result must not use formal credit label");
+assert(guestResult.includes('data-earned-only="true"'), "result must render only earned badges");
+assert(!guestResult.includes('class="badge locked"'), "result must not render locked catalog cards");
+assert(guestResult.includes('data-relogin-action="true"'), "result must expose an in-page relogin action");
 
 api.setState({
   student: { student_id: "S70101", student_name: "測試學生", class_name: "701", seat_no: "01", is_guest: false },
@@ -208,6 +211,30 @@ const final = api.applyBackendSubmitResponse({
 assert.equal(final.verification_status, "server_verified");
 assert.equal(final.attempt_total_exp, 500);
 assert.equal(api.state().student.progress.total_exp, 500);
-assert(api.renderBadgeCatalog(final.badges).includes('class="badge earned"'), "server badge ids must light badge cards");
+assert(api.renderEarnedBadgeCatalog(final.badges, "server_verified").includes('class="badge earned"'), "server badge ids must light earned badge cards");
+
+api.setState({
+  student: { student_id: "S70101", student_name: "測試學生", class_name: "701", seat_no: "01", is_guest: false },
+  answers,
+  result: final,
+  submitted_at: "2026-07-21T00:05:00.000Z",
+  completedScreens: ["login", "result", "achievements", "rules"],
+  attempt_id: "scientific_method_attempt_1",
+  attempt_session_id: "scientific_method_session_1",
+  attempt_session_token: "scientific_method_session_1.nonce"
+});
+localStore.set("bioquest_attempts_v1", JSON.stringify([{ attempt_id: "history_attempt", student: { student_id: "S70101" } }]));
+const achievementsHtml = api.renderAchievements();
+assert(!achievementsHtml.includes("本單元成就"), "achievements must not render a local unit badge wall heading");
+assert(!achievementsHtml.includes("badge-grid-earned"), "achievements must not render a unit badge wall");
+assert(achievementsHtml.includes('data-bq-badge-overview="true"'), "achievements must keep the shared overview slot");
+assert(achievementsHtml.includes('data-relogin-action="true"'), "achievements must expose an in-page relogin action");
+const rulesHtml = api.renderRules();
+assert(rulesHtml.includes('data-relogin-action="true"'), "rules must expose an in-page relogin action after submit");
+api.resetForRelogin();
+assert.equal(api.state().student, null, "resetForRelogin must clear current student");
+assert.equal(api.state().attempt_id, "", "resetForRelogin must clear current attempt");
+assert.equal(api.state().submitted_at, null, "resetForRelogin must clear submitted flag");
+assert.equal(localStore.has("bioquest_attempts_v1"), true, "resetForRelogin must preserve local attempt history");
 
 console.log("prototype-scientific-method app canonical regression passed");
