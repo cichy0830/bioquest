@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260721-lab-intro-server-verified-v1";
+const VERSION = "20260730-lab-intro-submitted-retry-ia-v1";
 const QUESTION_VERSION = "20260720-lab-intro-canonical-v1";
 
 const mission = {
@@ -142,6 +142,19 @@ function normalizeLockedScreen() {
   state.screen = "result";
   unlock("result", "achievements");
   saveState();
+}
+
+function resetForRelogin() {
+  state = {
+    ...structuredClone(defaultState),
+    lockNotice: "請重新登入以開始新的挑戰。"
+  };
+  saveState();
+  if (screen) {
+    render();
+    window.scrollTo({ top: 0, behavior: "auto" });
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
+  }
 }
 
 const apparatusItems = [
@@ -390,7 +403,9 @@ function renderNav() {
 
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    if (!button.disabled) setScreen(button.dataset.nav);
+    if (button.disabled) return;
+    if (state.submitted_at && button.dataset.nav === "login") resetForRelogin();
+    else setScreen(button.dataset.nav);
   });
 });
 
@@ -1725,10 +1740,11 @@ function renderResult() {
           ${expRows.map((item) => `<div class="exp-row ${item.value ? "" : "muted-row"}"><div><strong>${item.title}</strong><span>${item.detail}</span></div><b>+${item.value}</b></div>`).join("")}
         </div>
         <h3>亮起徽章</h3>
-        ${renderBadgeCatalog(result.badges)}
+        ${renderEarnedBadgeCatalog(result.badges)}
         <div class="actions">
           <button class="primary" id="goAchievements">查看我的成就</button>
           <button class="secondary" id="goRules">查看 EXP 規則</button>
+          <button class="secondary" data-relogin-action="true">重新登入／再挑戰</button>
         </div>
       </div>
       ${owlPanel("result", "實驗室任務結算貓頭鷹助理")}
@@ -1772,28 +1788,22 @@ function updateBadgeOverviewBridge() {
   };
 }
 
-function badgeFallbackIcon(badge) {
-  if (badge.id === "lab_intro_flawless") return "★";
-  if (badge.id.includes("retry")) return "↗";
-  if (badge.id.includes("reflector")) return "?";
-  return "◆";
-}
-
-function renderBadgeCatalog(earnedBadges) {
+function renderEarnedBadgeCatalog(earnedBadges, verificationStatus = state.result?.verification_status || state.verification_mode || "") {
   const earned = new Set(earnedBadges || []);
-  return `<div class="badge-grid">${unitBadgeCatalog.map((badge) => {
-    const isEarned = earned.has(badge.name) || earned.has(badge.id);
-    const imageMarkup = badge.badge_image_path
-      ? `<img src="${badge.badge_image_path}" alt="${badge.name}">`
-      : `<span aria-hidden="true">${badgeFallbackIcon(badge)}</span>`;
-    return `
-      <div class="badge ${isEarned ? "earned" : "locked"}" data-badge-id="${badge.id}" data-badge-image-hook="${badge.badge_image_path}">
-        <div class="badge-visual ${badge.id === "lab_intro_flawless" ? "gold" : ""}">${imageMarkup}</div>
+  const earnedBadgesOnly = unitBadgeCatalog.filter((badge) => earned.has(badge.name) || earned.has(badge.id));
+  if (!earnedBadgesOnly.length) {
+    const copy = verificationStatus === "local_guest"
+      ? "guest 測試本次尚未取得可顯示的正式徽章。"
+      : "本次尚未取得可顯示的正式徽章；正式累積以後台確認為準。";
+    return `<p class="muted" data-earned-badge-empty="true">${copy}</p>`;
+  }
+  return `<div class="badge-grid badge-grid-earned" data-earned-only="true">${earnedBadgesOnly.map((badge) => `
+      <div class="badge earned" data-badge-id="${badge.id}" data-badge-image-hook="${badge.badge_image_path}">
+        <div class="badge-visual ${badge.id === "lab_intro_flawless" ? "gold" : ""}"><img src="${badge.badge_image_path}" alt="${badge.name}"></div>
         <strong>${badge.name}</strong>
         <p>${badge.condition}</p>
       </div>
-    `;
-  }).join("")}</div>`;
+    `).join("")}</div>`;
 }
 
 function titleForExp(exp) {
@@ -1876,14 +1886,13 @@ function studentTitleCharacterPath(titleId) {
 
 function renderAchievements() {
   if (!state.student) return renderLogin();
-  const aggregate = aggregateStudent();
-  const unitBadges = [...new Set([...aggregate.badges, ...(state.result?.badges || [])])];
   return `
     <div class="wide-layout">
-      <div class="panel" data-bq-unit-achievements="true">
-        <p class="eyebrow">本單元成就</p>
-        <h3>實驗室安全啟動任務</h3>
-        ${renderBadgeCatalog(unitBadges)}
+      <div class="panel">
+        <p class="eyebrow">再挑戰</p>
+        <h2>重新登入後開始新的挑戰</h2>
+        <p class="muted">本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。</p>
+        <button class="secondary" data-relogin-action="true">重新登入／再挑戰</button>
       </div>
       <div class="panel bq-all-unit-badge-overview" data-bq-badge-overview="true"></div>
     </div>
@@ -1916,6 +1925,7 @@ function renderRules() {
         <p class="eyebrow">EXP 規則</p>
         <h2>零提示全對是最高路徑</h2>
         <p class="lead">提示與再挑戰用來鼓勵修正和進步，但不會比第一次就認真完成、全對且未使用提示更有利。</p>
+        ${state.submitted_at ? `<div class="actions"><button class="secondary" data-relogin-action="true">重新登入／再挑戰</button></div>` : ""}
       </div>
       <div class="panel checkpoint-grid">
         ${rows.map(([title, text]) => `<div class="question-row"><strong>${title}</strong><p>${text}</p></div>`).join("")}
@@ -1945,6 +1955,9 @@ function attachCurrentScreen() {
     document.querySelector("#goAchievements").addEventListener("click", () => setScreen("achievements"));
     document.querySelector("#goRules").addEventListener("click", () => setScreen("rules"));
   }
+  document.querySelectorAll("[data-relogin-action]").forEach((button) => {
+    button.addEventListener("click", resetForRelogin);
+  });
 }
 
 function render() {
@@ -1990,8 +2003,10 @@ if (typeof window !== "undefined") {
     render,
     renderResult,
     renderAchievements,
-    renderBadgeCatalog,
-    updateBadgeOverviewBridge
+    renderEarnedBadgeCatalog,
+    updateBadgeOverviewBridge,
+    resetForRelogin,
+    renderRules
   };
 }
 

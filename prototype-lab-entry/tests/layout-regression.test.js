@@ -170,6 +170,16 @@ for (const [siteLabel, siteRoot] of siteRoots) {
       if (status === "local_guest") assert(resultText.includes("guest 測試：本次預估"), `${siteLabel}/${viewportLabel}: guest result copy missing`);
       if (status === "pending_backend") assert(resultText.includes("待後台確認"), `${siteLabel}/${viewportLabel}: pending result copy missing`);
       if (status === "server_verified") assert(resultText.includes("正式認列完成"), `${siteLabel}/${viewportLabel}: verified result copy missing`);
+      const resultCounts = await page.evaluate(() => ({
+        relogin: document.querySelectorAll("[data-relogin-action]").length,
+        earnedGrid: document.querySelectorAll("[data-earned-only='true']").length,
+        lockedBadges: document.querySelectorAll(".badge.locked").length,
+        badgeCards: document.querySelectorAll("[data-badge-id]").length
+      }));
+      assert(resultCounts.relogin >= 1, `${siteLabel}/${viewportLabel}/${status}: result relogin entry missing`);
+      assert.equal(resultCounts.earnedGrid, 1, `${siteLabel}/${viewportLabel}/${status}: result must use one earned-only badge grid`);
+      assert.equal(resultCounts.lockedBadges, 0, `${siteLabel}/${viewportLabel}/${status}: result must not show locked catalog badges`);
+      if (status === "server_verified") assert.equal(resultCounts.badgeCards, 2, `${siteLabel}/${viewportLabel}/${status}: verified result should show only this attempt's two earned badges`);
 
       await seedScreen(page, "achievements", status);
       await page.waitForFunction(() => document.querySelector("#screen")?.dataset.bioquestScreen === "achievements");
@@ -177,16 +187,21 @@ for (const [siteLabel, siteRoot] of siteRoots) {
         titleAvatar: document.querySelectorAll(".bq-title-avatar-card").length,
         overview: document.querySelectorAll(".bq-all-unit-badge-overview").length,
         summaries: document.querySelectorAll(".bq-unit-badge-summary").length,
-        unitPanelBeforeOverview: (() => {
-          const unit = document.querySelector("[data-bq-unit-achievements]");
-          const overview = document.querySelector(".bq-all-unit-badge-overview");
-          return Boolean(unit && overview && (unit.compareDocumentPosition(overview) & Node.DOCUMENT_POSITION_FOLLOWING));
-        })()
+        unitWall: document.querySelectorAll("[data-bq-unit-achievements]").length,
+        badgeCards: document.querySelectorAll("[data-badge-id]").length,
+        relogin: document.querySelectorAll("[data-relogin-action]").length
       }));
       assert.equal(counts.titleAvatar, 1, `${siteLabel}/${viewportLabel}/${status}: title avatar must be exactly one`);
       assert.equal(counts.overview, 1, `${siteLabel}/${viewportLabel}/${status}: overview must be exactly one`);
       assert.equal(counts.summaries, 52, `${siteLabel}/${viewportLabel}/${status}: expected 52 summary boxes`);
-      assert.equal(counts.unitPanelBeforeOverview, true, `${siteLabel}/${viewportLabel}/${status}: unit achievements must precede overview`);
+      assert.equal(counts.unitWall, 0, `${siteLabel}/${viewportLabel}/${status}: achievements must not render local unit wall`);
+      assert.equal(counts.badgeCards, 0, `${siteLabel}/${viewportLabel}/${status}: achievements must not render unit badge cards`);
+      assert(counts.relogin >= 1, `${siteLabel}/${viewportLabel}/${status}: achievements relogin entry missing`);
+
+      await seedScreen(page, "rules", status);
+      await page.waitForFunction(() => document.querySelector("#screen")?.dataset.bioquestScreen === "rules");
+      const rulesRelogin = await page.evaluate(() => document.querySelectorAll("[data-relogin-action]").length);
+      assert(rulesRelogin >= 1, `${siteLabel}/${viewportLabel}/${status}: rules relogin entry missing`);
     }
 
     await assertNoBrokenRuntime(page, errors, `${siteLabel}/${viewportLabel}/final`);

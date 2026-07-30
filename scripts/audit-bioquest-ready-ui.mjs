@@ -55,7 +55,7 @@ const sharedJsVersionOverrides = new Map([
 const appVersionOverrides = new Map();
 appVersionOverrides.set("life_world", "20260730-life-world-submitted-retry-ia-v1");
 appVersionOverrides.set("scientific_method", "20260730-scientific-method-submitted-retry-ia-v1");
-appVersionOverrides.set("lab_intro", "20260721-lab-intro-server-verified-v1");
+appVersionOverrides.set("lab_intro", "20260730-lab-intro-submitted-retry-ia-v1");
 appVersionOverrides.set("microscope_use", "20260721-microscope-use-server-verified-v1");
 appVersionOverrides.set("cell_basic_unit", "20260721-cell-basic-unit-required-gates-v1");
 appVersionOverrides.set("cell_observation", "20260717-badge-icon-cleanup-v1");

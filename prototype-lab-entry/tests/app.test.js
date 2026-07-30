@@ -41,7 +41,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-lab-entry/app.js" });
 
 const api = context.window.__labIntroTest;
-assert.equal(api.VERSION, "20260721-lab-intro-server-verified-v1");
+assert.equal(api.VERSION, "20260730-lab-intro-submitted-retry-ia-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-lab-intro-canonical-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert(source.includes("question_version: QUESTION_VERSION"), "backend payload must use QUESTION_VERSION");
@@ -204,6 +204,54 @@ const final = api.applyBackendSubmitResponse({
 assert.equal(final.verification_status, "server_verified");
 assert.equal(final.attempt_total_exp, 500);
 assert.equal(api.state().student.progress.total_exp, 500);
-assert(api.renderBadgeCatalog(final.badges).includes('class="badge earned"'), "server badge ids must light badge cards");
+api.setState({
+  student: {
+    student_id: "S70101",
+    student_name: "測試學生",
+    class_name: "701",
+    seat_no: "01",
+    is_guest: false,
+    progress: {
+      source: "server_verified",
+      progress_applied: true,
+      total_exp: 500,
+      completed_unit_count: 1,
+      current_title_id: "life_observer",
+      current_title: "生命觀察員",
+      title_avatar_path: ["shared-assets", "title-avatars/title-02-life_observer-male.webp"].join("/")
+    }
+  },
+  answers,
+  result: final,
+  submitted_at: "2026-07-21T00:06:00.000Z",
+  attempt_id: "lab_intro_attempt_1",
+  attempt_session_id: "lab_intro_session_1",
+  attempt_session_token: "lab_intro_session_1.nonce",
+  previous_attempt_id: "",
+  verification_mode: "server_verified",
+  completedScreens: ["login", "rules", "result", "achievements"]
+});
+const earnedMarkup = api.renderEarnedBadgeCatalog(final.badges, "server_verified");
+assert(earnedMarkup.includes('data-earned-only="true"'), "earned badge section must be marked earned-only");
+assert(earnedMarkup.includes('data-badge-id="lab_intro_entry"'), "earned entry badge must render");
+assert(earnedMarkup.includes('data-badge-id="lab_intro_flawless"'), "earned flawless badge must render");
+assert(!earnedMarkup.includes('data-badge-id="equipment_function_identifier"'), "unearned catalog badge must not render in earned-only result");
+assert(!earnedMarkup.includes("locked"), "earned-only result must not include locked badge cards");
+const resultMarkup = api.renderResult();
+assert(resultMarkup.includes('data-earned-only="true"'), "result must render earned-only badge grid");
+assert(resultMarkup.includes('data-relogin-action="true"'), "result must provide a relogin/retry entry");
+const achievementsMarkup = api.renderAchievements();
+assert(achievementsMarkup.includes('data-bq-badge-overview="true"'), "achievements must include the shared 52-grid overview slot");
+assert(!achievementsMarkup.includes("data-bq-unit-achievements"), "achievements must not render a local unit badge wall");
+assert(achievementsMarkup.includes('data-relogin-action="true"'), "achievements must provide a relogin/retry entry");
+const rulesMarkup = api.renderRules();
+assert(rulesMarkup.includes('data-relogin-action="true"'), "rules must provide a relogin/retry entry after submit");
+localStore.set("bioquest_attempts_v1", JSON.stringify([{ attempt_id: "history_keep", student: { student_id: "S70101" }, mission: api.mission, completion_status: "complete", badges: ["lab_intro_entry"], total_exp: 500 }]));
+api.resetForRelogin();
+assert.equal(api.state().student, null, "resetForRelogin must clear current student");
+assert.equal(api.state().attempt_id, "", "resetForRelogin must clear current attempt id");
+assert.equal(api.state().attempt_session_token, "", "resetForRelogin must clear current session token");
+assert.equal(api.state().submitted_at, null, "resetForRelogin must clear submitted status");
+assert.equal(JSON.parse(localStore.get("bioquest_attempts_v1")).length, 1, "resetForRelogin must preserve attempt history");
 
 console.log("prototype-lab-entry app canonical regression passed");
