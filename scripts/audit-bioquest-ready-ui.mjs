@@ -49,8 +49,11 @@ const backendConfigVersion = "20260713-backend-endpoint-v1";
 const appCacheVersion = "20260715-badge-overview-v2";
 const sharedTitleProgressVersion = "20260721-title-avatar-webp-v1";
 const sharedLayoutVersion = "20260723-achievements-title-overview-v1";
+const sharedJsVersionOverrides = new Map([
+  ["life_world", "20260730-achievements-overview-copy-v1"]
+]);
 const appVersionOverrides = new Map();
-appVersionOverrides.set("life_world", "20260720-life-world-server-verified-v1");
+appVersionOverrides.set("life_world", "20260730-life-world-submitted-retry-ia-v1");
 appVersionOverrides.set("scientific_method", "20260721-scientific-method-server-verified-v1");
 appVersionOverrides.set("lab_intro", "20260721-lab-intro-server-verified-v1");
 appVersionOverrides.set("microscope_use", "20260721-microscope-use-server-verified-v1");
@@ -183,7 +186,7 @@ const audit = units.map(([unitId, folder]) => {
   const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
   const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
   const expectedAppVersion = appVersionOverrides.get(unitId) || appCacheVersion;
-  const expectedSharedJsVersion = sharedLayoutVersion;
+  const expectedSharedJsVersion = sharedJsVersionOverrides.get(unitId) || sharedLayoutVersion;
   const expectedSharedCssVersion = sharedLayoutVersion;
   for (const marker of [
     `data-unit-id="${unitId}"`,

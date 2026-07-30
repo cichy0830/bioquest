@@ -227,7 +227,7 @@
     const progress = progressFromState(state);
     const { units, status } = normalizeUnitBadgeSummary(progress, state);
     const note = status === "verified"
-      ? "以下只列入後台 verified 的正式累積徽章；未取得徽章與條件請看本單元成就。"
+      ? "以下只列入後台 verified 的正式累積徽章；本頁不重複本單元徽章牆。"
       : status === "guest"
         ? "guest 測試不列入正式累積徽章；正式帳號登入並完成後台同步後才會更新。"
         : "等待後台回傳 unit_badge_summary_json；pending 或本機候選徽章不列入正式總覽。";

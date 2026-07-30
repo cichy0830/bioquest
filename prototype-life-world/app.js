@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260720-life-world-server-verified-v1";
+const VERSION = "20260730-life-world-submitted-retry-ia-v1";
 const QUESTION_VERSION = "20260720-life-world-canonical-v1";
 
 const mission = {
@@ -139,6 +139,17 @@ function normalizeLockedScreen() {
   saveState();
 }
 
+function resetForRelogin() {
+  state = structuredClone(defaultState);
+  state.lockNotice = "請重新登入以開始新的挑戰。";
+  saveState();
+  if (screen) render();
+  if (typeof window !== "undefined" && typeof window.scrollTo === "function") {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    window.requestAnimationFrame?.(() => window.scrollTo({ top: 0, left: 0, behavior: "auto" }));
+  }
+}
+
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey));
@@ -260,7 +271,9 @@ function renderNav() {
 
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    if (!button.disabled) setScreen(button.dataset.nav);
+    if (button.disabled) return;
+    if (state.submitted_at && button.dataset.nav === "login") resetForRelogin();
+    else setScreen(button.dataset.nav);
   });
 });
 
@@ -376,7 +389,7 @@ function renderLogin() {
           <button class="secondary" id="guestButton">老師測試 guest</button>
           <button class="ghost" id="resetButton">清除本機測試紀錄</button>
         </div>
-        <div id="loginMessage" class="status-line"></div>
+        <div id="loginMessage" class="status-line">${state.lockNotice ? `<span class="pill">${state.lockNotice}</span>` : ""}</div>
       </div>
     </div>
   `;
@@ -1641,11 +1654,12 @@ function renderResult() {
         <div class="exp-ledger">
           ${expRows.map((item) => `<div class="exp-row ${item.value ? "" : "muted-row"}"><div><strong>${item.title}</strong><span>${item.detail}</span></div><b>+${item.value}</b></div>`).join("")}
         </div>
-        <h3>取得徽章</h3>
-        ${renderBadgeCatalog(result.badges)}
+        <h3>本次取得徽章</h3>
+        ${renderEarnedBadgeCatalog(result.badges, verificationStatus)}
         <div class="actions">
           <button class="primary" id="goAchievements">查看我的成就</button>
           <button class="secondary" id="goRules">查看 EXP 規則</button>
+          <button class="secondary" data-relogin-action="true">重新登入／再挑戰</button>
         </div>
       </div>
       <div class="owl-frame"><img src="assets/owl-life-result.webp" alt="任務結算貓頭鷹助理"></div>
@@ -1689,28 +1703,24 @@ function updateBadgeOverviewBridge() {
   };
 }
 
-function badgeFallbackIcon(badge) {
-  if (badge.id === "life_signal_flawless") return "★";
-  if (badge.id.includes("retry")) return "↗";
-  if (badge.id.includes("reviser")) return "✓";
-  return "◆";
-}
-
-function renderBadgeCatalog(earnedBadges) {
+function renderEarnedBadgeCatalog(earnedBadges, verificationStatus = "") {
   const earned = new Set(earnedBadges || []);
-  return `<div class="badge-grid">${unitBadgeCatalog.map((badge) => {
-    const isEarned = earned.has(badge.name) || earned.has(badge.id);
-    const imageMarkup = badge.badge_image_path
-      ? `<img src="${badge.badge_image_path}" alt="${badge.name}">`
-      : `<span aria-hidden="true">${badgeFallbackIcon(badge)}</span>`;
-    return `
-      <div class="badge ${isEarned ? "earned" : "locked"}" data-badge-id="${badge.id}" data-badge-image-hook="${badge.badge_image_path}">
-        <div class="badge-visual ${badge.id === "life_signal_flawless" ? "gold" : ""}">${imageMarkup}</div>
-        <strong>${badge.name}</strong>
-        <p>${badge.condition}</p>
-      </div>
-    `;
-  }).join("")}</div>`;
+  const earnedBadgesOnly = unitBadgeCatalog.filter((badge) => earned.has(badge.name) || earned.has(badge.id));
+  if (!earnedBadgesOnly.length) {
+    return `<p class="muted" data-earned-badge-empty="true">本次尚未取得可顯示的正式徽章；正式累積以後台確認為準。</p>`;
+  }
+  const statusText = state.student?.is_guest || verificationStatus === "local_guest"
+    ? "guest 測試徽章，不列入正式累積"
+    : verificationStatus === "server_verified"
+      ? "本次正式取得"
+      : "本次可能取得，待後台確認";
+  return `<div class="badge-grid badge-grid-earned" data-earned-only="true">${earnedBadgesOnly.map((badge) => `
+    <div class="badge earned" data-badge-id="${badge.id}" data-badge-image-hook="${badge.badge_image_path}">
+      <div class="badge-visual ${badge.id === "life_signal_flawless" ? "gold" : ""}"><img src="${badge.badge_image_path}" alt="${badge.name}"></div>
+      <strong>${badge.name}</strong>
+      <p>${statusText}</p>
+    </div>
+  `).join("")}</div>`;
 }
 
 function titleForExp(exp) {
@@ -1793,39 +1803,13 @@ function studentTitleCharacterPath(titleId) {
 
 function renderAchievements() {
   if (!state.student) return renderLogin();
-  const aggregate = aggregateStudent();
-  const remoteTotal = Number(state.student?.progress?.total_exp ?? state.student?.total_exp ?? NaN);
-  const totalExp = Number.isFinite(remoteTotal) ? remoteTotal : aggregate.totalExp;
-  const title = titleForExp(totalExp);
-  const progress = titleProgressRules?.progressPercent(totalExp) ?? Math.min(100, (totalExp / TITLE_PROGRESS_CAP) * 100);
-  const unitBadges = [...new Set([...aggregate.badges, ...(state.result?.badges || [])])];
   return `
-    <div class="wide-layout">
+    <div class="wide-layout achievements-stack" data-bq-achievements-overview-only="true">
       <div class="panel">
-        <p class="eyebrow">累積成就</p>
-        <h2>${state.student.student_name}</h2>
-        <p class="lead">${state.student.class_name} 班 ${state.student.seat_no} 號｜目前稱號：${title.current}</p>
-        <div class="student-title-card" data-student-gender="${studentGenderKey()}" data-current-title-id="${title.id}" data-title-character-hook="${studentTitleCharacterPath(title.id)}">
-          <div class="student-character"><img src="${studentTitleCharacterPath(title.id)}" alt="${title.current}稱號角色"></div>
-          <div>
-            <span>稱號角色</span>
-            <strong>${title.current}</strong>
-            <p>依登入資料與目前稱號顯示；缺少性別或稱號資料時使用穩定預設角色。</p>
-          </div>
-        </div>
-        <div class="score-grid">
-          <div class="score-box"><span>累積認列 EXP</span><strong>${totalExp}</strong></div>
-          <div class="score-box"><span>亮起徽章</span><strong>${aggregate.badges.length}</strong></div>
-          <div class="score-box"><span>已認列單元</span><strong>${aggregate.completedUnits}</strong></div>
-        </div>
-        <h3>下一稱號：${title.next}${title.remaining ? `｜還差 ${title.remaining} EXP` : ""}</h3>
-        <div class="progress-bar"><div class="progress-fill" style="width:${progress}%"></div></div>
-        <p class="muted">稱號進度 ${totalExp >= TITLE_PROGRESS_CAP ? 100 : Math.floor(progress * 10) / 10}%｜稱號進度以 ${TITLE_PROGRESS_CAP.toLocaleString()} EXP 封頂；全冊理論仍可累積 ${FULL_BOOK_EXP_MAX.toLocaleString()} EXP，達最高稱號後 EXP 繼續累積。</p>
-      </div>
-      <div class="panel">
-        <p class="eyebrow">本單元成就</p>
-        <h3>生命訊號偵測任務</h3>
-        ${renderBadgeCatalog(unitBadges)}
+        <p class="eyebrow">再挑戰</p>
+        <h2>重新登入後開始新的挑戰</h2>
+        <p class="muted">本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。</p>
+        <button class="secondary" data-relogin-action="true">重新登入／再挑戰</button>
       </div>
       <div class="panel bq-all-unit-badge-overview" data-bq-badge-overview="true"></div>
     </div>
@@ -1858,6 +1842,7 @@ function renderRules() {
         <p class="eyebrow">EXP 規則</p>
         <h2>零提示全對是最高路徑</h2>
         <p class="lead">提示與再挑戰用來鼓勵修正和進步，但不會比第一次就認真完成、全對且未使用提示更有利。</p>
+        ${state.submitted_at ? `<div class="actions"><button class="secondary" data-relogin-action="true">重新登入／再挑戰</button></div>` : ""}
       </div>
       <div class="panel checkpoint-grid">
         ${rows.map(([title, text]) => `<div class="question-row"><strong>${title}</strong><p>${text}</p></div>`).join("")}
@@ -1873,6 +1858,9 @@ function renderRules() {
 }
 
 function attachCurrentScreen() {
+  document.querySelectorAll("[data-relogin-action]").forEach((button) => {
+    button.addEventListener("click", resetForRelogin);
+  });
   if (state.screen === "login") attachLogin();
   if (state.screen === "brief") document.querySelector("#briefNext").addEventListener("click", () => { unlock("scan"); setScreen("scan"); });
   if (state.screen === "scan") document.querySelector("#scanNext").addEventListener("click", () => { unlock("checkpoint1"); setScreen("checkpoint1"); });
@@ -1930,7 +1918,9 @@ if (typeof window !== "undefined") {
     applyBackendSubmitResponse,
     renderResult,
     renderAchievements,
-    renderBadgeCatalog
+    renderEarnedBadgeCatalog,
+    renderRules,
+    resetForRelogin
   };
 }
 

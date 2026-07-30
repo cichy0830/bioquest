@@ -10,6 +10,9 @@ const portal = fs.readFileSync(portalPath, "utf8");
 const start = portal.indexOf("const units = [");
 const end = portal.indexOf("\n\nconst statusText", start);
 const sharedLayoutVersion = "20260723-achievements-title-overview-v1";
+const sharedJsVersionOverrides = new Map([
+  ["prototype-life-world", "20260730-achievements-overview-copy-v1"]
+]);
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -40,7 +43,8 @@ for (const unit of readyUnits) {
   assert(index.includes(`data-unit-sequence="${unit.sequence}"`), `${folder} sequence missing or mismatched`);
   assert(index.includes(`data-unit-title="${unit.title}"`), `${folder} formal title missing or mismatched`);
   assert(index.includes(`bioquest-character-layout.css?v=${sharedLayoutVersion}`), `${folder} shared CSS cache bust missing`);
-  assert(index.includes(`bioquest-character-layout.js?v=${sharedLayoutVersion}`), `${folder} shared JS cache bust missing`);
+  const expectedSharedJsVersion = sharedJsVersionOverrides.get(folder) || sharedLayoutVersion;
+  assert(index.includes(`bioquest-character-layout.js?v=${expectedSharedJsVersion}`), `${folder} shared JS cache bust missing`);
   assert(!/\b1-\d\b/.test(index), `${folder} must not contain chapter numbering`);
 }
 

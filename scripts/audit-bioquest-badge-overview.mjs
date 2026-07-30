@@ -8,6 +8,9 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const version = "20260723-achievements-title-overview-v1";
 const sharedLayoutVersion = "20260723-achievements-title-overview-v1";
+const sharedJsVersionOverrides = new Map([
+  ["prototype-life-world", "20260730-achievements-overview-copy-v1"]
+]);
 const readyUnits = [
   "prototype-life-world",
   "prototype-scientific-method",
@@ -72,7 +75,8 @@ for (const folder of readyUnits) {
   const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
   const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
   assert(index.includes(`bioquest-character-layout.css?v=${sharedLayoutVersion}`), `${folder}: shared CSS cache not updated`);
-  assert(index.includes(`bioquest-character-layout.js?v=${sharedLayoutVersion}`), `${folder}: shared JS cache not updated`);
+  const expectedSharedJsVersion = sharedJsVersionOverrides.get(folder) || sharedLayoutVersion;
+  assert(index.includes(`bioquest-character-layout.js?v=${expectedSharedJsVersion}`), `${folder}: shared JS cache not updated`);
   assert(!app.includes("aggregate.badges.map"), `${folder}: legacy whole-book badge renderer still expands aggregate.badges`);
   assert(!app.includes("目前沒有亮起的徽章"), `${folder}: legacy whole-book empty text remains`);
   assert(!app.includes("已收集</span><strong>${badge}"), `${folder}: legacy collected badge text remains`);

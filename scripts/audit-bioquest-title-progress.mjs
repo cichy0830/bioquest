@@ -8,6 +8,9 @@ const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const root = path.resolve(process.argv[2] || defaultRoot);
 const titleProgressVersion = "20260721-title-avatar-webp-v1";
 const sharedLayoutVersion = "20260723-achievements-title-overview-v1";
+const sharedJsVersionOverrides = new Map([
+  ["prototype-life-world", "20260730-achievements-overview-copy-v1"]
+]);
 const portal = fs.readFileSync(path.join(root, "portal.js"), "utf8");
 const start = portal.indexOf("const units = [");
 const end = portal.indexOf("\n\nconst statusText", start);
@@ -25,7 +28,8 @@ for (const unit of readyUnits) {
   const folder = unit.url.split("/")[0];
   const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
   const titleToken = `bioquest-title-progress.js?v=${titleProgressVersion}`;
-  const layoutToken = `bioquest-character-layout.js?v=${sharedLayoutVersion}`;
+  const expectedSharedJsVersion = sharedJsVersionOverrides.get(folder) || sharedLayoutVersion;
+  const layoutToken = `bioquest-character-layout.js?v=${expectedSharedJsVersion}`;
   assert(index.includes(titleToken), `${folder}: title progress loader missing`);
   assert(index.includes(`bioquest-character-layout.css?v=${sharedLayoutVersion}`), `${folder}: shared layout CSS cache mismatch`);
   assert(index.includes(layoutToken), `${folder}: shared layout JS cache mismatch`);

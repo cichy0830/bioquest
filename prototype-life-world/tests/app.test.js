@@ -37,7 +37,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-life-world/app.js" });
 
 const api = context.window.__lifeWorldTest;
-assert.equal(api.VERSION, "20260720-life-world-server-verified-v1");
+assert.equal(api.VERSION, "20260730-life-world-submitted-retry-ia-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-life-world-canonical-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert(source.includes("question_version: QUESTION_VERSION"), "backend payload must use QUESTION_VERSION");
@@ -189,6 +189,48 @@ const final = api.applyBackendSubmitResponse({
 assert.equal(final.verification_status, "server_verified");
 assert.equal(final.attempt_total_exp, 500);
 assert.equal(api.state().student.progress.total_exp, 500);
-assert(api.renderBadgeCatalog(final.badges).includes('class="badge earned"'), "server badge ids must light badge cards");
+api.setState({
+  student: {
+    student_id: "S70101",
+    student_name: "測試學生",
+    class_name: "701",
+    seat_no: "01",
+    is_guest: false,
+    progress: {
+      total_exp: 500,
+      completed_unit_count: 1,
+      current_title_id: "life_observer",
+      current_title: "生命觀察員",
+      title_avatar_path: "shared-assets/title-avatars/title-02-life_observer-male.webp"
+    }
+  },
+  answers,
+  result: final,
+  submitted_at: "2026-07-20T00:05:00.000Z",
+  completedScreens: ["login", "result", "achievements", "rules"]
+});
+const resultHtml = api.renderResult();
+assert.equal((resultHtml.match(/class="badge earned"/g) || []).length, 2, "result must render only earned badge cards");
+assert.equal((resultHtml.match(/class="badge locked"/g) || []).length, 0, "result must not render locked catalog cards");
+assert(resultHtml.includes('data-earned-only="true"'), "result badge grid must be earned-only");
+assert(resultHtml.includes('data-relogin-action="true"'), "result must expose an in-page relogin action");
+
+const achievementsHtml = api.renderAchievements();
+assert(achievementsHtml.includes('data-bq-achievements-overview-only="true"'), "achievements must use overview-only contract");
+assert(achievementsHtml.includes('data-bq-badge-overview="true"'), "achievements must keep exactly one overview placeholder for shared enhancer");
+assert(!achievementsHtml.includes("本單元成就"), "achievements must not render a local unit badge wall heading");
+assert(!achievementsHtml.includes("badge-grid"), "achievements must not render local badge cards");
+assert(achievementsHtml.includes('data-relogin-action="true"'), "achievements must expose an in-page relogin action");
+
+const rulesHtml = api.renderRules();
+assert(rulesHtml.includes('data-relogin-action="true"'), "rules must expose an in-page relogin action after submit");
+
+localStore.set("bioquest_attempts_v1", JSON.stringify([{ attempt_id: "history_seed", mission: api.mission, student: { student_id: "S70101" } }]));
+api.resetForRelogin();
+assert.equal(api.state().screen, "login");
+assert.equal(api.state().student, null);
+assert.equal(api.state().result, null);
+assert.equal(api.state().submitted_at, null);
+assert.equal(JSON.parse(localStore.get("bioquest_attempts_v1")).length, 1, "reset must preserve attempt history");
 
 console.log("prototype-life-world app canonical regression passed");
