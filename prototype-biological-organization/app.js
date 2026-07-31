@@ -3,7 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260716-biological-organization-canonical-v1";
+const VERSION = "20260731-biological-organization-submitted-retry-ia-v1";
+const QUESTION_VERSION = "20260716-biological-organization-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -35,7 +36,7 @@ const assets = {
   animalPlantCompare: "assets/biological-organization-animal-plant-compare.webp"
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/biological_organization/badge-biological_organization-${id}.webp`;
+const badgeAsset = (id) => `../shared-assets/badges/biological_organization/badge-biological_organization-${id}.webp?v=${VERSION}`;
 const reflectionRules = {
   conceptTerms: ["細胞", "組織", "器官", "器官系統", "個體", "單細胞", "多細胞", "營養器官", "生殖器官", "根", "莖", "葉", "花", "果實", "種子"],
   irrelevantTerms: ["老師好帥", "帥", "午餐", "下課", "遊戲", "天氣", "好笑"],
@@ -229,7 +230,7 @@ const defaultState = {
   attempt_id: "",
   attempt_session_id: "",
   attempt_session_token: "",
-  question_version: VERSION,
+  question_version: QUESTION_VERSION,
   session_expires_at: "",
   remote_completed_attempts: 0,
   remote_previous_attempt_id: "",
@@ -407,6 +408,12 @@ function redirectLockedAttempt() {
   render();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+function resetForRelogin() {
+  state = clone(defaultState);
+  saveState();
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 function setScreen(next) {
   if (isLockedScreen(next)) return redirectLockedAttempt();
   if (next !== "result") state.lockNotice = "";
@@ -418,6 +425,10 @@ function setScreen(next) {
 }
 
 navButtons.forEach((button) => button.addEventListener("click", () => {
+  if (button.dataset.nav === "login" && state.submitted_at) {
+    resetForRelogin();
+    return;
+  }
   if (!button.disabled) setScreen(button.dataset.nav);
 }));
 
@@ -425,7 +436,8 @@ function renderNav() {
   navButtons.forEach((button) => {
     const key = button.dataset.nav;
     button.classList.toggle("active", key === state.screen);
-    button.disabled = !state.completedScreens.includes(key) && key !== "rules";
+    const submittedLocked = Boolean(state.submitted_at && LOCKED_SCREENS_AFTER_SUBMIT.has(key));
+    button.disabled = submittedLocked || (!state.completedScreens.includes(key) && key !== "rules");
   });
 }
 function renderStudentMini() {
@@ -486,7 +498,7 @@ function validServerSession(session) {
     && session.attempt_id
     && session.attempt_session_id
     && session.attempt_session_token
-    && session.question_version === VERSION;
+    && session.question_version === QUESTION_VERSION;
 }
 function normalizeBackendStudent(data, id) {
   if (!data?.ok) return null;
@@ -522,7 +534,7 @@ async function login(id) {
     state.attempt_id = `guest_${mission.unit_id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     state.attempt_session_id = state.attempt_id;
     state.attempt_session_token = "guest_local_session";
-    state.question_version = VERSION;
+    state.question_version = QUESTION_VERSION;
     state.backend_status = "local_guest";
     unlock("brief", "rules", "achievements");
     ensureSequence();
@@ -1005,7 +1017,7 @@ function buildAttempt() {
     attempt_no: Number(state.remote_completed_attempts || 0) + 1,
     attempt_session_id: state.attempt_session_id,
     attempt_session_token: state.attempt_session_token,
-    question_version: state.question_version || VERSION,
+    question_version: state.question_version || QUESTION_VERSION,
     started_from_login: true,
     previous_attempt_id: previousAttemptId(),
     retry_validation_status: state.attempt_type === "retry" ? "pending_backend_validation" : "not_retry",
@@ -1186,6 +1198,18 @@ function resultStatusNotice(result) {
   }
   return `<div class="feedback good">本次任務已提交，作答結果已鎖定；後台已回傳正式認列資料。</div>`;
 }
+function renderResultBadges(result) {
+  const status = submissionStatus();
+  const earned = new Set(result.badges || []);
+  const label = status === "verified" ? "本次正式取得徽章" : status === "guest" ? "本次 guest 測試取得徽章" : "本次待後台確認徽章";
+  const note = status === "verified"
+    ? "以下只列本次挑戰實際取得的徽章。"
+    : status === "guest"
+      ? "guest 測試徽章不列入正式累積。"
+      : "待後台確認前，以下只作本次提交預覽。";
+  const cards = badges.filter((badge) => earned.has(badge.id)).map((badge) => `<div class="badge-card lit ${badge.id === "biological_organization_flawless" ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><span class="pill">${status === "verified" ? "本次取得" : status === "guest" ? "guest 測試" : "待確認"}</span></div>`).join("");
+  return `<section class="story-panel result-badges" data-result-earned-only="true"><strong>${label}</strong><p class="muted">${note}</p><div class="badge-grid">${cards || "<span class=\"muted\">本次尚未取得新徽章。</span>"}</div></section>`;
+}
 
 function renderResult() {
   const result = state.result || calculateResult();
@@ -1205,35 +1229,11 @@ function renderResult() {
       <div class="story-panel"><strong>${status === "verified" ? "本次與正式累積差異" : "本次預估狀態"}</strong><p>${recognitionCopy}</p></div>
       <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">${status === "verified" ? `後台正式認列 ${result.question_exp} EXP。` : `前台候選 ${result.question_exp_candidate || 0} EXP，待後台重算。`}</p></div>
     </div>
-    <div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
+    ${renderResultBadges(result)}
+    <div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button><button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button></div></div></div>`;
 }
 function renderAchievements() {
-  const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : [];
-  const status = submissionStatus();
-  const guest = status === "guest";
-  const pending = status === "pending";
-  const litIds = cumulativeBadgeIds(currentBadges);
-  const estimatedExp = Math.min((state.result || calculateResult()).attempt_total_exp || 0, UNIT_EXP_CAP);
-  const badgeLabel = guest ? "本次測試徽章" : pending ? "本次待確認徽章" : "正式累積徽章";
-  const badgeCount = guest || pending ? currentBadges.length : litIds.length;
-  const expLabel = guest || pending ? "本次預估 EXP" : "正式累積 EXP";
-  const expValue = guest || pending ? `${estimatedExp}/${UNIT_EXP_CAP}` : `${state.cumulative_total_exp || 0}`;
-  const unitLabel = guest ? "累積狀態" : pending ? "後台狀態" : "已完成單元";
-  const unitValue = guest ? "不列入正式累積" : pending ? "待後台確認" : `${state.completed_unit_count || 0}`;
-  const syncNote = guest
-    ? `guest 測試：本次預估 ${estimatedExp}/${UNIT_EXP_CAP} EXP，不列入正式累積；徽章亮燈僅供老師測試畫面。`
-    : pending
-      ? `本次預估 ${estimatedExp}/${UNIT_EXP_CAP} EXP，待後台確認；徽章亮燈先顯示本次作答預覽。`
-      : "";
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>生命階層徽章牆</h2>
-    ${guest || pending ? `<div class="feedback warn">${syncNote}</div>` : ""}
-    <div class="score-grid"><div class="score-box"><span>${badgeLabel}</span><strong>${badgeCount}</strong></div><div class="score-box"><span>${expLabel}</span><strong>${expValue}</strong></div><div class="score-box"><span>${unitLabel}</span><strong>${unitValue}</strong></div></div>
-    <div class="badge-grid">${badges.map((badge) => {
-      const lit = litIds.includes(badge.id);
-      const gold = badge.id === "biological_organization_flawless";
-      const pendingBadge = pending && lit && !state.cumulative_badges.includes(badge.id);
-      return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><strong>${badge.name}</strong>${pendingBadge ? `<span class="pill warn">待同步</span>` : ""}<p class="muted">${badge.condition}</p></div>`;
-    }).join("")}</div><p class="muted">${status === "verified" ? "正式亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。" : "目前只顯示本次作答預覽；正式徽章需等待後台確認。"}</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
+  return `<div class="wide-layout achievements-stack" data-bq-achievements-overview-only="true"><div class="panel"><p class="eyebrow">${state.submitted_at ? "再挑戰" : "目前進度"}</p><h2>${state.submitted_at ? "重新登入後開始新的挑戰" : "目前稱號與全冊徽章總覽"}</h2><p class="muted">${state.submitted_at ? "本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。" : "這裡只顯示正式稱號進度與全冊徽章總覽；本單元徽章改在結算頁呈現本次實得。"}</p><div class="actions"><button class="secondary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button>${state.submitted_at ? `<button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button>` : ""}</div></div><div class="panel bq-all-unit-badge-overview" data-bq-badge-overview="true"></div></div>`;
 }
 function renderRules() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2>
@@ -1243,7 +1243,7 @@ function renderRules() {
       <div class="story-panel"><strong>提示後修正</strong><p>每題第一次錯選會出現一次提示；提示後修正仍有 EXP，但低於直接答對。</p></div>
       <div class="story-panel"><strong>再挑戰</strong><p>提交後本次作答鎖定。若要再挑戰，請重新登入並從頭完成整份任務。</p></div>
     </div>
-    <div class="actions"><button class="primary" id="rulesBack">回到任務</button></div></div></div>`;
+    <div class="actions"><button class="primary" id="rulesBack">回到任務</button>${state.submitted_at ? `<button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button>` : ""}</div></div></div>`;
 }
 
 function attachEvents() {
@@ -1259,6 +1259,7 @@ function attachEvents() {
   }
   if (state.screen === "achievements") document.querySelector("#achieveResult").addEventListener("click", () => setScreen(state.submitted_at ? "result" : "brief"));
   if (state.screen === "rules") document.querySelector("#rulesBack").addEventListener("click", () => setScreen(state.student ? (state.submitted_at ? "result" : "brief") : "login"));
+  document.querySelectorAll("[data-relogin-action='true']").forEach((button) => button.addEventListener("click", resetForRelogin));
 }
 function render() {
   if (state.submitted_at && LOCKED_SCREENS_AFTER_SUBMIT.has(state.screen)) state.screen = "result";
@@ -1285,3 +1286,9 @@ function render() {
 }
 
 render();
+
+window.__biologicalOrganizationTest = {
+  getState: () => clone(state),
+  state: () => clone(state),
+  resetForRelogin
+};

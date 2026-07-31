@@ -58,7 +58,7 @@ appVersionOverrides.set("scientific_method", "20260730-scientific-method-submitt
 appVersionOverrides.set("lab_intro", "20260730-lab-intro-submitted-retry-ia-v1");
 appVersionOverrides.set("microscope_use", "20260730-microscope-use-submitted-retry-ia-v1");
 appVersionOverrides.set("cell_basic_unit", "20260731-cell-basic-unit-submitted-retry-ia-v1");
-appVersionOverrides.set("cell_observation", "20260717-badge-icon-cleanup-v1");
+appVersionOverrides.set("cell_observation", "20260731-cell-observation-submitted-retry-ia-v1");
 appVersionOverrides.set("cell_structure", "20260731-cell-structure-submitted-retry-ia-v1");
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
@@ -68,8 +68,8 @@ appVersionOverrides.set("nutrient_test", "20260721-nutrient-test-brief-ratio-v1"
 appVersionOverrides.set("scale", "20260717-scale-user-review-v2");
 appVersionOverrides.set("nutrients_energy", "20260721-nutrients-energy-q11-inactive-cache-v1");
 appVersionOverrides.set("photosynthesis", "20260721-photosynthesis-q09-inactive-cache-v1");
-appVersionOverrides.set("biological_organization", "20260717-badge-icon-cleanup-v1");
-appVersionOverrides.set("cell_transport", "20260721-cell-transport-q07-inactive-cache-v1");
+appVersionOverrides.set("biological_organization", "20260731-biological-organization-submitted-retry-ia-v1");
+appVersionOverrides.set("cell_transport", "20260731-cell-transport-submitted-retry-ia-v1");
 appVersionOverrides.set("plant_material_transport", "20260727-plant-material-transport-badges-c-v1");
 appVersionOverrides.set("human_nutrition", "20260723-human-nutrition-approved-visuals-v1");
 appVersionOverrides.set("plant_transport_structures", "20260727-plant-transport-structures-relogin-v1");
@@ -210,7 +210,7 @@ const audit = units.map(([unitId, folder]) => {
     assert(index.includes("styles.css?v=20260731-cell-structure-submitted-retry-ia-v1"), "cell_structure style cache bust missing");
   }
   if (unitId === "cell_observation") {
-    assert(index.includes("styles.css?v=20260717-badge-icon-cleanup-v1"), "cell_observation style cache bust missing");
+    assert(index.includes("styles.css?v=20260731-cell-observation-submitted-retry-ia-v1"), "cell_observation style cache bust missing");
   }
   for (const functionName of ["renderLogin", "renderReview", "renderReflection", "renderResult", "renderAchievements"]) {
     assert(app.includes(`function ${functionName}(`), `${unitId} missing ${functionName}`);
