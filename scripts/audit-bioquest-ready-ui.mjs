@@ -65,7 +65,7 @@ appVersionOverrides.set("cell_structure", "20260731-cell-structure-submitted-ret
 });
 appVersionOverrides.set("enzymes", "20260720-enzymes-user-review-v2");
 appVersionOverrides.set("nutrient_test", "20260721-nutrient-test-brief-ratio-v1");
-appVersionOverrides.set("scale", "20260717-scale-user-review-v2");
+appVersionOverrides.set("scale", "20260731-scale-submitted-retry-ia-v1");
 appVersionOverrides.set("nutrients_energy", "20260721-nutrients-energy-q11-inactive-cache-v1");
 appVersionOverrides.set("photosynthesis", "20260721-photosynthesis-q09-inactive-cache-v1");
 appVersionOverrides.set("biological_organization", "20260731-biological-organization-submitted-retry-ia-v1");
