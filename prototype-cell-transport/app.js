@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260721-cell-transport-q07-inactive-cache-v1";
+const VERSION = "20260731-cell-transport-submitted-retry-ia-v1";
 const QUESTION_VERSION = "20260721-cell-transport-q07-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -340,6 +340,11 @@ function unlock(...screens) {
 }
 function isLockedScreen(next) { return Boolean(state.submitted_at && LOCKED_SCREENS_AFTER_SUBMIT.has(next)); }
 function redirectLockedAttempt() { state.lockNotice = LOCK_MESSAGE; state.screen = "result"; saveState(); }
+function resetForRelogin() {
+  state = clone(defaultState);
+  saveState();
+  render();
+}
 function setScreen(next) {
   if (isLockedScreen(next)) redirectLockedAttempt();
   else { state.screen = next; saveState(); }
@@ -352,6 +357,7 @@ function renderNav() {
     button.disabled = !state.completedScreens.includes(target) || locked;
     button.classList.toggle("active", state.screen === target);
     button.onclick = () => {
+      if (target === "login" && state.submitted_at) { resetForRelogin(); return; }
       if (locked) { redirectLockedAttempt(); render(); return; }
       if (!button.disabled) setScreen(target);
     };
@@ -813,37 +819,13 @@ function renderResult() {
       <div class="story-panel" data-exp-ledger-total="${ledger.attempt_total_exp}"><strong>EXP 明細</strong><p>完成 ${ledger.completion_exp}｜直接答對 ${ledger.concept_exp}｜提示後修正 ${ledger.revision_exp}｜回報 ${ledger.question_exp}｜精熟 ${ledger.mastery_exp}｜再挑戰 ${ledger.retry_exp}｜總計 ${ledger.attempt_total_exp}</p></div>
       <div class="story-panel"><strong>${status === "verified" ? "正式認列說明" : "本次預估狀態"}</strong><p>${status === "verified" ? "本單元正式認列會保留最高表現並受 500 EXP 上限限制。" : status === "guest" ? "guest 測試只供老師預覽，不寫入正式 Attempts 或 StudentProgress。" : "本次數字是本機預估，後台確認前不列入正式累積。"}</p></div>
       <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">${status === "verified" ? `後台正式認列 ${ledger.question_exp} EXP。` : `本次預估回報 ${ledger.question_exp} EXP，待後台重算。`}</p></div>
-    </div>${renderTitleProgressSummary()}${renderResultBadges(result)}<div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
+    </div>${renderTitleProgressSummary()}${renderResultBadges(result)}<div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button><button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button></div></div></div>`;
 }
 function renderAchievements() {
-  const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : [];
-  const status = attemptCreditStatus();
-  const guest = status === "guest";
-  const pending = status === "pending";
-  const litIds = cumulativeBadgeIds(guest || pending ? currentBadges : []);
-  const officialBadgeIds = new Set(state.cumulative_badges || []);
-  const ledger = displayExpLedger(state.result || calculateResult());
-  const badgeLabel = guest ? "本次測試徽章" : pending ? "本次待確認徽章" : "正式累積徽章";
-  const badgeCount = guest || pending ? currentBadges.length : litIds.length;
-  const expLabel = guest || pending ? "本次預估 EXP" : "正式累積 EXP";
-  const expValue = guest || pending ? `${ledger.attempt_total_exp}/${UNIT_EXP_CAP}` : `${state.cumulative_total_exp || 0}`;
-  const unitLabel = guest ? "累積狀態" : pending ? "後台狀態" : "已完成單元";
-  const unitValue = guest ? "不列入正式累積" : pending ? "待後台確認" : `${state.completed_unit_count || 0}`;
-  const syncNote = guest
-    ? `guest 測試：本次預估 ${ledger.attempt_total_exp}/${UNIT_EXP_CAP} EXP，不列入正式累積；徽章亮燈僅供老師測試畫面。`
-    : pending
-      ? `本次預估 ${ledger.attempt_total_exp}/${UNIT_EXP_CAP} EXP，待後台確認；徽章亮燈先顯示本次作答預覽。`
-      : "";
-  return `<div class="wide-layout"><div class="panel" data-bq-unit-achievements="cell_transport"><p class="eyebrow">本單元成就</p><h2>本單元成就｜細胞通行徽章牆</h2>${guest || pending ? `<div class="feedback warn">${syncNote}</div>` : ""}
-    <div class="score-grid"><div class="score-box"><span>${badgeLabel}</span><strong>${badgeCount}</strong></div><div class="score-box"><span>${expLabel}</span><strong>${expValue}</strong></div><div class="score-box"><span>${unitLabel}</span><strong>${unitValue}</strong></div></div>${renderTitleProgressSummary()}<div class="badge-grid">${badges.map((badge) => {
-      const lit = litIds.includes(badge.id);
-      const gold = badge.id === "cell_transport_flawless";
-      const pendingBadge = pending && lit && !officialBadgeIds.has(badge.id);
-      return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><strong>${badge.name}</strong>${pendingBadge ? `<span class="pill warn">待同步</span>` : ""}<p class="muted">${badge.condition}</p></div>`;
-    }).join("")}</div><p class="muted">${status === "verified" ? "正式亮燈狀態合併後台 StudentProgress 與本機完整 Attempts；同一徽章只計一次。" : "目前只顯示本次作答預覽；正式徽章需等待後台確認。"}</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
+  return `<div class="wide-layout achievements-stack" data-bq-achievements-overview-only="true"><div class="panel"><p class="eyebrow">${state.submitted_at ? "再挑戰" : "目前進度"}</p><h2>${state.submitted_at ? "重新登入後開始新的挑戰" : "目前稱號與全冊徽章總覽"}</h2><p class="muted">${state.submitted_at ? "本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。" : "這裡只顯示正式稱號進度與全冊徽章總覽；本單元徽章改在結算頁呈現本次實得。"}</p><div class="actions"><button class="secondary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button>${state.submitted_at ? `<button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button>` : ""}</div></div><div class="panel bq-all-unit-badge-overview" data-bq-badge-overview="true"></div></div>`;
 }
 function renderRules() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元上限</strong><p>本單元最高認列 500 EXP。一次零提示全對是最高路徑。</p></div><div class="story-panel"><strong>完成條件</strong><p>回答完所有必答題即可提交，不必先全對；需要調整的概念會保留提示與回饋。</p></div><div class="story-panel"><strong>提示後修正</strong><p>每題第一次錯選會出現一次提示；提示後修正仍有 EXP，但低於直接答對。</p></div><div class="story-panel"><strong>再挑戰</strong><p>提交後本次作答鎖定。若要再挑戰，請重新登入並從頭完成整份任務。</p></div></div><div class="actions"><button class="primary" id="rulesBack">回到任務</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元上限</strong><p>本單元最高認列 500 EXP。一次零提示全對是最高路徑。</p></div><div class="story-panel"><strong>完成條件</strong><p>回答完所有必答題即可提交，不必先全對；需要調整的概念會保留提示與回饋。</p></div><div class="story-panel"><strong>提示後修正</strong><p>每題第一次錯選會出現一次提示；提示後修正仍有 EXP，但低於直接答對。</p></div><div class="story-panel"><strong>再挑戰</strong><p>提交後本次作答鎖定。若要再挑戰，請重新登入並從頭完成整份任務。</p></div></div><div class="actions"><button class="primary" id="rulesBack">回到任務</button>${state.submitted_at ? `<button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button>` : ""}</div></div></div>`;
 }
 function attachEvents() {
   if (state.screen === "login") attachLogin();
@@ -855,6 +837,7 @@ function attachEvents() {
   if (state.screen === "result") { document.querySelector("#resultAchievements").addEventListener("click", () => setScreen("achievements")); document.querySelector("#resultRules").addEventListener("click", () => setScreen("rules")); }
   if (state.screen === "achievements") document.querySelector("#achieveResult").addEventListener("click", () => setScreen(state.submitted_at ? "result" : "brief"));
   if (state.screen === "rules") document.querySelector("#rulesBack").addEventListener("click", () => setScreen(state.student ? (state.submitted_at ? "result" : "brief") : "login"));
+  document.querySelectorAll("[data-relogin-action='true']").forEach((button) => button.addEventListener("click", resetForRelogin));
 }
 function render() {
   if (state.submitted_at && LOCKED_SCREENS_AFTER_SUBMIT.has(state.screen)) state.screen = "result";
@@ -868,3 +851,9 @@ function render() {
 }
 
 render();
+
+window.__cellTransportTest = {
+  getState: () => clone(state),
+  state: () => clone(state),
+  resetForRelogin
+};
