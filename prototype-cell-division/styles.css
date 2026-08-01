@@ -291,6 +291,24 @@ textarea { resize: vertical; min-height: 116px; }
   text-align: left;
   font-weight: 900;
 }
+.choice-visual {
+  display: block;
+  margin: 0 0 10px;
+  overflow: hidden;
+  border: 1px solid rgba(47,159,104,.2);
+  border-radius: 8px;
+  background: #f2faed;
+}
+.choice-visual img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+}
+.option-text {
+  display: block;
+  line-height: 1.55;
+}
 .option-card.selected {
   border-color: var(--green);
   background: #e7f8df;
@@ -344,12 +362,68 @@ textarea { resize: vertical; min-height: 116px; }
   font-weight: 800;
 }
 .question-asset.asset-fallback::before {
-  content: "素材接線已預留";
+  content: "圖像載入失敗";
   display: grid;
   place-items: center;
   min-height: 160px;
   color: var(--green-dark);
   font-weight: 900;
+}
+.evidence-image-frame {
+  position: relative;
+}
+.evidence-image-frame picture,
+.evidence-image-frame img {
+  display: block;
+}
+.root-tip-label {
+  position: absolute;
+  top: 9%;
+  display: inline-grid;
+  place-items: center;
+  min-width: 72px;
+  padding: 5px 9px;
+  border: 1px solid rgba(31, 88, 58, .28);
+  border-radius: 999px;
+  background: rgba(255,255,255,.9);
+  color: var(--green-dark);
+  font-size: 14px;
+  font-weight: 900;
+}
+.root-tip-label.region-a { left: 5%; }
+.root-tip-label.region-b { right: 5%; }
+.root-tip-data-card {
+  display: grid;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+.root-tip-data-card table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border: 1px solid rgba(47,159,104,.25);
+  border-radius: 8px;
+  background: #fff;
+}
+.root-tip-data-card th,
+.root-tip-data-card td {
+  padding: 9px 10px;
+  border-bottom: 1px solid rgba(47,159,104,.16);
+  text-align: center;
+}
+.root-tip-data-card th:first-child {
+  text-align: left;
+}
+.root-tip-data-card tr:last-child th,
+.root-tip-data-card tr:last-child td {
+  border-bottom: 0;
+}
+.root-tip-data-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.65;
 }
 .mapping-list { display: grid; gap: 10px; margin-top: 12px; }
 .mapping-row {
@@ -492,6 +566,18 @@ textarea { resize: vertical; min-height: 116px; }
   .student-mini { display: none; }
   .main-stage { padding: 14px; }
   .mission-layout, .concept-grid, .ledger-grid, .feedback-columns, .badge-wall, .option-grid, .mapping-row, .title-card-content { grid-template-columns: 1fr; }
+  .option-card { padding: 10px; }
+  .root-tip-label {
+    min-width: 56px;
+    padding: 4px 7px;
+    font-size: 12px;
+  }
+  .root-tip-data-card { padding-inline: 10px; }
+  .root-tip-data-card th,
+  .root-tip-data-card td {
+    padding: 8px 6px;
+    font-size: 13px;
+  }
   .hero-panel { min-height: auto; }
   .brief-scene {
     grid-template-columns: 1fr;

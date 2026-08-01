@@ -179,7 +179,7 @@ const allUnits = [
     unitId: "cell_division",
     folder: "prototype-cell-division",
     storageKey: "bioquest_cell_division_state_v1",
-    questionVersion: "20260718-cell-division-v1",
+    questionVersion: "20260731-cell-division-v1.2",
     azhe: { left: 0.07, right: 0.36, top: 0.06, bottom: 0.99 }
   },
   {

@@ -10,8 +10,8 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-cell-division")
   : sourceRoot;
-const CACHE_VERSION = "20260729-cell-division-relogin-v1";
-const QUESTION_VERSION = "20260718-cell-division-v1";
+const CACHE_VERSION = "20260802-cell-division-evidence-v5-v1";
+const QUESTION_VERSION = "20260731-cell-division-v1.2";
 const Q = (n) => `cell_division_q${String(n).padStart(2, "0")}`;
 const browser = await chromium.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" });
 
@@ -46,6 +46,29 @@ async function expectAtTop(page, label) {
   for (const [key, value] of Object.entries(scrolls)) {
     assert(value <= 2, `${label} should reset ${key} to top, got ${value}`);
   }
+}
+
+async function waitForImagesLoaded(page, selector, expectedCount, label) {
+  try {
+    await page.waitForFunction(
+      ({ selector: imageSelector, expectedCount: count }) => {
+        const images = [...document.querySelectorAll(imageSelector)];
+        return images.length === count && images.every((img) => img.complete && img.naturalWidth > 0 && img.naturalHeight > 0);
+      },
+      { selector, expectedCount },
+      { timeout: 10000 }
+    );
+  } catch (error) {
+    const imageState = await page.evaluate((imageSelector) => [...document.querySelectorAll(imageSelector)].map((img) => ({
+      src: img.getAttribute("src"),
+      currentSrc: img.currentSrc || img.src,
+      complete: img.complete,
+      naturalWidth: img.naturalWidth,
+      naturalHeight: img.naturalHeight
+    })), selector);
+    throw new Error(`${label} images did not load: ${JSON.stringify(imageState)}`);
+  }
+  assert.equal(await page.locator(selector).count(), expectedCount, `${label} image count`);
 }
 
 async function clickAndExpectTop(page, selector, screenName) {
@@ -139,13 +162,53 @@ async function completeQuestions(page) {
   await page.evaluate((qid) => {
     window.__cell_divisionTest.state().answers[`${qid}_sequence`] = ["cell_prepares_to_divide", "chromosomes_are_copied", "copied_chromosomes_distribute_to_both_sides", "cytoplasm_separates_into_two_daughter_cells"];
   }, Q(5));
+  await waitForImagesLoaded(page, `[data-question-id="${Q(6)}"] .choice-visual-image`, 4, "q06 approved evidence");
+  const q06ImageState = await page.evaluate(({ qid, cacheVersion }) => {
+    const images = [...document.querySelectorAll(`[data-question-id="${qid}"] .choice-visual-image`)];
+    return {
+      count: images.length,
+      loaded: images.every((img) => img.naturalWidth > 0 && img.naturalHeight > 0),
+      cacheTagged: images.every((img) => (img.currentSrc || img.src).includes(`v=${cacheVersion}`)),
+      widths: images.map((img) => img.naturalWidth)
+    };
+  }, { qid: Q(6), cacheVersion: CACHE_VERSION });
+  assert.equal(q06ImageState.count, 4, "q06 should render four approved option images");
+  assert.equal(q06ImageState.loaded, true, "q06 option images should load");
+  assert.equal(q06ImageState.cacheTagged, true, "q06 option image URLs should carry runtime cache");
   await answerChoice(page, Q(6), "chromosomes_distributed_to_both_cells");
   await answerChoice(page, Q(7), "chromosome_distribution_is_ordered");
+  await waitForImagesLoaded(page, `[data-question-id="${Q(8)}"] .cell-division-q08-evidence img`, 1, "q08 approved evidence");
+  const q08ImageState = await page.evaluate(({ qid, cacheVersion }) => {
+    const image = document.querySelector(`[data-question-id="${qid}"] .cell-division-q08-evidence img`);
+    return {
+      loaded: Boolean(image && image.naturalWidth > 0 && image.naturalHeight > 0),
+      cacheTagged: Boolean(image && (image.currentSrc || image.src).includes(`v=${cacheVersion}`))
+    };
+  }, { qid: Q(8), cacheVersion: CACHE_VERSION });
+  assert.equal(q08ImageState.loaded, true, "q08 approved evidence image should load");
+  assert.equal(q08ImageState.cacheTagged, true, "q08 image URL should carry runtime cache");
   await answerChoice(page, Q(8), "copied_chromosomes_then_distributed");
   await clickAndExpectTop(page, '[data-section-next="checkpoint2"]', "checkpoint3");
   await answerChoice(page, Q(9), "one_mother_cell_forms_two_daughter_cells");
   await answerChoice(page, Q(10), "daughter_cells_similar_genetic_information");
   await answerChoice(page, Q(11), "growth_involves_more_cells");
+  await waitForImagesLoaded(page, `[data-question-id="${Q(12)}"] .cell-division-q12-evidence img`, 1, "q12 approved evidence");
+  const q12EvidenceState = await page.evaluate(({ qid, cacheVersion }) => {
+    const root = document.querySelector(`[data-question-id="${qid}"] .cell-division-q12-evidence`);
+    const image = root?.querySelector("img");
+    return {
+      loaded: Boolean(image && image.naturalWidth > 0 && image.naturalHeight > 0),
+      cacheTagged: Boolean(image && (image.currentSrc || image.src).includes(`v=${cacheVersion}`)),
+      tableText: root?.querySelector(".root-tip-data-card")?.textContent || "",
+      overflow: root ? root.scrollWidth > root.clientWidth + 2 : true
+    };
+  }, { qid: Q(12), cacheVersion: CACHE_VERSION });
+  assert.equal(q12EvidenceState.loaded, true, "q12 approved root-tip image should load");
+  assert.equal(q12EvidenceState.cacheTagged, true, "q12 image URL should carry runtime cache");
+  assert(q12EvidenceState.tableText.includes("40"), "q12 overlay should show total cell counts");
+  assert(q12EvidenceState.tableText.includes("12"), "q12 overlay should show region A dividing count");
+  assert(q12EvidenceState.tableText.includes("1"), "q12 overlay should show region B dividing count");
+  assert.equal(q12EvidenceState.overflow, false, "q12 overlay should not overflow its card");
   await answerChoice(page, Q(12), "root_tip_growth_cell_division_evidence");
   const q13Labels = await page.locator(`[data-question-id="${Q(13)}"] .mapping-row span`).allTextContents();
   assert.notDeepEqual(q13Labels.slice(0, 2), ["染色體複製後分配到兩個子細胞", "傷口修補需要新細胞"], "q13 should not start with answer-grouped core items");

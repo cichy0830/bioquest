@@ -3,8 +3,8 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260729-cell-division-relogin-v1";
-const QUESTION_VERSION = "20260718-cell-division-v1";
+const VERSION = "20260802-cell-division-evidence-v5-v1";
+const QUESTION_VERSION = "20260731-cell-division-v1.2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -35,6 +35,69 @@ const assets = {
   briefingSceneHook: "assets/cell-division-briefing-azhe-wide.webp",
   briefingSceneMobileHook: "assets/cell-division-briefing-azhe-mobile.webp",
   ambientBackgroundHook: ""
+};
+
+const evidenceAssets = {
+  q06: {
+    chromosomes_distributed_to_both_cells: {
+      path: "assets/evidence-v5/runtime_bases/q06/options/u27-cell-division-q06-v5-chromosomes_distributed_to_both_cells-zero-text-base.webp",
+      sizes: [
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_distributed_to_both_cells-zero-text-base-390w.webp", 390],
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_distributed_to_both_cells-zero-text-base-960w.webp", 960],
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_distributed_to_both_cells-zero-text-base-1440w.webp", 1440]
+      ]
+    },
+    one_gets_all: {
+      path: "assets/evidence-v5/runtime_bases/q06/options/u27-cell-division-q06-v5-one_gets_all-zero-text-base.webp",
+      sizes: [
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-one_gets_all-zero-text-base-390w.webp", 390],
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-one_gets_all-zero-text-base-960w.webp", 960],
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-one_gets_all-zero-text-base-1440w.webp", 1440]
+      ]
+    },
+    chromosomes_disappear: {
+      path: "assets/evidence-v5/runtime_bases/q06/options/u27-cell-division-q06-v5-chromosomes_disappear-zero-text-base.webp",
+      sizes: [
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_disappear-zero-text-base-390w.webp", 390],
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_disappear-zero-text-base-960w.webp", 960],
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_disappear-zero-text-base-1440w.webp", 1440]
+      ]
+    },
+    chromosomes_outside_cell: {
+      path: "assets/evidence-v5/runtime_bases/q06/options/u27-cell-division-q06-v5-chromosomes_outside_cell-zero-text-base.webp",
+      sizes: [
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_outside_cell-zero-text-base-390w.webp", 390],
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_outside_cell-zero-text-base-960w.webp", 960],
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_outside_cell-zero-text-base-1440w.webp", 1440]
+      ]
+    }
+  },
+  q08: {
+    path: "assets/evidence-v5/runtime_bases/q08/u27-cell-division-q08-v5-copy-distribution-zero-text-base.webp",
+    sizes: [
+      ["assets/evidence-v5/runtime_bases/q08/sizes/u27-cell-division-q08-v5-copy-distribution-zero-text-base-390w.webp", 390],
+      ["assets/evidence-v5/runtime_bases/q08/sizes/u27-cell-division-q08-v5-copy-distribution-zero-text-base-960w.webp", 960],
+      ["assets/evidence-v5/runtime_bases/q08/sizes/u27-cell-division-q08-v5-copy-distribution-zero-text-base-1440w.webp", 1440]
+    ],
+    alt: "同一套紅圓、藍短棒、綠三角標記在三格細胞資料中的分布示意圖。",
+    caption: "觀察同一套三種標記在三格資料中的前後分布，再依題目資訊判讀。"
+  },
+  q12: {
+    path: "assets/evidence-v5/runtime_bases/q12/u27-cell-division-q12-v5-root-tip-two-regions-zero-text-base.webp",
+    sizes: [
+      ["assets/evidence-v5/runtime_bases/q12/sizes/u27-cell-division-q12-v5-root-tip-two-regions-zero-text-base-390w.webp", 390],
+      ["assets/evidence-v5/runtime_bases/q12/sizes/u27-cell-division-q12-v5-root-tip-two-regions-zero-text-base-960w.webp", 960],
+      ["assets/evidence-v5/runtime_bases/q12/sizes/u27-cell-division-q12-v5-root-tip-two-regions-zero-text-base-1440w.webp", 1440]
+    ],
+    alt: "洋蔥根尖兩個觀察區域的簡化圖與資料表，呈現同樣視野內總細胞數與分裂中細胞數差異。",
+    caption: "請比較兩個根尖觀察區域在同樣視野中的總細胞數與分裂中細胞數。",
+    readingPrompt: "先確認兩區是在同樣倍率與同樣視野下比較，再看哪一區分裂中細胞比例較高。",
+    fieldLabels: { region_a: "區域甲", region_b: "區域乙" },
+    dataTable: [
+      { metric: "觀察細胞總數", region_a: 40, region_b: 40 },
+      { metric: "分裂中可見特徵細胞數", region_a: 12, region_b: 1 }
+    ]
+  }
 };
 
 const badgeAsset = () => "";
@@ -77,13 +140,13 @@ const questions = [
   {id:"cell_division_q03",section:"checkpoint1",concept:"chromosome_dna_basic",type:"choice",answer:"chromosomes_carry_dna_information",prompt:"關於染色體和 DNA，下列哪個說法最適合七年級本單元？",hint:"想想染色體和「遺傳資訊」之間的關係。",misconception:"chromosome_dna_layer_confusion",options:[{id:"chromosomes_carry_dna_information",text:"染色體含有 DNA，帶有遺傳資訊"},{id:"chromosomes_excrete_urine",text:"染色體只負責排出尿液"},{id:"dna_is_sweat",text:"DNA 是皮膚表面的汗水"},{id:"chromosomes_only_when_hot",text:"染色體只在體溫升高時才出現"}]},
   {id:"cell_division_q04",section:"checkpoint2",concept:"chromosome_copy_before_division",type:"choice",answer:"chromosomes_copy_before_division",prompt:"一個細胞準備分裂成兩個子細胞。為什麼分裂前染色體需要先複製？",hint:"先想分裂後會有幾個子細胞，每個子細胞需要什麼。",misconception:"chromosome_not_copied_before_division",options:[{id:"chromosomes_copy_before_division",text:"讓兩個子細胞都有遺傳資訊"},{id:"mother_discards_chromosomes",text:"讓母細胞把染色體全部丟掉"},{id:"make_gametes",text:"讓細胞變成精子或卵"},{id:"control_temperature",text:"讓體溫回到適當範圍"}]},
   {id:"cell_division_q05",section:"checkpoint2",concept:"chromosome_copy_before_division",type:"sequence",answer:["cell_prepares_to_divide","chromosomes_are_copied","copied_chromosomes_distribute_to_both_sides","cytoplasm_separates_into_two_daughter_cells"],prompt:"請拖曳排序，排出一般細胞分裂的簡化流程。",hint:"先找「複製」和「分配」的先後關係。",misconception:"division_sequence_order_confusion",steps:[{id:"cell_prepares_to_divide",label:"細胞準備分裂"},{id:"chromosomes_are_copied",label:"染色體複製"},{id:"copied_chromosomes_distribute_to_both_sides",label:"複製後的染色體分配到兩邊"},{id:"cytoplasm_separates_into_two_daughter_cells",label:"細胞質分開形成兩個子細胞"}]},
-  {id:"cell_division_q06",section:"checkpoint2",concept:"chromosome_equal_distribution",type:"choice",answer:"chromosomes_distributed_to_both_cells",prompt:"觀察兩張簡化示意：哪一種比較符合一般細胞分裂後染色體分配的概念？",hint:"不用背階段名稱，先看兩個子細胞是否都取得染色體。",misconception:"chromosome_distribution_unequal",options:[{id:"chromosomes_distributed_to_both_cells",text:"兩個子細胞各有一組相同染色體"},{id:"one_gets_all",text:"一個子細胞拿到全部染色體，另一個沒有"},{id:"chromosomes_disappear",text:"染色體全部消失"},{id:"chromosomes_outside_cell",text:"染色體只跑到細胞外面"}]},
+  {id:"cell_division_q06",section:"checkpoint2",concept:"chromosome_equal_distribution",type:"image_select",answer:"chromosomes_distributed_to_both_cells",prompt:"比較四張「分裂完成後」的簡化示意圖，哪一張最符合兩個子細胞都各自取得完整且相同的一套染色體資訊？",hint:"比較每個子細胞內的標記種類與組合是否一致，不用背期別名稱。",misconception:"chromosome_distribution_unequal",options:[{id:"chromosomes_distributed_to_both_cells",text:"兩個子細胞都各有同一套三種簡化染色體標記"},{id:"one_gets_all",text:"一個子細胞有完整一套，另一個少一種標記"},{id:"chromosomes_disappear",text:"兩個子細胞都有標記，但一邊多一種、另一邊少一種"},{id:"chromosomes_outside_cell",text:"兩個子細胞標記數量相同，但種類不是同一套"}]},
   {id:"cell_division_q07",section:"checkpoint2",concept:"chromosome_equal_distribution",type:"choice",answer:"chromosome_distribution_is_ordered",prompt:"有同學說：「細胞分裂就是把染色體隨便切一半，兩邊有多少都沒關係。」哪個修正較合理？",hint:"先想每個子細胞是否都需要維持細胞活動的資訊。",misconception:"chromosome_random_split_confusion",options:[{id:"chromosome_distribution_is_ordered",text:"染色體需要有規律地分配，讓兩個子細胞都有遺傳資訊"},{id:"fewer_chromosomes_better",text:"染色體越少越好，所以不用分配"},{id:"sweat_balances_chromosomes",text:"只要汗水夠多，染色體就會平均"},{id:"daughter_cells_no_info",text:"子細胞不需要任何遺傳資訊"}]},
-  {id:"cell_division_q08",section:"checkpoint2",concept:"chromosome_copy_before_division",type:"choice",answer:"copied_chromosomes_then_distributed",prompt:"一張流程資料顯示：某細胞分裂前染色體數量暫時變成兩份，分裂完成後兩個子細胞各得到一份。哪個解讀較合理？",hint:"先看資料中的變化是不是「先有兩份，再分到兩個細胞」。",misconception:"copied_chromosome_data_misread",options:[{id:"copied_chromosomes_then_distributed",text:"染色體先複製，分裂後分配到兩個子細胞"},{id:"budding_reproduction",text:"染色體數量增加就代表生物正在出芽生殖"},{id:"high_glucose",text:"染色體暫時變多表示血糖偏高"},{id:"always_gametes",text:"染色體複製後一定形成精子和卵"}]},
+  {id:"cell_division_q08",section:"checkpoint2",concept:"chromosome_copy_before_division",type:"data_interpret",answer:"copied_chromosomes_then_distributed",prompt:"觀察同一套簡化染色體標記的三格資料：資料 1 的母細胞有紅圓、藍短棒、綠三角三種標記；資料 2 中每種標記旁出現一個相同標記；資料 3 中兩個子細胞各有紅圓、藍短棒、綠三角各一個。哪個解讀較合理？",hint:"先確認三格是否都用同一套標記，再看資料 2 到資料 3 的分配關係。",misconception:"copied_chromosome_data_misread",options:[{id:"copied_chromosomes_then_distributed",text:"分裂前同一套染色體資訊需先準備成可分配狀態，完成後兩個子細胞各取得同一套資訊"},{id:"budding_reproduction",text:"子細胞會出現母細胞原本沒有的新顏色標記"},{id:"high_glucose",text:"只要總數看起來接近，種類是否同一套不重要"},{id:"always_gametes",text:"一個子細胞先取得完整標記，另一個之後再補齊"}]},
   {id:"cell_division_q09",section:"checkpoint3",concept:"mother_daughter_cells",type:"choice",answer:"one_mother_cell_forms_two_daughter_cells",prompt:"一個母細胞完成一般細胞分裂後，最基本會形成什麼？",hint:"注意題目問的是一個細胞完成分裂後的直接結果。",misconception:"mother_daughter_cell_count_confusion",options:[{id:"one_mother_cell_forms_two_daughter_cells",text:"兩個子細胞"},{id:"one_kidney",text:"一個腎臟"},{id:"whole_organism_all_organs",text:"一個完整新個體的所有器官"},{id:"larger_mother_only",text:"只有一個較大的母細胞"}]},
   {id:"cell_division_q10",section:"checkpoint3",concept:"genetic_info_similarity",type:"choice",answer:"daughter_cells_similar_genetic_information",prompt:"關於一般細胞分裂後的子細胞，哪個說法較合理？",hint:"區分「遺傳資訊大致相同」和「未來功能一定完全一樣」。",misconception:"genetic_info_vs_function_confusion",options:[{id:"daughter_cells_similar_genetic_information",text:"子細胞通常與母細胞具有大致相同的遺傳資訊"},{id:"daughter_no_chromosomes",text:"子細胞一定完全沒有染色體"},{id:"daughter_are_gametes",text:"子細胞一定是精子或卵"},{id:"same_function_forever",text:"子細胞一定和母細胞功能永遠完全一樣"}]},
   {id:"cell_division_q11",section:"checkpoint3",concept:"division_growth_repair",type:"choice",answer:"growth_involves_more_cells",prompt:"有同學說：「生物長大只是每個細胞一直膨脹，細胞數量不需要增加。」哪個修正較合理？",hint:"想想從幼小個體到長大，細胞數量是否也可能改變。",misconception:"growth_by_cell_size_only",options:[{id:"growth_involves_more_cells",text:"生長常包含細胞分裂，使細胞數量增加"},{id:"urine_growth",text:"生長只靠尿液變多"},{id:"temperature_growth",text:"生長只靠體溫升高"},{id:"asexual_category",text:"生長一定是無性生殖分類題"}]},
-  {id:"cell_division_q12",section:"checkpoint3",concept:"division_growth_repair",type:"choice",answer:"root_tip_growth_cell_division_evidence",prompt:"洋蔥根尖觀察資料顯示某區域有許多細胞正在形成新的細胞。這最能支持哪個概念？",hint:"先看資料提供的是「正在形成新細胞」還是「生殖細胞」。",misconception:"cell_division_evidence_misread",options:[{id:"root_tip_growth_cell_division_evidence",text:"生長區域常有細胞分裂，增加細胞數量"},{id:"root_tip_temperature",text:"根尖正在進行體溫調節"},{id:"root_tip_gametes",text:"根尖一定正在形成精子和卵"},{id:"root_tip_no_chromosomes",text:"根尖細胞都不含染色體"}]},
+  {id:"cell_division_q12",section:"checkpoint3",concept:"division_growth_repair",type:"data_interpret",answer:"root_tip_growth_cell_division_evidence",prompt:"同樣倍率、同樣大小視野比較洋蔥根尖兩個區域：區域甲共觀察 40 個細胞，其中 12 個呈現分裂中可見特徵；區域乙共觀察 40 個細胞，其中 1 個呈現分裂中可見特徵。這些資料最能支持哪個概念？",hint:"先確認兩區的觀察條件是否相同，再比較資料列出的比例。",misconception:"cell_division_evidence_misread",options:[{id:"root_tip_growth_cell_division_evidence",text:"區域甲有較高比例的細胞正在分裂，支持根尖生長與細胞數量增加有關"},{id:"root_tip_temperature",text:"倍率調高會讓分裂中的細胞變多"},{id:"root_tip_gametes",text:"細胞較大就代表分裂較旺盛"},{id:"root_tip_no_chromosomes",text:"根尖所有細胞都會同時分裂"}]},
   {id:"cell_division_q13",section:"checkpoint3",concept:"division_not_reproduction_type",type:"mapping",answer:{chromosome_copy_distribution:"cell_division_core",wound_repair_new_cells:"cell_division_core",yeast_budding:"later_u28",sperm_egg_fertilization:"later_u29"},prompt:"請把下列內容分成「本單元核心」或「留到後續/其他單元」。",hint:"先問自己：這是在說細胞如何分裂，還是在分類產生新個體的方式？",misconception:"cell_division_reproduction_boundary_confusion",items:[{id:"chromosome_copy_distribution",label:"染色體複製後分配到兩個子細胞"},{id:"wound_repair_new_cells",label:"傷口修補需要新細胞"},{id:"yeast_budding",label:"酵母菌出芽生殖"},{id:"sperm_egg_fertilization",label:"精子和卵結合"}],choices:boundaryChoices},
   {id:"cell_division_q14",section:"checkpoint3",concept:"unit_boundary_control",type:"choice",answer:"chromosome_copy_distribution_belongs_cell_division",prompt:"下列哪個情境最適合放在「細胞的分裂」本單元核心檢核？",hint:"找出和染色體、母細胞、子細胞最直接相關的情境。",misconception:"cell_division_unit_boundary_confusion",options:[{id:"chromosome_copy_distribution_belongs_cell_division",text:"染色體複製後分配到兩個子細胞"},{id:"heat_loss_sweating",text:"流汗與皮膚血管擴張協助散熱"},{id:"potato_vegetative_reproduction",text:"馬鈴薯利用營養器官繁殖新個體"},{id:"fertilized_egg",text:"精子和卵結合形成受精卵"}]}
 ];
@@ -211,9 +274,13 @@ function sameMapping(value, answer) {
   return Boolean(value && typeof value === "object" && !Array.isArray(value) && Object.keys(answer).every((key) => value[key] === answer[key]));
 }
 
+function isChoiceLike(question) {
+  return ["choice", "image_select", "data_interpret"].includes(question?.type);
+}
+
 function questionAnswered(question) {
   const value = answerValue(question.id);
-  if (question.type === "choice") return typeof value === "string" && value.length > 0;
+  if (isChoiceLike(question)) return typeof value === "string" && value.length > 0;
   if (question.type === "mapping") return Boolean(value && Object.keys(question.answer).every((key) => value[key]));
   if (question.type === "sequence") return Array.isArray(value) && value.length === question.answer.length;
   if (question.type === "set") return Array.isArray(value) && value.length > 0;
@@ -229,7 +296,7 @@ function answerValue(qid) {
 function isCorrect(qid) {
   const question = questionMap[qid];
   const value = answerValue(qid);
-  if (question.type === "choice") return value === question.answer;
+  if (isChoiceLike(question)) return value === question.answer;
   if (question.type === "mapping") return sameMapping(value, question.answer);
   if (question.type === "sequence") return Array.isArray(value) && value.length === question.answer.length && value.every((id, index) => id === question.answer[index]);
   if (question.type === "set") return sameSet(value, question.answer);
@@ -301,7 +368,7 @@ function orderedOptions(question) {
 
 function formatSelected(question) {
   const value = answerValue(question.id);
-  if (question.type === "choice") return question.options.find((option) => option.id === value)?.text || "尚未選擇";
+  if (isChoiceLike(question)) return question.options.find((option) => option.id === value)?.text || "尚未選擇";
   if (question.type === "mapping") {
     const choices = Object.fromEntries(question.choices.map((item) => [item.id, item.text]));
     return question.items.map((item) => `${item.label}：${choices[value?.[item.id]] || "尚未選擇"}`).join("；");
@@ -539,7 +606,7 @@ function setAnswer(questionId, value) {
   const question = questionMap[questionId];
   if (state.submitted) return;
   state.answers[question.type === "sequence" ? `${questionId}_sequence` : questionId] = value;
-  if (question.type === "choice" && value && value !== question.answer) markHint(questionId).then(renderApp);
+  if (isChoiceLike(question) && value && value !== question.answer) markHint(questionId).then(renderApp);
   if (question.type === "mapping" && value && Object.entries(value).some(([key, selected]) => selected && selected !== question.answer[key])) markHint(questionId).then(renderApp);
   saveState();
   renderApp();
@@ -935,17 +1002,72 @@ function conceptLabel(concept) { return {cells_from_cells:"新細胞來源",divi
 
 function renderQuestionEvidence(qid) {
   if (["cell_division_q01", "cell_division_q02", "cell_division_q03"].includes(qid)) return `<div class="evidence-card"><strong>細胞來源概念卡</strong><p>新細胞來自原有細胞；生長修補常需要細胞數量增加；染色體含有遺傳資訊。</p></div>`;
-  if (["cell_division_q04", "cell_division_q08"].includes(qid)) return `<div class="evidence-card"><strong>染色體複製資料卡</strong><p>分裂前染色體可先形成兩份，之後分配到兩個子細胞。</p></div>`;
+  if (qid === "cell_division_q04") return `<div class="evidence-card"><strong>染色體複製資料卡</strong><p>分裂前染色體可先形成兩份，之後分配到兩個子細胞。</p></div>`;
+  if (qid === "cell_division_q08") return renderEvidenceFigure(evidenceAssets.q08, "cell-division-q08-evidence");
   if (qid === "cell_division_q05") return `<div class="evidence-card"><strong>流程排序卡</strong><p>請把四張流程卡排成概念順序；卡片不含高中期別名稱。</p></div>`;
-  if (["cell_division_q06", "cell_division_q07"].includes(qid)) return `<div class="evidence-card"><strong>染色體分配示意</strong><p>比較兩個子細胞是否都取得染色體，而不是只看某一邊。</p></div>`;
+  if (qid === "cell_division_q06") return `<div class="evidence-card"><strong>圖像判讀</strong><p>請比較四張圖中兩個子細胞的標記種類與組合，再依題目資訊選擇。</p></div>`;
+  if (qid === "cell_division_q07") return `<div class="evidence-card"><strong>染色體分配示意</strong><p>比較兩個子細胞是否都取得染色體，而不是只看某一邊。</p></div>`;
   if (["cell_division_q09", "cell_division_q10"].includes(qid)) return `<div class="evidence-card"><strong>母細胞與子細胞卡</strong><p>一個母細胞分裂後形成兩個子細胞；遺傳資訊大致相同不等於功能永遠完全一樣。</p></div>`;
-  if (["cell_division_q11", "cell_division_q12"].includes(qid)) return `<div class="evidence-card"><strong>生長修補證據卡</strong><p>生長區域或修補情境常可看到新細胞形成，支持細胞數量增加。</p></div>`;
+  if (qid === "cell_division_q11") return `<div class="evidence-card"><strong>生長修補證據卡</strong><p>生長區域或修補情境常可看到新細胞形成，支持細胞數量增加。</p></div>`;
+  if (qid === "cell_division_q12") return renderQ12Evidence();
   if (["cell_division_q13", "cell_division_q14"].includes(qid)) return `<div class="evidence-card"><strong>單元邊界卡</strong><p>本單元聚焦細胞分裂、染色體複製與分配；繁殖方式與受精留到後續單元。</p></div>`;
   return "";
 }
 
+function cachedAsset(path) {
+  return `${path}?v=${VERSION}`;
+}
+
+function responsiveSourceSet(asset) {
+  return (asset.sizes || []).map(([path, width]) => `${cachedAsset(path)} ${width}w`).join(", ");
+}
+
+function renderEvidenceImage(asset, className = "") {
+  const srcset = responsiveSourceSet(asset);
+  return `<picture>
+    ${srcset ? `<source srcset="${srcset}" sizes="(max-width: 520px) 100vw, 920px">` : ""}
+    <img class="${className}" src="${cachedAsset(asset.path)}" alt="${escapeHtml(asset.alt || "細胞分裂觀察證據圖")}" loading="eager" decoding="async" onerror="this.closest('.question-asset, .choice-visual')?.classList.add('asset-fallback'); this.remove();">
+  </picture>`;
+}
+
+function renderEvidenceFigure(asset, className) {
+  return `<figure class="question-asset ${className}">
+    ${renderEvidenceImage(asset)}
+    <figcaption>${escapeHtml(asset.caption)}</figcaption>
+  </figure>`;
+}
+
+function renderQ12Evidence() {
+  const asset = evidenceAssets.q12;
+  return `<figure class="question-asset cell-division-q12-evidence">
+    <div class="evidence-image-frame">
+      ${renderEvidenceImage(asset)}
+      <span class="root-tip-label region-a">${escapeHtml(asset.fieldLabels.region_a)}</span>
+      <span class="root-tip-label region-b">${escapeHtml(asset.fieldLabels.region_b)}</span>
+    </div>
+    <figcaption>${escapeHtml(asset.caption)}</figcaption>
+    <div class="root-tip-data-card" aria-label="根尖兩區觀察資料">
+      <table>
+        <thead><tr><th>觀察資料</th><th>${escapeHtml(asset.fieldLabels.region_a)}</th><th>${escapeHtml(asset.fieldLabels.region_b)}</th></tr></thead>
+        <tbody>${asset.dataTable.map((row) => `<tr><th>${escapeHtml(row.metric)}</th><td>${row.region_a}</td><td>${row.region_b}</td></tr>`).join("")}</tbody>
+      </table>
+      <p>${escapeHtml(asset.readingPrompt)}</p>
+    </div>
+  </figure>`;
+}
+
+function visualForChoiceOption(question, option) {
+  if (question.id !== "cell_division_q06") return null;
+  const asset = evidenceAssets.q06[option.id];
+  if (!asset) return null;
+  return {
+    ...asset,
+    alt: "細胞分裂完成後兩個子細胞的簡化示意圖，呈現兩個子細胞內染色體標記種類與組合。"
+  };
+}
+
 function renderQuestionControl(question) {
-  if (question.type === "choice") return renderChoiceQuestion(question);
+  if (isChoiceLike(question)) return renderChoiceQuestion(question);
   if (question.type === "mapping") return renderMappingQuestion(question);
   if (question.type === "sequence") return renderSequenceQuestion(question);
   if (question.type === "set") return renderSetQuestion(question);
@@ -956,7 +1078,8 @@ function renderChoiceQuestion(question) {
   const selected = state.answers[question.id];
   return `<div class="option-grid">${orderedOptions(question).map((option) => `
     <button class="option-card ${selected === option.id ? "selected" : ""}" data-answer="${question.id}" data-value="${option.id}">
-      ${escapeHtml(option.text)}
+      ${visualForChoiceOption(question, option) ? `<span class="choice-visual">${renderEvidenceImage(visualForChoiceOption(question, option), "choice-visual-image")}</span>` : ""}
+      <span class="option-text">${escapeHtml(option.text)}</span>
     </button>
   `).join("")}</div>`;
 }
@@ -1332,6 +1455,7 @@ if (typeof window !== "undefined") {
     titleAvatarPath,
     renderBrief,
     renderQuestionEvidence,
+    renderQuestionControl,
     renderCheckpoint,
     renderReview,
     renderReflection,

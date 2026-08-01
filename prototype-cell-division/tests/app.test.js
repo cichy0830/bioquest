@@ -28,8 +28,8 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-cell-division/app.js" });
 const api = context.window.__cell_divisionTest;
 
-assert.equal(api.VERSION, "20260729-cell-division-relogin-v1");
-assert.equal(api.QUESTION_VERSION, "20260718-cell-division-v1");
+assert.equal(api.VERSION, "20260802-cell-division-evidence-v5-v1");
+assert.equal(api.QUESTION_VERSION, "20260731-cell-division-v1.2");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION);
 assert.equal(api.mission.unit_id, "cell_division");
 assert.equal(api.questions.length, 14);
@@ -37,12 +37,36 @@ assert.equal(api.badges.length, 17);
 assert.equal(api.badges.filter((badge) => badge.image_status === "controlled_pending" && !badge.badge_image_path).length, 17);
 assert(source.includes("BioQuestLoginUX?.begin"));
 assert(!source.includes("待審素材"));
-assert(!source.includes("u26-cell-division-review"));
+assert(!source.includes("u27-cell-division-f-u27-04-evidence-v4"));
+assert(!source.includes("u27-cell-division-f-u27-04-evidence-v5-review"));
+assert(!source.includes("_generated_sources"));
 assert(fs.existsSync(path.join(root, "assets", "cell-division-briefing-azhe-wide.webp")));
 assert(fs.existsSync(path.join(root, "assets", "cell-division-briefing-azhe-mobile.webp")));
 assert(!fs.readFileSync(path.join(root, "styles.css"), "utf8").includes("正式徽章素材待接"));
+for (const assetPath of [
+  "assets/evidence-v5/runtime_bases/q06/options/u27-cell-division-q06-v5-chromosomes_distributed_to_both_cells-zero-text-base.webp",
+  "assets/evidence-v5/runtime_bases/q06/options/u27-cell-division-q06-v5-one_gets_all-zero-text-base.webp",
+  "assets/evidence-v5/runtime_bases/q06/options/u27-cell-division-q06-v5-chromosomes_disappear-zero-text-base.webp",
+  "assets/evidence-v5/runtime_bases/q06/options/u27-cell-division-q06-v5-chromosomes_outside_cell-zero-text-base.webp",
+  "assets/evidence-v5/runtime_bases/q08/u27-cell-division-q08-v5-copy-distribution-zero-text-base.webp",
+  "assets/evidence-v5/runtime_bases/q12/u27-cell-division-q12-v5-root-tip-two-regions-zero-text-base.webp"
+]) {
+  assert(fs.existsSync(path.join(root, assetPath)), `missing approved U27 evidence asset ${assetPath}`);
+}
 
 const Q = (n) => `cell_division_q${String(n).padStart(2, "0")}`;
+assert.equal(api.questions.find((question) => question.id === Q(6)).type, "image_select");
+assert.equal(api.questions.find((question) => question.id === Q(8)).type, "data_interpret");
+assert.equal(api.questions.find((question) => question.id === Q(12)).type, "data_interpret");
+assert(api.questions.find((question) => question.id === Q(6)).prompt.includes("完整且相同的一套"));
+assert(api.questions.find((question) => question.id === Q(8)).prompt.includes("紅圓、藍短棒、綠三角"));
+assert(api.questions.find((question) => question.id === Q(12)).prompt.includes("40 個細胞"));
+const q06Markup = api.renderQuestionControl(api.questions.find((question) => question.id === Q(6)));
+assert.equal((q06Markup.match(/choice-visual-image/g) || []).length, 4);
+assert(q06Markup.includes(`?v=${api.VERSION}`));
+assert(api.renderQuestionEvidence(Q(8)).includes("u27-cell-division-q08-v5-copy-distribution-zero-text-base"));
+assert(api.renderQuestionEvidence(Q(12)).includes("root-tip-data-card"));
+assert(api.renderQuestionEvidence(Q(12)).includes("分裂中可見特徵細胞數"));
 const answers = {
   [`${Q(5)}_sequence`]: ["cell_prepares_to_divide", "chromosomes_are_copied", "copied_chromosomes_distribute_to_both_sides", "cytoplasm_separates_into_two_daughter_cells"],
   [Q(1)]: "cells_arise_from_existing_cells",
