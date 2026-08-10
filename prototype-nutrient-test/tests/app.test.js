@@ -69,7 +69,7 @@ const context = {
 };
 
 vm.createContext(context);
-vm.runInContext(`${appSource}\n;globalThis.__nutrientTest = { getState: () => state, setState: (next) => { state = next; }, calculateResult, allRequiredAnswered, isLockedScreen, evaluateReflectionQuality, mission, assets, badges, questions, classifyQuestions, multiSelectQuestions, sectionMap, renderQuestionEvidence, renderQuestionImage, renderMultiSelect, renderCheckpoint3 };`, context);
+vm.runInContext(`${appSource}\n;globalThis.__nutrientTest = { getState: () => state, setState: (next) => { state = next; }, calculateResult, allRequiredAnswered, isLockedScreen, evaluateReflectionQuality, mission, assets, badges, questions, classifyQuestions, multiSelectQuestions, sectionMap, renderQuestionEvidence, renderQuestionImage, renderMultiSelect, renderCheckpoint3, renderResult, renderAchievements, renderRules, resetForRelogin, VERSION, QUESTION_VERSION };`, context);
 
 const api = context.__nutrientTest;
 const state = api.getState();
@@ -142,5 +142,33 @@ assert.match(appSource, /startAttempt/);
 assert.match(appSource, /hintEvent/);
 assert.match(appSource, /attempt_session_token/);
 assert.match(appSource, /提交後會進行結算，本次作答不能再修改/);
+assert.equal(api.VERSION, "20260810-nutrient-test-submitted-retry-ia-v1");
+assert.equal(api.QUESTION_VERSION, "20260720-nutrient-test-starch-glucose-only-v2");
+assert.notEqual(api.VERSION, api.QUESTION_VERSION, "runtime cache must stay separate from canonical question version");
+assert.match(appSource, /question_version: QUESTION_VERSION/);
+assert.equal(appSource.includes("question_version: VERSION"), false);
+
+state.result = perfect;
+state.backend_status = "submitted_verified";
+state.screen = "result";
+assert.match(api.renderResult(), /data-result-earned-badges="true"/);
+assert.match(api.renderResult(), /badge-nutrient_test-nutrient_test_entry\.webp\?v=20260810-nutrient-test-submitted-retry-ia-v1/);
+assert.match(api.renderResult(), /data-relogin-action="true"/);
+
+state.screen = "achievements";
+assert.equal(api.renderAchievements().includes("data-bq-unit-achievements"), false);
+assert.match(api.renderAchievements(), /data-bq-achievements-overview-only="true"/);
+assert.match(api.renderAchievements(), /data-relogin-action="true"/);
+
+state.screen = "rules";
+assert.match(api.renderRules(), /data-relogin-action="true"/);
+
+context.localStorage.setItem("bioquest_attempts_v1", JSON.stringify([{ attempt_id: "old_nutrient_attempt", unit_id: "nutrient_test" }]));
+api.resetForRelogin();
+assert.equal(api.getState().screen, "login");
+assert.equal(api.getState().student, null);
+assert.equal(api.getState().attempt_id, "");
+assert.equal(api.getState().submitted_at, null);
+assert.equal(context.localStorage.getItem("bioquest_attempts_v1"), JSON.stringify([{ attempt_id: "old_nutrient_attempt", unit_id: "nutrient_test" }]), "reset must preserve attempt history");
 
 console.log("prototype-nutrient-test app.test.js: all assertions passed");

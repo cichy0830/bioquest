@@ -9,8 +9,11 @@ import playwright from "/Users/biomin/.cache/codex-runtimes/codex-primary-runtim
 const { chromium } = playwright;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = process.env.BIOQUEST_AUDIT_ROOT ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT) : path.resolve(root, "..");
-const version = "20260720-nutrient-test-starch-glucose-only-v2";
-const artifactDir = path.join(root, "tests", "artifacts", version);
+const version = "20260810-nutrient-test-submitted-retry-ia-v1";
+const questionVersion = "20260720-nutrient-test-starch-glucose-only-v2";
+const artifactDir = process.env.BIOQUEST_ARTIFACT_DIR
+  ? path.resolve(process.env.BIOQUEST_ARTIFACT_DIR)
+  : path.join(root, "tests", "artifacts", version);
 fs.mkdirSync(artifactDir, { recursive: true });
 
 const choiceAnswers = {
@@ -55,7 +58,7 @@ function unitSummary(unitId, sequence, unitTitle, totalBadges, earnedCount, badg
 }
 
 function backendFixture(mode) {
-  return ({ mode }) => {
+  return ({ mode, questionVersion }) => {
     const backendTitleAvatarPath = ["shared-assets", "title-avatars", "title-04-concept_solver-male.webp"].join("/");
     const unitSummary = (unitId, sequence, unitTitle, totalBadges, earnedCount, badgeId = `${unitId}_entry`) => {
       const badgePath = unitId === "life_world"
@@ -115,7 +118,7 @@ function backendFixture(mode) {
         }), { status: 200, headers: { "Content-Type": "application/json" } });
       }
       if (href.includes("startAttempt")) {
-        return new Response(JSON.stringify({ ok: true, attempt_type: "first", issued_at: "2026-07-17T00:00:00.000Z", attempt_id: "nutrient_attempt_1", attempt_session_id: "nutrient_session_1", attempt_session_token: "nutrient_token_1", question_version: "20260720-nutrient-test-starch-glucose-only-v2", previous_attempt_id: "", expires_at: "2026-07-17T01:00:00.000Z" }), { status: 200, headers: { "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ ok: true, attempt_type: "first", issued_at: "2026-07-17T00:00:00.000Z", attempt_id: "nutrient_attempt_1", attempt_session_id: "nutrient_session_1", attempt_session_token: "nutrient_token_1", question_version: questionVersion, previous_attempt_id: "", expires_at: "2026-07-17T01:00:00.000Z" }), { status: 200, headers: { "Content-Type": "application/json" } });
       }
       if (href.includes("hintEvent")) return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "Content-Type": "application/json" } });
       if (href.includes("submitAttempt")) {
@@ -156,7 +159,7 @@ async function runCase(browser, baseUrl, viewport, mode) {
   const imageErrors = [];
   const consoleErrors = [];
   const pageErrors = [];
-  await context.addInitScript(backendFixture(mode), { mode });
+  await context.addInitScript(backendFixture(mode), { mode, questionVersion });
   const page = await context.newPage();
   page.on("response", (response) => {
     if (response.request().resourceType() === "image" && response.status() >= 400) imageErrors.push(response.url());
@@ -196,6 +199,19 @@ async function runCase(browser, baseUrl, viewport, mode) {
   if (mode === "pending") assert.match(resultText, /本次預估 \d+\/500 EXP，待後台確認/);
   if (mode === "verified") assert.match(resultText, /後台已回傳正式認列資料|本單元正式認列/);
   assert.doesNotMatch(mode === "verified" ? "" : resultText, /本次與正式累積差異|後台正式認列/);
+  const resultMetrics = await page.locator("#screen").evaluate((root) => ({
+    earnedCards: root.querySelectorAll("[data-result-earned-badges] .badge-card").length,
+    earnedImages: [...root.querySelectorAll("[data-result-earned-badges] img")].map((img) => img.currentSrc || img.src),
+    allBadgeCards: root.querySelectorAll(".badge-card").length,
+    reloginEntries: [...root.querySelectorAll("[data-relogin-action]")].filter((button) => button.offsetParent !== null).length,
+    text: root.textContent
+  }));
+  assert.equal(resultMetrics.earnedCards, 8, `${mode} ${viewport.width}: result should show this attempt earned badges only`);
+  assert.equal(resultMetrics.allBadgeCards, 8, `${mode} ${viewport.width}: result must not render full 11-badge catalog`);
+  assert.equal(resultMetrics.earnedImages.length, 8, `${mode} ${viewport.width}: earned badge images`);
+  assert.ok(resultMetrics.earnedImages.every((src) => src.includes(`v=${version}`)), `${mode} ${viewport.width}: result badge cache`);
+  assert.equal(resultMetrics.reloginEntries, 1, `${mode} ${viewport.width}: result relogin entry`);
+  assert.match(resultMetrics.text, /重新登入，並從登入頁開始/);
 
   await page.locator("#resultAchievements").click();
   await page.waitForSelector("[data-bq-badge-overview]");
@@ -208,6 +224,10 @@ async function runCase(browser, baseUrl, viewport, mode) {
       summaryBoxCount: root.querySelectorAll(".bq-unit-badge-summary").length,
       unitIndex: panels.findIndex((panel) => panel.querySelector(".badge-grid")),
       overviewIndex: panels.findIndex((panel) => panel.matches("[data-bq-badge-overview]")),
+      unitPanels: root.querySelectorAll("[data-bq-unit-achievements]").length,
+      badgeCards: root.querySelectorAll(".badge-card").length,
+      reloginEntries: [...root.querySelectorAll("[data-relogin-action]")].filter((button) => button.offsetParent !== null).length,
+      sidebarLoginDisabled: document.querySelector("[data-nav='login']")?.disabled ?? true,
       text: root.textContent,
       horizontalOverflow: document.documentElement.scrollWidth > innerWidth + 1
     };
@@ -216,11 +236,42 @@ async function runCase(browser, baseUrl, viewport, mode) {
   assert.equal(achievements.titleImageCount, 1, `${mode} ${viewport.width}: title avatar`);
   assert.equal(achievements.overviewCount, 1, `${mode} ${viewport.width}: overview`);
   assert.equal(achievements.summaryBoxCount, 52, `${mode} ${viewport.width}: 52 overview cards`);
-  assert.ok(achievements.overviewIndex > achievements.unitIndex, `${mode} ${viewport.width}: local badges before overview`);
+  assert.equal(achievements.unitPanels, 0, `${mode} ${viewport.width}: achievements must not render unit wall`);
+  assert.equal(achievements.badgeCards, 0, `${mode} ${viewport.width}: achievements must not show unit badge cards`);
+  assert.equal(achievements.reloginEntries, 1, `${mode} ${viewport.width}: achievements relogin entry`);
+  assert.equal(achievements.sidebarLoginDisabled, false, `${mode} ${viewport.width}: submitted sidebar login`);
+  assert.ok(achievements.overviewIndex >= 0 && achievements.unitIndex === -1, `${mode} ${viewport.width}: overview-only achievements`);
   assert.equal(achievements.horizontalOverflow, false, `${mode} ${viewport.width}: no horizontal overflow`);
   if (mode === "verified") assert.match(achievements.text, /5820 EXP｜已完成 12 站/);
   if (mode === "pending") assert.match(achievements.text, /5360 EXP｜已完成 11 站/);
   if (mode === "guest") assert.match(achievements.text, /0 EXP｜已完成 0 站/);
+  assert.match(achievements.text, /重新登入，並從登入頁開始/);
+
+  await page.locator("#achieveResult").click();
+  await page.locator("#resultRules").click();
+  await page.waitForSelector("#screen[data-bioquest-screen='rules']");
+  const beforeResetActions = await page.evaluate(() => (window.__backendActions || []).length);
+  const rulesMetrics = await page.locator("#screen").evaluate((root) => ({
+    reloginEntries: [...root.querySelectorAll("[data-relogin-action]")].filter((button) => button.offsetParent !== null).length,
+    text: root.textContent,
+    sidebarLoginDisabled: document.querySelector("[data-nav='login']")?.disabled ?? true
+  }));
+  assert.equal(rulesMetrics.reloginEntries, 1, `${mode} ${viewport.width}: rules relogin entry`);
+  assert.equal(rulesMetrics.sidebarLoginDisabled, false, `${mode} ${viewport.width}: rules sidebar login`);
+  assert.match(rulesMetrics.text, /重新登入，並從登入頁開始/);
+  await page.locator("[data-relogin-action]").click();
+  await page.waitForSelector("#screen[data-bioquest-screen='login']");
+  const resetMetrics = await page.evaluate(() => ({
+    screen: document.querySelector("#screen")?.dataset.bioquestScreen,
+    actions: (window.__backendActions || []).length,
+    state: JSON.parse(localStorage.getItem("bioquest_nutrient_test_state_v1") || "{}"),
+    attempts: JSON.parse(localStorage.getItem("bioquest_attempts_v1") || "[]")
+  }));
+  assert.equal(resetMetrics.screen, "login", `${mode} ${viewport.width}: relogin returns to login`);
+  assert.equal(resetMetrics.actions, beforeResetActions, `${mode} ${viewport.width}: reset must not call backend`);
+  assert.equal(resetMetrics.state.student, null, `${mode} ${viewport.width}: current student cleared`);
+  assert.equal(resetMetrics.state.attempt_id, "", `${mode} ${viewport.width}: current attempt cleared`);
+  assert.equal(resetMetrics.attempts.length, 1, `${mode} ${viewport.width}: attempt history preserved`);
 
   const actions = await page.evaluate(() => window.__backendActions || []);
   const payloads = await page.evaluate(() => window.__capturedPayloads || []);
@@ -233,7 +284,7 @@ async function runCase(browser, baseUrl, viewport, mode) {
     assert.equal(payloads.length, 1, `${mode} ${viewport.width}: submit payload`);
     const payload = JSON.parse(new URLSearchParams(payloads[0]).get("payload"));
     assert.equal(payload.unit_id, "nutrient_test");
-    assert.equal(payload.question_version, "20260720-nutrient-test-starch-glucose-only-v2");
+    assert.equal(payload.question_version, questionVersion);
     assert.equal(payload.question_logs.length, 11);
     assert.deepEqual(payload.question_logs.map((log) => log.question_id.replace("nutrient_test_", "")).sort(), ["q01", "q02", "q03", "q06", "q07", "q08", "q10", "q11", "q12", "q13", "q14"]);
     assert.deepEqual(Object.keys(JSON.parse(payload.raw_answers_json)).sort(), ["q01", "q02", "q03", "q06", "q07", "q08", "q10", "q11", "q12", "q13", "q14", "reflection"]);

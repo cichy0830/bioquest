@@ -64,7 +64,7 @@ appVersionOverrides.set("cell_structure", "20260731-cell-structure-submitted-ret
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
 appVersionOverrides.set("enzymes", "20260720-enzymes-user-review-v2");
-appVersionOverrides.set("nutrient_test", "20260721-nutrient-test-brief-ratio-v1");
+appVersionOverrides.set("nutrient_test", "20260810-nutrient-test-submitted-retry-ia-v1");
 appVersionOverrides.set("scale", "20260731-scale-submitted-retry-ia-v1");
 appVersionOverrides.set("nutrients_energy", "20260802-nutrients-energy-submitted-retry-ia-v1");
 appVersionOverrides.set("photosynthesis", "20260721-photosynthesis-q09-inactive-cache-v1");

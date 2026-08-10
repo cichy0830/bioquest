@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260721-nutrient-test-brief-ratio-v1";
+const VERSION = "20260810-nutrient-test-submitted-retry-ia-v1";
 const QUESTION_VERSION = "20260720-nutrient-test-starch-glucose-only-v2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -177,6 +177,37 @@ function parseArray(value) {
   if (!value) return [];
   try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
 }
+function cacheBustedAsset(path) {
+  const value = String(path || "").trim();
+  if (!value) return "";
+  const [base, hash = ""] = value.split("#");
+  const separator = base.includes("?") ? "&" : "?";
+  return `${base}${separator}v=${encodeURIComponent(VERSION)}${hash ? `#${hash}` : ""}`;
+}
+function badgeById(id) { return badges.find((badge) => badge.id === id); }
+function badgeIdsFromResult(result = {}) {
+  for (const candidate of [result.earned_badges, result.earned_badge_ids, result.badges, result.earned_badges_json, result.earned_badge_ids_json, result.badges_json]) {
+    const ids = parseArray(candidate).map((item) => typeof item === "string" ? item : item?.badge_id || item?.id).filter(Boolean);
+    if (ids.length) return [...new Set(ids)];
+  }
+  return [];
+}
+function renderEarnedBadges(result = {}) {
+  const status = submissionStatus();
+  const earned = badgeIdsFromResult(result).map(badgeById).filter(Boolean);
+  const statusCopy = status === "verified"
+    ? "本次由後台確認取得的徽章"
+    : status === "pending"
+      ? "本次候選徽章，待後台確認"
+      : "guest 測試取得的本次徽章，不列入正式累積";
+  if (!earned.length) {
+    return `<div class="story-panel" data-result-earned-badges="true"><strong>本次取得徽章</strong><p>${status === "verified" ? "本次沒有新增徽章。" : "本次尚未取得徽章；未核准或未取得的徽章不在結算頁顯示。"}</p></div>`;
+  }
+  return `<section class="result-earned-badges" data-result-earned-badges="true" aria-label="本次取得徽章"><h3>本次取得徽章</h3><p class="muted">${statusCopy}</p><div class="badge-grid">${earned.map((badge) => `<div class="badge-card lit ${badge.id === "nutrient_test_flawless" ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${cacheBustedAsset(badge.badge_image_path)}" alt="${badge.name}" loading="lazy"><strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`).join("")}</div></section>`;
+}
+function renderReloginAction(context) {
+  return `<div class="story-panel relogin-panel" data-relogin-entry="${context}"><strong>重新登入／再挑戰</strong><p>若要重新作答，請回到登入頁開始新的完整任務；既有正式累積與歷史紀錄不會被清除。</p><div class="actions"><button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button></div></div>`;
+}
 function deepFreeze(value) {
   if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
   Object.keys(value).forEach((key) => deepFreeze(value[key]));
@@ -288,16 +319,27 @@ function setScreen(next) {
   render();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+function resetForRelogin() {
+  state = clone(defaultState);
+  state.screen = "login";
+  state.lockNotice = "請重新登入以開始新的挑戰；既有正式累積與歷史紀錄不會被清除。";
+  saveState();
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
 navButtons.forEach((button) => button.addEventListener("click", () => {
-  if (!button.disabled) setScreen(button.dataset.nav);
+  if (button.disabled) return;
+  if (state.submitted_at && button.dataset.nav === "login") return resetForRelogin();
+  setScreen(button.dataset.nav);
 }));
 
 function renderNav() {
   navButtons.forEach((button) => {
     const key = button.dataset.nav;
     button.classList.toggle("active", key === state.screen);
-    button.disabled = !state.completedScreens.includes(key) && key !== "rules";
+    const submittedAllowed = ["login", "result", "achievements", "rules"].includes(key);
+    button.disabled = state.submitted_at ? !submittedAllowed : (!state.completedScreens.includes(key) && key !== "rules");
   });
 }
 function renderStudentMini() {
@@ -348,7 +390,7 @@ async function postBackendAction(action, payload) {
   return data;
 }
 function startAttemptSession(studentId) {
-  return postBackendAction("startAttempt", { student_id: studentId, unit_id: mission.unit_id });
+  return postBackendAction("startAttempt", { student_id: studentId, unit_id: mission.unit_id, question_version: QUESTION_VERSION });
 }
 function normalizeBackendStudent(data, id) {
   if (!data?.ok) return null;
@@ -732,23 +774,16 @@ function buildBackendPayload(attempt) {
 
 function renderAchievements() {
   const status = submissionStatus();
-  const currentBadges = state.submitted_at ? (state.result || calculateResult()).badges : [];
-  const litIds = status === "verified" ? cumulativeBadgeIds(currentBadges) : currentBadges;
-  const scoreCopy = status === "verified"
-    ? { a: ["累積徽章", litIds.length], b: ["累積 EXP", state.cumulative_total_exp || 0], c: ["已完成站數", state.completed_unit_count || 0] }
+  const syncNote = status === "verified"
+    ? "稱號、EXP 與全冊徽章總覽以後台正式認列資料為準。"
     : status === "guest"
-      ? { a: ["本單元候選徽章", currentBadges.length], b: ["本次預估 EXP", Math.min((state.result || calculateResult()).attempt_total_exp || 0, UNIT_EXP_CAP)], c: ["正式累積狀態", "guest 不列入"] }
-      : { a: ["本單元候選徽章", currentBadges.length], b: ["本次預估 EXP", Math.min((state.result || calculateResult()).attempt_total_exp || 0, UNIT_EXP_CAP)], c: ["正式累積狀態", "待後台確認"] };
-  const note = status === "verified"
-    ? "未取得徽章維持灰階，取得後亮燈；同一徽章在累積收藏只計一次。"
-    : status === "guest"
-      ? "guest 測試只顯示本次候選徽章，不列入正式累積。"
-      : "本次候選徽章待後台確認後，才會寫入正式累積。";
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">成就亮燈</p><h2>食物證據檢測徽章牆</h2><div class="score-grid"><div class="score-box"><span>${scoreCopy.a[0]}</span><strong>${scoreCopy.a[1]}</strong></div><div class="score-box"><span>${scoreCopy.b[0]}</span><strong>${scoreCopy.b[1]}</strong></div><div class="score-box"><span>${scoreCopy.c[0]}</span><strong>${scoreCopy.c[1]}</strong></div></div><div class="badge-grid">${badges.map((badge) => { const lit = litIds.includes(badge.id); const gold = badge.id === "nutrient_test_flawless"; return `<div class="badge-card ${lit ? "lit" : ""} ${gold ? "gold" : ""}"><img class="badge-image" src="${badge.badge_image_path}" alt="${badge.name}"><strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`; }).join("")}</div><p class="muted">${note}</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div></div></div>`;
+      ? "guest 測試不列入正式稱號進度；此頁只顯示目前可驗證的全冊總覽。"
+      : "本次提交等待後台確認；正式稱號進度確認後才會更新。";
+  return `<div class="wide-layout achievements-stack" data-bq-achievements-overview-only="true"><div class="panel"><p class="eyebrow">全冊成就</p><h2>稱號進度與全冊徽章總覽</h2><div class="feedback ${status === "verified" ? "good" : "warn"}">${syncNote}</div><p class="muted">本單元取得徽章已在結算頁顯示；此頁只呈現全冊進度。</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div>${state.submitted_at ? renderReloginAction("achievements") : ""}</div></div>`;
 }
 
 function renderRules() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元上限</strong><p>本單元最高認列 500 EXP；零提示全對是最高表現路徑。</p></div><div class="story-panel"><strong>完成條件</strong><p>回答完所有必答題即可提交，不要求先全對。</p></div><div class="story-panel"><strong>提示後修正</strong><p>每題第一次需要調整時顯示一次概念提示；修正 EXP 低於直接答對。</p></div><div class="story-panel"><strong>再挑戰</strong><p>提交後答案鎖定；須重新登入並完整作答才算再挑戰。</p></div></div><div class="actions"><button class="primary" id="rulesBack">回到任務</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元上限</strong><p>本單元最高認列 500 EXP；零提示全對是最高表現路徑。</p></div><div class="story-panel"><strong>完成條件</strong><p>回答完所有必答題即可提交，不要求先全對。</p></div><div class="story-panel"><strong>提示後修正</strong><p>每題第一次需要調整時顯示一次概念提示；修正 EXP 低於直接答對。</p></div><div class="story-panel"><strong>再挑戰</strong><p>提交後答案鎖定；須重新登入並完整作答才算再挑戰。</p></div></div>${state.submitted_at ? renderReloginAction("rules") : ""}<div class="actions"><button class="primary" id="rulesBack">回到任務</button></div></div></div>`;
 }
 
 function sectionStat(title, qids) {
@@ -910,14 +945,17 @@ function renderResult() {
       : `本次預估 ${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)}/${UNIT_EXP_CAP} EXP，待後台確認；確認完成前，這些數字只代表本次作答預覽。`;
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>提交後本次作答已鎖定</h2>${notice}${resultStatusNotice(result)}
     <div class="score-grid"><div class="score-box"><span>${status === "verified" ? "本次取得" : "本次預估"}</span><strong>${Math.min(result.attempt_total_exp, UNIT_EXP_CAP)} EXP</strong></div><div class="score-box"><span>${creditedLabel}</span><strong>${creditedValue}</strong></div><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div></div>
+    ${renderEarnedBadges(result)}
     <div class="card-grid">
       <div class="story-panel"><strong>EXP 明細</strong><p>完成 ${result.completion_exp}｜直接答對 ${result.concept_exp}｜提示後修正 ${result.revision_exp}｜回報 ${result.question_exp}｜精熟 ${result.mastery_exp}｜再挑戰 ${result.retry_exp}</p></div>
       <div class="story-panel"><strong>${status === "verified" ? "本次與正式累積差異" : "本次預估狀態"}</strong><p>${recognitionCopy}</p></div>
       <div class="story-panel"><strong>回報品質</strong><p>${result.reflection_quality}：${result.reflection_exp_reason}</p><p class="muted">${status === "verified" ? `後台正式認列 ${result.question_exp} EXP。` : `前台候選 ${result.question_exp_candidate || 0} EXP，待後台重算。`}</p></div>
     </div>
+    ${renderReloginAction("result")}
     <div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button></div></div></div>`;
 }
 function attachEvents() {
+  document.querySelectorAll("[data-relogin-action]").forEach((button) => button.addEventListener("click", resetForRelogin));
   if (state.screen === "login") attachLogin();
   if (state.screen === "brief") document.querySelector("#briefNext").addEventListener("click", () => { unlock("scan"); setScreen("scan"); });
   if (state.screen === "scan") document.querySelector("#scanNext").addEventListener("click", () => { unlock("checkpoint1"); setScreen("checkpoint1"); });
