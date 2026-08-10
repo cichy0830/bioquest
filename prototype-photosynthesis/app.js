@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260721-photosynthesis-q09-inactive-cache-v1";
+const VERSION = "20260811-photosynthesis-submitted-retry-ia-v1";
 const QUESTION_VERSION = "20260721-photosynthesis-q09-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -52,7 +52,6 @@ const mission = {
 
 const assets = {
   mentorFallback: "../shared-assets/mentor-feedback/mentor-feedback-stable.webp",
-  owlLogin: "../prototype-cell-basic-unit/assets/owl-basic-unit-micro-guide.png",
   owlPrep: "assets/owl-photosynthesis-prep-reminder.webp",
   owlReport: "assets/owl-photosynthesis-report-reminder.webp",
   owlResult: "assets/owl-photosynthesis-result.webp",
@@ -67,7 +66,7 @@ const assets = {
   questionVariableControl: "assets/img-photosynthesis-variable-control.webp"
 };
 
-const badgeAsset = (id) => `../shared-assets/badges/photosynthesis/badge-photosynthesis-${id}.webp?v=${VERSION}`;
+const badgeAsset = (id) => `../shared-assets/badges/photosynthesis/badge-photosynthesis-${id}.webp`;
 const reflectionRules = {
   conceptTerms: ["光合作用", "二氧化碳", "水", "光", "光能", "葡萄糖", "養分", "氧氣", "葉綠體", "葉片", "氣孔", "葉脈", "澱粉", "碘液", "氣泡", "變因", "對照", "控制變因", "呼吸作用"],
   irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "午餐", "放假"],
@@ -193,6 +192,25 @@ function uid(prefix) {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
+function parseArray(value) {
+  if (Array.isArray(value)) return value;
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function cacheBustedAsset(path) {
+  const value = String(path || "").trim();
+  if (!value) return "";
+  const [base, hash = ""] = value.split("#");
+  const separator = base.includes("?") ? "&" : "?";
+  return `${base}${separator}v=${encodeURIComponent(VERSION)}${hash ? `#${hash}` : ""}`;
+}
+
 function sameSet(a, b) {
   const aa = [...(a || [])].sort();
   const bb = [...(b || [])].sort();
@@ -283,6 +301,56 @@ function titleAndProgress(student = state.student, localGain = 0) {
     remaining: next ? Math.max(0, next.need - totalExp) : 0,
     progressPercent: Math.min(100, Math.round((totalExp / 23400) * 100))
   };
+}
+
+function badgeById(id) {
+  return badges.find((badge) => badge.id === id);
+}
+
+function badgeIdsFromResult(result = {}) {
+  for (const candidate of [result.earned_badges, result.earned_badge_ids, result.badges, result.earned_badges_json, result.earned_badge_ids_json, result.badges_json]) {
+    const ids = parseArray(candidate)
+      .map((item) => typeof item === "string" ? item : item?.badge_id || item?.id)
+      .filter(Boolean);
+    if (ids.length) return [...new Set(ids)];
+  }
+  return [];
+}
+
+function renderEarnedBadges(result = {}) {
+  const mode = resultMode(result);
+  const earned = badgeIdsFromResult(result).map(badgeById).filter(Boolean);
+  const statusCopy = mode === "verified"
+    ? "本次由後台確認取得的徽章"
+    : mode === "pending"
+      ? "本次候選徽章，待後台確認"
+      : "guest 測試取得的本次徽章，不列入正式累積";
+  if (!earned.length) {
+    return `<section class="panel result-earned-badges" data-result-earned-badges="true"><h3>本次取得徽章</h3><p class="muted">${mode === "verified" ? "本次沒有新增徽章。" : "本次尚未取得徽章；未取得的徽章不在結算頁顯示。"}</p></section>`;
+  }
+  return `<section class="panel result-earned-badges" data-result-earned-badges="true" aria-label="本次取得徽章">
+    <h3>本次取得徽章</h3>
+    <p class="muted">${statusCopy}</p>
+    <div class="badge-grid">
+      ${earned.map((badge) => `
+        <article class="badge-card lit ${badge.id === "photosynthesis_flawless" ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}">
+          <div class="badge-visual">
+            <img class="badge-image" src="${cacheBustedAsset(badge.badge_image_path)}" alt="${escapeHtml(badge.name)}" loading="lazy" onerror="this.closest('.badge-visual').classList.add('fallback'); this.remove();">
+          </div>
+          <strong>${escapeHtml(badge.name)}</strong>
+          <p>${escapeHtml(badge.condition)}</p>
+        </article>
+      `).join("")}
+    </div>
+  </section>`;
+}
+
+function renderReloginAction(context) {
+  return `<div class="relogin-panel" data-relogin-entry="${context}">
+    <strong>重新登入／再挑戰</strong>
+    <p>若要重新作答，請回到登入頁開始新的完整任務；既有正式累積與歷史紀錄不會被清除。</p>
+    <div class="button-row"><button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button></div>
+  </div>`;
 }
 
 async function requestBackend(params) {
@@ -403,10 +471,18 @@ function setScreen(nextScreen) {
   if (typeof window !== "undefined") window.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
 }
 
+function resetForRelogin() {
+  state = createEmptyState();
+  state.notice = "請重新登入以開始新的挑戰；既有正式累積與歷史紀錄不會被清除。";
+  saveState();
+  renderApp();
+  if (typeof window !== "undefined") window.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
+}
+
 function canUseNav(target) {
   if (target === "rules") return true;
   if (!state.student) return target === "login";
-  if (state.submitted) return ["result", "achievements", "rules"].includes(target);
+  if (state.submitted) return ["login", "result", "achievements", "rules"].includes(target);
   return state.completedScreens.includes(target);
 }
 
@@ -643,6 +719,7 @@ function applyBackendSubmitResponse(response, localResult) {
     state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path;
   }
   if (!verified) return { ...localResult, backend_response: response };
+  const backendBadgeIds = badgeIdsFromResult(verified);
   return {
     ...localResult,
     verification_status: verified.verification_status || response.verification_status || "server_verified",
@@ -656,10 +733,10 @@ function applyBackendSubmitResponse(response, localResult) {
     reflection_exp: Number(verified.reflection_exp ?? localResult.reflection_exp),
     mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
     retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
-    attempt_exp: Number(verified.attempt_exp ?? localResult.attempt_exp),
+    attempt_exp: Number(verified.attempt_exp ?? verified.attempt_total_exp ?? localResult.attempt_exp),
     unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
     exp_delta: Number(verified.credited_delta ?? verified.exp_delta ?? localResult.exp_delta),
-    earned_badges: Array.isArray(verified.earned_badges) ? verified.earned_badges : localResult.earned_badges,
+    earned_badges: backendBadgeIds.length ? backendBadgeIds : localResult.earned_badges,
     backend_response: response
   };
 }
@@ -736,7 +813,7 @@ function renderBrief() {
   return `
     <div class="wide-layout">
       <section class="panel hero-panel brief-hero">
-        <div class="brief-scene photosynthesis-brief-scene" data-asset-hook="${assets.briefingSceneHook}" data-mobile-hook="${assets.briefingSceneMobileHook}">
+        <div class="brief-scene photosynthesis-brief-scene" data-asset-hook="${cacheBustedAsset(assets.briefingSceneHook)}" data-mobile-hook="${cacheBustedAsset(assets.briefingSceneMobileHook)}">
           <div class="scene-copy">
             <p class="eyebrow">${mission.mission_area}</p>
             <h2>${mission.mission_title}</h2>
@@ -1005,7 +1082,8 @@ function renderResult() {
           <button class="secondary" data-next="rules">查看規則</button>
         </div>
       </section>
-      ${renderBadgeWall(result.earned_badges)}
+      ${renderEarnedBadges(result)}
+      ${state.submitted ? renderReloginAction("result") : ""}
     </div>
   `;
 }
@@ -1035,32 +1113,24 @@ function ledgerRow(label, value) {
 }
 
 function renderAchievements() {
-  const result = state.result || scoreAttempt();
+  const mode = resultMode();
+  const syncNote = mode === "verified"
+    ? "稱號、EXP 與全冊徽章總覽以後台正式認列資料為準。"
+    : mode === "guest"
+      ? "guest 測試不列入正式稱號進度；此頁只顯示目前可驗證的全冊總覽。"
+      : "本次提交等待後台確認；正式稱號進度確認後才會更新。";
   return `
-    <div class="stack achievements-stack">
-      ${renderBadgeWall(result.earned_badges, { unitAchievements: true })}
+    <div class="stack achievements-stack" data-bq-achievements-overview-only="true">
+      <section class="panel">
+        <p class="eyebrow">全冊成就</p>
+        <h2>稱號進度與全冊徽章總覽</h2>
+        <div class="feedback ${mode === "verified" ? "good" : "warn"}">${syncNote}</div>
+        <p class="muted">本單元取得徽章已在結算頁顯示；此頁只呈現全冊進度。</p>
+        <div class="button-row"><button class="primary" data-next="${state.submitted ? "result" : "brief"}">回到${state.submitted ? "結算" : "任務"}</button></div>
+      </section>
+      ${state.submitted ? renderReloginAction("achievements") : ""}
     </div>
   `;
-}
-
-function renderBadgeWall(earned = [], options = {}) {
-  const earnedSet = new Set(earned);
-  const unitAttributes = options.unitAchievements ? ` data-bq-unit-achievements="${mission.unit_id}"` : "";
-  return `<section class="panel"${unitAttributes}>
-    <p class="eyebrow">${options.unitAchievements ? "本單元成就" : "徽章收藏牆"}</p>
-    <h2>本單元 11 枚徽章</h2>
-    <div class="badge-wall">
-      ${badges.map((badge) => `
-        <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
-          <div class="badge-visual">
-            <img src="${badge.badge_image_path}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('fallback'); this.remove();">
-          </div>
-          <strong>${escapeHtml(badge.name)}</strong>
-          <p>${escapeHtml(badge.condition)}</p>
-        </article>
-      `).join("")}
-    </div>
-  </section>`;
 }
 
 function renderRules() {
@@ -1076,7 +1146,8 @@ function renderRules() {
           <li>回報空白可提交但 0 EXP；具體且與光合作用概念相關的問題才會取得回報 EXP。</li>
           <li>稱號進度 23,400 EXP 封頂；全冊理論可累積 26,000 EXP。</li>
         </ul>
-        <button class="secondary" data-next="${state.student ? state.screen === "rules" ? "brief" : state.screen : "login"}">返回任務</button>
+        ${state.submitted ? renderReloginAction("rules") : ""}
+        <button class="secondary" data-next="${state.student ? state.submitted ? "result" : state.screen === "rules" ? "brief" : state.screen : "login"}">返回任務</button>
       </section>
     </div>
   `;
@@ -1101,7 +1172,7 @@ function renderApp() {
   screen.innerHTML = `${state.notice ? `<div class="notice">${escapeHtml(state.notice)}</div>` : ""}${(views[state.screen] || renderLogin)()}`;
   updateNav();
   bindScreenEvents();
-  if (typeof window !== "undefined" && window.BioQuestCharacterLayout?.enhance) window.BioQuestCharacterLayout.enhance();
+  if (typeof window !== "undefined" && window.BioQuestCharacterLayout?.enhance) window.BioQuestCharacterLayout.enhance({ force: true });
 }
 
 function updateNav() {
@@ -1120,6 +1191,7 @@ function updateNav() {
 function bindScreenEvents() {
   screen.querySelector("#loginBtn")?.addEventListener("click", () => handleLogin(false));
   screen.querySelector("#guestBtn")?.addEventListener("click", () => handleLogin(true));
+  screen.querySelectorAll("[data-relogin-action]").forEach((button) => button.addEventListener("click", resetForRelogin));
   screen.querySelectorAll("[data-next]").forEach((button) => button.addEventListener("click", () => setScreen(button.dataset.next)));
   screen.querySelectorAll("[data-section-next]").forEach((button) => button.addEventListener("click", () => nextAfterSection(button.dataset.sectionNext)));
   screen.querySelectorAll("[data-answer]").forEach((button) => button.addEventListener("click", () => setAnswer(button.dataset.answer, button.dataset.value)));
@@ -1142,6 +1214,10 @@ function bindScreenEvents() {
 
 if (typeof document !== "undefined") {
   navButtons.forEach((button) => button.addEventListener("click", () => {
+    if (state.submitted && button.dataset.nav === "login") {
+      resetForRelogin();
+      return;
+    }
     if (canUseNav(button.dataset.nav)) setScreen(button.dataset.nav);
   }));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", renderApp);
@@ -1170,6 +1246,13 @@ if (typeof window !== "undefined") {
     renderReview,
     renderReflection,
     renderResult,
-    renderAchievements
+    renderAchievements,
+    renderRules,
+    renderEarnedBadges,
+    renderReloginAction,
+    resetForRelogin,
+    canUseNav,
+    cacheBustedAsset,
+    badgeIdsFromResult
   };
 }
