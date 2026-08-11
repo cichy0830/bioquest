@@ -25,7 +25,7 @@ try {
         return { ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) };
       };
     });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260727-plant-transport-structures-relogin-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260811-plant-transport-structures-q08-q09-v1`);
     await page.evaluate(() => document.querySelector("#guestBtn")?.click());
     await page.waitForFunction(() => window.__plant_transport_structuresTest.state().screen === "brief");
     await page.evaluate(() => window.scrollTo(0, 520));
@@ -57,6 +57,23 @@ try {
     assert.ok(backgroundProbe.image.includes("linear-gradient") || backgroundProbe.image.includes("repeating-linear-gradient"), "ambient background layer missing");
     assert.ok(backgroundProbe.opacity > 0.4, "ambient background layer should be visible");
     assert.ok(backgroundProbe.panelBackground.includes("rgba"), "question cards should keep a readable translucent surface");
+    await page.evaluate(() => {
+      const api = window.__plant_transport_structuresTest;
+      const current = api.state();
+      api.setState({ ...current, screen: "checkpoint2" });
+      api.renderApp({ resetScroll: true });
+    });
+    assert.equal(await page.locator('[data-question-id="q08"] .evidence-card').count(), 0, "q08 should not show an answer-leading evidence card");
+    const sequenceProbe = await page.evaluate(() => {
+      const api = window.__plant_transport_structuresTest;
+      const q09 = api.questions.find((question) => question.id === "q09");
+      api.setState({ ...api.createEmptyState(), attempt_id: "layout-sequence-collision", optionOrders: { q09: [...q09.answer] } });
+      return {
+        order: api.orderedOptions(q09).map((item) => item.id),
+        answer: q09.answer
+      };
+    });
+    assert.notDeepEqual(sequenceProbe.order, sequenceProbe.answer, "q09 initial sequence order should not equal the answer");
     await page.evaluate(() => {
       const api = window.__plant_transport_structuresTest;
       const badBadgePath = api.badges.find((badge) => {

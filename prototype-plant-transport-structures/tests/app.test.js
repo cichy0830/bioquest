@@ -12,7 +12,7 @@ const context = { console, window: null, document: { readyState: "loading", quer
 context.window = context; context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-plant-transport-structures/app.js" });
 const api = context.window.__plant_transport_structuresTest;
-assert.equal(api.VERSION, "20260727-plant-transport-structures-relogin-v1");
+assert.equal(api.VERSION, "20260811-plant-transport-structures-q08-q09-v1");
 assert.equal(api.QUESTION_VERSION, "20260727-plant-transport-structures-q03-continuity-v3");
 assert.equal(api.mission.unit_id, "plant_transport_structures");
 assert.equal(api.questions.length, 14);
@@ -21,6 +21,8 @@ assert.deepEqual(Array.from(api.requiredQuestionIds), ["q01", "q02", "q03", "q04
 assert.equal(api.questions.find((question) => question.id === "q03")?.type, "choice");
 assert.equal(api.questions.find((question) => question.id === "q03")?.answer, "continuous_vascular_bundle_system");
 assert.equal(api.questions.find((question) => question.id === "q03")?.misconception, "vascular_bundle_separate_system_confusion");
+const q09 = api.questions.find((question) => question.id === "q09");
+assert.equal(q09?.type, "sequence");
 assert.equal(api.badges.length, 13);
 assert(!api.badges.some((badge) => badge.id === "cambium_basic_identifier"));
 assert.equal(api.badges.filter((badge) => badge.image_status === "ready").length, 13);
@@ -33,8 +35,8 @@ for (const badge of api.badges) {
 assert(source.includes("BioQuestLoginUX?.begin"));
 const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
 assert(styles.includes("repeating-linear-gradient"));
-assert(styles.includes("plant-transport-structures-ambient-background-neutral.webp?v=20260727-plant-transport-structures-relogin-v1"));
-assert(styles.includes("plant-transport-structures-ambient-background-neutral-390w.webp?v=20260727-plant-transport-structures-relogin-v1"));
+assert(styles.includes("plant-transport-structures-ambient-background-neutral.webp?v=20260811-plant-transport-structures-q08-q09-v1"));
+assert(styles.includes("plant-transport-structures-ambient-background-neutral-390w.webp?v=20260811-plant-transport-structures-q08-q09-v1"));
 const bodyAmbientCss = styles.slice(styles.indexOf("body {"), styles.indexOf("button, input"));
 const bodyBeforeCss = styles.slice(styles.indexOf("body::before"), styles.indexOf("button, input"));
 const briefSceneCss = styles.slice(styles.indexOf(".brief-scene {"), styles.indexOf(".scene-copy"));
@@ -73,7 +75,16 @@ assert(api.renderCheckpoint("checkpoint3").includes("上移"));
 assert(!api.renderCheckpoint("checkpoint3").includes("形成層"));
 assert(!api.renderCheckpoint("checkpoint1").includes("data-map-question=\"q03\""));
 assert(!api.renderCheckpoint("checkpoint1").includes("root_hair_and_transport"));
-for (const qid of ["q01", "q03", "q04", "q05", "q06", "q07", "q09", "q10", "q11", "q12"]) assert.equal(api.renderQuestionEvidence(qid), "", qid);
+for (const qid of ["q01", "q03", "q04", "q05", "q06", "q07", "q08", "q09", "q10", "q11", "q12"]) assert.equal(api.renderQuestionEvidence(qid), "", qid);
+for (const attemptId of ["sequence-seed-a", "sequence-seed-b"]) {
+  api.setState({ attempt_id: attemptId });
+  const firstOrder = api.orderedOptions(q09).map((item) => item.id);
+  const secondOrder = api.orderedOptions(q09).map((item) => item.id);
+  assert.deepEqual(firstOrder, secondOrder, `q09 order should stay stable for ${attemptId}`);
+  assert.notDeepEqual(firstOrder, q09.answer, `q09 order must not start as the answer for ${attemptId}`);
+}
+api.setState({ attempt_id: "sequence-forced-collision", optionOrders: { q09: [...q09.answer] } });
+assert.notDeepEqual(api.orderedOptions(q09).map((item) => item.id), q09.answer, "q09 stored collision should be guarded");
 assert(!api.renderReview().includes("mentor-card"));
 assert(!api.renderReview().includes("養分轉運線索"));
 assert(!api.renderReflection().includes("bq-report-assistant"));

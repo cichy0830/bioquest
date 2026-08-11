@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260727-plant-transport-structures-relogin-v1";
+const VERSION = "20260811-plant-transport-structures-q08-q09-v1";
 const QUESTION_VERSION = "20260727-plant-transport-structures-q03-continuity-v3";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -285,11 +285,22 @@ function stableShuffle(items, seed) {
   return copy;
 }
 
+function guardedOptionOrder(order, question, ids) {
+  const allowed = new Set(ids);
+  const normalized = Array.isArray(order) ? order.filter((id) => allowed.has(id)) : [];
+  ids.forEach((id) => { if (!normalized.includes(id)) normalized.push(id); });
+  if (question.type === "sequence" && Array.isArray(question.answer) && normalized.length > 1 && normalized.every((id, index) => id === question.answer[index])) {
+    [normalized[0], normalized[1]] = [normalized[1], normalized[0]];
+  }
+  return normalized;
+}
+
 function orderedOptions(question) {
+  const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
   if (!state.optionOrders[question.id]) {
-    const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
     state.optionOrders[question.id] = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}`);
   }
+  state.optionOrders[question.id] = guardedOptionOrder(state.optionOrders[question.id], question, ids);
   const source = Object.fromEntries((question.type === "sequence" ? question.steps : question.options || []).map((item) => [item.id, item]));
   return state.optionOrders[question.id].map((id) => source[id]).filter(Boolean);
 }
@@ -890,7 +901,6 @@ function renderQuestion(question) {
 function conceptLabel(concept) { return {transport_need:"植物運輸需求",root_hair_absorption:"根毛吸收",vascular_bundle:"維管束",stem_transport_support:"莖的運輸構造",xylem_phloem_roles:"木質部與韌皮部",xylem_function:"木質部",phloem_function:"韌皮部",leaf_vein_transport:"葉脈運輸",transpiration_basic:"蒸散與水分路徑",cambium_basic:"形成層"}[concept] || concept; }
 
 function renderQuestionEvidence(qid) {
-  if (qid === "q08") return `<div class="evidence-card"><strong>葉脈觀察卡</strong><p>葉脈會連接葉片內外的運輸構造；請判斷它不只是外觀紋路的原因。</p></div>`;
   return "";
 }
 
@@ -1276,6 +1286,7 @@ if (typeof window !== "undefined") {
     buildBackendPayload,
     evaluateReflection,
     titleAvatarPath,
+    orderedOptions,
     renderQuestionEvidence,
     renderCheckpoint,
     renderReview,
