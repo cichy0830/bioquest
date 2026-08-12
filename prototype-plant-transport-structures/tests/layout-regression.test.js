@@ -25,7 +25,7 @@ try {
         return { ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) };
       };
     });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260811-plant-transport-structures-q08-q09-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260812-plant-transport-structures-mapping-v1`);
     await page.evaluate(() => document.querySelector("#guestBtn")?.click());
     await page.waitForFunction(() => window.__plant_transport_structuresTest.state().screen === "brief");
     await page.evaluate(() => window.scrollTo(0, 520));

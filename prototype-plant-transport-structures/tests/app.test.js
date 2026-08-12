@@ -12,7 +12,7 @@ const context = { console, window: null, document: { readyState: "loading", quer
 context.window = context; context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-plant-transport-structures/app.js" });
 const api = context.window.__plant_transport_structuresTest;
-assert.equal(api.VERSION, "20260811-plant-transport-structures-q08-q09-v1");
+assert.equal(api.VERSION, "20260812-plant-transport-structures-mapping-v1");
 assert.equal(api.QUESTION_VERSION, "20260727-plant-transport-structures-q03-continuity-v3");
 assert.equal(api.mission.unit_id, "plant_transport_structures");
 assert.equal(api.questions.length, 14);
@@ -35,8 +35,8 @@ for (const badge of api.badges) {
 assert(source.includes("BioQuestLoginUX?.begin"));
 const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
 assert(styles.includes("repeating-linear-gradient"));
-assert(styles.includes("plant-transport-structures-ambient-background-neutral.webp?v=20260811-plant-transport-structures-q08-q09-v1"));
-assert(styles.includes("plant-transport-structures-ambient-background-neutral-390w.webp?v=20260811-plant-transport-structures-q08-q09-v1"));
+assert(styles.includes("plant-transport-structures-ambient-background-neutral.webp?v=20260812-plant-transport-structures-mapping-v1"));
+assert(styles.includes("plant-transport-structures-ambient-background-neutral-390w.webp?v=20260812-plant-transport-structures-mapping-v1"));
 const bodyAmbientCss = styles.slice(styles.indexOf("body {"), styles.indexOf("button, input"));
 const bodyBeforeCss = styles.slice(styles.indexOf("body::before"), styles.indexOf("button, input"));
 const briefSceneCss = styles.slice(styles.indexOf(".brief-scene {"), styles.indexOf(".scene-copy"));
@@ -71,6 +71,61 @@ assert.equal(payload.question_version, api.QUESTION_VERSION);
 assert.equal(payload.raw_answers.q03, "continuous_vascular_bundle_system");
 assert(!payload.question_logs.some((log) => log.question_id === "q12"));
 assert(!Object.prototype.hasOwnProperty.call(payload.raw_answers, "q12"));
+const localCandidate = { ...api.scoreAttempt(), direct_exp: 999, reflection_exp: 888, attempt_exp: 777, exp_delta: 666, earned_badges: ["local_candidate_badge"] };
+let serverMerged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: {
+    verification_status: "server_verified",
+    correct_count: 13,
+    total_questions: 13,
+    accuracy: 1,
+    hint_used_count: 0,
+    concept_exp: 111,
+    question_exp: 22,
+    attempt_total_exp: 333,
+    credited_delta: 44,
+    badges: ["server_badge_from_badges"]
+  },
+  student_progress: { total_exp: 3880, current_title_id: "concept_solver" }
+}, localCandidate);
+assert.deepEqual(Array.from(serverMerged.earned_badges), ["server_badge_from_badges"], "verified badges should read verified_attempt.badges");
+assert.equal(serverMerged.direct_exp, 111, "concept_exp should map to direct_exp");
+assert.equal(serverMerged.reflection_exp, 22, "question_exp should map to reflection_exp");
+assert.equal(serverMerged.attempt_exp, 333, "attempt_total_exp should map to attempt_exp");
+assert.equal(serverMerged.exp_delta, 44, "credited_delta should map to exp_delta");
+assert.notEqual(serverMerged.direct_exp, localCandidate.direct_exp, "verified direct_exp must not fall back to local candidate");
+assert(!serverMerged.earned_badges.includes("local_candidate_badge"), "verified badges must not fall back to local candidate");
+serverMerged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: {
+    verification_status: "server_verified",
+    concept_exp: 111,
+    question_exp: 22,
+    attempt_total_exp: 333,
+    badges_json: JSON.stringify(["server_badge_from_json"])
+  }
+}, localCandidate);
+assert.deepEqual(Array.from(serverMerged.earned_badges), ["server_badge_from_json"], "verified badges should read verified_attempt.badges_json");
+const attemptResultMerged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: { verification_status: "server_verified", correct_count: 13, total_questions: 13, accuracy: 1, attempt_total_exp: 333 },
+  attempt_result: {
+    newly_credited_badges_json: JSON.stringify(["server_badge_from_attempt_result"]),
+    concept_exp: 111,
+    question_exp: 22,
+    attempt_total_exp: 333
+  }
+}, localCandidate);
+assert.deepEqual(Array.from(attemptResultMerged.earned_badges), ["server_badge_from_attempt_result"], "attempt_result newly_credited_badges_json should be accepted");
+const serverWithoutBadges = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: { verification_status: "server_verified", concept_exp: 111, question_exp: 22, attempt_total_exp: 333 }
+}, localCandidate);
+assert.deepEqual(Array.from(serverWithoutBadges.earned_badges), [], "verified result without server badge aliases must not use local candidate badges");
 assert(api.renderCheckpoint("checkpoint3").includes("上移"));
 assert(!api.renderCheckpoint("checkpoint3").includes("形成層"));
 assert(!api.renderCheckpoint("checkpoint1").includes("data-map-question=\"q03\""));
