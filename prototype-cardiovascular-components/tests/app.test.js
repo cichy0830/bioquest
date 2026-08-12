@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-cardiovascular-components/app.js" });
 const api = context.window.__cardiovascular_componentsTest;
 
-assert.equal(api.VERSION, "20260727-cardiovascular-components-relogin-v1");
+assert.equal(api.VERSION, "20260812-cardiovascular-components-mapping-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-cardiovascular-components-ready-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -105,6 +105,13 @@ assert.equal(payload.unit_id, "cardiovascular_components");
 assert.equal(payload.question_version, api.QUESTION_VERSION);
 assert.equal(payload.question_logs.length, 15);
 assert.deepEqual(payload.raw_answers[Q(15)], answers[`${Q(15)}_sequence`]);
+for (let index = 1; index <= 15; index += 1) {
+  assert(Object.hasOwn(payload.raw_answers, `q${String(index).padStart(2, "0")}`), `raw_answers should include q${String(index).padStart(2, "0")}`);
+}
+assert.equal(payload.raw_answers.q01, answers[Q(1)]);
+assert.deepEqual(payload.raw_answers.q03, answers[Q(3)]);
+assert.deepEqual(payload.raw_answers.q15, answers[`${Q(15)}_sequence`]);
+assert.deepEqual(payload.raw_answers.q15_sequence, answers[`${Q(15)}_sequence`]);
 assert(!source.includes("arteries_veins_connect"));
 assert(api.questions.find((question) => question.id === Q(15)).steps.length === 4);
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(15)).analysis_group, "pulse_pressure_integration");
@@ -135,6 +142,112 @@ assert(!api.renderAchievements().includes("data-bq-unit-achievements"));
 assert(!api.renderAchievements().includes("本單元 14 枚徽章"));
 assert(api.renderRules().includes('data-relogin="true"'));
 assert.equal(api.canUseNav("login"), true);
+
+const localCandidate = {
+  ...api.scoreAttempt(),
+  direct_exp: 999,
+  reflection_exp: 888,
+  attempt_exp: 777,
+  exp_delta: 666,
+  unit_credited_exp: 500,
+  earned_badges: ["local_candidate_badge"]
+};
+let serverMerged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: {
+    verification_status: "server_verified",
+    correct_count: 15,
+    total_questions: 15,
+    accuracy: 1,
+    hint_used_count: 0,
+    concept_exp: 111,
+    question_exp: 22,
+    attempt_total_exp: 333,
+    credited_delta: 44,
+    badges: ["server_badge_from_badges"]
+  },
+  student_progress: {
+    student_id: "S70102",
+    total_exp: 4320,
+    current_title_id: "micro_explorer",
+    unit_badge_summary_json: JSON.stringify([{ unit_id: "cardiovascular_components", earned_count: 2 }])
+  }
+}, localCandidate);
+assert.deepEqual(Array.from(serverMerged.earned_badges), ["server_badge_from_badges"]);
+assert.equal(serverMerged.direct_exp, 111);
+assert.equal(serverMerged.reflection_exp, 22);
+assert.equal(serverMerged.attempt_exp, 333);
+assert.equal(serverMerged.exp_delta, 44);
+assert(!serverMerged.earned_badges.includes("local_candidate_badge"));
+
+serverMerged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: {
+    verification_status: "server_verified",
+    concept_exp: 111,
+    question_exp: 22,
+    attempt_total_exp: 333,
+    badges_json: JSON.stringify(["server_badge_from_json"])
+  }
+}, localCandidate);
+assert.deepEqual(Array.from(serverMerged.earned_badges), ["server_badge_from_json"]);
+
+serverMerged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: {
+    verification_status: "server_verified",
+    direct_exp: 111,
+    reflection_exp: 22,
+    attempt_exp: 333
+  },
+  attempt_result: {
+    newly_credited_badges_json: JSON.stringify(["server_badge_from_attempt_result"])
+  }
+}, localCandidate);
+assert.deepEqual(Array.from(serverMerged.earned_badges), ["server_badge_from_attempt_result"]);
+
+serverMerged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: {
+    verification_status: "server_verified",
+    direct_exp: 111,
+    reflection_exp: 22,
+    attempt_exp: 333
+  },
+  attempt_result_json: JSON.stringify({
+    earned_badges_json: JSON.stringify(["server_badge_from_attempt_result_json"])
+  })
+}, localCandidate);
+assert.deepEqual(Array.from(serverMerged.earned_badges), ["server_badge_from_attempt_result_json"]);
+
+serverMerged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: {
+    verification_status: "server_verified",
+    concept_exp: 111,
+    question_exp: 22,
+    attempt_total_exp: 333
+  }
+}, localCandidate);
+assert.deepEqual(Array.from(serverMerged.earned_badges), []);
+
+serverMerged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "pending_review",
+  attempt: {
+    verification_status: "pending_review",
+    concept_exp: 111,
+    question_exp: 22,
+    attempt_total_exp: 333
+  }
+}, localCandidate);
+assert.deepEqual(Array.from(serverMerged.earned_badges), ["local_candidate_badge"]);
+
 store.set("bioquest_attempts_v1", JSON.stringify([{ attempt_id: "history_1", unit_id: "cardiovascular_components" }]));
 api.setState({
   student: {
