@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-stimulus-response/app.js" });
 const api = context.window.__stimulus_responseTest;
 
-assert.equal(api.VERSION, "20260727-stimulus-response-relogin-v1");
+assert.equal(api.VERSION, "20260813-stimulus-response-mapping-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-stimulus-response-ready-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -127,6 +127,12 @@ assert.equal(payload.unit_id, "stimulus_response");
 assert.equal(payload.question_version, api.QUESTION_VERSION);
 assert.equal(payload.question_logs.length, 14);
 assert.deepEqual(payload.raw_answers[Q(7)], answers[`${Q(7)}_sequence`]);
+for (let index = 1; index <= 14; index += 1) {
+  const questionId = Q(index);
+  const shortId = `q${String(index).padStart(2, "0")}`;
+  assert.deepEqual(payload.raw_answers[shortId], payload.raw_answers[questionId], `${shortId} should mirror ${questionId}`);
+}
+assert.deepEqual(payload.raw_answers.q07_sequence, answers[`${Q(7)}_sequence`]);
 assert(!source.includes("arteries_veins_connect"));
 assert(!source.includes("blood_components_carry"));
 assert(!source.includes("神經元"));
@@ -160,6 +166,56 @@ assert(!api.renderAchievements().includes("學生稱號角色"));
 assert(!api.renderAchievements().includes("全冊稱號"));
 assert(api.renderRules().includes('data-relogin="true"'));
 assert.equal(api.canUseNav("login"), true);
+const localCandidate = {
+  ...api.scoreAttempt(),
+  direct_exp: 999,
+  reflection_exp: 888,
+  attempt_exp: 777,
+  unit_credited_exp: 999,
+  earned_badges: ["local_candidate_badge"]
+};
+const serverMerged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: {
+    verification_status: "server_verified",
+    correct_count: 11,
+    total_questions: 14,
+    concept_exp: 111,
+    question_exp: 22,
+    attempt_total_exp: 333,
+    badges_json: JSON.stringify(["stimulus_response_entry", "response_pathway_sequencer"])
+  },
+  attempt_result: JSON.stringify({
+    concept_exp: 111,
+    question_exp: 22,
+    attempt_total_exp: 333,
+    newly_credited_badges_json: JSON.stringify(["stimulus_response_entry", "response_pathway_sequencer"])
+  }),
+  student_progress: { total_exp: 8888, current_title_id: "systems_investigator", unit_badge_summary_json: "[]" }
+}, localCandidate);
+assert.equal(serverMerged.direct_exp, 111);
+assert.equal(serverMerged.reflection_exp, 22);
+assert.equal(serverMerged.attempt_exp, 333);
+assert.deepEqual(Array.from(serverMerged.earned_badges), ["stimulus_response_entry", "response_pathway_sequencer"]);
+assert(!serverMerged.earned_badges.includes("local_candidate_badge"), "server_verified badges must not fall back to local candidate");
+const serverNoBadge = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: {
+    verification_status: "server_verified",
+    concept_exp: 111,
+    question_exp: 22,
+    attempt_total_exp: 333
+  }
+}, localCandidate);
+assert.deepEqual(Array.from(serverNoBadge.earned_badges), [], "server_verified without badge alias must not reuse local candidate");
+const pendingMerged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "pending_backend",
+  attempt: { verification_status: "pending_backend" }
+}, localCandidate);
+assert.deepEqual(Array.from(pendingMerged.earned_badges), ["local_candidate_badge"], "pending may keep local candidate while waiting for backend");
 store.set("bioquest_attempts_v1", JSON.stringify([{ attempt_id: "history_1", unit_id: "stimulus_response" }]));
 api.setState({
   student: {
