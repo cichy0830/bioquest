@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260728-nervous-system-relogin-v1";
+const VERSION = "20260813-nervous-system-mapping-v1";
 const QUESTION_VERSION = "20260718-nervous-system-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -258,11 +258,22 @@ function stableShuffle(items, seed) {
   return copy;
 }
 
+function guardedOptionOrder(order, question, ids) {
+  const allowed = new Set(ids);
+  const normalized = Array.isArray(order) ? order.filter((id) => allowed.has(id)) : [];
+  ids.forEach((id) => { if (!normalized.includes(id)) normalized.push(id); });
+  if (question.type === "sequence" && Array.isArray(question.answer) && normalized.length > 1 && normalized.every((id, index) => id === question.answer[index])) {
+    [normalized[0], normalized[1]] = [normalized[1], normalized[0]];
+  }
+  return normalized;
+}
+
 function orderedOptions(question) {
+  const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
   if (!state.optionOrders[question.id]) {
-    const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
     state.optionOrders[question.id] = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}`);
   }
+  state.optionOrders[question.id] = guardedOptionOrder(state.optionOrders[question.id], question, ids);
   const source = Object.fromEntries((question.type === "sequence" ? question.steps : question.options || []).map((item) => [item.id, item]));
   return state.optionOrders[question.id].map((id) => source[id]).filter(Boolean);
 }
@@ -679,7 +690,16 @@ function reflectionResult(quality, questionExp, reason, reviewStatus, normalized
 
 function buildBackendPayload(result = scoreAttempt()) {
   const rawAnswers = {};
-  result.logs.forEach((log) => { rawAnswers[log.question_id] = log.answer; });
+  result.logs.forEach((log) => {
+    rawAnswers[log.question_id] = log.answer;
+    const shortId = shortQuestionId(log.question_id);
+    if (shortId) {
+      rawAnswers[shortId] = log.answer;
+      if (questionMap[log.question_id]?.type === "sequence") {
+        rawAnswers[`${shortId}_sequence`] = log.answer;
+      }
+    }
+  });
   return {
     action: "submitAttempt",
     unit_id: mission.unit_id,
@@ -713,6 +733,11 @@ function buildBackendPayload(result = scoreAttempt()) {
   };
 }
 
+function shortQuestionId(questionId) {
+  const matched = String(questionId || "").match(/q\d+$/);
+  return matched ? matched[0] : String(questionId || "");
+}
+
 function analysisGroupForQuestion(questionId) {
   if (sections.checkpoint1.includes(questionId)) return "neuron_central_peripheral";
   if (sections.checkpoint2.includes(questionId)) return "neuron_roles_signal_pathway";
@@ -725,9 +750,75 @@ async function submitAttemptToBackend(payload) {
   return requestBackend(payload);
 }
 
+function numberFromAliases(...values) {
+  for (const value of values) {
+    if (value === null || value === undefined || value === "") continue;
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) return numeric;
+  }
+  return null;
+}
+
+function badgeIdsFromValue(value) {
+  if (!value) return null;
+  if (Array.isArray(value)) {
+    return value.map((item) => {
+      if (typeof item === "string") return item;
+      if (item && typeof item === "object") return item.badge_id || item.id || item.badgeId || "";
+      return "";
+    }).filter(Boolean);
+  }
+  if (typeof value === "string") {
+    try {
+      return badgeIdsFromValue(JSON.parse(value));
+    } catch (error) {
+      return value.split(",").map((item) => item.trim()).filter(Boolean);
+    }
+  }
+  return null;
+}
+
+function objectFromValue(value) {
+  if (!value) return {};
+  if (typeof value === "object" && !Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch (error) {
+      return {};
+    }
+  }
+  return {};
+}
+
+function firstBadgeIds(...values) {
+  for (const value of values) {
+    const ids = badgeIdsFromValue(value);
+    if (ids) return ids;
+  }
+  return null;
+}
+
+function backendBadgeIds(response = {}, verified = null) {
+  const attemptResult = objectFromValue(response.attempt_result || response.attempt_result_json || response.result);
+  return firstBadgeIds(
+    attemptResult.newly_credited_badges_json,
+    attemptResult.earned_badges_json,
+    attemptResult.newly_credited_badges,
+    attemptResult.earned_badges,
+    response.newly_credited_badges_json,
+    response.earned_badges_json,
+    verified?.earned_badges,
+    verified?.badges,
+    verified?.badges_json
+  );
+}
+
 function applyBackendSubmitResponse(response, localResult) {
   if (!response || response.ok === false) return localResult;
   const verified = response.verified_attempt || response.attempt || null;
+  const attemptResult = objectFromValue(response.attempt_result || response.attempt_result_json || response.result);
   const progress = response.student_progress || response.progress || null;
   if (progress) {
     state.student.progress = progress;
@@ -738,23 +829,27 @@ function applyBackendSubmitResponse(response, localResult) {
     saveVerifiedSnapshot(state.student);
   }
   if (!verified) return { ...localResult, backend_response: response };
+  const verificationStatus = verified.verification_status || response.verification_status || "server_verified";
+  const serverVerified = verificationStatus === "server_verified" || Boolean(response.verified_attempt);
+  const serverBadgeIds = backendBadgeIds(response, verified);
+  const localFallback = (key) => (serverVerified ? null : localResult[key]);
   return {
     ...localResult,
-    verification_status: verified.verification_status || response.verification_status || "server_verified",
-    correct_count: Number(verified.correct_count ?? localResult.correct_count),
-    total_questions: Number(verified.total_questions ?? localResult.total_questions),
-    accuracy: Number(verified.accuracy ?? localResult.accuracy),
-    hint_used_count: Number(verified.hint_used_count ?? localResult.hint_used_count),
-    completion_exp: Number(verified.completion_exp ?? localResult.completion_exp),
-    direct_exp: Number(verified.direct_exp ?? localResult.direct_exp),
-    revision_exp: Number(verified.revision_exp ?? localResult.revision_exp),
-    reflection_exp: Number(verified.reflection_exp ?? localResult.reflection_exp),
-    mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
-    retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
-    attempt_exp: Number(verified.attempt_exp ?? localResult.attempt_exp),
-    unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
-    exp_delta: Number(verified.credited_delta ?? verified.exp_delta ?? localResult.exp_delta),
-    earned_badges: Array.isArray(verified.earned_badges) ? verified.earned_badges : localResult.earned_badges,
+    verification_status: verificationStatus,
+    correct_count: numberFromAliases(verified.correct_count, attemptResult.correct_count, localFallback("correct_count")) ?? 0,
+    total_questions: numberFromAliases(verified.total_questions, attemptResult.total_questions, localFallback("total_questions")) ?? 0,
+    accuracy: numberFromAliases(verified.accuracy, attemptResult.accuracy, localFallback("accuracy")) ?? 0,
+    hint_used_count: numberFromAliases(verified.hint_used_count, attemptResult.hint_used_count, localFallback("hint_used_count")) ?? 0,
+    completion_exp: numberFromAliases(verified.completion_exp, attemptResult.completion_exp, localFallback("completion_exp")) ?? 0,
+    direct_exp: numberFromAliases(verified.direct_exp, verified.concept_exp, attemptResult.direct_exp, attemptResult.concept_exp, localFallback("direct_exp")) ?? 0,
+    revision_exp: numberFromAliases(verified.revision_exp, attemptResult.revision_exp, localFallback("revision_exp")) ?? 0,
+    reflection_exp: numberFromAliases(verified.reflection_exp, verified.question_exp, attemptResult.reflection_exp, attemptResult.question_exp, localFallback("reflection_exp")) ?? 0,
+    mastery_exp: numberFromAliases(verified.mastery_exp, attemptResult.mastery_exp, localFallback("mastery_exp")) ?? 0,
+    retry_exp: numberFromAliases(verified.retry_exp, attemptResult.retry_exp, localFallback("retry_exp")) ?? 0,
+    attempt_exp: numberFromAliases(verified.attempt_exp, verified.attempt_total_exp, attemptResult.attempt_exp, attemptResult.attempt_total_exp, localFallback("attempt_exp")) ?? 0,
+    unit_credited_exp: numberFromAliases(verified.unit_credited_exp, attemptResult.unit_credited_exp, localFallback("unit_credited_exp")) ?? 0,
+    exp_delta: numberFromAliases(verified.credited_delta, verified.exp_delta, attemptResult.credited_delta, attemptResult.exp_delta, localFallback("exp_delta")) ?? 0,
+    earned_badges: serverVerified ? (serverBadgeIds || []) : (serverBadgeIds || localResult.earned_badges),
     backend_response: response
   };
 }
@@ -883,12 +978,12 @@ function renderQuestion(question) {
 function conceptLabel(concept) { return {neuron_basic_unit:"神經元與神經",central_nervous_system:"中樞神經",peripheral_nervous_system:"周圍神經",sensory_neuron_role:"感覺神經元",motor_neuron_role:"運動神經元",interneuron_role:"中間神經元",reflex_pathway:"反射路徑",brain_spinal_cord_protection:"保護構造"}[concept] || concept; }
 
 function renderQuestionEvidence(qid) {
-  if (["nervous_system_q01", "nervous_system_q02"].includes(qid)) return `<div class="evidence-card"><strong>層級判斷卡</strong><p>先分清楚單一神經元和許多神經纖維集合成的神經，不把它們當成血管或肌肉。</p></div>`;
-  if (["nervous_system_q03", "nervous_system_q04"].includes(qid)) return `<div class="evidence-card"><strong>中樞 / 周圍提醒</strong><p>腦與脊髓屬於中樞；連到身體各處、讓訊息進出中樞的是周圍神經。</p></div>`;
-  if (["nervous_system_q05", "nervous_system_q06", "nervous_system_q07", "nervous_system_q13"].includes(qid)) return `<div class="evidence-card"><strong>訊息方向卡</strong><p>感覺神經元把訊息傳向中樞；運動神經元把訊息傳向動器；中間神經元在中樞內協調。</p></div>`;
+  if (["nervous_system_q01", "nervous_system_q02"].includes(qid)) return `<div class="evidence-card"><strong>層級閱讀</strong><p>先判斷題目問的是一個細胞、許多構造集合形成的通道，還是其他系統的構造；不要只看名稱相似就當成同一層級。</p></div>`;
+  if (["nervous_system_q03", "nervous_system_q04"].includes(qid)) return `<div class="evidence-card"><strong>位置與連線閱讀</strong><p>看圖或敘述時，先找構造是否位在腦、脊髓所在區域，再看是否像連接身體各處的路線；不要先套分類名稱。</p></div>`;
+  if (["nervous_system_q05", "nervous_system_q06", "nervous_system_q07", "nervous_system_q13"].includes(qid)) return `<div class="evidence-card"><strong>訊息方向閱讀</strong><p>沿情境中的箭頭或語意判斷：訊息是進入協調中心、在中心內連接，還是離開中心到產生動作的構造。</p></div>`;
   if (qid === "nervous_system_q08") return `<div class="evidence-card"><strong>反射排序卡</strong><p>排序題請拖曳卡片；手機可用上移 / 下移。提示只協助判斷路徑方向，不直接列答案。</p></div>`;
-  if (["nervous_system_q09", "nervous_system_q12"].includes(qid)) return `<div class="evidence-card"><strong>反射迷思提醒</strong><p>反射可以很快發生，但仍需要神經系統傳遞與協調；腦也可能在反射後接收訊息形成感覺。</p></div>`;
-  if (["nervous_system_q10", "nervous_system_q11", "nervous_system_q14"].includes(qid)) return `<div class="evidence-card"><strong>中樞角色提醒</strong><p>腦與脊髓是中樞神經系統的重要構造；頭骨和脊柱主要是保護構造。</p></div>`;
+  if (["nervous_system_q09", "nervous_system_q12"].includes(qid)) return `<div class="evidence-card"><strong>反射情境閱讀</strong><p>比較快速縮手與後來感到疼痛的先後，想想「快」和「是否有訊息路徑」是不是同一件事。</p></div>`;
+  if (["nervous_system_q10", "nervous_system_q11", "nervous_system_q14"].includes(qid)) return `<div class="evidence-card"><strong>構造角色閱讀</strong><p>先區分哪個構造負責傳遞或協調訊息，哪個構造位在外側、較像保護或支撐；不要把位置相近的構造視為同一功能。</p></div>`;
   return "";
 }
 
@@ -1276,6 +1371,11 @@ if (typeof window !== "undefined") {
     isCorrect,
     scoreAttempt,
     buildBackendPayload,
+    shortQuestionId,
+    guardedOptionOrder,
+    orderedOptions,
+    backendBadgeIds,
+    applyBackendSubmitResponse,
     loadAttempts,
     loadVerifiedSnapshot,
     resetForRelogin,
