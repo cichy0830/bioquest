@@ -15,7 +15,7 @@ const context = { console, window: null, document: { readyState: "loading", quer
 context.window = context; context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-plant-material-transport/app.js" });
 const api = context.window.__plant_material_transportTest;
-assert.equal(api.VERSION, "20260727-plant-material-transport-badges-c-v1");
+assert.equal(api.VERSION, "20260812-plant-material-transport-mapping-q09-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-plant-material-transport-canonical-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -24,6 +24,8 @@ assert(!source.includes("question_version: VERSION"), "cache VERSION must not fl
 assert(source.includes("startData.question_version !== QUESTION_VERSION"), "startAttempt guard must compare canonical QUESTION_VERSION");
 assert.equal(api.mission.unit_id, "plant_material_transport");
 assert.equal(api.questions.length, 14);
+const q09 = api.questions.find((question) => question.id === "q09");
+assert.equal(q09?.type, "sequence");
 assert.equal(api.badges.length, 13);
 assert.equal(api.badges.filter((badge) => badge.image_status === "ready").length, 13);
 assert.equal(api.badges.filter((badge) => badge.image_status === "pending").length, 0);
@@ -54,6 +56,63 @@ for (const [text, exp] of [["", 0], ["老師好帥", 0], ["木質部", 0], ["我
 api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "server", attempt_session_token: "token", question_version: api.QUESTION_VERSION, answers, hints: { q09: true }, reflection: { question: "我想確認蒸散作用如何與水分往上運輸連結？" } });
 const payload = api.buildBackendPayload(api.scoreAttempt());
 assert.equal(payload.unit_id, "plant_material_transport"); assert.equal(payload.question_version, api.QUESTION_VERSION); assert.equal(payload.question_logs.length, 14); assert.deepEqual(payload.raw_answers.q09, answers.q09_sequence);
+for (const attemptId of ["u17-sequence-a", "u17-sequence-b"]) {
+  api.setState({ attempt_id: attemptId });
+  const firstOrder = Array.from(api.orderedOptions(q09).map((item) => item.id));
+  const secondOrder = Array.from(api.orderedOptions(q09).map((item) => item.id));
+  assert.deepEqual(firstOrder, secondOrder, `q09 order should stay stable for ${attemptId}`);
+  assert.notDeepEqual(firstOrder, Array.from(q09.answer), `q09 order must not start as the answer for ${attemptId}`);
+}
+api.setState({ attempt_id: "u17-forced-collision", optionOrders: { q09: [...q09.answer] } });
+assert.notDeepEqual(Array.from(api.orderedOptions(q09).map((item) => item.id)), Array.from(q09.answer), "q09 stored collision should be guarded");
+api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "server-alias", attempt_session_token: "token", question_version: api.QUESTION_VERSION, answers, reflection: { question: "我想確認蒸散作用如何與水分往上運輸連結？" } });
+const localCandidate = { ...api.scoreAttempt(), direct_exp: 1, reflection_exp: 2, attempt_exp: 3, earned_badges: ["local_candidate_badge"] };
+const serverMerged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: {
+    verification_status: "server_verified",
+    correct_count: 14,
+    total_questions: 14,
+    accuracy: 1,
+    hint_used_count: 0,
+    concept_exp: 300,
+    question_exp: 40,
+    attempt_total_exp: 500,
+    unit_credited_exp: 500,
+    credited_delta: 140,
+    badges_json: JSON.stringify(["plant_material_transport_entry", "retry_growth_plant_material_transport"])
+  },
+  student_progress: { total_exp: 4500, current_title_id: "concept_solver" }
+}, localCandidate);
+assert.deepEqual(Array.from(serverMerged.earned_badges), ["plant_material_transport_entry", "retry_growth_plant_material_transport"], "verified badges should read server badges_json");
+assert.equal(serverMerged.direct_exp, 300, "concept_exp should map to direct_exp");
+assert.equal(serverMerged.reflection_exp, 40, "question_exp should map to reflection_exp");
+assert.equal(serverMerged.attempt_exp, 500, "attempt_total_exp should map to attempt_exp");
+assert.equal(serverMerged.exp_delta, 140, "credited_delta should map to exp_delta");
+assert.notEqual(serverMerged.direct_exp, localCandidate.direct_exp, "verified direct_exp must not fall back to local candidate");
+assert(!serverMerged.earned_badges.includes("local_candidate_badge"), "verified badges must not fall back to local candidate");
+const attemptResultMerged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: { verification_status: "server_verified", correct_count: 14, total_questions: 14, accuracy: 1, attempt_total_exp: 460 },
+  attempt_result: {
+    newly_credited_badges_json: JSON.stringify(["transport_evidence_reader"]),
+    concept_exp: 260,
+    question_exp: 25,
+    attempt_total_exp: 485
+  }
+}, localCandidate);
+assert.deepEqual(Array.from(attemptResultMerged.earned_badges), ["transport_evidence_reader"], "attempt_result newly_credited_badges_json should be accepted");
+assert.equal(attemptResultMerged.direct_exp, 260);
+assert.equal(attemptResultMerged.reflection_exp, 25);
+assert.equal(attemptResultMerged.attempt_exp, 460);
+const serverWithoutBadges = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: { verification_status: "server_verified", concept_exp: 120, question_exp: 0, attempt_total_exp: 120 }
+}, localCandidate);
+assert.deepEqual(Array.from(serverWithoutBadges.earned_badges), [], "verified result without server badge aliases must not use local candidate badges");
 assert(api.renderCheckpoint("checkpoint3").includes("上移"));
 assert.equal(api.assets.ambientBackgroundHook, "assets/plant-material-transport-entry-wide.webp");
 assert.equal(api.assets.owlPrep, "assets/owl-plant-material-transport-prep-report.webp");
