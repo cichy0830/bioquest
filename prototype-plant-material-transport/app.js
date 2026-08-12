@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260812-plant-material-transport-mapping-q09-v1";
+const VERSION = "20260813-plant-material-transport-scroll-v1";
 const QUESTION_VERSION = "20260720-plant-material-transport-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -455,15 +455,21 @@ function setScreen(nextScreen) {
 
 function resetScreenScroll() {
   if (typeof window === "undefined" || typeof document === "undefined") return;
-  const mainStage = document.querySelector(".main-stage");
   const reset = () => {
+    const mainStage = document.querySelector(".main-stage");
     window.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
+    if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
     if (document.documentElement) document.documentElement.scrollTop = 0;
     if (document.body) document.body.scrollTop = 0;
     if (mainStage) mainStage.scrollTop = 0;
   };
   reset();
-  window.requestAnimationFrame?.(reset);
+  window.requestAnimationFrame?.(() => {
+    reset();
+    window.requestAnimationFrame?.(reset);
+  });
+  window.setTimeout?.(reset, 0);
+  window.setTimeout?.(reset, 120);
 }
 
 function resetForRelogin() {

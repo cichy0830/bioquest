@@ -70,7 +70,7 @@ appVersionOverrides.set("nutrients_energy", "20260802-nutrients-energy-submitted
 appVersionOverrides.set("photosynthesis", "20260811-photosynthesis-submitted-retry-ia-v1");
 appVersionOverrides.set("biological_organization", "20260731-biological-organization-submitted-retry-ia-v1");
 appVersionOverrides.set("cell_transport", "20260731-cell-transport-submitted-retry-ia-v1");
-appVersionOverrides.set("plant_material_transport", "20260812-plant-material-transport-mapping-q09-v1");
+appVersionOverrides.set("plant_material_transport", "20260813-plant-material-transport-scroll-v1");
 appVersionOverrides.set("human_nutrition", "20260723-human-nutrition-approved-visuals-v1");
 appVersionOverrides.set("plant_transport_structures", "20260812-plant-transport-structures-mapping-v1");
 appVersionOverrides.set("cardiovascular_components", "20260812-cardiovascular-components-mapping-v1");
