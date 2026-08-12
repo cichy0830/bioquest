@@ -74,7 +74,7 @@ appVersionOverrides.set("plant_material_transport", "20260813-plant-material-tra
 appVersionOverrides.set("human_nutrition", "20260723-human-nutrition-approved-visuals-v1");
 appVersionOverrides.set("plant_transport_structures", "20260812-plant-transport-structures-mapping-v1");
 appVersionOverrides.set("cardiovascular_components", "20260812-cardiovascular-components-mapping-v1");
-appVersionOverrides.set("human_circulation", "20260727-human-circulation-relogin-v1");
+appVersionOverrides.set("human_circulation", "20260813-human-circulation-mapping-v1");
 appVersionOverrides.set("stimulus_response", "20260727-stimulus-response-relogin-v1");
 appVersionOverrides.set("nervous_system", "20260728-nervous-system-relogin-v1");
 appVersionOverrides.set("endocrine_system", "20260728-endocrine-system-relogin-v1");
