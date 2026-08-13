@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-cell-division")
   : sourceRoot;
-const CACHE_VERSION = "20260802-cell-division-evidence-v5-v1";
+const CACHE_VERSION = "20260813-cell-division-mapping-assets-v1";
 const QUESTION_VERSION = "20260731-cell-division-v1.2";
 const Q = (n) => `cell_division_q${String(n).padStart(2, "0")}`;
 const browser = await chromium.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" });
@@ -175,6 +175,7 @@ async function completeQuestions(page) {
   assert.equal(q06ImageState.count, 4, "q06 should render four approved option images");
   assert.equal(q06ImageState.loaded, true, "q06 option images should load");
   assert.equal(q06ImageState.cacheTagged, true, "q06 option image URLs should carry runtime cache");
+  assert.equal(q06ImageState.widths.every((width) => width <= 1280), true, "q06 option public images should stay within 1280px audit limit");
   await answerChoice(page, Q(6), "chromosomes_distributed_to_both_cells");
   await answerChoice(page, Q(7), "chromosome_distribution_is_ordered");
   await waitForImagesLoaded(page, `[data-question-id="${Q(8)}"] .cell-division-q08-evidence img`, 1, "q08 approved evidence");
@@ -182,11 +183,13 @@ async function completeQuestions(page) {
     const image = document.querySelector(`[data-question-id="${qid}"] .cell-division-q08-evidence img`);
     return {
       loaded: Boolean(image && image.naturalWidth > 0 && image.naturalHeight > 0),
-      cacheTagged: Boolean(image && (image.currentSrc || image.src).includes(`v=${cacheVersion}`))
+      cacheTagged: Boolean(image && (image.currentSrc || image.src).includes(`v=${cacheVersion}`)),
+      width: image?.naturalWidth || 0
     };
   }, { qid: Q(8), cacheVersion: CACHE_VERSION });
   assert.equal(q08ImageState.loaded, true, "q08 approved evidence image should load");
   assert.equal(q08ImageState.cacheTagged, true, "q08 image URL should carry runtime cache");
+  assert.equal(q08ImageState.width <= 1280, true, "q08 public image should stay within 1280px audit limit");
   await answerChoice(page, Q(8), "copied_chromosomes_then_distributed");
   await clickAndExpectTop(page, '[data-section-next="checkpoint2"]', "checkpoint3");
   await answerChoice(page, Q(9), "one_mother_cell_forms_two_daughter_cells");
@@ -199,12 +202,14 @@ async function completeQuestions(page) {
     return {
       loaded: Boolean(image && image.naturalWidth > 0 && image.naturalHeight > 0),
       cacheTagged: Boolean(image && (image.currentSrc || image.src).includes(`v=${cacheVersion}`)),
+      width: image?.naturalWidth || 0,
       tableText: root?.querySelector(".root-tip-data-card")?.textContent || "",
       overflow: root ? root.scrollWidth > root.clientWidth + 2 : true
     };
   }, { qid: Q(12), cacheVersion: CACHE_VERSION });
   assert.equal(q12EvidenceState.loaded, true, "q12 approved root-tip image should load");
   assert.equal(q12EvidenceState.cacheTagged, true, "q12 image URL should carry runtime cache");
+  assert.equal(q12EvidenceState.width <= 1280, true, "q12 public image should stay within 1280px audit limit");
   assert(q12EvidenceState.tableText.includes("40"), "q12 overlay should show total cell counts");
   assert(q12EvidenceState.tableText.includes("12"), "q12 overlay should show region A dividing count");
   assert(q12EvidenceState.tableText.includes("1"), "q12 overlay should show region B dividing count");

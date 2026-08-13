@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260802-cell-division-evidence-v5-v1";
+const VERSION = "20260813-cell-division-mapping-assets-v1";
 const QUESTION_VERSION = "20260731-cell-division-v1.2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -40,54 +40,54 @@ const assets = {
 const evidenceAssets = {
   q06: {
     chromosomes_distributed_to_both_cells: {
-      path: "assets/evidence-v5/runtime_bases/q06/options/u27-cell-division-q06-v5-chromosomes_distributed_to_both_cells-zero-text-base.webp",
+      path: "assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_distributed_to_both_cells-zero-text-base-1280w.webp",
       sizes: [
         ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_distributed_to_both_cells-zero-text-base-390w.webp", 390],
         ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_distributed_to_both_cells-zero-text-base-960w.webp", 960],
-        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_distributed_to_both_cells-zero-text-base-1440w.webp", 1440]
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_distributed_to_both_cells-zero-text-base-1280w.webp", 1280]
       ]
     },
     one_gets_all: {
-      path: "assets/evidence-v5/runtime_bases/q06/options/u27-cell-division-q06-v5-one_gets_all-zero-text-base.webp",
+      path: "assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-one_gets_all-zero-text-base-1280w.webp",
       sizes: [
         ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-one_gets_all-zero-text-base-390w.webp", 390],
         ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-one_gets_all-zero-text-base-960w.webp", 960],
-        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-one_gets_all-zero-text-base-1440w.webp", 1440]
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-one_gets_all-zero-text-base-1280w.webp", 1280]
       ]
     },
     chromosomes_disappear: {
-      path: "assets/evidence-v5/runtime_bases/q06/options/u27-cell-division-q06-v5-chromosomes_disappear-zero-text-base.webp",
+      path: "assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_disappear-zero-text-base-1280w.webp",
       sizes: [
         ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_disappear-zero-text-base-390w.webp", 390],
         ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_disappear-zero-text-base-960w.webp", 960],
-        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_disappear-zero-text-base-1440w.webp", 1440]
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_disappear-zero-text-base-1280w.webp", 1280]
       ]
     },
     chromosomes_outside_cell: {
-      path: "assets/evidence-v5/runtime_bases/q06/options/u27-cell-division-q06-v5-chromosomes_outside_cell-zero-text-base.webp",
+      path: "assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_outside_cell-zero-text-base-1280w.webp",
       sizes: [
         ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_outside_cell-zero-text-base-390w.webp", 390],
         ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_outside_cell-zero-text-base-960w.webp", 960],
-        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_outside_cell-zero-text-base-1440w.webp", 1440]
+        ["assets/evidence-v5/runtime_bases/q06/options/sizes/u27-cell-division-q06-v5-chromosomes_outside_cell-zero-text-base-1280w.webp", 1280]
       ]
     }
   },
   q08: {
-    path: "assets/evidence-v5/runtime_bases/q08/u27-cell-division-q08-v5-copy-distribution-zero-text-base.webp",
+    path: "assets/evidence-v5/runtime_bases/q08/sizes/u27-cell-division-q08-v5-copy-distribution-zero-text-base-1280w.webp",
     sizes: [
       ["assets/evidence-v5/runtime_bases/q08/sizes/u27-cell-division-q08-v5-copy-distribution-zero-text-base-390w.webp", 390],
       ["assets/evidence-v5/runtime_bases/q08/sizes/u27-cell-division-q08-v5-copy-distribution-zero-text-base-960w.webp", 960],
-      ["assets/evidence-v5/runtime_bases/q08/sizes/u27-cell-division-q08-v5-copy-distribution-zero-text-base-1440w.webp", 1440]
+      ["assets/evidence-v5/runtime_bases/q08/sizes/u27-cell-division-q08-v5-copy-distribution-zero-text-base-1280w.webp", 1280]
     ],
     alt: "同一套紅圓、藍短棒、綠三角標記在三格細胞資料中的分布示意圖。",
     caption: "觀察同一套三種標記在三格資料中的前後分布，再依題目資訊判讀。"
   },
   q12: {
-    path: "assets/evidence-v5/runtime_bases/q12/u27-cell-division-q12-v5-root-tip-two-regions-zero-text-base.webp",
+    path: "assets/evidence-v5/runtime_bases/q12/sizes/u27-cell-division-q12-v5-root-tip-two-regions-zero-text-base-1280w.webp",
     sizes: [
       ["assets/evidence-v5/runtime_bases/q12/sizes/u27-cell-division-q12-v5-root-tip-two-regions-zero-text-base-390w.webp", 390],
       ["assets/evidence-v5/runtime_bases/q12/sizes/u27-cell-division-q12-v5-root-tip-two-regions-zero-text-base-960w.webp", 960],
-      ["assets/evidence-v5/runtime_bases/q12/sizes/u27-cell-division-q12-v5-root-tip-two-regions-zero-text-base-1440w.webp", 1440]
+      ["assets/evidence-v5/runtime_bases/q12/sizes/u27-cell-division-q12-v5-root-tip-two-regions-zero-text-base-1280w.webp", 1280]
     ],
     alt: "洋蔥根尖兩個觀察區域的簡化圖與資料表，呈現同樣視野內總細胞數與分裂中細胞數差異。",
     caption: "請比較兩個根尖觀察區域在同樣視野中的總細胞數與分裂中細胞數。",
@@ -357,11 +357,23 @@ function orderedMappingItems(question) {
   return state.optionOrders[key].map((id) => source[id]).filter(Boolean);
 }
 
+function guardedOptionOrder(order, question, ids) {
+  const allowed = new Set(ids);
+  const normalized = Array.isArray(order) ? order.filter((id) => allowed.has(id)) : [];
+  ids.forEach((id) => { if (!normalized.includes(id)) normalized.push(id); });
+  if (question.type === "sequence" && Array.isArray(question.answer) && normalized.length > 1 && normalized.every((id, index) => id === question.answer[index])) {
+    [normalized[0], normalized[1]] = [normalized[1], normalized[0]];
+  }
+  return normalized;
+}
+
 function orderedOptions(question) {
   if (!state.optionOrders[question.id]) {
     const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
     state.optionOrders[question.id] = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}`);
   }
+  const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
+  state.optionOrders[question.id] = guardedOptionOrder(state.optionOrders[question.id], question, ids);
   const source = Object.fromEntries((question.type === "sequence" ? question.steps : question.options || []).map((item) => [item.id, item]));
   return state.optionOrders[question.id].map((id) => source[id]).filter(Boolean);
 }
@@ -786,7 +798,12 @@ function reflectionResult(quality, questionExp, reason, reviewStatus, normalized
 
 function buildBackendPayload(result = scoreAttempt()) {
   const rawAnswers = {};
-  result.logs.forEach((log) => { rawAnswers[log.question_id] = log.answer; });
+  result.logs.forEach((log) => {
+    rawAnswers[log.question_id] = log.answer;
+    rawAnswers[shortQuestionId(log.question_id)] = log.answer;
+    const question = questionMap[log.question_id];
+    if (question?.type === "sequence") rawAnswers[`${shortQuestionId(log.question_id)}_sequence`] = log.answer;
+  });
   return {
     action: "submitAttempt",
     unit_id: mission.unit_id,
@@ -798,7 +815,7 @@ function buildBackendPayload(result = scoreAttempt()) {
     attempt_id: state.attempt_id,
     attempt_session_token: state.attempt_session_token,
     previous_attempt_id: state.previous_attempt_id,
-    question_version: state.question_version,
+    question_version: QUESTION_VERSION,
     raw_answers: rawAnswers,
     raw_answers_json: JSON.stringify(rawAnswers),
     question_logs: result.logs.map((log) => ({
@@ -808,6 +825,16 @@ function buildBackendPayload(result = scoreAttempt()) {
       question_type: questionMap[log.question_id]?.type || "",
       attempt_answer: log.answer,
       answer_json: JSON.stringify(log.answer),
+      question_version: QUESTION_VERSION,
+      is_correct: log.is_correct,
+      hint_used: log.hint_used,
+      corrected_after_hint: log.hint_used && log.is_correct,
+      exp_type: log.hint_used ? "revision" : "concept",
+      exp_awarded: log.exp_awarded,
+      concept_id: log.concept_id,
+      checkpoint_id: questionMap[log.question_id]?.section || "",
+      teacher_group_id: analysisGroupForQuestion(log.question_id),
+      verification_status: state.student?.is_guest ? "local_guest" : "pending_backend",
       used_hint: log.hint_used,
       analysis_group: analysisGroupForQuestion(log.question_id),
       skill_tag: log.skill_tag,
@@ -818,6 +845,11 @@ function buildBackendPayload(result = scoreAttempt()) {
     confidence_level: state.reflection.confidence,
     client_summary: result
   };
+}
+
+function shortQuestionId(questionId) {
+  const matched = String(questionId || "").match(/q\d+$/);
+  return matched ? matched[0] : String(questionId || "");
 }
 
 function analysisGroupForQuestion(questionId) {
@@ -833,9 +865,75 @@ async function submitAttemptToBackend(payload) {
   return requestBackend(payload);
 }
 
+function numberFromAliases(...values) {
+  for (const value of values) {
+    if (value === null || value === undefined || value === "") continue;
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) return numeric;
+  }
+  return null;
+}
+
+function badgeIdsFromValue(value) {
+  if (!value) return null;
+  if (Array.isArray(value)) {
+    return value.map((item) => {
+      if (typeof item === "string") return item;
+      if (item && typeof item === "object") return item.badge_id || item.id || item.badgeId || "";
+      return "";
+    }).filter(Boolean);
+  }
+  if (typeof value === "string") {
+    try {
+      return badgeIdsFromValue(JSON.parse(value));
+    } catch (error) {
+      return value.split(",").map((item) => item.trim()).filter(Boolean);
+    }
+  }
+  return null;
+}
+
+function objectFromValue(value) {
+  if (!value) return {};
+  if (typeof value === "object" && !Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch (error) {
+      return {};
+    }
+  }
+  return {};
+}
+
+function firstBadgeIds(...values) {
+  for (const value of values) {
+    const ids = badgeIdsFromValue(value);
+    if (ids) return ids;
+  }
+  return null;
+}
+
+function backendBadgeIds(response = {}, verified = null) {
+  const attemptResult = objectFromValue(response.attempt_result || response.attempt_result_json || response.result);
+  return firstBadgeIds(
+    attemptResult.newly_credited_badges_json,
+    attemptResult.earned_badges_json,
+    attemptResult.newly_credited_badges,
+    attemptResult.earned_badges,
+    response.newly_credited_badges_json,
+    response.earned_badges_json,
+    verified?.earned_badges,
+    verified?.badges,
+    verified?.badges_json
+  );
+}
+
 function applyBackendSubmitResponse(response, localResult) {
   if (!response || response.ok === false) return localResult;
   const verified = response.verified_attempt || response.attempt || null;
+  const attemptResult = objectFromValue(response.attempt_result || response.attempt_result_json || response.result);
   const progress = response.student_progress || response.progress || null;
   if (progress) {
     state.student.progress = progress;
@@ -846,23 +944,27 @@ function applyBackendSubmitResponse(response, localResult) {
     saveVerifiedSnapshot(state.student);
   }
   if (!verified) return { ...localResult, backend_response: response };
+  const verificationStatus = verified.verification_status || response.verification_status || (response.verified_attempt ? "server_verified" : localResult.verification_status || "pending_backend");
+  const serverVerified = verificationStatus === "server_verified" || verificationStatus === "server_verified_credited";
+  const serverBadgeIds = backendBadgeIds(response, verified);
+  const localFallback = (key) => (serverVerified ? null : localResult[key]);
   return {
     ...localResult,
-    verification_status: verified.verification_status || response.verification_status || "server_verified",
-    correct_count: Number(verified.correct_count ?? localResult.correct_count),
-    total_questions: Number(verified.total_questions ?? localResult.total_questions),
-    accuracy: Number(verified.accuracy ?? localResult.accuracy),
-    hint_used_count: Number(verified.hint_used_count ?? localResult.hint_used_count),
-    completion_exp: Number(verified.completion_exp ?? localResult.completion_exp),
-    direct_exp: Number(verified.direct_exp ?? localResult.direct_exp),
-    revision_exp: Number(verified.revision_exp ?? localResult.revision_exp),
-    reflection_exp: Number(verified.reflection_exp ?? localResult.reflection_exp),
-    mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
-    retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
-    attempt_exp: Number(verified.attempt_exp ?? localResult.attempt_exp),
-    unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
-    exp_delta: Number(verified.credited_delta ?? verified.exp_delta ?? localResult.exp_delta),
-    earned_badges: Array.isArray(verified.earned_badges) ? verified.earned_badges : localResult.earned_badges,
+    verification_status: verificationStatus,
+    correct_count: numberFromAliases(verified.correct_count, attemptResult.correct_count, localFallback("correct_count")) ?? 0,
+    total_questions: numberFromAliases(verified.total_questions, attemptResult.total_questions, localFallback("total_questions")) ?? 0,
+    accuracy: numberFromAliases(verified.accuracy, attemptResult.accuracy, localFallback("accuracy")) ?? 0,
+    hint_used_count: numberFromAliases(verified.hint_used_count, attemptResult.hint_used_count, localFallback("hint_used_count")) ?? 0,
+    completion_exp: numberFromAliases(verified.completion_exp, attemptResult.completion_exp, localFallback("completion_exp")) ?? 0,
+    direct_exp: numberFromAliases(verified.direct_exp, verified.concept_exp, attemptResult.direct_exp, attemptResult.concept_exp, localFallback("direct_exp")) ?? 0,
+    revision_exp: numberFromAliases(verified.revision_exp, attemptResult.revision_exp, localFallback("revision_exp")) ?? 0,
+    reflection_exp: numberFromAliases(verified.reflection_exp, verified.question_exp, attemptResult.reflection_exp, attemptResult.question_exp, localFallback("reflection_exp")) ?? 0,
+    mastery_exp: numberFromAliases(verified.mastery_exp, attemptResult.mastery_exp, localFallback("mastery_exp")) ?? 0,
+    retry_exp: numberFromAliases(verified.retry_exp, attemptResult.retry_exp, localFallback("retry_exp")) ?? 0,
+    attempt_exp: numberFromAliases(verified.attempt_exp, verified.attempt_total_exp, attemptResult.attempt_exp, attemptResult.attempt_total_exp, localFallback("attempt_exp")) ?? 0,
+    unit_credited_exp: numberFromAliases(verified.unit_credited_exp, attemptResult.unit_credited_exp, localFallback("unit_credited_exp")) ?? 0,
+    exp_delta: numberFromAliases(verified.credited_delta, verified.exp_delta, attemptResult.credited_delta, attemptResult.exp_delta, localFallback("exp_delta")) ?? 0,
+    earned_badges: serverVerified ? (serverBadgeIds || []) : (serverBadgeIds || localResult.earned_badges),
     backend_response: response
   };
 }
@@ -1001,16 +1103,16 @@ function renderQuestion(question) {
 function conceptLabel(concept) { return {cells_from_cells:"新細胞來源",division_growth_repair:"生長修補",chromosome_dna_basic:"染色體與 DNA",chromosome_copy_before_division:"先複製再分裂",chromosome_equal_distribution:"染色體均分",mother_daughter_cells:"母細胞與子細胞",genetic_info_similarity:"遺傳資訊相似",division_not_reproduction_type:"分裂邊界",unit_boundary_control:"單元邊界"}[concept] || concept; }
 
 function renderQuestionEvidence(qid) {
-  if (["cell_division_q01", "cell_division_q02", "cell_division_q03"].includes(qid)) return `<div class="evidence-card"><strong>細胞來源概念卡</strong><p>新細胞來自原有細胞；生長修補常需要細胞數量增加；染色體含有遺傳資訊。</p></div>`;
-  if (qid === "cell_division_q04") return `<div class="evidence-card"><strong>染色體複製資料卡</strong><p>分裂前染色體可先形成兩份，之後分配到兩個子細胞。</p></div>`;
+  if (["cell_division_q01", "cell_division_q02", "cell_division_q03"].includes(qid)) return `<div class="evidence-card"><strong>情境判讀卡</strong><p>請先讀題目情境，判斷它是在問新細胞來源、生長修補，還是染色體與 DNA 的基本關係。</p></div>`;
+  if (qid === "cell_division_q04") return `<div class="evidence-card"><strong>分裂前準備觀察卡</strong><p>先看分裂後會形成幾個子細胞，再想每個子細胞需要保留哪一類資訊。</p></div>`;
   if (qid === "cell_division_q08") return renderEvidenceFigure(evidenceAssets.q08, "cell-division-q08-evidence");
   if (qid === "cell_division_q05") return `<div class="evidence-card"><strong>流程排序卡</strong><p>請把四張流程卡排成概念順序；卡片不含高中期別名稱。</p></div>`;
   if (qid === "cell_division_q06") return `<div class="evidence-card"><strong>圖像判讀</strong><p>請比較四張圖中兩個子細胞的標記種類與組合，再依題目資訊選擇。</p></div>`;
   if (qid === "cell_division_q07") return `<div class="evidence-card"><strong>染色體分配示意</strong><p>比較兩個子細胞是否都取得染色體，而不是只看某一邊。</p></div>`;
-  if (["cell_division_q09", "cell_division_q10"].includes(qid)) return `<div class="evidence-card"><strong>母細胞與子細胞卡</strong><p>一個母細胞分裂後形成兩個子細胞；遺傳資訊大致相同不等於功能永遠完全一樣。</p></div>`;
-  if (qid === "cell_division_q11") return `<div class="evidence-card"><strong>生長修補證據卡</strong><p>生長區域或修補情境常可看到新細胞形成，支持細胞數量增加。</p></div>`;
+  if (["cell_division_q09", "cell_division_q10"].includes(qid)) return `<div class="evidence-card"><strong>母細胞與子細胞觀察卡</strong><p>先分辨題目問的是分裂完成後的直接結果，還是子細胞後續可能出現的差異。</p></div>`;
+  if (qid === "cell_division_q11") return `<div class="evidence-card"><strong>生長情境觀察卡</strong><p>觀察情境要解釋的是單一細胞變大，還是同類細胞數量變化。</p></div>`;
   if (qid === "cell_division_q12") return renderQ12Evidence();
-  if (["cell_division_q13", "cell_division_q14"].includes(qid)) return `<div class="evidence-card"><strong>單元邊界卡</strong><p>本單元聚焦細胞分裂、染色體複製與分配；繁殖方式與受精留到後續單元。</p></div>`;
+  if (["cell_division_q13", "cell_division_q14"].includes(qid)) return `<div class="evidence-card"><strong>單元邊界觀察卡</strong><p>先判斷情境是在問細胞層級的新細胞形成，還是在問產生新個體的方式或身體調節；不要只靠熟悉名詞作答。</p></div>`;
   return "";
 }
 
@@ -1449,8 +1551,13 @@ if (typeof window !== "undefined") {
     answerValue,
     isCorrect,
     orderedMappingItems,
+    orderedOptions,
+    guardedOptionOrder,
     scoreAttempt,
     buildBackendPayload,
+    applyBackendSubmitResponse,
+    shortQuestionId,
+    backendBadgeIds,
     evaluateReflection,
     titleAvatarPath,
     renderBrief,

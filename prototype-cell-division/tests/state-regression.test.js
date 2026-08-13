@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-cell-division")
   : sourceRoot;
-const VERSION = "20260802-cell-division-evidence-v5-v1";
+const VERSION = "20260813-cell-division-mapping-assets-v1";
 const QUESTION_VERSION = "20260731-cell-division-v1.2";
 const storageKey = "bioquest_cell_division_state_v1";
 const attemptsKey = "bioquest_attempts_v1";
