@@ -67,7 +67,7 @@ appVersionOverrides.set("enzymes", "20260811-enzymes-submitted-retry-ia-v1");
 appVersionOverrides.set("nutrient_test", "20260810-nutrient-test-submitted-retry-ia-v1");
 appVersionOverrides.set("scale", "20260731-scale-submitted-retry-ia-v1");
 appVersionOverrides.set("nutrients_energy", "20260802-nutrients-energy-submitted-retry-ia-v1");
-appVersionOverrides.set("photosynthesis", "20260814-photosynthesis-aquatic-bubbles-asset-v1");
+appVersionOverrides.set("photosynthesis", "20260814-photosynthesis-leaf-structure-asset-v1");
 appVersionOverrides.set("biological_organization", "20260731-biological-organization-submitted-retry-ia-v1");
 appVersionOverrides.set("cell_transport", "20260731-cell-transport-submitted-retry-ia-v1");
 appVersionOverrides.set("plant_material_transport", "20260813-plant-material-transport-scroll-v1");
