@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260729-asexual-reproduction-relogin-v1";
+const VERSION = "20260813-asexual-reproduction-mapping-v1";
 const QUESTION_VERSION = "20260718-asexual-reproduction-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -965,11 +965,23 @@ function orderedMappingChoices(question) {
   return state.optionOrders[key].map((id) => source[id]).filter(Boolean);
 }
 
+function guardedOptionOrder(order, question, ids) {
+  const allowed = new Set(ids);
+  const normalized = Array.isArray(order) ? order.filter((id) => allowed.has(id)) : [];
+  ids.forEach((id) => { if (!normalized.includes(id)) normalized.push(id); });
+  if (question.type === "sequence" && Array.isArray(question.answer) && normalized.length > 1 && normalized.every((id, index) => id === question.answer[index])) {
+    [normalized[0], normalized[1]] = [normalized[1], normalized[0]];
+  }
+  return normalized;
+}
+
 function orderedOptions(question) {
   if (!state.optionOrders[question.id]) {
     const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
     state.optionOrders[question.id] = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}`);
   }
+  const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
+  state.optionOrders[question.id] = guardedOptionOrder(state.optionOrders[question.id], question, ids);
   const source = Object.fromEntries((question.type === "sequence" ? question.steps : question.options || []).map((item) => [item.id, item]));
   return state.optionOrders[question.id].map((id) => source[id]).filter(Boolean);
 }
@@ -1384,7 +1396,12 @@ function reflectionResult(quality, questionExp, reason, reviewStatus, normalized
 
 function buildBackendPayload(result = scoreAttempt()) {
   const rawAnswers = {};
-  result.logs.forEach((log) => { rawAnswers[log.question_id] = log.answer; });
+  result.logs.forEach((log) => {
+    rawAnswers[log.question_id] = log.answer;
+    rawAnswers[shortQuestionId(log.question_id)] = log.answer;
+    const question = questionMap[log.question_id];
+    if (question?.type === "sequence") rawAnswers[`${shortQuestionId(log.question_id)}_sequence`] = log.answer;
+  });
   return {
     action: "submitAttempt",
     unit_id: mission.unit_id,
@@ -1396,7 +1413,7 @@ function buildBackendPayload(result = scoreAttempt()) {
     attempt_id: state.attempt_id,
     attempt_session_token: state.attempt_session_token,
     previous_attempt_id: state.previous_attempt_id,
-    question_version: state.question_version,
+    question_version: QUESTION_VERSION,
     raw_answers: rawAnswers,
     raw_answers_json: JSON.stringify(rawAnswers),
     question_logs: result.logs.map((log) => ({
@@ -1406,6 +1423,16 @@ function buildBackendPayload(result = scoreAttempt()) {
       question_type: questionMap[log.question_id]?.type || "",
       attempt_answer: log.answer,
       answer_json: JSON.stringify(log.answer),
+      question_version: QUESTION_VERSION,
+      is_correct: log.is_correct,
+      hint_used: log.hint_used,
+      corrected_after_hint: log.hint_used && log.is_correct,
+      exp_type: log.hint_used ? "revision" : "concept",
+      exp_awarded: log.exp_awarded,
+      concept_id: log.concept_id,
+      checkpoint_id: questionMap[log.question_id]?.section || "",
+      teacher_group_id: analysisGroupForQuestion(log.question_id),
+      verification_status: state.student?.is_guest ? "local_guest" : "pending_backend",
       used_hint: log.hint_used,
       analysis_group: analysisGroupForQuestion(log.question_id),
       skill_tag: log.skill_tag,
@@ -1416,6 +1443,11 @@ function buildBackendPayload(result = scoreAttempt()) {
     confidence_level: state.reflection.confidence,
     client_summary: result
   };
+}
+
+function shortQuestionId(questionId) {
+  const matched = String(questionId || "").match(/q\d+$/);
+  return matched ? matched[0] : String(questionId || "");
 }
 
 function analysisGroupForQuestion(questionId) {
@@ -1434,9 +1466,75 @@ async function submitAttemptToBackend(payload) {
   return requestBackend(payload);
 }
 
+function numberFromAliases(...values) {
+  for (const value of values) {
+    if (value === null || value === undefined || value === "") continue;
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) return numeric;
+  }
+  return null;
+}
+
+function badgeIdsFromValue(value) {
+  if (!value) return null;
+  if (Array.isArray(value)) {
+    return value.map((item) => {
+      if (typeof item === "string") return item;
+      if (item && typeof item === "object") return item.badge_id || item.id || item.badgeId || "";
+      return "";
+    }).filter(Boolean);
+  }
+  if (typeof value === "string") {
+    try {
+      return badgeIdsFromValue(JSON.parse(value));
+    } catch (error) {
+      return value.split(",").map((item) => item.trim()).filter(Boolean);
+    }
+  }
+  return null;
+}
+
+function objectFromValue(value) {
+  if (!value) return {};
+  if (typeof value === "object" && !Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch (error) {
+      return {};
+    }
+  }
+  return {};
+}
+
+function firstBadgeIds(...values) {
+  for (const value of values) {
+    const ids = badgeIdsFromValue(value);
+    if (ids) return ids;
+  }
+  return null;
+}
+
+function backendBadgeIds(response = {}, verified = null) {
+  const attemptResult = objectFromValue(response.attempt_result || response.attempt_result_json || response.result);
+  return firstBadgeIds(
+    attemptResult.newly_credited_badges_json,
+    attemptResult.earned_badges_json,
+    attemptResult.newly_credited_badges,
+    attemptResult.earned_badges,
+    response.newly_credited_badges_json,
+    response.earned_badges_json,
+    verified?.earned_badges,
+    verified?.badges,
+    verified?.badges_json
+  );
+}
+
 function applyBackendSubmitResponse(response, localResult) {
   if (!response || response.ok === false) return localResult;
   const verified = response.verified_attempt || response.attempt || null;
+  const attemptResult = objectFromValue(response.attempt_result || response.attempt_result_json || response.result);
   const progress = response.student_progress || response.progress || null;
   if (progress) {
     state.student.progress = progress;
@@ -1447,23 +1545,27 @@ function applyBackendSubmitResponse(response, localResult) {
     saveVerifiedSnapshot(state.student);
   }
   if (!verified) return { ...localResult, backend_response: response };
+  const verificationStatus = verified.verification_status || response.verification_status || (response.verified_attempt ? "server_verified" : localResult.verification_status || "pending_backend");
+  const serverVerified = verificationStatus === "server_verified" || verificationStatus === "server_verified_credited";
+  const serverBadgeIds = backendBadgeIds(response, verified);
+  const localFallback = (key) => (serverVerified ? null : localResult[key]);
   return {
     ...localResult,
-    verification_status: verified.verification_status || response.verification_status || "server_verified",
-    correct_count: Number(verified.correct_count ?? localResult.correct_count),
-    total_questions: Number(verified.total_questions ?? localResult.total_questions),
-    accuracy: Number(verified.accuracy ?? localResult.accuracy),
-    hint_used_count: Number(verified.hint_used_count ?? localResult.hint_used_count),
-    completion_exp: Number(verified.completion_exp ?? localResult.completion_exp),
-    direct_exp: Number(verified.direct_exp ?? localResult.direct_exp),
-    revision_exp: Number(verified.revision_exp ?? localResult.revision_exp),
-    reflection_exp: Number(verified.reflection_exp ?? localResult.reflection_exp),
-    mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
-    retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
-    attempt_exp: Number(verified.attempt_exp ?? localResult.attempt_exp),
-    unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
-    exp_delta: Number(verified.credited_delta ?? verified.exp_delta ?? localResult.exp_delta),
-    earned_badges: Array.isArray(verified.earned_badges) ? verified.earned_badges : localResult.earned_badges,
+    verification_status: verificationStatus,
+    correct_count: numberFromAliases(verified.correct_count, attemptResult.correct_count, localFallback("correct_count")) ?? 0,
+    total_questions: numberFromAliases(verified.total_questions, attemptResult.total_questions, localFallback("total_questions")) ?? 0,
+    accuracy: numberFromAliases(verified.accuracy, attemptResult.accuracy, localFallback("accuracy")) ?? 0,
+    hint_used_count: numberFromAliases(verified.hint_used_count, attemptResult.hint_used_count, localFallback("hint_used_count")) ?? 0,
+    completion_exp: numberFromAliases(verified.completion_exp, attemptResult.completion_exp, localFallback("completion_exp")) ?? 0,
+    direct_exp: numberFromAliases(verified.direct_exp, verified.concept_exp, attemptResult.direct_exp, attemptResult.concept_exp, localFallback("direct_exp")) ?? 0,
+    revision_exp: numberFromAliases(verified.revision_exp, attemptResult.revision_exp, localFallback("revision_exp")) ?? 0,
+    reflection_exp: numberFromAliases(verified.reflection_exp, verified.question_exp, attemptResult.reflection_exp, attemptResult.question_exp, localFallback("reflection_exp")) ?? 0,
+    mastery_exp: numberFromAliases(verified.mastery_exp, attemptResult.mastery_exp, localFallback("mastery_exp")) ?? 0,
+    retry_exp: numberFromAliases(verified.retry_exp, attemptResult.retry_exp, localFallback("retry_exp")) ?? 0,
+    attempt_exp: numberFromAliases(verified.attempt_exp, verified.attempt_total_exp, attemptResult.attempt_exp, attemptResult.attempt_total_exp, localFallback("attempt_exp")) ?? 0,
+    unit_credited_exp: numberFromAliases(verified.unit_credited_exp, attemptResult.unit_credited_exp, localFallback("unit_credited_exp")) ?? 0,
+    exp_delta: numberFromAliases(verified.credited_delta, verified.exp_delta, attemptResult.credited_delta, attemptResult.exp_delta, localFallback("exp_delta")) ?? 0,
+    earned_badges: serverVerified ? (serverBadgeIds || []) : (serverBadgeIds || localResult.earned_badges),
     backend_response: response
   };
 }
@@ -1956,8 +2058,13 @@ if (typeof window !== "undefined") {
     isCorrect,
     orderedMappingItems,
     orderedMappingChoices,
+    orderedOptions,
+    guardedOptionOrder,
     scoreAttempt,
     buildBackendPayload,
+    applyBackendSubmitResponse,
+    shortQuestionId,
+    backendBadgeIds,
     evaluateReflection,
     titleAvatarPath,
     renderBrief,
