@@ -77,7 +77,7 @@ appVersionOverrides.set("cardiovascular_components", "20260812-cardiovascular-co
 appVersionOverrides.set("human_circulation", "20260813-human-circulation-mapping-v1");
 appVersionOverrides.set("stimulus_response", "20260813-stimulus-response-mapping-v1");
 appVersionOverrides.set("nervous_system", "20260813-nervous-system-mapping-v1");
-appVersionOverrides.set("endocrine_system", "20260728-endocrine-system-relogin-v1");
+appVersionOverrides.set("endocrine_system", "20260813-endocrine-system-mapping-v1");
 appVersionOverrides.set("behavior_sensing", "20260728-behavior-sensing-relogin-v1");
 appVersionOverrides.set("respiration_homeostasis", "20260728-respiration-homeostasis-relogin-v1");
 appVersionOverrides.set("excretion_water_homeostasis", "20260728-excretion-water-homeostasis-relogin-v1");

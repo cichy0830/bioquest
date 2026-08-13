@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260728-endocrine-system-relogin-v1";
+const VERSION = "20260813-endocrine-system-mapping-v1";
 const QUESTION_VERSION = "20260718-endocrine-system-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -254,11 +254,22 @@ function stableShuffle(items, seed) {
   return copy;
 }
 
+function guardedOptionOrder(order, question, ids) {
+  const allowed = new Set(ids);
+  const normalized = Array.isArray(order) ? order.filter((id) => allowed.has(id)) : [];
+  ids.forEach((id) => { if (!normalized.includes(id)) normalized.push(id); });
+  if (question.type === "sequence" && Array.isArray(question.answer) && normalized.length > 1 && normalized.every((id, index) => id === question.answer[index])) {
+    [normalized[0], normalized[1]] = [normalized[1], normalized[0]];
+  }
+  return normalized;
+}
+
 function orderedOptions(question) {
+  const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
   if (!state.optionOrders[question.id]) {
-    const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
     state.optionOrders[question.id] = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}`);
   }
+  state.optionOrders[question.id] = guardedOptionOrder(state.optionOrders[question.id], question, ids);
   const source = Object.fromEntries((question.type === "sequence" ? question.steps : question.options || []).map((item) => [item.id, item]));
   return state.optionOrders[question.id].map((id) => source[id]).filter(Boolean);
 }
@@ -666,7 +677,16 @@ function reflectionResult(quality, questionExp, reason, reviewStatus, normalized
 
 function buildBackendPayload(result = scoreAttempt()) {
   const rawAnswers = {};
-  result.logs.forEach((log) => { rawAnswers[log.question_id] = log.answer; });
+  result.logs.forEach((log) => {
+    rawAnswers[log.question_id] = log.answer;
+    const shortId = shortQuestionId(log.question_id);
+    if (shortId) {
+      rawAnswers[shortId] = log.answer;
+      if (questionMap[log.question_id]?.type === "sequence") {
+        rawAnswers[`${shortId}_sequence`] = log.answer;
+      }
+    }
+  });
   return {
     action: "submitAttempt",
     unit_id: mission.unit_id,
@@ -700,6 +720,11 @@ function buildBackendPayload(result = scoreAttempt()) {
   };
 }
 
+function shortQuestionId(questionId) {
+  const matched = String(questionId || "").match(/q\d+$/);
+  return matched ? matched[0] : String(questionId || "");
+}
+
 function analysisGroupForQuestion(questionId) {
   if (sections.checkpoint1.includes(questionId)) return "hormone_basics";
   if (sections.checkpoint2.includes(questionId)) return "glands_roles";
@@ -712,9 +737,75 @@ async function submitAttemptToBackend(payload) {
   return requestBackend(payload);
 }
 
+function numberFromAliases(...values) {
+  for (const value of values) {
+    if (value === null || value === undefined || value === "") continue;
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) return numeric;
+  }
+  return null;
+}
+
+function badgeIdsFromValue(value) {
+  if (!value) return null;
+  if (Array.isArray(value)) {
+    return value.map((item) => {
+      if (typeof item === "string") return item;
+      if (item && typeof item === "object") return item.badge_id || item.id || item.badgeId || "";
+      return "";
+    }).filter(Boolean);
+  }
+  if (typeof value === "string") {
+    try {
+      return badgeIdsFromValue(JSON.parse(value));
+    } catch (error) {
+      return value.split(",").map((item) => item.trim()).filter(Boolean);
+    }
+  }
+  return null;
+}
+
+function objectFromValue(value) {
+  if (!value) return {};
+  if (typeof value === "object" && !Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch (error) {
+      return {};
+    }
+  }
+  return {};
+}
+
+function firstBadgeIds(...values) {
+  for (const value of values) {
+    const ids = badgeIdsFromValue(value);
+    if (ids) return ids;
+  }
+  return null;
+}
+
+function backendBadgeIds(response = {}, verified = null) {
+  const attemptResult = objectFromValue(response.attempt_result || response.attempt_result_json || response.result);
+  return firstBadgeIds(
+    attemptResult.newly_credited_badges_json,
+    attemptResult.earned_badges_json,
+    attemptResult.newly_credited_badges,
+    attemptResult.earned_badges,
+    response.newly_credited_badges_json,
+    response.earned_badges_json,
+    verified?.earned_badges,
+    verified?.badges,
+    verified?.badges_json
+  );
+}
+
 function applyBackendSubmitResponse(response, localResult) {
   if (!response || response.ok === false) return localResult;
   const verified = response.verified_attempt || response.attempt || null;
+  const attemptResult = objectFromValue(response.attempt_result || response.attempt_result_json || response.result);
   const progress = response.student_progress || response.progress || null;
   if (progress) {
     state.student.progress = progress;
@@ -725,23 +816,27 @@ function applyBackendSubmitResponse(response, localResult) {
     saveVerifiedSnapshot(state.student);
   }
   if (!verified) return { ...localResult, backend_response: response };
+  const verificationStatus = verified.verification_status || response.verification_status || (response.verified_attempt ? "server_verified" : localResult.verification_status || "pending_backend");
+  const serverVerified = verificationStatus === "server_verified" || verificationStatus === "server_verified_credited";
+  const serverBadgeIds = backendBadgeIds(response, verified);
+  const localFallback = (key) => (serverVerified ? null : localResult[key]);
   return {
     ...localResult,
-    verification_status: verified.verification_status || response.verification_status || "server_verified",
-    correct_count: Number(verified.correct_count ?? localResult.correct_count),
-    total_questions: Number(verified.total_questions ?? localResult.total_questions),
-    accuracy: Number(verified.accuracy ?? localResult.accuracy),
-    hint_used_count: Number(verified.hint_used_count ?? localResult.hint_used_count),
-    completion_exp: Number(verified.completion_exp ?? localResult.completion_exp),
-    direct_exp: Number(verified.direct_exp ?? localResult.direct_exp),
-    revision_exp: Number(verified.revision_exp ?? localResult.revision_exp),
-    reflection_exp: Number(verified.reflection_exp ?? localResult.reflection_exp),
-    mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
-    retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
-    attempt_exp: Number(verified.attempt_exp ?? localResult.attempt_exp),
-    unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
-    exp_delta: Number(verified.credited_delta ?? verified.exp_delta ?? localResult.exp_delta),
-    earned_badges: Array.isArray(verified.earned_badges) ? verified.earned_badges : localResult.earned_badges,
+    verification_status: verificationStatus,
+    correct_count: numberFromAliases(verified.correct_count, attemptResult.correct_count, localFallback("correct_count")) ?? 0,
+    total_questions: numberFromAliases(verified.total_questions, attemptResult.total_questions, localFallback("total_questions")) ?? 0,
+    accuracy: numberFromAliases(verified.accuracy, attemptResult.accuracy, localFallback("accuracy")) ?? 0,
+    hint_used_count: numberFromAliases(verified.hint_used_count, attemptResult.hint_used_count, localFallback("hint_used_count")) ?? 0,
+    completion_exp: numberFromAliases(verified.completion_exp, attemptResult.completion_exp, localFallback("completion_exp")) ?? 0,
+    direct_exp: numberFromAliases(verified.direct_exp, verified.concept_exp, attemptResult.direct_exp, attemptResult.concept_exp, localFallback("direct_exp")) ?? 0,
+    revision_exp: numberFromAliases(verified.revision_exp, attemptResult.revision_exp, localFallback("revision_exp")) ?? 0,
+    reflection_exp: numberFromAliases(verified.reflection_exp, verified.question_exp, attemptResult.reflection_exp, attemptResult.question_exp, localFallback("reflection_exp")) ?? 0,
+    mastery_exp: numberFromAliases(verified.mastery_exp, attemptResult.mastery_exp, localFallback("mastery_exp")) ?? 0,
+    retry_exp: numberFromAliases(verified.retry_exp, attemptResult.retry_exp, localFallback("retry_exp")) ?? 0,
+    attempt_exp: numberFromAliases(verified.attempt_exp, verified.attempt_total_exp, attemptResult.attempt_exp, attemptResult.attempt_total_exp, localFallback("attempt_exp")) ?? 0,
+    unit_credited_exp: numberFromAliases(verified.unit_credited_exp, attemptResult.unit_credited_exp, localFallback("unit_credited_exp")) ?? 0,
+    exp_delta: numberFromAliases(verified.credited_delta, verified.exp_delta, attemptResult.credited_delta, attemptResult.exp_delta, localFallback("exp_delta")) ?? 0,
+    earned_badges: serverVerified ? (serverBadgeIds || []) : (serverBadgeIds || localResult.earned_badges),
     backend_response: response
   };
 }
@@ -874,13 +969,13 @@ function renderQuestion(question) {
 function conceptLabel(concept) { return {endocrine_gland_role:"內分泌腺",hormone_transport_blood:"血液運送",target_organ_specificity:"目標器官",major_glands_roles:"主要腺體",insulin_role:"胰島素",glucagon_role:"升糖素",pancreas_blood_glucose:"血糖資料",hormone_balance:"激素適量",nerve_endocrine_compare:"神經/激素比較"}[concept] || concept; }
 
 function renderQuestionEvidence(qid) {
-  if (["endocrine_system_q01", "endocrine_system_q02", "endocrine_system_q03"].includes(qid)) return `<div class="evidence-card"><strong>激素訊息卡</strong><p>先找分泌激素的腺體、運送方式，以及哪些目標器官或細胞會產生回應。</p></div>`;
+  if (["endocrine_system_q01", "endocrine_system_q02", "endocrine_system_q03"].includes(qid)) return `<div class="evidence-card"><strong>訊息來源閱讀</strong><p>先判斷題目問的是訊息從哪裡產生、如何被帶到較遠位置，還是哪些地方會產生回應；不要只看到關鍵詞就直接套答案。</p></div>`;
   if (qid === "endocrine_system_q04") return `<div class="evidence-card"><strong>流程排序卡</strong><p>排序題請拖曳卡片；手機可用上移 / 下移。提示只協助判斷分泌、運送與作用對象，不直接列答案。</p></div>`;
-  if (["endocrine_system_q05", "endocrine_system_q06", "endocrine_system_q07", "endocrine_system_q08"].includes(qid)) return `<div class="evidence-card"><strong>腺體功能卡</strong><p>功能線索可先分成生長與調節、代謝、血糖、緊急狀態，以及生殖與青春期發育。</p></div>`;
-  if (["endocrine_system_q09", "endocrine_system_q10", "endocrine_system_q13"].includes(qid)) return `<div class="evidence-card"><strong>血糖方向卡</strong><p>胰島素與升糖素都和血糖調節有關，但調整方向不同。</p></div>`;
-  if (qid === "endocrine_system_q11") return `<div class="evidence-card"><strong>資料判讀卡</strong><p>比較飯後血糖與胰島素量的變化，再判斷資料支持哪個調節方向。</p></div>`;
-  if (qid === "endocrine_system_q12") return `<div class="evidence-card"><strong>適量調節卡</strong><p>調節重點不是越多越好，而是讓身體功能維持在適當範圍。</p></div>`;
-  if (qid === "endocrine_system_q14") return `<div class="evidence-card"><strong>協調方式比較卡</strong><p>神經訊息通常較快且路徑明確；激素多經血液運送，作用可能較慢、較廣或較持久。</p></div>`;
+  if (["endocrine_system_q05", "endocrine_system_q06", "endocrine_system_q07", "endocrine_system_q08"].includes(qid)) return `<div class="evidence-card"><strong>腺體功能閱讀</strong><p>先看題目中的功能線索屬於哪一類身體調節，再和選項配對；不要先背整張表，也不要把所有腺體都當成同一功能。</p></div>`;
+  if (["endocrine_system_q09", "endocrine_system_q10", "endocrine_system_q13"].includes(qid)) return `<div class="evidence-card"><strong>血糖方向閱讀</strong><p>先判斷情境中的血糖是偏高還是偏低，再找能讓血糖往適當方向調整的選項。</p></div>`;
+  if (qid === "endocrine_system_q11") return `<div class="evidence-card"><strong>資料判讀卡</strong><p>先看飯後血糖和某種調節物質的變化先後，再判斷資料支持哪個調節方向。</p></div>`;
+  if (qid === "endocrine_system_q12") return `<div class="evidence-card"><strong>調節量閱讀</strong><p>看到「越多越好」這類說法時，先想調節的目標是單方向增加，還是讓身體活動維持合適狀態。</p></div>`;
+  if (qid === "endocrine_system_q14") return `<div class="evidence-card"><strong>協調方式閱讀</strong><p>比較兩種協調方式時，先看訊息走的是明確路線還是經由身體內的運送系統，也留意作用快慢與範圍。</p></div>`;
   return "";
 }
 
@@ -1269,6 +1364,11 @@ if (typeof window !== "undefined") {
     isCorrect,
     scoreAttempt,
     buildBackendPayload,
+    shortQuestionId,
+    guardedOptionOrder,
+    orderedOptions,
+    backendBadgeIds,
+    applyBackendSubmitResponse,
     loadAttempts,
     loadVerifiedSnapshot,
     resetForRelogin,
