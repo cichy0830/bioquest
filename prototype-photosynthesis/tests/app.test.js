@@ -43,7 +43,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-photosynthesis/app.js" });
 
 const api = context.window.__photosynthesisTest;
-assert.equal(api.VERSION, "20260814-photosynthesis-leaf-structure-asset-v1");
+assert.equal(api.VERSION, "20260814-photosynthesis-light-shade-asset-v1");
 assert.equal(api.QUESTION_VERSION, "20260721-photosynthesis-q09-inactive-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -64,6 +64,8 @@ for (const badge of api.badges) {
 assert.equal(api.cacheBustedAsset(api.assets.briefingSceneHook), `assets/bg-photosynthesis-briefing-azhe-wide.webp?v=${api.VERSION}`);
 assert.equal(api.assets.questionLeafStructure, "assets/img-photosynthesis-leaf-structure-1280w.webp");
 assert.equal(api.cacheBustedAsset(api.assets.questionLeafStructure), `assets/img-photosynthesis-leaf-structure-1280w.webp?v=${api.VERSION}`);
+assert.equal(api.assets.questionLightShade, "assets/img-photosynthesis-light-shade-1280w.webp");
+assert.equal(api.cacheBustedAsset(api.assets.questionLightShade), `assets/img-photosynthesis-light-shade-1280w.webp?v=${api.VERSION}`);
 assert.equal(api.assets.questionBubbles, "assets/img-photosynthesis-aquatic-bubbles-1280w.webp");
 assert.equal(api.cacheBustedAsset(api.assets.questionBubbles), `assets/img-photosynthesis-aquatic-bubbles-1280w.webp?v=${api.VERSION}`);
 assert.equal(api.titleAvatarPath({ profile_gender: "male" }), "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp");
@@ -82,7 +84,7 @@ for (const file of [
   "assets/owl-photosynthesis-prep-reminder.webp",
   "assets/img-photosynthesis-leaf-structure-1280w.webp",
   "assets/img-photosynthesis-starch-evidence.webp",
-  "assets/img-photosynthesis-light-shade.webp",
+  "assets/img-photosynthesis-light-shade-1280w.webp",
   "assets/img-photosynthesis-aquatic-bubbles-1280w.webp",
   "assets/img-photosynthesis-variable-control.webp"
 ]) assert(fs.existsSync(path.join(root, file)), `photosynthesis asset missing: ${file}`);
@@ -90,9 +92,14 @@ const legacyBubblePath = path.join(root, "assets", ["img", "photosynthesis", "aq
 assert.equal(fs.existsSync(legacyBubblePath), false, "oversized aquatic bubbles runtime asset must be removed");
 const legacyLeafPath = path.join(root, "assets", "img-photosynthesis-leaf-structure.webp");
 assert.equal(fs.existsSync(legacyLeafPath), false, "oversized leaf structure runtime asset must be removed");
+const legacyLightShadePath = path.join(root, "assets", "img-photosynthesis-light-shade.webp");
+assert.equal(fs.existsSync(legacyLightShadePath), false, "oversized light/shade runtime asset must be removed");
 const leafMetadata = await sharp(path.join(root, api.assets.questionLeafStructure)).metadata();
 assert.equal(leafMetadata.width, 1280, "leaf structure runtime width must satisfy publish asset audit");
 assert.equal(leafMetadata.height, 720, "leaf structure runtime height must satisfy publish asset audit");
+const lightShadeMetadata = await sharp(path.join(root, api.assets.questionLightShade)).metadata();
+assert.equal(lightShadeMetadata.width, 1280, "light/shade runtime width must satisfy publish asset audit");
+assert.equal(lightShadeMetadata.height, 720, "light/shade runtime height must satisfy publish asset audit");
 const bubbleMetadata = await sharp(path.join(root, api.assets.questionBubbles)).metadata();
 assert.equal(bubbleMetadata.width, 1280, "aquatic bubbles runtime width must satisfy publish asset audit");
 assert.equal(bubbleMetadata.height, 720, "aquatic bubbles runtime height must satisfy publish asset audit");
@@ -192,6 +199,7 @@ assert(checkpoint.includes("確認這組答案"), "multi-select confirmation mis
 assert(checkpoint.includes("每分鐘氣泡數"), "q11 data table missing");
 assert(checkpoint.includes(`img-photosynthesis-aquatic-bubbles-1280w.webp?v=${api.VERSION}`), "q11 image must use cache-busted 1280w runtime asset");
 assert(checkpoint.includes("遮光葉片紀錄"), "q10 evidence table missing");
+assert(checkpoint.includes(`img-photosynthesis-light-shade-1280w.webp?v=${api.VERSION}`), "q10 light/shade image must use cache-busted 1280w runtime asset");
 const checkpoint2 = api.renderCheckpoint("checkpoint2");
 assert(checkpoint2.includes(`img-photosynthesis-leaf-structure-1280w.webp?v=${api.VERSION}`), "q05 leaf structure image must use cache-busted 1280w runtime asset");
 assert(!api.renderReview().includes("mentor-card"), "shared enhancer must own the single review mentor");

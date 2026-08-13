@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260814-photosynthesis-leaf-structure-asset-v1";
+const VERSION = "20260814-photosynthesis-light-shade-asset-v1";
 const QUESTION_VERSION = "20260721-photosynthesis-q09-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -61,7 +61,7 @@ const assets = {
   ambientBackgroundHook: "assets/bg-photosynthesis-entry-wide.webp",
   questionLeafStructure: "assets/img-photosynthesis-leaf-structure-1280w.webp",
   questionStarchEvidence: "assets/img-photosynthesis-starch-evidence.webp",
-  questionLightShade: "assets/img-photosynthesis-light-shade.webp",
+  questionLightShade: "assets/img-photosynthesis-light-shade-1280w.webp",
   questionBubbles: "assets/img-photosynthesis-aquatic-bubbles-1280w.webp",
   questionVariableControl: "assets/img-photosynthesis-variable-control.webp"
 };
@@ -917,7 +917,7 @@ function renderQuestionEvidence(qid) {
     return `<figure class="question-asset"><img src="${cacheBustedAsset(assets.questionLeafStructure)}" alt="葉片構造示意圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>葉片構造觀察圖。請依構造功能配對，不只看位置。</figcaption></figure>`;
   }
   if (qid === "q10") {
-    return `<figure class="question-asset"><img src="${assets.questionLightShade}" alt="同一葉片不同光照區域示意圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>同一片葉子的兩個區域比較。</figcaption></figure><div class="evidence-card"><strong>遮光葉片紀錄</strong><table><thead><tr><th>區域</th><th>光照</th><th>碘液結果</th></tr></thead><tbody><tr><td>A</td><td>照光</td><td>呈藍黑色</td></tr><tr><td>B</td><td>遮光</td><td>沒有明顯藍黑色</td></tr></tbody></table></div>`;
+    return `<figure class="question-asset"><img src="${cacheBustedAsset(assets.questionLightShade)}" alt="同一葉片不同光照區域示意圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>同一片葉子的兩個區域比較。</figcaption></figure><div class="evidence-card"><strong>遮光葉片紀錄</strong><table><thead><tr><th>區域</th><th>光照</th><th>碘液結果</th></tr></thead><tbody><tr><td>A</td><td>照光</td><td>呈藍黑色</td></tr><tr><td>B</td><td>遮光</td><td>沒有明顯藍黑色</td></tr></tbody></table></div>`;
   }
   if (qid === "q11") {
     return `<figure class="question-asset"><img src="${cacheBustedAsset(assets.questionBubbles)}" alt="水生植物氣泡觀察圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>水生植物氣泡觀察。請搭配數據比較。</figcaption></figure><div class="evidence-card"><strong>水生植物氣泡紀錄</strong><table><thead><tr><th>條件</th><th>每分鐘氣泡數</th></tr></thead><tbody><tr><td>弱光</td><td>約 2 個</td></tr><tr><td>較強光</td><td>約 10 個</td></tr></tbody></table></div>`;

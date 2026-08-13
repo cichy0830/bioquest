@@ -9,7 +9,7 @@ import playwright from "/Users/biomin/.cache/codex-runtimes/codex-primary-runtim
 const { chromium } = playwright;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = process.env.BIOQUEST_AUDIT_ROOT ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT) : path.resolve(root, "..");
-const version = "20260814-photosynthesis-leaf-structure-asset-v1";
+const version = "20260814-photosynthesis-light-shade-asset-v1";
 const questionVersion = "20260721-photosynthesis-q09-inactive-v1";
 const artifactDir = process.env.BIOQUEST_ARTIFACT_DIR
   ? path.resolve(process.env.BIOQUEST_ARTIFACT_DIR)
@@ -126,6 +126,19 @@ async function completeMission(page) {
   for (const qid of ["q06", "q07", "q08"]) await page.locator(`[data-answer="${qid}"][data-value="${choiceAnswers[qid]}"]`).click();
   await page.locator('[data-section-next="checkpoint2"]').click();
   await page.waitForSelector("#screen[data-bioquest-screen='checkpoint3']");
+  await page.waitForFunction(() => {
+    const image = document.querySelector('img[alt="同一葉片不同光照區域示意圖"]');
+    return image?.complete && image.naturalWidth > 0;
+  });
+  const lightShadeImage = await page.locator('img[alt="同一葉片不同光照區域示意圖"]').evaluate((img) => ({
+    src: img.currentSrc || img.src,
+    naturalWidth: img.naturalWidth,
+    naturalHeight: img.naturalHeight
+  }));
+  assert.ok(lightShadeImage.src.includes("img-photosynthesis-light-shade-1280w.webp"), "q10 light/shade image must use the 1280w runtime asset");
+  assert.ok(lightShadeImage.src.includes(`v=${version}`), "q10 light/shade image must include runtime cache");
+  assert.equal(lightShadeImage.naturalWidth, 1280, "q10 light/shade image natural width");
+  assert.equal(lightShadeImage.naturalHeight, 720, "q10 light/shade image natural height");
   await page.waitForFunction(() => {
     const image = document.querySelector('img[alt="水生植物氣泡觀察圖"]');
     return image?.complete && image.naturalWidth > 0;
