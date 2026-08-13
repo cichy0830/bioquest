@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-temperature-glucose-homeostasis")
   : sourceRoot;
-const VERSION = "20260728-temperature-glucose-homeostasis-relogin-v1";
+const VERSION = "20260813-temperature-glucose-homeostasis-mapping-v1";
 const QUESTION_VERSION = "20260718-temperature-glucose-homeostasis-v1";
 const storageKey = "bioquest_temperature_glucose_homeostasis_state_v1";
 const attemptsKey = "bioquest_attempts_v1";

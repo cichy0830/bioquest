@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-temperature-glucose-homeostasis/app.js" });
 const api = context.window.__temperature_glucose_homeostasisTest;
 
-assert.equal(api.VERSION, "20260728-temperature-glucose-homeostasis-relogin-v1");
+assert.equal(api.VERSION, "20260813-temperature-glucose-homeostasis-mapping-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-temperature-glucose-homeostasis-v1");
 assert.equal(api.mission.unit_id, "temperature_glucose_homeostasis");
 assert.equal(api.questions.length, 14);
@@ -38,6 +38,8 @@ assert(api.badges.every((badge) => badge.badge_image_path === ""));
 assert(source.includes("BioQuestLoginUX?.begin"));
 assert(!source.includes("待審素材"));
 assert(!source.includes("u26-temperature-glucose-homeostasis-review"));
+assert(!source.includes("question_version: VERSION"));
+assert(!source.includes("QUESTION_VERSION = VERSION"));
 assert(fs.existsSync(path.join(root, "assets", "u26-f-u26-04-q07-body-temperature-chart-base.svg")));
 assert(fs.existsSync(path.join(root, "assets", "u26-f-u26-04-q12-glucose-insulin-chart-base.svg")));
 assert(fs.existsSync(path.join(root, "assets", "u26-f-u26-04-chart-data-overlay-spec.json")));
@@ -106,11 +108,20 @@ assert.equal(payload.unit_id, "temperature_glucose_homeostasis");
 assert.equal(payload.question_version, api.QUESTION_VERSION);
 assert.notEqual(payload.question_version, api.VERSION);
 assert.equal(payload.question_logs.length, 14);
+for (let index = 1; index <= 14; index += 1) {
+  const questionId = Q(index);
+  const shortId = `q${String(index).padStart(2, "0")}`;
+  assert.deepEqual(payload.raw_answers[shortId], payload.raw_answers[questionId], `${shortId} should mirror ${questionId}`);
+}
 assert.deepEqual(payload.raw_answers[Q(8)], answers[`${Q(8)}_sequence`]);
+assert.deepEqual(payload.raw_answers.q08_sequence, answers[`${Q(8)}_sequence`]);
 assert.deepEqual(payload.raw_answers[Q(3)], answers[Q(3)]);
+assert.deepEqual(payload.raw_answers.q03, answers[Q(3)]);
 assert.deepEqual(payload.raw_answers[Q(13)], answers[Q(13)]);
+assert.deepEqual(payload.raw_answers.q13, answers[Q(13)]);
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(8)).analysis_group, "temperature_responses");
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(13)).analysis_group, "blood_glucose_feedback");
+assert.equal(payload.question_logs.every((log) => log.question_version === api.QUESTION_VERSION), true);
 assert(api.renderCheckpoint("checkpoint2").includes("sequence-list"));
 assert(api.renderCheckpoint("checkpoint3").includes("mapping-list"));
 assert.equal(api.chartEvidence[Q(7)].asset, "assets/u26-f-u26-04-q07-body-temperature-chart-base.svg");
@@ -132,6 +143,14 @@ assert(q12Evidence.includes("胰島素相對量"));
 assert(q12Evidence.includes(`?v=${api.VERSION}`));
 assert(!q12Evidence.includes("飯後血糖可能先升高"));
 assert(!q12Evidence.includes("血糖先升後降"));
+const q09Evidence = api.renderQuestionEvidence(Q(9));
+const q14Evidence = api.renderQuestionEvidence(Q(14));
+assert(q09Evidence.includes("血糖資料觀察卡"));
+assert(q09Evidence.includes("先確認資料比較的是哪一段時間與哪一種身體狀態"));
+assert(!q09Evidence.includes("飯後血糖可能先升高"));
+assert(q14Evidence.includes("單元邊界觀察卡"));
+assert(q14Evidence.includes("先判斷題目中的情境主要在檢查哪一種身體狀態"));
+assert(!q14Evidence.includes("本單元聚焦體溫與血糖"));
 assert(api.questions.find((question) => question.id === Q(7)).prompt.includes("曲線圖"));
 assert(api.questions.find((question) => question.id === Q(12)).prompt.includes("曲線圖"));
 assert.equal(api.assets.briefingSceneHook, "assets/temperature-glucose-homeostasis-briefing-azhe-wide.webp");
@@ -188,4 +207,69 @@ assert.equal(api.state().screen, "login");
 assert.equal(api.state().student, null);
 assert.equal(api.loadVerifiedSnapshot().student_id, "S99999");
 assert.equal(api.loadVerifiedSnapshot().total_exp, 8200);
+api.setState({
+  student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" },
+  attempt_id: "server",
+  attempt_session_token: "token",
+  question_version: api.QUESTION_VERSION,
+  optionOrders: { [Q(8)]: [...answers[`${Q(8)}_sequence`]] },
+  answers,
+  result: { earned_badges: ["local_candidate_badge"] }
+});
+const guarded = api.orderedOptions(api.questions.find((question) => question.id === Q(8))).map((step) => step.id);
+assert.notDeepEqual(guarded, answers[`${Q(8)}_sequence`]);
+assert.deepEqual(api.orderedOptions(api.questions.find((question) => question.id === Q(8))).map((step) => step.id), guarded);
+const localCandidate = {
+  ...api.scoreAttempt(),
+  direct_exp: 999,
+  reflection_exp: 888,
+  attempt_exp: 777,
+  unit_credited_exp: 777,
+  earned_badges: ["local_candidate_badge"],
+  verification_status: "pending_backend"
+};
+let merged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: {
+    verification_status: "server_verified",
+    concept_exp: 111,
+    question_exp: 22,
+    attempt_total_exp: 333,
+    badges_json: JSON.stringify(["temperature_glucose_homeostasis_entry", "temperature_feedback_sequence_tracker"])
+  }
+}, localCandidate);
+assert.equal(merged.direct_exp, 111);
+assert.equal(merged.reflection_exp, 22);
+assert.equal(merged.attempt_exp, 333);
+assert.deepEqual(Array.from(merged.earned_badges), ["temperature_glucose_homeostasis_entry", "temperature_feedback_sequence_tracker"]);
+merged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  attempt_result: {
+    concept_exp: 111,
+    question_exp: 22,
+    attempt_total_exp: 333,
+    newly_credited_badges_json: JSON.stringify(["temperature_glucose_homeostasis_entry"])
+  },
+  verified_attempt: { verification_status: "server_verified" }
+}, localCandidate);
+assert.equal(merged.direct_exp, 111);
+assert.equal(merged.reflection_exp, 22);
+assert.equal(merged.attempt_exp, 333);
+assert.deepEqual(Array.from(merged.earned_badges), ["temperature_glucose_homeostasis_entry"]);
+merged = api.applyBackendSubmitResponse({
+  ok: true,
+  verified_attempt: { verification_status: "server_verified", concept_exp: 111, question_exp: 22, attempt_total_exp: 333 }
+}, localCandidate);
+assert.equal(merged.direct_exp, 111);
+assert.equal(merged.reflection_exp, 22);
+assert.equal(merged.attempt_exp, 333);
+assert.deepEqual(Array.from(merged.earned_badges), []);
+merged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "pending_backend",
+  verified_attempt: { verification_status: "pending_backend" }
+}, localCandidate);
+assert.deepEqual(Array.from(merged.earned_badges), localCandidate.earned_badges);
 console.log("prototype-temperature-glucose-homeostasis app regression passed");

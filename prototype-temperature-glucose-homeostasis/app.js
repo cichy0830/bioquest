@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260728-temperature-glucose-homeostasis-relogin-v1";
+const VERSION = "20260813-temperature-glucose-homeostasis-mapping-v1";
 const QUESTION_VERSION = "20260718-temperature-glucose-homeostasis-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -292,11 +292,22 @@ function stableShuffle(items, seed) {
   return copy;
 }
 
+function guardedOptionOrder(order, question, ids) {
+  const allowed = new Set(ids);
+  const normalized = Array.isArray(order) ? order.filter((id) => allowed.has(id)) : [];
+  ids.forEach((id) => { if (!normalized.includes(id)) normalized.push(id); });
+  if (question.type === "sequence" && Array.isArray(question.answer) && normalized.length > 1 && normalized.every((id, index) => id === question.answer[index])) {
+    [normalized[0], normalized[1]] = [normalized[1], normalized[0]];
+  }
+  return normalized;
+}
+
 function orderedOptions(question) {
+  const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
   if (!state.optionOrders[question.id]) {
-    const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
     state.optionOrders[question.id] = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}`);
   }
+  state.optionOrders[question.id] = guardedOptionOrder(state.optionOrders[question.id], question, ids);
   const source = Object.fromEntries((question.type === "sequence" ? question.steps : question.options || []).map((item) => [item.id, item]));
   return state.optionOrders[question.id].map((id) => source[id]).filter(Boolean);
 }
@@ -716,7 +727,16 @@ function reflectionResult(quality, questionExp, reason, reviewStatus, normalized
 
 function buildBackendPayload(result = scoreAttempt()) {
   const rawAnswers = {};
-  result.logs.forEach((log) => { rawAnswers[log.question_id] = log.answer; });
+  result.logs.forEach((log) => {
+    rawAnswers[log.question_id] = log.answer;
+    const shortId = shortQuestionId(log.question_id);
+    if (shortId) {
+      rawAnswers[shortId] = log.answer;
+      if (questionMap[log.question_id]?.type === "sequence") {
+        rawAnswers[`${shortId}_sequence`] = log.answer;
+      }
+    }
+  });
   return {
     action: "submitAttempt",
     unit_id: mission.unit_id,
@@ -728,17 +748,27 @@ function buildBackendPayload(result = scoreAttempt()) {
     attempt_id: state.attempt_id,
     attempt_session_token: state.attempt_session_token,
     previous_attempt_id: state.previous_attempt_id,
-    question_version: state.question_version,
+    question_version: QUESTION_VERSION,
     raw_answers: rawAnswers,
     raw_answers_json: JSON.stringify(rawAnswers),
     question_logs: result.logs.map((log) => ({
       question_id: log.question_id,
       unit_id: mission.unit_id,
       student_id: state.student.student_id,
-      question_type: questionMap[log.question_id]?.type || "",
+      question_version: QUESTION_VERSION,
+      question_type: log.question_type || questionMap[log.question_id]?.type || "",
       attempt_answer: log.answer,
       answer_json: JSON.stringify(log.answer),
       used_hint: log.hint_used,
+      hint_used: log.hint_used,
+      is_correct: log.is_correct,
+      corrected_after_hint: log.corrected_after_hint,
+      exp_type: log.exp_type,
+      exp_awarded: log.exp_awarded,
+      concept_id: log.concept_id,
+      checkpoint_id: log.checkpoint_id,
+      teacher_group_id: log.teacher_group_id,
+      verification_status: log.verification_status,
       analysis_group: analysisGroupForQuestion(log.question_id),
       skill_tag: log.skill_tag,
       misconception_tag: log.misconception_tag
@@ -748,6 +778,11 @@ function buildBackendPayload(result = scoreAttempt()) {
     confidence_level: state.reflection.confidence,
     client_summary: result
   };
+}
+
+function shortQuestionId(questionId) {
+  const matched = String(questionId || "").match(/q\d+$/);
+  return matched ? matched[0] : String(questionId || "");
 }
 
 function analysisGroupForQuestion(questionId) {
@@ -763,9 +798,75 @@ async function submitAttemptToBackend(payload) {
   return requestBackend(payload);
 }
 
+function numberFromAliases(...values) {
+  for (const value of values) {
+    if (value === null || value === undefined || value === "") continue;
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) return numeric;
+  }
+  return null;
+}
+
+function badgeIdsFromValue(value) {
+  if (!value) return null;
+  if (Array.isArray(value)) {
+    return value.map((item) => {
+      if (typeof item === "string") return item;
+      if (item && typeof item === "object") return item.badge_id || item.id || item.badgeId || "";
+      return "";
+    }).filter(Boolean);
+  }
+  if (typeof value === "string") {
+    try {
+      return badgeIdsFromValue(JSON.parse(value));
+    } catch (error) {
+      return value.split(",").map((item) => item.trim()).filter(Boolean);
+    }
+  }
+  return null;
+}
+
+function objectFromValue(value) {
+  if (!value) return {};
+  if (typeof value === "object" && !Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch (error) {
+      return {};
+    }
+  }
+  return {};
+}
+
+function firstBadgeIds(...values) {
+  for (const value of values) {
+    const ids = badgeIdsFromValue(value);
+    if (ids) return ids;
+  }
+  return null;
+}
+
+function backendBadgeIds(response = {}, verified = null) {
+  const attemptResult = objectFromValue(response.attempt_result || response.attempt_result_json || response.result);
+  return firstBadgeIds(
+    attemptResult.newly_credited_badges_json,
+    attemptResult.earned_badges_json,
+    attemptResult.newly_credited_badges,
+    attemptResult.earned_badges,
+    response.newly_credited_badges_json,
+    response.earned_badges_json,
+    verified?.earned_badges,
+    verified?.badges,
+    verified?.badges_json
+  );
+}
+
 function applyBackendSubmitResponse(response, localResult) {
   if (!response || response.ok === false) return localResult;
   const verified = response.verified_attempt || response.attempt || null;
+  const attemptResult = objectFromValue(response.attempt_result || response.attempt_result_json || response.result);
   const progress = response.student_progress || response.progress || null;
   if (progress) {
     state.student.progress = progress;
@@ -776,23 +877,27 @@ function applyBackendSubmitResponse(response, localResult) {
     saveVerifiedSnapshot(state.student);
   }
   if (!verified) return { ...localResult, backend_response: response };
+  const verificationStatus = verified.verification_status || response.verification_status || (response.verified_attempt ? "server_verified" : localResult.verification_status || "pending_backend");
+  const serverVerified = verificationStatus === "server_verified" || verificationStatus === "server_verified_credited";
+  const serverBadgeIds = backendBadgeIds(response, verified);
+  const localFallback = (key) => (serverVerified ? null : localResult[key]);
   return {
     ...localResult,
-    verification_status: verified.verification_status || response.verification_status || "server_verified",
-    correct_count: Number(verified.correct_count ?? localResult.correct_count),
-    total_questions: Number(verified.total_questions ?? localResult.total_questions),
-    accuracy: Number(verified.accuracy ?? localResult.accuracy),
-    hint_used_count: Number(verified.hint_used_count ?? localResult.hint_used_count),
-    completion_exp: Number(verified.completion_exp ?? localResult.completion_exp),
-    direct_exp: Number(verified.direct_exp ?? localResult.direct_exp),
-    revision_exp: Number(verified.revision_exp ?? localResult.revision_exp),
-    reflection_exp: Number(verified.reflection_exp ?? localResult.reflection_exp),
-    mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
-    retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
-    attempt_exp: Number(verified.attempt_exp ?? localResult.attempt_exp),
-    unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
-    exp_delta: Number(verified.credited_delta ?? verified.exp_delta ?? localResult.exp_delta),
-    earned_badges: Array.isArray(verified.earned_badges) ? verified.earned_badges : localResult.earned_badges,
+    verification_status: verificationStatus,
+    correct_count: numberFromAliases(verified.correct_count, attemptResult.correct_count, localFallback("correct_count")) ?? 0,
+    total_questions: numberFromAliases(verified.total_questions, attemptResult.total_questions, localFallback("total_questions")) ?? 0,
+    accuracy: numberFromAliases(verified.accuracy, attemptResult.accuracy, localFallback("accuracy")) ?? 0,
+    hint_used_count: numberFromAliases(verified.hint_used_count, attemptResult.hint_used_count, localFallback("hint_used_count")) ?? 0,
+    completion_exp: numberFromAliases(verified.completion_exp, attemptResult.completion_exp, localFallback("completion_exp")) ?? 0,
+    direct_exp: numberFromAliases(verified.direct_exp, verified.concept_exp, attemptResult.direct_exp, attemptResult.concept_exp, localFallback("direct_exp")) ?? 0,
+    revision_exp: numberFromAliases(verified.revision_exp, attemptResult.revision_exp, localFallback("revision_exp")) ?? 0,
+    reflection_exp: numberFromAliases(verified.reflection_exp, verified.question_exp, attemptResult.reflection_exp, attemptResult.question_exp, localFallback("reflection_exp")) ?? 0,
+    mastery_exp: numberFromAliases(verified.mastery_exp, attemptResult.mastery_exp, localFallback("mastery_exp")) ?? 0,
+    retry_exp: numberFromAliases(verified.retry_exp, attemptResult.retry_exp, localFallback("retry_exp")) ?? 0,
+    attempt_exp: numberFromAliases(verified.attempt_exp, verified.attempt_total_exp, attemptResult.attempt_exp, attemptResult.attempt_total_exp, localFallback("attempt_exp")) ?? 0,
+    unit_credited_exp: numberFromAliases(verified.unit_credited_exp, attemptResult.unit_credited_exp, localFallback("unit_credited_exp")) ?? 0,
+    exp_delta: numberFromAliases(verified.credited_delta, verified.exp_delta, attemptResult.credited_delta, attemptResult.exp_delta, localFallback("exp_delta")) ?? 0,
+    earned_badges: serverVerified ? (serverBadgeIds || []) : (serverBadgeIds || localResult.earned_badges),
     backend_response: response
   };
 }
@@ -1011,10 +1116,10 @@ function renderQuestionEvidence(qid) {
   if (["temperature_glucose_homeostasis_q04", "temperature_glucose_homeostasis_q05", "temperature_glucose_homeostasis_q06"].includes(qid)) return `<div class="evidence-card"><strong>體溫反應卡</strong><p>熱時看散熱，冷時看保溫或產熱；流汗同時和散熱、水分流失相關。</p></div>`;
   if (qid === "temperature_glucose_homeostasis_q07") return renderChartEvidence(qid);
   if (qid === "temperature_glucose_homeostasis_q08") return `<div class="evidence-card"><strong>流程排序卡</strong><p>先找偏離狀態，再追蹤身體啟動調節反應與回到範圍的大方向。</p></div>`;
-  if (qid === "temperature_glucose_homeostasis_q09") return `<div class="evidence-card"><strong>血糖資料卡</strong><p>飯後血糖可能先升高，之後逐漸往平常範圍附近回復。</p></div>`;
+  if (qid === "temperature_glucose_homeostasis_q09") return `<div class="evidence-card"><strong>血糖資料觀察卡</strong><p>先確認資料比較的是哪一段時間與哪一種身體狀態，再看數值或描述是否支持偏離後往適當範圍附近調整；不要只靠飯後兩字作答。</p></div>`;
   if (qid === "temperature_glucose_homeostasis_q12") return renderChartEvidence(qid);
   if (["temperature_glucose_homeostasis_q10", "temperature_glucose_homeostasis_q11", "temperature_glucose_homeostasis_q13"].includes(qid)) return `<div class="evidence-card"><strong>血糖調節方向卡</strong><p>判斷偏高或偏低，再選擇能把血糖往適當範圍拉回的方向。</p></div>`;
-  if (qid === "temperature_glucose_homeostasis_q14") return `<div class="evidence-card"><strong>單元邊界卡</strong><p>本單元聚焦體溫與血糖的負回饋調節；腎臟排泄、細胞分裂與細胞構造屬相鄰單元。</p></div>`;
+  if (qid === "temperature_glucose_homeostasis_q14") return `<div class="evidence-card"><strong>單元邊界觀察卡</strong><p>先判斷題目中的情境主要在檢查哪一種身體狀態，以及是否和本關的恆定調節有直接關係；不要只靠熟悉名詞作答。</p></div>`;
   return "";
 }
 
@@ -1125,7 +1230,7 @@ function misconceptionText(tag) { return {
   glucagon_direction_confusion:"建議再確認升糖素方向：血糖偏低時有助於讓血糖升高。",
   glucose_curve_misread:"建議再用曲線判斷血糖變化方向，不要把有波動誤判成沒有恆定。",
   feedback_direction_confusion:"建議再把體溫與血糖都用偏高/偏低判斷調節方向。",
-  temperature_glucose_unit_boundary_confusion:"建議再確認單元邊界：本單元聚焦體溫與血糖；腎臟排泄屬 U25，細胞分裂屬 U27。"
+  temperature_glucose_unit_boundary_confusion:"建議再確認題目情境主要在檢查哪一種身體狀態，以及是否和本關的恆定調節有直接關係。"
 }[tag] || tag; }
 
 function renderReflection() {
@@ -1403,8 +1508,13 @@ if (typeof window !== "undefined") {
     loadVerifiedSnapshot,
     answerValue,
     isCorrect,
+    orderedOptions,
+    guardedOptionOrder,
     scoreAttempt,
     buildBackendPayload,
+    applyBackendSubmitResponse,
+    shortQuestionId,
+    backendBadgeIds,
     evaluateReflection,
     titleAvatarPath,
     renderBrief,
