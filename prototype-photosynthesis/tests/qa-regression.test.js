@@ -9,7 +9,7 @@ import playwright from "/Users/biomin/.cache/codex-runtimes/codex-primary-runtim
 const { chromium } = playwright;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = process.env.BIOQUEST_AUDIT_ROOT ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT) : path.resolve(root, "..");
-const version = "20260811-photosynthesis-submitted-retry-ia-v1";
+const version = "20260814-photosynthesis-aquatic-bubbles-asset-v1";
 const questionVersion = "20260721-photosynthesis-q09-inactive-v1";
 const artifactDir = process.env.BIOQUEST_ARTIFACT_DIR
   ? path.resolve(process.env.BIOQUEST_ARTIFACT_DIR)
@@ -125,6 +125,20 @@ async function completeMission(page) {
   for (const [item, value] of Object.entries(q05Answers)) await page.locator(`select[data-map-question="q05"][data-map-item="${item}"]`).selectOption(value);
   for (const qid of ["q06", "q07", "q08"]) await page.locator(`[data-answer="${qid}"][data-value="${choiceAnswers[qid]}"]`).click();
   await page.locator('[data-section-next="checkpoint2"]').click();
+  await page.waitForSelector("#screen[data-bioquest-screen='checkpoint3']");
+  await page.waitForFunction(() => {
+    const image = document.querySelector('img[alt="水生植物氣泡觀察圖"]');
+    return image?.complete && image.naturalWidth > 0;
+  });
+  const bubblesImage = await page.locator('img[alt="水生植物氣泡觀察圖"]').evaluate((img) => ({
+    src: img.currentSrc || img.src,
+    naturalWidth: img.naturalWidth,
+    naturalHeight: img.naturalHeight
+  }));
+  assert.ok(bubblesImage.src.includes("img-photosynthesis-aquatic-bubbles-1280w.webp"), "q11 bubbles image must use the 1280w runtime asset");
+  assert.ok(bubblesImage.src.includes(`v=${version}`), "q11 bubbles image must include runtime cache");
+  assert.equal(bubblesImage.naturalWidth, 1280, "q11 bubbles image natural width");
+  assert.equal(bubblesImage.naturalHeight, 720, "q11 bubbles image natural height");
   for (const qid of ["q10", "q11", "q13", "q14"]) await page.locator(`[data-answer="${qid}"][data-value="${choiceAnswers[qid]}"]`).click();
   for (const id of q12Answers) await page.locator(`[data-toggle-set="q12"][data-value="${id}"]`).click();
   await page.locator('[data-confirm-set="q12"]').click();
