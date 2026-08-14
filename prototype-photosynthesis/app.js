@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260814-photosynthesis-light-shade-asset-v1";
+const VERSION = "20260814-photosynthesis-starch-evidence-asset-v1";
 const QUESTION_VERSION = "20260721-photosynthesis-q09-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -60,7 +60,7 @@ const assets = {
   briefingSceneMobileHook: "",
   ambientBackgroundHook: "assets/bg-photosynthesis-entry-wide.webp",
   questionLeafStructure: "assets/img-photosynthesis-leaf-structure-1280w.webp",
-  questionStarchEvidence: "assets/img-photosynthesis-starch-evidence.webp",
+  questionStarchEvidence: "assets/img-photosynthesis-starch-evidence-1280w.webp",
   questionLightShade: "assets/img-photosynthesis-light-shade-1280w.webp",
   questionBubbles: "assets/img-photosynthesis-aquatic-bubbles-1280w.webp",
   questionVariableControl: "assets/img-photosynthesis-variable-control.webp"
