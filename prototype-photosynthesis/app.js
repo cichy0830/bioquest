@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260814-photosynthesis-starch-evidence-asset-v1";
+const VERSION = "20260814-photosynthesis-variable-control-asset-v1";
 const QUESTION_VERSION = "20260721-photosynthesis-q09-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -63,7 +63,7 @@ const assets = {
   questionStarchEvidence: "assets/img-photosynthesis-starch-evidence-1280w.webp",
   questionLightShade: "assets/img-photosynthesis-light-shade-1280w.webp",
   questionBubbles: "assets/img-photosynthesis-aquatic-bubbles-1280w.webp",
-  questionVariableControl: "assets/img-photosynthesis-variable-control.webp"
+  questionVariableControl: "assets/img-photosynthesis-variable-control-1280w.webp"
 };
 
 const badgeAsset = (id) => `../shared-assets/badges/photosynthesis/badge-photosynthesis-${id}.webp`;
@@ -923,7 +923,7 @@ function renderQuestionEvidence(qid) {
     return `<figure class="question-asset"><img src="${cacheBustedAsset(assets.questionBubbles)}" alt="水生植物氣泡觀察圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>水生植物氣泡觀察。請搭配數據比較。</figcaption></figure><div class="evidence-card"><strong>水生植物氣泡紀錄</strong><table><thead><tr><th>條件</th><th>每分鐘氣泡數</th></tr></thead><tbody><tr><td>弱光</td><td>約 2 個</td></tr><tr><td>較強光</td><td>約 10 個</td></tr></tbody></table></div>`;
   }
   if (qid === "q12") {
-    return `<figure class="question-asset"><img src="${assets.questionVariableControl}" alt="光合作用變因比較示意圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>變因比較示意圖。請判斷哪些條件應保持相同。</figcaption></figure><div class="multi-note">可複選。先選出所有應保持相同的條件，再按「確認這組答案」。</div>`;
+    return `<figure class="question-asset"><img src="${cacheBustedAsset(assets.questionVariableControl)}" alt="光合作用變因比較示意圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>變因比較示意圖。請判斷哪些條件應保持相同。</figcaption></figure><div class="multi-note">可複選。先選出所有應保持相同的條件，再按「確認這組答案」。</div>`;
   }
   return "";
 }
