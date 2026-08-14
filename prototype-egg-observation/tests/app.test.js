@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-egg-observation/app.js" });
 const api = context.window.__egg_observationTest;
 
-assert.equal(api.VERSION, "20260729-egg-observation-final-preflight-v1");
+assert.equal(api.VERSION, "20260814-egg-observation-mapping-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-egg-observation-v1");
 assert.equal(api.mission.unit_id, "egg_observation");
 assert.equal(api.questions.length, 14);
@@ -78,6 +78,28 @@ for (const attemptId of ["seed-alpha", "seed-beta", "seed-gamma", "seed-delta"])
   assert.deepEqual(firstOrder, secondOrder, `q04 order should be stable for ${attemptId}`);
   assert.notDeepEqual(firstOrder, q04.answer, `q04 should not initialize as canonical answer for ${attemptId}`);
 }
+const mappingExpectations = [
+  { id: Q(5), keepItems: true },
+  { id: Q(6), keepItems: false },
+  { id: Q(13), keepItems: false }
+];
+for (const { id, keepItems } of mappingExpectations) {
+  const question = api.questions.find((item) => item.id === id);
+  const canonicalItems = question.items.map((item) => item.id);
+  const canonicalChoices = question.choices.map((item) => item.id);
+  for (const attemptId of ["map-alpha", "map-beta", "map-gamma"]) {
+    api.setState({ attempt_id: attemptId });
+    const firstItems = api.orderedMappingItems(question).map((item) => item.id);
+    const firstChoices = api.orderedMappingChoices(question).map((item) => item.id);
+    const secondItems = api.orderedMappingItems(question).map((item) => item.id);
+    const secondChoices = api.orderedMappingChoices(question).map((item) => item.id);
+    assert.deepEqual(firstItems, secondItems, `${id} item order should be stable for ${attemptId}`);
+    assert.deepEqual(firstChoices, secondChoices, `${id} choice order should be stable for ${attemptId}`);
+    if (keepItems) assert.deepEqual(firstItems, canonicalItems, `${id} hotspot item order should preserve positions`);
+    else assert.notDeepEqual(firstItems, canonicalItems, `${id} item order should not stay canonical`);
+    assert.notDeepEqual(firstChoices, canonicalChoices, `${id} choice order should not stay canonical`);
+  }
+}
 assert.equal(api.questions.find((question) => question.id === Q(6)).misconception, "egg_function_match_confusion");
 api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "egg_observation_test", attempt_session_token: "guest", question_version: api.QUESTION_VERSION, answers, reflection: { question: "" } });
 let score = api.scoreAttempt();
@@ -123,19 +145,70 @@ const payload = api.buildBackendPayload(api.scoreAttempt());
 assert.equal(payload.unit_id, "egg_observation");
 assert.equal(payload.question_logs.length, 14);
 assert.deepEqual(payload.raw_answers[Q(4)], answers[`${Q(4)}_sequence`]);
+assert.deepEqual(payload.raw_answers.q04, answers[`${Q(4)}_sequence`]);
+assert.deepEqual(payload.raw_answers.q04_sequence, answers[`${Q(4)}_sequence`]);
 assert.deepEqual(payload.raw_answers[Q(5)], answers[Q(5)]);
+assert.deepEqual(payload.raw_answers.q05, answers[Q(5)]);
 assert.deepEqual(payload.raw_answers[Q(6)], answers[Q(6)]);
+assert.deepEqual(payload.raw_answers.q06, answers[Q(6)]);
 assert.deepEqual(payload.raw_answers[Q(13)], answers[Q(13)]);
+assert.deepEqual(payload.raw_answers.q13, answers[Q(13)]);
+for (let index = 1; index <= 14; index += 1) {
+  assert(Object.hasOwn(payload.raw_answers, Q(index)), `${Q(index)} full key missing`);
+  assert(Object.hasOwn(payload.raw_answers, `q${String(index).padStart(2, "0")}`), `q${String(index).padStart(2, "0")} bare key missing`);
+}
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(4)).analysis_group, "egg_safety_observation_flow");
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(4)).teacher_group_id, "egg_safety_observation_flow");
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(4)).checkpoint_id, "egg_observation_cp1_safety_and_external");
+assert.equal(payload.question_logs.find((log) => log.question_id === Q(4)).question_version, api.QUESTION_VERSION);
+assert.equal(payload.question_logs.find((log) => log.question_id === Q(4)).hint_used, false);
+assert.equal(payload.question_logs.find((log) => log.question_id === Q(4)).exp_type, "direct");
+assert(Number.isFinite(payload.question_logs.find((log) => log.question_id === Q(4)).exp_awarded));
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(13)).analysis_group, "unit_boundary_control");
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(13)).teacher_group_id, "unit_boundary_control");
+const localCandidate = { ...api.scoreAttempt(), direct_exp: 999, reflection_exp: 888, attempt_exp: 777, unit_credited_exp: 777, exp_delta: 777, earned_badges: ["local_only_badge"] };
+let verifiedResult = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: {
+    verification_status: "server_verified",
+    correct_count: 14,
+    total_questions: 14,
+    accuracy: 1,
+    hint_used_count: 0,
+    completion_exp: 100,
+    concept_exp: 111,
+    revision_exp: 22,
+    question_exp: 33,
+    mastery_exp: 44,
+    retry_exp: 0,
+    attempt_total_exp: 210,
+    unit_credited_exp: 210,
+    credited_delta: 210,
+    badges_json: "[\"egg_observation_entry\",\"raw_egg_safety_guard\"]"
+  }
+}, localCandidate);
+assert.equal(verifiedResult.direct_exp, 111);
+assert.equal(verifiedResult.reflection_exp, 33);
+assert.equal(verifiedResult.attempt_exp, 210);
+assert.deepEqual(JSON.parse(JSON.stringify(verifiedResult.earned_badges)), ["egg_observation_entry", "raw_egg_safety_guard"]);
+verifiedResult = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  verified_attempt: {
+    verification_status: "server_verified",
+    concept_exp: 111,
+    question_exp: 33,
+    attempt_total_exp: 210,
+    unit_credited_exp: 210
+  }
+}, localCandidate);
+assert.deepEqual(JSON.parse(JSON.stringify(verifiedResult.earned_badges)), [], "server verified response must not fall back to local badges");
 assert(api.renderCheckpoint("checkpoint2").includes("mapping-list"));
 assert(api.renderCheckpoint("checkpoint3").includes("mapping-list"));
 const crossSectionEvidence = api.renderQuestionEvidence(Q(5));
 assert(crossSectionEvidence.includes("egg-cross-section-figure"));
-assert(crossSectionEvidence.includes("egg-observation-cross-section-hotspot-base.webp?v=20260729-egg-observation-final-preflight-v1"));
+assert(crossSectionEvidence.includes("egg-observation-cross-section-hotspot-base.webp?v=20260814-egg-observation-mapping-v1"));
 assert(crossSectionEvidence.includes("未標註的雞蛋剖面觀察圖，呈現外層硬質邊界、透明或半透明區、黃色圓形區與鈍端空間等可觀察位置"));
 assert(crossSectionEvidence.includes("egg-hotspot shell"));
 assert(!crossSectionEvidence.includes("剖面辨識圖待接"));
@@ -155,7 +228,7 @@ assert(api.renderAchievements().includes("data-bq-achievements-overview-only"));
 assert(!api.renderAchievements().includes("本單元 17 枚徽章"));
 assert(api.renderAchievements().includes("重新登入／再挑戰"));
 const earnedMixedHtml = api.renderBadgeWall(["egg_observation_entry", "safe_egg_sequence_tracker"], { onlyEarned: true });
-assert(earnedMixedHtml.includes("badge-egg_observation-egg_observation_entry.webp?v=20260729-egg-observation-final-preflight-v1"));
+assert(earnedMixedHtml.includes("badge-egg_observation-egg_observation_entry.webp?v=20260814-egg-observation-mapping-v1"));
 assert(earnedMixedHtml.includes("candidate-badge-list"));
 assert(earnedMixedHtml.includes("安全觀察流程員"));
 assert(!earnedMixedHtml.includes("badge-egg_observation-safe_egg_sequence_tracker.webp"));

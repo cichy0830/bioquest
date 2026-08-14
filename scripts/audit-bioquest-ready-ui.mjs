@@ -85,7 +85,7 @@ appVersionOverrides.set("temperature_glucose_homeostasis", "20260813-temperature
 appVersionOverrides.set("cell_division", "20260813-cell-division-mapping-assets-v1");
 appVersionOverrides.set("asexual_reproduction", "20260813-asexual-reproduction-mapping-v1");
 appVersionOverrides.set("sexual_reproduction", "20260814-sexual-reproduction-mapping-v1");
-appVersionOverrides.set("egg_observation", "20260729-egg-observation-final-preflight-v1");
+appVersionOverrides.set("egg_observation", "20260814-egg-observation-mapping-v1");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
