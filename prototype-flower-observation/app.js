@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260730-flower-observation-approved-visuals-v1";
+const VERSION = "20260814-flower-observation-mapping-login-v1";
 const QUESTION_VERSION = "20260725-flower-observation-v1.1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -27,15 +27,10 @@ const mission = {
 
 const assets = {
   mentorFallback: "../shared-assets/mentor-feedback/mentor-feedback-stable.webp",
-  owlLogin: "assets/u31-flower-observation-owl-scan-cutout.webp",
   owlPrep: "assets/u31-flower-observation-owl-scan-cutout.webp",
   owlReport: "assets/u31-flower-observation-owl-result-cutout.webp",
   owlResult: "assets/u31-flower-observation-owl-result-cutout.webp",
   titleAvatarFallback: "../shared-assets/title-avatars/title-01-trainee_investigator-male.webp",
-  loginScene: "assets/u31-flower-observation-login-background-zero-text.webp",
-  loginScene1440: "assets/u31-flower-observation-login-background-zero-text-1440w.webp",
-  loginScene960: "assets/u31-flower-observation-login-background-zero-text-960w.webp",
-  loginScene390: "assets/u31-flower-observation-login-background-zero-text-390w.webp",
   briefScene: "assets/u31-flower-observation-brief-background-zero-text.webp",
   briefScene1440: "assets/u31-flower-observation-brief-background-zero-text-1440w.webp",
   briefScene960: "assets/u31-flower-observation-brief-background-zero-text-960w.webp",
@@ -48,7 +43,6 @@ const assets = {
   resultScene1440: "assets/u31-flower-observation-result-background-zero-text-1440w.webp",
   resultScene960: "assets/u31-flower-observation-result-background-zero-text-960w.webp",
   resultScene390: "assets/u31-flower-observation-result-background-zero-text-390w.webp",
-  azheLogin: "assets/u31-flower-observation-azhe-login-cutout.webp",
   azheBrief: "assets/u31-flower-observation-azhe-brief-cutout.webp",
   azheScan: "assets/u31-flower-observation-azhe-scan-cutout.webp",
   azheResult: "assets/u31-flower-observation-azhe-result-cutout.webp",
@@ -808,6 +802,14 @@ function avoidCanonicalSequenceCollision(question, order) {
   return next;
 }
 
+function avoidMappingOrderCollision(question, order, canonicalIds) {
+  if (!sameOrder(order, canonicalIds)) return order;
+  const next = [...order];
+  if (next.length > 2) [next[1], next[2]] = [next[2], next[1]];
+  else if (next.length > 1) [next[0], next[1]] = [next[1], next[0]];
+  return next;
+}
+
 function orderedOptions(question) {
   if (!state.optionOrders[question.id]) {
     const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
@@ -815,6 +817,27 @@ function orderedOptions(question) {
   }
   const source = Object.fromEntries((question.type === "sequence" ? question.steps : question.options || []).map((item) => [item.id, item]));
   return state.optionOrders[question.id].map((id) => source[id]).filter(Boolean);
+}
+
+function orderedMappingItems(question) {
+  const key = `${question.id}_items`;
+  if (question.id === "flower_observation_q04") return question.items;
+  if (!state.optionOrders[key]) {
+    const ids = question.items.map((item) => item.id);
+    state.optionOrders[key] = avoidMappingOrderCollision(question, stableShuffle(ids, `${state.attempt_id || VERSION}-${key}`), ids);
+  }
+  const source = Object.fromEntries(question.items.map((item) => [item.id, item]));
+  return state.optionOrders[key].map((id) => source[id]).filter(Boolean);
+}
+
+function orderedMappingChoices(question) {
+  const key = `${question.id}_choices`;
+  if (!state.optionOrders[key]) {
+    const ids = question.choices.map((choice) => choice.id);
+    state.optionOrders[key] = avoidMappingOrderCollision(question, stableShuffle(ids, `${state.attempt_id || VERSION}-${key}`), Object.values(question.answer || {}));
+  }
+  const source = Object.fromEntries(question.choices.map((choice) => [choice.id, choice]));
+  return state.optionOrders[key].map((id) => source[id]).filter(Boolean);
 }
 
 function formatSelected(question) {
@@ -1228,7 +1251,12 @@ function reflectionResult(quality, questionExp, reason, reviewStatus, normalized
 
 function buildBackendPayload(result = scoreAttempt()) {
   const rawAnswers = {};
-  result.logs.forEach((log) => { rawAnswers[log.question_id] = log.answer; });
+  result.logs.forEach((log) => {
+    const shortId = shortQuestionId(log.question_id);
+    rawAnswers[log.question_id] = log.answer;
+    rawAnswers[shortId] = log.answer;
+    if (questionMap[log.question_id]?.type === "sequence") rawAnswers[`${shortId}_sequence`] = log.answer;
+  });
   return {
     action: "submitAttempt",
     unit_id: mission.unit_id,
@@ -1243,29 +1271,41 @@ function buildBackendPayload(result = scoreAttempt()) {
     question_version: QUESTION_VERSION,
     raw_answers: rawAnswers,
     raw_answers_json: JSON.stringify(rawAnswers),
-    question_logs: result.logs.map((log) => ({
+    question_logs: result.logs.map((log) => {
+      const perQuestionExp = log.is_correct ? Math.round((log.hint_used ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / Math.max(1, result.logs.length)) : 0;
+      return ({
       question_id: log.question_id,
+      question_version: QUESTION_VERSION,
       unit_id: mission.unit_id,
       student_id: state.student.student_id,
       question_type: questionMap[log.question_id]?.type || "",
       attempt_answer: log.answer,
       answer_json: JSON.stringify(log.answer),
       used_hint: log.hint_used,
+      hint_used: log.hint_used,
       analysis_group: analysisGroupForQuestion(log.question_id),
       concept_id: questionMap[log.question_id]?.concept || "",
       checkpoint_id: checkpointIdForQuestion(log.question_id),
       teacher_group_id: analysisGroupForQuestion(log.question_id),
       is_correct: log.is_correct,
       corrected_after_hint: Boolean(log.is_correct && log.hint_used),
+      exp_type: log.is_correct ? (log.hint_used ? "revision" : "direct") : "none",
+      exp_awarded: perQuestionExp,
       verification_status: state.student?.is_guest ? "local_guest" : "pending_backend",
       skill_tag: log.skill_tag,
       misconception_tag: log.misconception_tag
-    })),
+    });
+    }),
     student_question: state.reflection.question,
     confident_concept: state.reflection.confident,
     confidence_level: state.reflection.confidence,
     client_summary: result
   };
+}
+
+function shortQuestionId(questionId) {
+  const match = String(questionId || "").match(/_q(\d{2})$/);
+  return match ? `q${match[1]}` : String(questionId || "");
 }
 
 function analysisGroupForQuestion(questionId) {
@@ -1298,6 +1338,7 @@ async function submitAttemptToBackend(payload) {
 function applyBackendSubmitResponse(response, localResult) {
   if (!response || response.ok === false) return localResult;
   const verified = response.verified_attempt || response.attempt || null;
+  const attemptResult = response.attempt_result || response.result || null;
   const progress = response.student_progress || response.progress || null;
   if (progress) {
     state.student.progress = progress;
@@ -1307,27 +1348,87 @@ function applyBackendSubmitResponse(response, localResult) {
     state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path;
     saveVerifiedSnapshot(state.student);
   }
-  if (!verified) return { ...localResult, backend_response: response };
+  if (!verified && !attemptResult) return { ...localResult, backend_response: response };
+  const verificationStatus = verified?.verification_status || attemptResult?.verification_status || response.verification_status || "server_verified";
+  const serverVerified = verificationStatus === "server_verified" || verificationStatus === "server_verified_credited";
+  const serverBadgeIds = backendBadgeIds(response, verified, attemptResult);
+  const earnedBadges = serverBadgeIds.length ? serverBadgeIds : (serverVerified ? [] : localResult.earned_badges);
+  const authoritative = verified || attemptResult || {};
   return {
     ...localResult,
-    verification_status: verified.verification_status || response.verification_status || "server_verified",
-    correct_count: Number(verified.correct_count ?? localResult.correct_count),
-    total_questions: Number(verified.total_questions ?? localResult.total_questions),
-    accuracy: Number(verified.accuracy ?? localResult.accuracy),
-    hint_used_count: Number(verified.hint_used_count ?? localResult.hint_used_count),
-    completion_exp: Number(verified.completion_exp ?? localResult.completion_exp),
-    direct_exp: Number(verified.direct_exp ?? localResult.direct_exp),
-    revision_exp: Number(verified.revision_exp ?? localResult.revision_exp),
-    reflection_exp: Number(verified.reflection_exp ?? localResult.reflection_exp),
-    mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
-    retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
-    attempt_exp: Number(verified.attempt_exp ?? localResult.attempt_exp),
-    unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
-    exp_delta: Number(verified.credited_delta ?? verified.exp_delta ?? localResult.exp_delta),
-    earned_badges: Array.isArray(verified.earned_badges) ? verified.earned_badges : localResult.earned_badges,
+    verification_status: verificationStatus,
+    correct_count: numberFromAliases(localResult.correct_count, authoritative.correct_count, attemptResult?.correct_count),
+    total_questions: numberFromAliases(localResult.total_questions, authoritative.total_questions, attemptResult?.total_questions),
+    accuracy: numberFromAliases(localResult.accuracy, authoritative.accuracy, attemptResult?.accuracy),
+    hint_used_count: numberFromAliases(localResult.hint_used_count, authoritative.hint_used_count, attemptResult?.hint_used_count),
+    completion_exp: numberFromAliases(localResult.completion_exp, authoritative.completion_exp, attemptResult?.completion_exp),
+    direct_exp: numberFromAliases(localResult.direct_exp, authoritative.direct_exp, authoritative.concept_exp, attemptResult?.direct_exp, attemptResult?.concept_exp),
+    revision_exp: numberFromAliases(localResult.revision_exp, authoritative.revision_exp, attemptResult?.revision_exp),
+    reflection_exp: numberFromAliases(localResult.reflection_exp, authoritative.reflection_exp, authoritative.question_exp, attemptResult?.reflection_exp, attemptResult?.question_exp),
+    mastery_exp: numberFromAliases(localResult.mastery_exp, authoritative.mastery_exp, attemptResult?.mastery_exp),
+    retry_exp: numberFromAliases(localResult.retry_exp, authoritative.retry_exp, attemptResult?.retry_exp),
+    attempt_exp: numberFromAliases(localResult.attempt_exp, authoritative.attempt_exp, authoritative.attempt_total_exp, attemptResult?.attempt_exp, attemptResult?.attempt_total_exp),
+    unit_credited_exp: numberFromAliases(localResult.unit_credited_exp, authoritative.unit_credited_exp, attemptResult?.unit_credited_exp, authoritative.attempt_exp, authoritative.attempt_total_exp, attemptResult?.attempt_exp, attemptResult?.attempt_total_exp),
+    exp_delta: numberFromAliases(localResult.exp_delta, authoritative.credited_delta, authoritative.exp_delta, attemptResult?.credited_delta, attemptResult?.exp_delta),
+    earned_badges: earnedBadges,
     backend_response: response
   };
 }
+
+function numberFromAliases(fallback, ...values) {
+  for (const value of values) {
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) return numeric;
+  }
+  return Number(fallback || 0);
+}
+
+function objectFromValue(value) {
+  if (!value) return null;
+  if (typeof value === "object") return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === "object" ? parsed : null;
+    } catch (error) {
+      return null;
+    }
+  }
+  return null;
+}
+
+function badgeIdsFromValue(value) {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map((item) => typeof item === "string" ? item : item?.badge_id || item?.id).filter(Boolean);
+  const parsed = objectFromValue(value);
+  if (Array.isArray(parsed)) return badgeIdsFromValue(parsed);
+  if (parsed && typeof parsed === "object") return Object.keys(parsed).filter((id) => parsed[id]);
+  return [];
+}
+
+function backendBadgeIds(response, verified, attemptResult) {
+  const sources = [
+    attemptResult?.newly_credited_badges_json,
+    attemptResult?.earned_badges_json,
+    attemptResult?.newly_credited_badges,
+    attemptResult?.earned_badges,
+    verified?.newly_credited_badges_json,
+    verified?.earned_badges_json,
+    verified?.earned_badges,
+    verified?.badges,
+    verified?.badges_json,
+    response?.newly_credited_badges_json,
+    response?.earned_badges_json,
+    response?.earned_badges,
+    response?.badges_json
+  ];
+  for (const value of sources) {
+    const ids = badgeIdsFromValue(value);
+    if (ids.length) return [...new Set(ids)];
+  }
+  return [];
+}
+
 
 async function submitMission() {
   if (!requiredQuestionIds.every((id) => questionAnswered(questionMap[id]))) {
@@ -1380,7 +1481,6 @@ function renderLogin() {
   return `
     <div class="wide-layout login-layout">
       <section class="panel hero-panel">
-        ${renderPageScene("login", { className: "login-scene-panel", alt: "花的觀察登入場景，呈現花部觀察任務的環境" })}
         <p class="eyebrow">生命祕境 BioQuest</p>
         <h2 class="hero-title">花的觀察</h2>
         <p class="lead">請先確認身份。登入後會開啟本次任務簡報。</p>
@@ -1490,12 +1590,14 @@ function renderChoiceQuestion(question) {
 
 function renderMappingQuestion(question) {
   const current = state.answers[question.id] || {};
-  return `<div class="mapping-list">${question.items.map((item) => `
+  const items = orderedMappingItems(question);
+  const choices = orderedMappingChoices(question);
+  return `<div class="mapping-list">${items.map((item) => `
     <label class="mapping-row">
       <span>${escapeHtml(item.label)}</span>
       <select data-map-question="${question.id}" data-map-item="${item.id}">
         <option value="">尚未選擇</option>
-        ${question.choices.map((choice) => `<option value="${choice.id}" ${current[item.id] === choice.id ? "selected" : ""}>${escapeHtml(choice.text)}</option>`).join("")}
+        ${choices.map((choice) => `<option value="${choice.id}" ${current[item.id] === choice.id ? "selected" : ""}>${escapeHtml(choice.text)}</option>`).join("")}
       </select>
     </label>
   `).join("")}</div>`;
@@ -1804,15 +1906,19 @@ if (typeof window !== "undefined") {
     resetForRelogin,
     canUseNav,
     orderedOptions,
+    orderedMappingItems,
+    orderedMappingChoices,
     avoidCanonicalSequenceCollision,
     answerValue,
     isCorrect,
     scoreAttempt,
     buildBackendPayload,
+    applyBackendSubmitResponse,
     evaluateReflection,
     titleAvatarPath,
     studentIdentityLine,
     resetScreenScroll,
+    renderLogin,
     renderBrief,
     renderQuestionEvidence,
     renderCheckpoint,

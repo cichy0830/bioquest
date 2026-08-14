@@ -36,7 +36,8 @@ const units = [
   ["cell_division", "prototype-cell-division"],
   ["asexual_reproduction", "prototype-asexual-reproduction"],
   ["sexual_reproduction", "prototype-sexual-reproduction"],
-  ["egg_observation", "prototype-egg-observation"]
+  ["egg_observation", "prototype-egg-observation"],
+  ["flower_observation", "prototype-flower-observation"]
 ];
 
 const layoutJsPath = path.join(root, "shared-assets", "bioquest-character-layout.js");
@@ -86,6 +87,7 @@ appVersionOverrides.set("cell_division", "20260813-cell-division-mapping-assets-
 appVersionOverrides.set("asexual_reproduction", "20260813-asexual-reproduction-mapping-v1");
 appVersionOverrides.set("sexual_reproduction", "20260814-sexual-reproduction-mapping-v1");
 appVersionOverrides.set("egg_observation", "20260814-egg-observation-mapping-v1");
+appVersionOverrides.set("flower_observation", "20260814-flower-observation-mapping-login-v1");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -111,7 +113,7 @@ function badgeInventory(source, folder) {
     const explicit = match[2].match(/badge_image_path:\s*["']([^"']+)["']/)?.[1] || "";
     return { id: match[1], explicit };
   });
-  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components" || folder === "prototype-human-circulation" || folder === "prototype-stimulus-response" || folder === "prototype-nervous-system" || folder === "prototype-endocrine-system" || folder === "prototype-behavior-sensing" || folder === "prototype-respiration-homeostasis" || folder === "prototype-excretion-water-homeostasis" || folder === "prototype-temperature-glucose-homeostasis" || folder === "prototype-cell-division" || folder === "prototype-asexual-reproduction" || folder === "prototype-sexual-reproduction" || folder === "prototype-egg-observation")) {
+  if (!entries.length && (folder === "prototype-plant-transport-structures" || folder === "prototype-plant-material-transport" || folder === "prototype-cardiovascular-components" || folder === "prototype-human-circulation" || folder === "prototype-stimulus-response" || folder === "prototype-nervous-system" || folder === "prototype-endocrine-system" || folder === "prototype-behavior-sensing" || folder === "prototype-respiration-homeostasis" || folder === "prototype-excretion-water-homeostasis" || folder === "prototype-temperature-glucose-homeostasis" || folder === "prototype-cell-division" || folder === "prototype-asexual-reproduction" || folder === "prototype-sexual-reproduction" || folder === "prototype-egg-observation" || folder === "prototype-flower-observation")) {
     const dynamicTemplate = source.match(/const badgeAsset = \(id\) => `([^`]+)`/)?.[1] || "";
     const readyTemplate = source.match(/`([^`]*badge-[^`]*-\$\{id\}\.webp[^`]*)`/)?.[1] || "";
     return [...block.matchAll(/\[\s*["']([^"']+)["']\s*,\s*["'][^"']+["']\s*,\s*["'][^"']+["']\s*\]/g)].map((match) => {

@@ -41,7 +41,8 @@ const readyUnits = [
   "prototype-cell-division",
   "prototype-asexual-reproduction",
   "prototype-sexual-reproduction",
-  "prototype-egg-observation"
+  "prototype-egg-observation",
+  "prototype-flower-observation"
 ];
 
 function assert(condition, message) {

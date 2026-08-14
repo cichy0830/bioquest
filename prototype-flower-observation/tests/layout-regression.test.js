@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-flower-observation")
   : sourceRoot;
-const VERSION = "20260730-flower-observation-approved-visuals-v1";
+const VERSION = "20260814-flower-observation-mapping-login-v1";
 const QUESTION_VERSION = "20260725-flower-observation-v1.1";
 const Q = (n) => `flower_observation_q${String(n).padStart(2, "0")}`;
 const viewports = [{ width: 1440, height: 900 }, { width: 390, height: 844 }];
@@ -170,8 +170,23 @@ async function assertScene(page, prefix, { student = false, owl = false } = {}) 
   }
 }
 
+async function assertLoginCover(page) {
+  await page.locator(".bq-login-cover img").waitFor();
+  const cover = await page.locator(".bq-login-cover img").evaluate((img) => ({
+    naturalWidth: img.naturalWidth,
+    naturalHeight: img.naturalHeight,
+    currentSrc: img.currentSrc,
+    alt: img.alt
+  }));
+  assert(cover.naturalWidth > 0, "BioQuest login cover should load");
+  assert(cover.currentSrc.includes("shared-assets/login/bioquest-login-cover"), "login should use the shared BioQuest cover");
+  assert.equal(cover.alt, "生命祕境 BioQuest 探索入口");
+  assert.equal(await page.locator(".u31-login-scene").count(), 0, "login should not render the U31 unit scene");
+  assert.equal(await page.locator(".login-layout .u31-scene-azhe").count(), 0, "login should not render U31 Azhe");
+}
+
 async function completeFlow(page, mode) {
-  await assertScene(page, "login");
+  await assertLoginCover(page);
   if (mode === "guest") {
     await page.locator("#guestBtn").click();
   } else {

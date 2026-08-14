@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-flower-observation/app.js" });
 const api = context.window.__flower_observationTest;
 
-assert.equal(api.VERSION, "20260730-flower-observation-approved-visuals-v1");
+assert.equal(api.VERSION, "20260814-flower-observation-mapping-login-v1");
 assert.equal(api.QUESTION_VERSION, "20260725-flower-observation-v1.1");
 assert.equal(api.mission.unit_id, "flower_observation");
 assert.equal(api.questions.length, 14);
@@ -41,8 +41,8 @@ assert(source.includes("BioQuestLoginUX?.begin"));
 assert(!source.includes("待審素材"));
 assert(!source.includes("_generated_sources"));
 assert(!source.includes("flower-observation-review"));
-for (const key of ["loginScene", "briefScene", "scanScene", "resultScene", "azheLogin", "azheBrief", "azheScan", "azheResult", "owlPrep", "owlResult"]) {
-  assert(api.assets[key], `${key} should be wired to approved U31 runtime assets`);
+for (const key of ["briefScene", "scanScene", "resultScene", "azheBrief", "azheScan", "azheResult", "owlPrep", "owlResult"]) {
+  assert(api.assets[key], `${key} should be preserved in the approved U31 asset inventory`);
   assert(!api.assets[key].includes("review"));
   assert(!api.assets[key].includes("_generated_sources"));
 }
@@ -62,6 +62,11 @@ assert(fs.existsSync(path.join(root, "assets/flower-observation-q04-flower-struc
 assert(fs.existsSync(path.join(root, "assets/flower-observation-q04-flower-structure-base-1440w.webp")));
 assert(fs.existsSync(path.join(root, "assets/flower-observation-q04-flower-structure-base-960w.webp")));
 assert(fs.existsSync(path.join(root, "assets/flower-observation-q04-flower-structure-base-390w.webp")));
+const loginHtml = api.renderLogin();
+assert(!loginHtml.includes("u31-flower-observation-login-background-zero-text"), "login should not render the U31 unit login scene");
+assert(!loginHtml.includes("u31-flower-observation-azhe-login-cutout"), "login should not render U31 Azhe");
+assert(fs.readFileSync(path.join(root, "index.html"), "utf8").includes('data-login-cover-wide="../shared-assets/login/bioquest-login-cover-wide.webp"'));
+assert(fs.readFileSync(path.join(root, "index.html"), "utf8").includes('data-login-cover-mobile="../shared-assets/login/bioquest-login-cover-mobile.webp"'));
 
 const Q = (n) => `flower_observation_q${String(n).padStart(2, "0")}`;
 const answers = {
@@ -91,6 +96,24 @@ for (const attemptId of ["seed-alpha", "seed-beta", "seed-gamma", "seed-delta"])
   const secondOrder = api.orderedOptions(q09).map((item) => item.id);
   assert.deepEqual(firstOrder, secondOrder, `q09 order should be stable for ${attemptId}`);
   assert.notDeepEqual(firstOrder, q09.answer, `q09 should not initialize as canonical answer for ${attemptId}`);
+}
+for (const attemptId of ["map-alpha", "map-beta", "map-gamma"]) {
+  api.setState({ attempt_id: attemptId, answers: {}, optionOrders: {} });
+  const q04 = api.questions.find((question) => question.id === Q(4));
+  const q05 = api.questions.find((question) => question.id === Q(5));
+  const q13 = api.questions.find((question) => question.id === Q(13));
+  assert.deepEqual(api.orderedMappingItems(q04).map((item) => item.id), q04.items.map((item) => item.id), "q04 target order should remain tied to hotspot positions");
+  assert.notDeepEqual(api.orderedMappingChoices(q04).map((choice) => choice.id), Object.values(q04.answer), `q04 choices should not initialize in answer order for ${attemptId}`);
+  const q05Items = api.orderedMappingItems(q05).map((item) => item.id);
+  const q05Choices = api.orderedMappingChoices(q05).map((choice) => choice.id);
+  assert.deepEqual(q05Items, api.orderedMappingItems(q05).map((item) => item.id), `q05 item order should be stable for ${attemptId}`);
+  assert.notDeepEqual(q05Items, q05.items.map((item) => item.id), `q05 items should not stay in original grouping for ${attemptId}`);
+  assert.notDeepEqual(q05Choices, Object.values(q05.answer), `q05 choices should not initialize in answer order for ${attemptId}`);
+  const q13Items = api.orderedMappingItems(q13).map((item) => item.id);
+  const q13Choices = api.orderedMappingChoices(q13).map((choice) => choice.id);
+  assert.deepEqual(q13Items, api.orderedMappingItems(q13).map((item) => item.id), `q13 item order should be stable for ${attemptId}`);
+  assert.notDeepEqual(q13Items, q13.items.map((item) => item.id), `q13 items should not stay in U30-U31-U32-U29 display order for ${attemptId}`);
+  assert.notDeepEqual(q13Choices, Object.values(q13.answer), `q13 choices should not initialize in answer order for ${attemptId}`);
 }
 
 api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "flower_observation_test", attempt_session_token: "guest", question_version: api.QUESTION_VERSION, answers, reflection: { question: "" } });
@@ -142,14 +165,26 @@ assert.deepEqual(payload.raw_answers[Q(4)], answers[Q(4)]);
 assert.deepEqual(payload.raw_answers[Q(5)], answers[Q(5)]);
 assert.deepEqual(payload.raw_answers[Q(9)], answers[`${Q(9)}_sequence`]);
 assert.deepEqual(payload.raw_answers[Q(13)], answers[Q(13)]);
+for (let index = 1; index <= 14; index += 1) {
+  const shortId = `q${String(index).padStart(2, "0")}`;
+  assert.deepEqual(payload.raw_answers[shortId], payload.raw_answers[Q(index)], `${shortId} bare raw answer should mirror full key`);
+}
+assert.deepEqual(payload.raw_answers.q09_sequence, answers[`${Q(9)}_sequence`]);
+assert.deepEqual(payload.raw_answers.q04, answers[Q(4)]);
+assert.deepEqual(payload.raw_answers.q05, answers[Q(5)]);
+assert.deepEqual(payload.raw_answers.q13, answers[Q(13)]);
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(4)).analysis_group, "flower_stamen_pistil_parts");
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(4)).checkpoint_id, "flower_observation_cp2_reproductive_structures");
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(13)).teacher_group_id, "unit_boundary_control");
+assert.equal(payload.question_logs.find((log) => log.question_id === Q(2)).hint_used, true);
+assert.equal(payload.question_logs.find((log) => log.question_id === Q(2)).exp_type, "revision");
+assert.equal(payload.question_logs.find((log) => log.question_id === Q(2)).question_version, api.QUESTION_VERSION);
+assert.equal(typeof payload.question_logs.find((log) => log.question_id === Q(2)).exp_awarded, "number");
 assert(api.renderCheckpoint("checkpoint4").includes("flower_observation_q13"));
 
 const q04Evidence = api.renderQuestionEvidence(Q(4));
 assert(q04Evidence.includes("flower-structure-figure"));
-assert(q04Evidence.includes("flower-observation-q04-flower-structure-base-390w.webp?v=20260730-flower-observation-approved-visuals-v1"));
+assert(q04Evidence.includes("flower-observation-q04-flower-structure-base-390w.webp?v=20260814-flower-observation-mapping-login-v1"));
 assert(q04Evidence.includes("未標註的花部構造觀察圖"));
 assert(q04Evidence.includes("target-list"));
 assert.equal((q04Evidence.match(/flower-hotspot/g) || []).length, 5, "q04 should expose a hotspot layer and four target markers");
@@ -178,7 +213,7 @@ assert(!api.renderAchievements().includes("本單元 16"));
 assert(api.renderAchievements().includes("重新登入／再挑戰"));
 const earnedHtml = api.renderBadgeWall(["flower_observation_entry", "flower_parts_labeler"], { onlyEarned: true });
 assert(earnedHtml.includes("<img"), "U31 ready badges should create approved image requests");
-assert(earnedHtml.includes("?v=20260730-flower-observation-approved-visuals-v1"));
+assert(earnedHtml.includes("?v=20260814-flower-observation-mapping-login-v1"));
 assert(!earnedHtml.includes("candidate-badge-list"));
 assert(earnedHtml.includes("花部構造標記"));
 
@@ -186,6 +221,40 @@ for (const badge of api.badges) {
   const file = path.resolve(root, "..", badge.badge_image_path.replace("../", ""));
   assert(fs.existsSync(file), `${badge.id} image path should exist: ${file}`);
 }
+
+api.setState({
+  student: { student_id: "S70102", class_name: "701", seat_no: "02", student_name: "正式學生" },
+  attempt_id: "server_alias",
+  attempt_session_token: "token",
+  question_version: api.QUESTION_VERSION,
+  answers,
+  reflection: { question: "我想確認授粉和受精的差別，觀察花時該看哪些花部線索？" }
+});
+const localCandidate = { ...api.scoreAttempt(), direct_exp: 999, reflection_exp: 888, attempt_exp: 777, unit_credited_exp: 777, earned_badges: ["local_badge_should_not_show"] };
+const verifiedMerged = api.applyBackendSubmitResponse({
+  ok: true,
+  verification_status: "server_verified",
+  attempt_result: {
+    verification_status: "server_verified",
+    concept_exp: 111,
+    question_exp: 22,
+    attempt_total_exp: 333,
+    newly_credited_badges_json: "[\"flower_observation_entry\",\"flower_parts_labeler\"]"
+  },
+  student_progress: {
+    total_exp: 4213,
+    current_title_id: "micro_explorer",
+    current_title: "微觀探索者",
+    title_avatar_path: "shared-assets/title-avatars/title-05-micro_explorer-male.webp"
+  }
+}, localCandidate);
+assert.equal(verifiedMerged.verification_status, "server_verified");
+assert.equal(verifiedMerged.direct_exp, 111);
+assert.equal(verifiedMerged.reflection_exp, 22);
+assert.equal(verifiedMerged.attempt_exp, 333);
+assert.equal(verifiedMerged.unit_credited_exp, 333);
+assert.deepEqual([...verifiedMerged.earned_badges], ["flower_observation_entry", "flower_parts_labeler"]);
+assert(!verifiedMerged.earned_badges.includes("local_badge_should_not_show"));
 
 api.setState({
   student: {
