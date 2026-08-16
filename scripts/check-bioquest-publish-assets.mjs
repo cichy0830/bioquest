@@ -7,7 +7,8 @@ import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const publishRoot = path.join(root, "_publish", "bioquest");
+const isPublishRoot = path.basename(root) === "bioquest" && path.basename(path.dirname(root)) === "_publish";
+const publishRoot = isPublishRoot ? root : path.join(root, "_publish", "bioquest");
 const bundledModules = "/Users/biomin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules";
 const sharp = (() => {
   try { return require("sharp"); }
@@ -39,6 +40,7 @@ function categoryFor(file) {
   if (name.startsWith("asexual-reproduction-q12-cutting-materials-data")) return ["question_and_ui", 1600];
   if (name.startsWith("sexual-reproduction-q12-comparison-data-base")) return ["question_and_ui", 1600];
   if (name.startsWith("flower-observation-q04-flower-structure-base")) return ["question_and_ui", 1600];
+  if (name.startsWith("u32-genetics-chromosome-gene-q06-v4-gene-location-zero-text-base")) return ["question_and_ui", 1600];
   return ["question_and_ui", 1280];
 }
 
