@@ -256,7 +256,7 @@ function renderNav() {
   }
 
   if (!state.student) {
-    studentMini.innerHTML = `<p class="muted">尚未登入</p><p class="muted">可用測試學號 S70101 或 guest</p>`;
+    studentMini.innerHTML = `<p class="muted">尚未登入</p><p class="muted">請輸入六位數學號，例如 115001</p>`;
     return;
   }
 
@@ -381,7 +381,7 @@ function renderLogin() {
         <div class="form-grid">
           <label>
             學號
-            <input id="studentIdInput" value="${value}" placeholder="例如 S70101 或 guest" autocomplete="off">
+            <input id="studentIdInput" value="${value}" placeholder="例如 115001" autocomplete="off">
           </label>
         </div>
         <div class="actions">
