@@ -54,11 +54,9 @@ const sharedJsVersionOverrides = new Map([
   ["life_world", "20260730-achievements-overview-copy-v1"]
 ]);
 const appVersionOverrides = new Map();
-appVersionOverrides.set("life_world", "20260730-life-world-submitted-retry-ia-v1");
-appVersionOverrides.set("scientific_method", "20260730-scientific-method-submitted-retry-ia-v1");
-appVersionOverrides.set("lab_intro", "20260730-lab-intro-submitted-retry-ia-v1");
-appVersionOverrides.set("microscope_use", "20260730-microscope-use-submitted-retry-ia-v1");
-appVersionOverrides.set("cell_basic_unit", "20260731-cell-basic-unit-submitted-retry-ia-v1");
+for (const unitId of ["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit"]) {
+  appVersionOverrides.set(unitId, "20260831-student-id-example-115001-v1");
+}
 appVersionOverrides.set("cell_observation", "20260731-cell-observation-submitted-retry-ia-v1");
 appVersionOverrides.set("cell_structure", "20260731-cell-structure-submitted-retry-ia-v1");
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
