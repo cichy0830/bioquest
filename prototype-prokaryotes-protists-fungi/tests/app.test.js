@@ -53,7 +53,7 @@ const answers = {
   [Q(14)]: "nutrition_and_group"
 };
 
-assert.equal(api.VERSION, "20260820-prokaryotes-protists-fungi-q13-table-fix-v1");
+assert.equal(api.VERSION, "20260904-prokaryotes-protists-fungi-q13-mobile-v1");
 assert.equal(api.QUESTION_VERSION, "20260819-prokaryotes-protists-fungi-v1");
 assert.equal(api.mission.unit_id, "prokaryotes_protists_fungi");
 assert.equal(html.includes('data-unit-id="prokaryotes_protists_fungi"'), true);
@@ -175,10 +175,13 @@ for (const [number, selector, keyword] of [
 const q13Evidence = api.renderQuestionEvidence(Q(13));
 for (const header of ["代碼", "生活環境", "運動方式", "養分線索"]) {
   assert(q13Evidence.includes(`role="columnheader">${header}</span>`), `q13 visible table header ${header}`);
+  assert(q13Evidence.includes(`data-field-label="${header}"`), `q13 mobile card label ${header}`);
+  assert(q13Evidence.includes(`<span class="microbe-cell-label" aria-hidden="true">${header}</span>`), `q13 visible per-value label ${header}`);
 }
 for (const value of ["甲", "淡水", "以纖毛移動", "吞入微小食物顆粒", "乙", "池水表層", "資料未列出明顯移動構造", "有葉綠體線索，可利用光", "丙", "潮濕環境", "會伸出偽足", "取得小型食物"]) {
-  assert(q13Evidence.includes(`role="cell">${value}</span>`), `q13 visible table cell ${value}`);
+  assert(q13Evidence.includes(`<span class="microbe-cell-value">${value}</span>`), `q13 visible table cell ${value}`);
 }
+assert.equal((q13Evidence.match(/class="microbe-data-record"/g) || []).length, 3, "q13 mobile data records should be grouped by organism");
 assert(!q13Evidence.includes("資料欄位"), "q13 must not collapse visible fields into a generic data column");
 assert(!/分類為|類群是|應排除|答案方向|原生生物答案/.test(q13Evidence), "q13 evidence must not leak classification conclusions");
 assert.equal(api.renderCheckpointEvidence("checkpoint2"), "", "U40 must not render global sequence evidence");

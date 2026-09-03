@@ -176,6 +176,18 @@ async function runEvidenceCase(browser, viewport, screenName, selector, expected
   const text = await page.locator(selector).innerText();
   for (const expected of expectedText) assert(text.includes(expected), `${label}: includes ${expected}`);
   assert(!forbiddenPattern.test(text), `${label}: neutral copy`);
+  if (selector === ".microbe-protist-table-evidence" && viewport.width <= 560) {
+    const records = page.locator(".microbe-data-table--q13 .microbe-data-record");
+    assert.equal(await records.count(), 3, `${label}: q13 mobile groups one card per organism`);
+    assert.equal(await page.locator(".microbe-data-table--q13 .microbe-data-header").evaluate((node) => getComputedStyle(node).display), "none", `${label}: q13 mobile hides detached header row`);
+    for (let index = 0; index < 3; index += 1) {
+      const record = records.nth(index);
+      assert.deepEqual(await record.locator(".microbe-cell-label").evaluateAll((nodes) => nodes.map((node) => node.textContent.trim())), ["代碼", "生活環境", "運動方式", "養分線索"], `${label}: q13 mobile field labels stay attached ${index}`);
+      assert.equal(await record.locator('[role="cell"]').count(), 4, `${label}: q13 mobile record has four labeled values ${index}`);
+      const box = await record.boundingBox();
+      assert(box && box.width <= viewport.width - 20, `${label}: q13 mobile record fits viewport ${index}`);
+    }
+  }
   await assertNoBrokenImages(page, label);
   await assertNoHorizontalOverflow(page, label);
   assert.equal(errors.length, 0, `${label}: no console/page errors`);

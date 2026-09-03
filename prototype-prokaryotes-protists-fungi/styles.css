@@ -496,6 +496,12 @@ textarea { resize: vertical; min-height: 116px; }
   background: rgba(231,248,223,.96);
   font-weight: 900;
 }
+.microbe-cell-label {
+  display: none;
+}
+.microbe-cell-value {
+  min-width: 0;
+}
 .microbe-card-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -795,6 +801,38 @@ textarea { resize: vertical; min-height: 116px; }
   .data-table [role="row"], .data-table.two-column [role="row"] { grid-template-columns: 1fr; }
   .microbe-data-table [role="row"] {
     grid-template-columns: 1fr;
+  }
+  .microbe-data-table--q13 {
+    gap: 10px;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+  .microbe-data-table--q13 .microbe-data-header {
+    display: none;
+  }
+  .microbe-data-table--q13 .microbe-data-record {
+    overflow: hidden;
+    border: 1px solid rgba(47,159,104,.28);
+    border-radius: 8px;
+    background: rgba(47,159,104,.18);
+  }
+  .microbe-data-table--q13 [role="cell"] {
+    display: grid;
+    grid-template-columns: minmax(88px, .42fr) minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+  }
+  .microbe-data-table--q13 [role="cell"]:first-child {
+    background: rgba(231,248,223,.96);
+  }
+  .microbe-data-table--q13 .microbe-cell-label {
+    display: block;
+    color: var(--green-dark);
+    font-weight: 900;
+  }
+  .microbe-data-table--q13 .microbe-cell-value {
+    display: block;
   }
   .microbe-card-grid {
     grid-template-columns: 1fr;
