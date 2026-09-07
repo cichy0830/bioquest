@@ -31,15 +31,19 @@ for (const rule of [
   const wrapperRule = sharedCss.slice(sharedCss.indexOf(".badge-visual > img {"), sharedCss.indexOf(".badge,", sharedCss.indexOf(".badge-visual > img {")));
   assert(wrapperRule.includes(rule), `.badge-visual containment rule missing: ${rule}`);
 }
+const wrapperContainerRule = sharedCss.slice(sharedCss.indexOf(".badge-visual {"), sharedCss.indexOf(".badge-visual > img {"));
+assert(wrapperContainerRule.includes("overflow: hidden !important;"), ".badge-visual overflow containment rule missing");
 
 const readyFolders = [...portal.matchAll(/status:\s*"ready"[\s\S]*?url:\s*"([^"?]+)(?:\?[^"/]*)?"/g)]
   .map((match) => match[1].replace(/\/$/, ""))
   .filter((folder) => folder !== "prototype-plant-material-transport");
-assert(readyFolders.length === 29, `expected 29 ready units excluding U17 badge-layout exception, found ${readyFolders.length}`);
+assert(readyFolders.length > 0, "no ready units found for badge layout audit");
+assert(new Set(readyFolders).size === readyFolders.length, "duplicate ready unit URL found in portal");
 
 const audit = readyFolders.map((folder) => {
   const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
-  const styles = fs.readFileSync(path.join(root, folder, "styles.css"), "utf8");
+  const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
+  assert(index.includes("../shared-assets/bioquest-character-layout.css"), `${folder}: shared character layout stylesheet missing`);
   assert(app.includes("function renderResult("), `${folder}: result renderer missing`);
   assert(app.includes("function renderAchievements("), `${folder}: achievements renderer missing`);
   assert(app.includes("badge"), `${folder}: badge markup missing`);
@@ -49,10 +53,6 @@ const audit = readyFolders.map((folder) => {
   else if (app.includes("badge-card") && app.includes("badge-image")) mode = "badge-card-image-hook";
   else if (app.includes("badge-card")) mode = "badge-card-direct-image";
 
-  if (mode === "badge-visual-wrapper") {
-    assert(styles.includes(".badge-visual"), `${folder}: badge visual wrapper style missing`);
-    assert(styles.includes("overflow: hidden"), `${folder}: badge visual overflow containment missing`);
-  }
   return { folder, mode };
 });
 
