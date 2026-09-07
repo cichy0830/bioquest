@@ -53,7 +53,7 @@ const answers = {
   [Q(14)]: "nutrition_and_group"
 };
 
-assert.equal(api.VERSION, "20260904-prokaryotes-protists-fungi-q13-mobile-v1");
+assert.equal(api.VERSION, "20260907-prokaryotes-protists-fungi-q13-copy-v1");
 assert.equal(api.QUESTION_VERSION, "20260819-prokaryotes-protists-fungi-v1");
 assert.equal(api.mission.unit_id, "prokaryotes_protists_fungi");
 assert.equal(html.includes('data-unit-id="prokaryotes_protists_fungi"'), true);
@@ -66,6 +66,16 @@ assert.deepEqual(plain(api.questions.find((question) => question.id === Q(2)).an
 assert.deepEqual(plain(api.questions.find((question) => question.id === Q(8)).answer), q08Answer);
 assert.deepEqual(plain(api.questions.find((question) => question.id === Q(10)).answer), q10Answer);
 assert.deepEqual(plain(api.questions.find((question) => question.id === Q(12)).answer), q12Answer);
+const q13 = api.questions.find((question) => question.id === Q(13));
+assert.equal(q13.answer, "varied_features");
+assert.equal(q13.prompt, "甲、乙、丙都是原生生物。比較資料表後，可以看出什麼？");
+assert.equal(q13.hint, "比較三者的生活環境、運動方式與養分來源，看它們是否完全相同。");
+assert.deepEqual(plain(q13.options.map((option) => [option.id, option.text])), [
+  ["varied_features", "它們的運動方式和獲得養分的方法不完全相同"],
+  ["all_freshwater", "它們都只生活在淡水中"],
+  ["all_cilia", "它們都用纖毛移動"],
+  ["all_chloroplast", "它們都靠葉綠體製造養分"]
+]);
 assert(!source.includes("monera_protista_fungi"), "U40 must not write legacy monera_protista_fungi alias");
 assert(!source.includes("待審素材"));
 assert(!source.includes("_generated_sources"));

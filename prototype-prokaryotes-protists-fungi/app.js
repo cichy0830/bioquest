@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260904-prokaryotes-protists-fungi-q13-mobile-v1";
+const VERSION = "20260907-prokaryotes-protists-fungi-q13-copy-v1";
 const QUESTION_VERSION = "20260819-prokaryotes-protists-fungi-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -123,7 +123,7 @@ const questions = [
   { id: "prokaryotes_protists_fungi_q10", section: "checkpoint6", concept: "u39_u40_u41_boundary", skill_tag: "u39_u40_u41_boundary", type: "mapping", backend_type: "mapping", answer: { branch_key_task: "u39_dichotomous_key", microbe_group_task: "u40_prokaryotes_protists_fungi", plant_group_task: "u41_plant_kingdom" }, prompt: "將任務配到合適單元。", hint: "先判斷任務是在走檢索表、辨識微生物類群，還是分植物類群。", misconception: "u39_u40_u41_boundary_confusion", items: [ { id: "branch_key_task", label: "依二分檢索表逐步辨識" }, { id: "microbe_group_task", label: "辨識原核、原生與真菌類群" }, { id: "plant_group_task", label: "分辨植物界內部類群" } ], choices: unitBoundaryChoices },
   { id: "prokaryotes_protists_fungi_q11", section: "checkpoint2", concept: "fungi_absorptive_nutrition", skill_tag: "fungi_absorptive_nutrition", type: "choice", answer: "fungus_decomposer", prompt: "食物表面長出黴菌，較合理的敘述是？", hint: "注意「黴菌」這個例子屬於哪一類，以及它如何取得養分。", misconception: "fungi_are_plants", options: [ { id: "fungus_decomposer", text: "黴菌屬真菌，可分解並吸收養分" }, { id: "plant_seedling", text: "黴菌是植物幼苗" }, { id: "all_bacteria", text: "黴菌一定是細菌" }, { id: "photosynthesis_main", text: "黴菌主要靠光合作用製造養分" } ] },
   { id: "prokaryotes_protists_fungi_q12", section: "checkpoint3", concept: "microbes_benefit_harm_context", skill_tag: "microbes_benefit_harm_context", type: "mapping", backend_type: "card_sort", answer: { bread_yeast_rising: "possible_benefit", spoiled_food_bacteria: "possible_problem", unknown_water_sample: "need_more_context" }, prompt: "將微生物情境分成「可能有助益」「可能造成問題」「需要更多資料」。", hint: "先讀情境描述，不要先把整個類群貼上好或壞。", misconception: "all_bacteria_beneficial", items: [ { id: "bread_yeast_rising", label: "麵團加入酵母菌後逐漸膨脹" }, { id: "spoiled_food_bacteria", label: "食物放太久後出現酸敗味，資料指出有細菌大量繁殖" }, { id: "unknown_water_sample", label: "水樣中發現微小生物，但沒有更多生活方式或影響資料" } ], choices: microbeContextChoices },
-  { id: "prokaryotes_protists_fungi_q13", section: "checkpoint4", concept: "protist_diversity", skill_tag: "protist_diversity", type: "choice", answer: "varied_features", prompt: "資料表列出三種微小生物的生活環境、運動方式與養分線索。哪個判斷最能支持「原生生物具多樣性」？", hint: "讀表時先看欄位：運動、生活環境與養分線索是否呈現差異。", misconception: "protist_diversity_overgeneralized", options: [ { id: "varied_features", text: "資料呈現不同運動方式與養分線索" }, { id: "same_size", text: "大小相近就代表同一類" }, { id: "same_color", text: "顏色相近就代表同一類" }, { id: "unknown_name", text: "名字未知所以不能比較" } ] },
+  { id: "prokaryotes_protists_fungi_q13", section: "checkpoint4", concept: "protist_diversity", skill_tag: "protist_diversity", type: "choice", answer: "varied_features", prompt: "甲、乙、丙都是原生生物。比較資料表後，可以看出什麼？", hint: "比較三者的生活環境、運動方式與養分來源，看它們是否完全相同。", misconception: "protist_diversity_overgeneralized", options: [ { id: "varied_features", text: "它們的運動方式和獲得養分的方法不完全相同" }, { id: "all_freshwater", text: "它們都只生活在淡水中" }, { id: "all_cilia", text: "它們都用纖毛移動" }, { id: "all_chloroplast", text: "它們都靠葉綠體製造養分" } ] },
   { id: "prokaryotes_protists_fungi_q14", section: "checkpoint2", concept: "fungi_absorptive_nutrition", skill_tag: "fungi_absorptive_nutrition", type: "choice", answer: "nutrition_and_group", prompt: "為什麼「香菇不會跑，所以它是植物」這個判斷不夠好？", hint: "分類不能只看會不會移動，還要看取得養分方式與類群特徵。", misconception: "fungi_are_plants", options: [ { id: "nutrition_and_group", text: "能否移動不是唯一判準，真菌取得養分方式不同" }, { id: "no_movement_plant", text: "不會動就是植物" }, { id: "edible_plant", text: "能吃就是植物" }, { id: "brown_not_life", text: "褐色就不是生物" } ] }
 ];
 const questionMap = Object.fromEntries(questions.map((question) => [question.id, question]));
@@ -1318,7 +1318,7 @@ function misconceptionText(tag) { return {
   all_bacteria_harmful: "建議再確認微生物情境：不能把微生物一概判定有害。",
   all_bacteria_beneficial: "建議再確認微生物情境：也不能把微生物一概判定有益。",
   protist_as_animal_or_plant: "建議再確認原生生物多樣性：不要只用會不會動或水中生活判成動植物。",
-  protist_diversity_overgeneralized: "建議再確認資料表：生活環境、運動方式與養分線索都要一起看。",
+  protist_diversity_overgeneralized: "不同原生生物的運動方式與獲得養分的方法可能不同，表示原生生物的生活方式很多樣。",
   algae_cyanobacteria_plant_confusion: "建議再確認藍菌邊界：光合作用不是植物唯一判準。",
   u39_u40_u41_boundary_confusion: "建議再確認 U39、U40、U41 的學習任務差異。"
 }[tag] || tag; }
