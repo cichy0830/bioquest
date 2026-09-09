@@ -1,6 +1,15 @@
 const DASHBOARD_API_URL = "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
 const DASHBOARD_SCHEMA = "teacher_dashboard_v3";
+const TEACHER_DASHBOARD_VERSION = "20260909-teacher-usage-summary-v1";
 const analytics = window.BioQuestTeacherAnalytics;
+
+const USAGE_UNIT_TITLES = {
+  life_world: "第 1 站｜多彩多姿的生命世界",
+  scientific_method: "第 2 站｜探究自然的科學方法",
+  lab_intro: "第 3 站｜進入實驗室",
+  microscope_use: "第 4 站｜顯微鏡的使用",
+  cell_basic_unit: "第 5 站｜生物體的基本單位"
+};
 
 const state = {
   currentView: "unit",
@@ -17,6 +26,8 @@ const classFilter = document.querySelector("#classFilter");
 const unitFilter = document.querySelector("#unitFilter");
 const studentFilter = document.querySelector("#studentFilter");
 const studentFilterLabel = document.querySelector("#studentFilterLabel");
+const usageStartDate = document.querySelector("#usageStartDate");
+const usageEndDate = document.querySelector("#usageEndDate");
 const dataWarnings = document.querySelector("#dataWarnings");
 const viewRoot = document.querySelector("#viewRoot");
 
@@ -79,10 +90,25 @@ function isOfficialStudent(row) {
   return Boolean(studentId) && studentId !== "guest" && className !== "測試" && active;
 }
 
+function normalizeUsageSummaryRow(row) {
+  return {
+    class_name: String(row?.class_name || ""),
+    unit_id: String(row?.unit_id || ""),
+    unit_title: String(row?.unit_title || USAGE_UNIT_TITLES[row?.unit_id] || row?.unit_id || ""),
+    date: String(row?.date || ""),
+    started_student_count: numberValue(row?.started_student_count),
+    submitted_student_count: numberValue(row?.submitted_student_count),
+    open_unsubmitted_session_count: numberValue(row?.open_unsubmitted_session_count),
+    expired_unsubmitted_session_count: numberValue(row?.expired_unsubmitted_session_count),
+    submitted_session_count: numberValue(row?.submitted_session_count),
+    latest_activity_at: String(row?.latest_activity_at || "")
+  };
+}
+
 function normalizeDashboard(payload) {
   if (!payload || payload.ok !== true) throw new Error(payload?.error || "dashboard_api_failed");
   if (payload.schema_version !== DASHBOARD_SCHEMA) throw new Error("dashboard_deployment_outdated");
-  const requiredArrays = ["students", "attempts", "question_logs", "student_progress", "teacher_reviews"];
+  const requiredArrays = ["students", "attempts", "question_logs", "student_progress", "teacher_reviews", "usage_summary"];
   requiredArrays.forEach((field) => {
     if (!Array.isArray(payload[field])) throw new Error(`dashboard_field_missing:${field}`);
   });
@@ -96,6 +122,7 @@ function normalizeDashboard(payload) {
     questionLogs: payload.question_logs,
     studentProgress: payload.student_progress.filter((row) => String(row.student_id || "").toLowerCase() !== "guest"),
     teacherReviews: payload.teacher_reviews.filter((row) => String(row.student_id || "").toLowerCase() !== "guest"),
+    usageSummary: payload.usage_summary.map(normalizeUsageSummaryRow).filter((row) => row.class_name && row.unit_id && row.date),
     warnings: Array.isArray(payload.warnings) ? payload.warnings : []
   };
 }
@@ -112,11 +139,15 @@ function uniqueSorted(values) {
 }
 
 function populateFilters() {
-  const classes = uniqueSorted(state.data.students.map((row) => row.class_name));
+  const classes = uniqueSorted([...state.data.students.map((row) => row.class_name), ...state.data.usageSummary.map((row) => row.class_name)]);
   const unitMap = new Map();
+  Object.entries(USAGE_UNIT_TITLES).forEach(([id, title]) => unitMap.set(id, title));
   [...state.data.attempts, ...state.data.studentProgress].forEach((row) => {
     if (!row.unit_id) return;
     unitMap.set(String(row.unit_id), String(row.unit_title || row.unit_id));
+  });
+  state.data.usageSummary.forEach((row) => {
+    if (row.unit_id) unitMap.set(String(row.unit_id), row.unit_title || USAGE_UNIT_TITLES[row.unit_id] || row.unit_id);
   });
   classFilter.innerHTML = classes.length
     ? classes.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")
@@ -238,6 +269,27 @@ function selectedReviews() {
   return state.data.teacherReviews.filter((row) => officialIds.has(String(row.student_id)) && (!unitFilter.value || String(row.unit_id) === unitFilter.value));
 }
 
+function selectedUsageRows() {
+  const start = usageStartDate?.value || "";
+  const end = usageEndDate?.value || "";
+  return state.data.usageSummary.filter((row) => (
+    (!classFilter.value || String(row.class_name) === classFilter.value)
+    && (!unitFilter.value || String(row.unit_id) === unitFilter.value)
+    && (!start || String(row.date) >= start)
+    && (!end || String(row.date) <= end)
+  ));
+}
+
+function usageTotals(rows) {
+  return rows.reduce((totals, row) => ({
+    started: totals.started + numberValue(row.started_student_count),
+    submitted: totals.submitted + numberValue(row.submitted_student_count),
+    openUnsubmitted: totals.openUnsubmitted + numberValue(row.open_unsubmitted_session_count),
+    expiredUnsubmitted: totals.expiredUnsubmitted + numberValue(row.expired_unsubmitted_session_count),
+    submittedSessions: totals.submittedSessions + numberValue(row.submitted_session_count)
+  }), { started: 0, submitted: 0, openUnsubmitted: 0, expiredUnsubmitted: 0, submittedSessions: 0 });
+}
+
 function sourceAuditPanel() {
   const counts = state.data.sourceCounts || {};
   const latestIds = new Set(selectedLatestAttemptIds());
@@ -262,6 +314,7 @@ function sourceAuditPanel() {
       <p><span>來源</span><strong>${escapeHtml(state.data.dataSource === "google_sheet" ? "Google Sheet / Apps Script" : state.data.dataSource || "未標記")}</strong></p>
       <p><span>資料產生時間</span><strong>${formatDate(state.data.generatedAt)}</strong></p>
       <p><span>API Attempts</span><strong>${attemptsCount}</strong></p>
+      <p><span>API AttemptSessions</span><strong>${numberValue(counts.attempt_sessions)}</strong></p>
       <p><span>API QuestionLogs</span><strong>${questionLogCount}</strong></p>
       <p><span>API StudentProgress</span><strong>${progressCount}</strong></p>
       <p><span>API TeacherReview</span><strong>${reviewCount}</strong></p>
@@ -272,6 +325,28 @@ function sourceAuditPanel() {
     </div>
     <p class="muted">${escapeHtml(writeStatus.note)}完成率、正確率與診斷預設只取每位學生在所選單元的最新有效完整挑戰；guest、歷史未驗證與待驗證提交不納入。</p>${selectedUnitReady ? "" : '<p class="data-alert">所選單元尚未加入後端正解註冊，因此目前提交只能保存為待驗證，不會納入正式正確率與迷思統計。</p>'}${warning}
   </article>`;
+}
+
+function renderUsageView() {
+  const rows = selectedUsageRows();
+  const totals = usageTotals(rows);
+  const rangeText = usageStartDate?.value || usageEndDate?.value
+    ? `${usageStartDate?.value || "最早"} 至 ${usageEndDate?.value || "最新"}`
+    : "全部日期";
+  viewRoot.innerHTML = `${sourceAuditPanel()}
+    <section class="grid summary-grid">
+      ${metric("已開始作答人數", totals.started, "只採後端驗證工作階段")}
+      ${metric("已正式提交人數", totals.submitted, "只採可信完整 Attempts")}
+      ${metric("未提交且尚未過期", totals.openUnsubmitted, "不是目前在線人數")}
+      ${metric("已過期未提交", totals.expiredUnsubmitted, rangeText)}
+    </section>
+    <section class="panel">
+      <div class="card-heading"><div><p class="eyebrow">使用狀態</p><h2>班級、單元與日期摘要</h2></div><span class="pill">${rows.length} 列</span></div>
+      <p class="muted">這裡只顯示去識別化人數。已開始作答來自 AttemptSessions；已正式提交來自 Attempts。未提交且尚未過期只代表工作階段仍可用，不代表學生正在線上。</p>
+      ${rows.length ? `<div class="table-wrap"><table><thead><tr><th>日期</th><th>班級</th><th>單元</th><th>已開始作答</th><th>已正式提交</th><th>未提交且尚未過期</th><th>已過期未提交</th><th>已標記提交的工作階段</th><th>最近活動</th></tr></thead><tbody>
+        ${rows.map((row) => `<tr><td>${escapeHtml(row.date)}</td><td>${escapeHtml(row.class_name)}</td><td>${escapeHtml(row.unit_title || row.unit_id)}</td><td>${numberValue(row.started_student_count)}</td><td>${numberValue(row.submitted_student_count)}</td><td>${numberValue(row.open_unsubmitted_session_count)}</td><td>${numberValue(row.expired_unsubmitted_session_count)}</td><td>${numberValue(row.submitted_session_count)}</td><td>${formatDate(row.latest_activity_at)}</td></tr>`).join("")}
+      </tbody></table></div>` : '<p class="muted">目前篩選條件下沒有 U1-U5 的開始或正式提交紀錄。</p>'}
+    </section>`;
 }
 
 function renderUnitView() {
@@ -478,6 +553,7 @@ function render() {
   document.querySelectorAll("[data-view]").forEach((button) => button.classList.toggle("active", button.dataset.view === state.currentView));
   studentFilterLabel.hidden = state.currentView !== "student";
   renderWarnings();
+  if (state.currentView === "usage") renderUsageView();
   if (state.currentView === "unit") renderUnitView();
   if (state.currentView === "questions") renderQuestionView();
   if (state.currentView === "feedback") renderFeedbackView();
@@ -536,6 +612,8 @@ classFilter.addEventListener("change", () => {
 });
 unitFilter.addEventListener("change", render);
 studentFilter.addEventListener("change", render);
+usageStartDate?.addEventListener("change", render);
+usageEndDate?.addEventListener("change", render);
 document.querySelector("#disconnectButton").addEventListener("click", () => {
   state.data = null;
   viewRoot.innerHTML = "";
@@ -547,4 +625,11 @@ document.querySelector("#disconnectButton").addEventListener("click", () => {
   document.querySelector("#teacherKey").focus();
 });
 
-window.BioQuestTeacherDashboard = Object.freeze({ normalizeDashboard, isOfficialStudent, priorityConcepts });
+window.BioQuestTeacherDashboard = Object.freeze({
+  VERSION: TEACHER_DASHBOARD_VERSION,
+  normalizeDashboard,
+  isOfficialStudent,
+  priorityConcepts,
+  normalizeUsageSummaryRow,
+  usageTotals
+});
