@@ -123,6 +123,8 @@ function validateUsageSummary(payload) {
       "submitted_session_count",
     ].forEach((key) => ensure(Number.isInteger(row[key]) && row[key] >= 0));
     ensure(typeof row.class_name === "string");
+    const normalizedClassName = row.class_name.trim().toLowerCase();
+    ensure(normalizedClassName !== "test" && normalizedClassName !== "測試");
     ensure(typeof row.unit_id === "string");
     ensure(typeof row.unit_title === "string");
     ensure(typeof row.date === "string");

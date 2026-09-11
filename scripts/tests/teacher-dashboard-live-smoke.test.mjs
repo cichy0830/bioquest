@@ -78,6 +78,12 @@ assert.throws(() => validateAuthorizedPayload(JSON.stringify({
   ...validPayload,
   usage_summary: [{ ...validPayload.usage_summary[0], unit_title: "測試學生甲" }],
 }), "runtime-only-secret"));
+["TEST", "test", " Test ", "測試"].forEach((className) => {
+  assert.throws(() => validateAuthorizedPayload(JSON.stringify({
+    ...validPayload,
+    usage_summary: [{ ...validPayload.usage_summary[0], class_name: className }],
+  }), "runtime-only-secret"));
+});
 assert.throws(() => validateAuthorizedPayload(`${JSON.stringify(validPayload)}runtime-only-secret`, "runtime-only-secret"));
 
 validateUnauthorizedPayload(JSON.stringify({ ok: false, error: "teacher_dashboard_unauthorized" }), "known-invalid-key");
