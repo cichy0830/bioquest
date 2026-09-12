@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const TEACHER_KEY_ENV = "BIOQUEST_TEACHER_DASHBOARD_KEY";
+const AUTHORIZED_LIVE_FLAG = "--authorized-live";
 const REQUIRED_SOURCE_COUNTS = [
   "students",
   "attempts",
@@ -179,6 +180,11 @@ async function run() {
   validateUnauthorizedPayload(unauthorizedText, invalidKey);
   printStatus("PASS", "wrong_teacher_key_fail_closed");
 
+  if (!process.argv.includes(AUTHORIZED_LIVE_FLAG)) {
+    printStatus("SKIP", "authorized_teacher_dashboard_live", ["reason=explicit_authorization_required"]);
+    return;
+  }
+
   const teacherKey = String(process.env[TEACHER_KEY_ENV] || "").trim();
   if (!teacherKey) {
     printStatus("SKIP", "authorized_teacher_dashboard_live", ["reason=missing_environment_key"]);
@@ -200,6 +206,7 @@ if (isMain) {
 }
 
 export {
+  AUTHORIZED_LIVE_FLAG,
   TEACHER_KEY_ENV,
   buildSafeSummary,
   deploymentUrlFromSharedConfig,

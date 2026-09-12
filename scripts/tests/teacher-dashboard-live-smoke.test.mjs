@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  AUTHORIZED_LIVE_FLAG,
   TEACHER_KEY_ENV,
   buildSafeSummary,
   deploymentUrlFromSharedConfig,
@@ -21,11 +22,16 @@ const sourceScript = fs.readFileSync(sourceScriptPath, "utf8");
 
 assert.equal(fs.readFileSync(publishScriptPath, "utf8"), sourceScript, "source/publish live-smoke scripts differ");
 assert.equal(fs.readFileSync(publishTestPath, "utf8"), fs.readFileSync(sourceTestPath, "utf8"), "source/publish live-smoke tests differ");
+assert.equal(AUTHORIZED_LIVE_FLAG, "--authorized-live");
 assert.equal(TEACHER_KEY_ENV, "BIOQUEST_TEACHER_DASHBOARD_KEY");
 assert.match(deploymentUrlFromSharedConfig(), /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/);
 assert.doesNotMatch(sourceScript, /AKfy[A-Za-z0-9_-]+/, "deployment id must come from shared config");
 assert.doesNotMatch(sourceScript, /readFileSync\([^\n]*(teacher|key)/i, "teacher key must not be read from a file");
 assert.doesNotMatch(sourceScript, /process\.argv\.(slice|find)|--teacher|--key/i, "teacher key must not be accepted as a command-line argument");
+assert.ok(
+  sourceScript.indexOf("process.argv.includes(AUTHORIZED_LIVE_FLAG)") < sourceScript.indexOf("process.env[TEACHER_KEY_ENV]"),
+  "explicit authorization must be checked before reading the teacher key",
+);
 assert.match(sourceScript, /method: "POST"/);
 assert.match(sourceScript, /application\/x-www-form-urlencoded/);
 
