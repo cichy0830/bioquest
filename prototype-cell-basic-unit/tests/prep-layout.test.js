@@ -36,6 +36,6 @@ assert.ok(styles.includes("object-fit: contain;"), "prep owl must use contain si
 assert.ok(source.includes('const BASIC_UNIT_VERSION = "20260712-basic-unit-sheet-login-v4"'));
 assert.ok(index.includes("20260713-backend-endpoint-v1"));
 assert.ok(index.includes("styles.css?v=20260731-cell-basic-unit-submitted-retry-ia-v1"));
-assert.ok(index.includes("app.js?v=20260731-cell-basic-unit-submitted-retry-ia-v1"));
+assert.ok(index.includes("app.js?v=20260831-student-id-example-115001-v1"));
 
 console.log("cell-basic-unit prep layout regression passed for 1440px and 390px rules");
