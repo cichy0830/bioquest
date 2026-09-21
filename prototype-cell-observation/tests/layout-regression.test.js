@@ -894,7 +894,12 @@ async function assertActualFlow(browser, viewport, mode) {
 }
 
 function assertReferencedAssetsExist() {
-  const files = ["app.js", "styles.css", "index.html"].map((file) => fs.readFileSync(path.join(root, file), "utf8")).join("\n");
+  const appSource = fs.readFileSync(path.join(root, "app.js"), "utf8");
+  const indexSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const files = [appSource, fs.readFileSync(path.join(root, "styles.css"), "utf8"), indexSource].join("\n");
+  assert.ok(indexSource.includes("app.js?v=20260922-student-id-example-115001-v1"));
+  assert.ok(appSource.includes('placeholder="例如 115001"'));
+  assert.ok(!appSource.includes("S70101"), "student-facing login example must use the current six-digit student ID format");
   const refs = [...files.matchAll(/["'`](\.\.\/[^"'`]+\.(?:webp|png)|assets\/[^"'`]+\.(?:webp|png))/g)]
     .map((match) => match[1])
     .filter((ref) => !ref.includes("${"));
