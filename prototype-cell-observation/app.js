@@ -562,7 +562,7 @@ function renderLogin() {
     <h2 class="hero-title">任務登入</h2>
     <div class="story-panel"><strong>固定登入招呼</strong><p>輸入學號後，系統會顯示姓名。老師測試流程時可使用 guest。</p></div>
     <div class="mission-hud"><div><span>任務代號</span><strong>cell_observation</strong></div><div><span>預估時間</span><strong>10-15 分鐘</strong></div><div><span>後台</span><strong>Google Sheet</strong></div></div>
-    <div class="form-grid"><label>學號<input id="studentIdInput" value="${value}" placeholder="例如 S70101 或 guest" autocomplete="off"></label></div>
+    <div class="form-grid"><label>學號<input id="studentIdInput" value="${value}" placeholder="例如 115001" autocomplete="off"></label></div>
     <div class="actions"><button class="primary" id="loginButton">登入任務</button><button class="secondary" id="guestButton">老師測試 guest</button><button class="ghost" id="resetButton">清除本機測試紀錄</button></div>
     <div id="loginMessage" class="status-line"></div>
   </div></div>`;

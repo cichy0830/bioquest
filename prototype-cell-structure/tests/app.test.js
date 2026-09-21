@@ -97,7 +97,10 @@ assert.ok(source.includes('const VERSION = "20260731-cell-structure-submitted-re
 assert.ok(source.includes('const QUESTION_VERSION = "20260720-cell-structure-canonical-v1"'));
 assert.ok(!source.includes("question_version: VERSION"), "cache VERSION must not be used as backend question_version");
 assert.ok(index.includes("styles.css?v=20260731-cell-structure-submitted-retry-ia-v1"));
-assert.ok(index.includes("app.js?v=20260731-cell-structure-submitted-retry-ia-v1"));
+assert.ok(index.includes("app.js?v=20260922-student-id-example-115001-v1"));
+assert.ok(source.includes('placeholder="例如 115001"'));
+assert.ok(source.includes("請輸入六位數學號，例如 115001"));
+assert.ok(!source.includes("S70101"), "student-facing login example must use the current six-digit student ID format");
 assert.ok(source.includes("function resetForRelogin()"));
 assert.ok(source.includes('data-relogin-action="true"'));
 assert.ok(source.includes("function renderResultBadges(result)"));
