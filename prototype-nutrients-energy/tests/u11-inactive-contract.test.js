@@ -10,7 +10,7 @@ const { chromium } = require("/Users/biomin/.cache/codex-runtimes/codex-primary-
 const root = path.resolve(__dirname, "..", "..");
 const unitRoot = path.resolve(__dirname, "..");
 const source = fs.readFileSync(path.join(unitRoot, "app.js"), "utf8");
-const version = "20260802-nutrients-energy-submitted-retry-ia-v1";
+const version = "20260929-student-id-example-115001-v1";
 const questionVersion = "20260721-nutrients-energy-q11-inactive-v1";
 const storageKey = "bioquest_nutrients_energy_state_v1";
 
@@ -292,7 +292,7 @@ window.__nutrientsEnergyProbe = {
   api.setState(stateFor("result"));
   assert(api.renderResult().includes("答對</span><strong>13/13"), "result should report 13 active questions");
   assert(api.renderResult().includes("data-result-earned-badges"), "result should render earned-only badge section");
-  assert(api.renderResult().includes("?v=20260802-nutrients-energy-submitted-retry-ia-v1"), "earned badge image URLs must carry runtime cache");
+  assert(api.renderResult().includes("?v=20260929-student-id-example-115001-v1"), "earned badge image URLs must carry runtime cache");
   api.setState(stateFor("achievements"));
   assert(!api.renderAchievements().includes("本單元成就：生命補給徽章牆"), "achievements must not render legacy unit badge wall");
   assert(!api.renderAchievements().includes("data-bq-unit-achievements"), "achievements must use shared overview-only mount");

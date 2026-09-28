@@ -4,7 +4,7 @@ const { pathToFileURL } = require("node:url");
 const { chromium } = require("/Users/biomin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
 
 const root = process.env.BQ_TEST_ROOT ? path.resolve(process.env.BQ_TEST_ROOT) : path.resolve(__dirname, "..");
-const CACHE = "20260731-scale-submitted-retry-ia-v1";
+const CACHE = "20260929-student-id-example-115001-v1";
 const QUESTION_VERSION = "20260711-scale-security-v1";
 const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=${CACHE}`;
 

@@ -9,7 +9,7 @@ import playwright from "/Users/biomin/.cache/codex-runtimes/codex-primary-runtim
 const { chromium } = playwright;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = process.env.BIOQUEST_AUDIT_ROOT ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT) : path.resolve(root, "..");
-const version = "20260810-nutrient-test-submitted-retry-ia-v1";
+const version = "20260929-student-id-example-115001-v1";
 const questionVersion = "20260720-nutrient-test-starch-glucose-only-v2";
 const artifactDir = process.env.BIOQUEST_ARTIFACT_DIR
   ? path.resolve(process.env.BIOQUEST_ARTIFACT_DIR)

@@ -142,7 +142,7 @@ assert.match(appSource, /startAttempt/);
 assert.match(appSource, /hintEvent/);
 assert.match(appSource, /attempt_session_token/);
 assert.match(appSource, /提交後會進行結算，本次作答不能再修改/);
-assert.equal(api.VERSION, "20260810-nutrient-test-submitted-retry-ia-v1");
+assert.equal(api.VERSION, "20260929-student-id-example-115001-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-nutrient-test-starch-glucose-only-v2");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "runtime cache must stay separate from canonical question version");
 assert.match(appSource, /question_version: QUESTION_VERSION/);
@@ -152,7 +152,7 @@ state.result = perfect;
 state.backend_status = "submitted_verified";
 state.screen = "result";
 assert.match(api.renderResult(), /data-result-earned-badges="true"/);
-assert.match(api.renderResult(), /badge-nutrient_test-nutrient_test_entry\.webp\?v=20260810-nutrient-test-submitted-retry-ia-v1/);
+assert.match(api.renderResult(), /badge-nutrient_test-nutrient_test_entry\.webp\?v=20260929-student-id-example-115001-v1/);
 assert.match(api.renderResult(), /data-relogin-action="true"/);
 
 state.screen = "achievements";

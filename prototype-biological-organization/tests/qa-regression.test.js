@@ -10,7 +10,7 @@ const { chromium } = playwright;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = process.env.BIOQUEST_AUDIT_ROOT ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT) : path.resolve(root, "..");
 const TEST_VERSION = "20260716-biological-organization-canonical-v1";
-const CACHE_VERSION = "20260731-biological-organization-submitted-retry-ia-v1";
+const CACHE_VERSION = "20260929-student-id-example-115001-v1";
 const artifactDir = path.join(root, "tests", "artifacts", CACHE_VERSION);
 fs.mkdirSync(artifactDir, { recursive: true });
 
