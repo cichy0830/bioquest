@@ -62,15 +62,15 @@ appVersionOverrides.set("cell_structure", "20260922-student-id-example-115001-v1
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
-appVersionOverrides.set("enzymes", "20260811-enzymes-submitted-retry-ia-v1");
+appVersionOverrides.set("enzymes", "20261001-student-id-example-115001-v1");
 appVersionOverrides.set("nutrient_test", "20260929-student-id-example-115001-v1");
 appVersionOverrides.set("scale", "20260929-student-id-example-115001-v1");
 appVersionOverrides.set("nutrients_energy", "20260929-student-id-example-115001-v1");
-appVersionOverrides.set("photosynthesis", "20260814-photosynthesis-variable-control-asset-v1");
+appVersionOverrides.set("photosynthesis", "20261002-student-id-example-115001-v1");
 appVersionOverrides.set("biological_organization", "20260929-student-id-example-115001-v1");
 appVersionOverrides.set("cell_transport", "20260922-student-id-example-115001-v1");
 appVersionOverrides.set("plant_material_transport", "20260813-plant-material-transport-scroll-v1");
-appVersionOverrides.set("human_nutrition", "20260723-human-nutrition-approved-visuals-v1");
+appVersionOverrides.set("human_nutrition", "20261003-student-id-example-115001-v1");
 appVersionOverrides.set("plant_transport_structures", "20260812-plant-transport-structures-mapping-v1");
 appVersionOverrides.set("cardiovascular_components", "20260812-cardiovascular-components-mapping-v1");
 appVersionOverrides.set("human_circulation", "20260813-human-circulation-mapping-v1");

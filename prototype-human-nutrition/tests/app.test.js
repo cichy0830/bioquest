@@ -23,7 +23,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-human-nutrition/app.js" });
 
 const api = context.window.__human_nutritionTest;
-assert.equal(api.VERSION, "20260723-human-nutrition-approved-visuals-v1");
+assert.equal(api.VERSION, "20261003-student-id-example-115001-v1");
 assert.equal(api.QUESTION_VERSION, "20260723-human-nutrition-digestive-classification-v2");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -32,6 +32,8 @@ assert(!source.includes("question_version: VERSION"), "cache VERSION must not fl
 assert(source.includes("startData.question_version !== QUESTION_VERSION"), "startAttempt guard must compare canonical QUESTION_VERSION");
 assert(!source.includes("startData.question_version !== VERSION"), "startAttempt guard must not compare cache VERSION");
 assert.equal(api.mission.unit_id, "human_nutrition");
+assert.match(source, /placeholder="例如 115001"/);
+assert.doesNotMatch(source, /S70101/);
 assert.equal(api.questions.length, 14);
 assert.equal(api.badges.length, 13);
 assert(!source.includes("林安安"), "正式單元不得含舊測試名單");

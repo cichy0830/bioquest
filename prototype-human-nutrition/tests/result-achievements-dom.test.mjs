@@ -112,7 +112,7 @@ async function inspect(mode, screen, viewport) {
       titleIsFirstAchievementChild: Boolean(titleCard && firstAchievementChild === titleCard),
       resultBadgeCards: document.querySelectorAll(".result-stack .badge-wall .badge").length,
       resultBadgeImages: [...document.querySelectorAll(".result-stack .badge-wall .badge-visual img")].filter((img) => img.complete && img.naturalWidth > 0).length,
-      resultBadgeImageCacheOk: [...document.querySelectorAll(".result-stack .badge-wall .badge-visual img")].every((img) => img.currentSrc.includes("20260723-human-nutrition-approved-visuals-v1")),
+      resultBadgeImageCacheOk: [...document.querySelectorAll(".result-stack .badge-wall .badge-visual img")].every((img) => img.currentSrc.includes("20261003-student-id-example-115001-v1")),
       horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 2,
       visibleTitleImages: [...document.querySelectorAll(".bq-title-avatar-card img, .title-avatar-card.achievements img")].filter((img) => img.complete && img.naturalWidth > 0).length
     };

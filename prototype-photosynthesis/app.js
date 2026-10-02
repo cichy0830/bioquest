@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260814-photosynthesis-variable-control-asset-v1";
+const VERSION = "20261002-student-id-example-115001-v1";
 const QUESTION_VERSION = "20260721-photosynthesis-q09-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -796,7 +796,7 @@ function renderLogin() {
         <p class="lead">請先確認身份。登入後會開啟本次任務簡報。</p>
         <div class="login-card">
           <label for="studentId">學生學號</label>
-          <input id="studentId" type="text" autocomplete="username" placeholder="例如 S70101">
+          <input id="studentId" type="text" autocomplete="username" placeholder="例如 115001">
           <div class="button-row">
             <button class="primary" id="loginBtn">登入任務</button>
             <button class="secondary" id="guestBtn">guest 測試</button>
