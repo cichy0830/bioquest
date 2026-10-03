@@ -43,7 +43,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-photosynthesis/app.js" });
 
 const api = context.window.__photosynthesisTest;
-assert.equal(api.VERSION, "20260814-photosynthesis-variable-control-asset-v1");
+assert.equal(api.VERSION, "20261002-student-id-example-115001-v1");
 assert.equal(api.QUESTION_VERSION, "20260721-photosynthesis-q09-inactive-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -52,6 +52,8 @@ assert(!source.includes("question_version: VERSION"), "cache VERSION must not fl
 assert(source.includes("startData.question_version !== QUESTION_VERSION"), "startAttempt guard must compare canonical QUESTION_VERSION");
 assert(!source.includes("startData.question_version !== VERSION"), "startAttempt guard must not compare cache VERSION");
 assert.equal(api.mission.unit_id, "photosynthesis");
+assert.match(source, /placeholder="例如 115001"/);
+assert.doesNotMatch(source, /S70101/);
 assert.equal(api.questions.length, 13);
 assert.equal(api.questions.some((question) => question.id === "q09"), false, "q09 must be inactive and absent from active runtime questions");
 assert.equal(api.questions.some((question) => question.type === "sequence"), false, "photosynthesis should not have active sequence questions after q09 removal");
