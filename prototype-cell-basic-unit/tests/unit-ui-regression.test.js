@@ -7,6 +7,10 @@ const root = path.resolve(__dirname, "..");
 const source = fs.readFileSync(path.join(root, "app.js"), "utf8");
 const index = fs.readFileSync(path.join(root, "index.html"), "utf8");
 function findBackendLoader(startDir) {
+  if (process.env.BIOQUEST_WORKSPACE) {
+    const fromEnv = path.join(process.env.BIOQUEST_WORKSPACE, "05_教師後台", "tests", "apps-script-loader.js");
+    if (fs.existsSync(fromEnv)) return fromEnv;
+  }
   let current = startDir;
   for (let depth = 0; depth < 6; depth += 1) {
     const candidate = path.join(current, "05_教師後台", "tests", "apps-script-loader.js");

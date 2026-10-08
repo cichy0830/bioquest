@@ -1,7 +1,7 @@
 const assert = require("node:assert/strict");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
-const { chromium } = require("/Users/biomin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
+const { chromium } = require("playwright");
 
 const root = process.env.BQ_TEST_ROOT ? path.resolve(process.env.BQ_TEST_ROOT) : path.resolve(__dirname, "..");
 const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=20260731-cell-structure-submitted-retry-ia-v1`;
@@ -280,7 +280,7 @@ async function runCase(browser, viewport, mode) {
 
 (async () => {
   const browser = await chromium.launch({
-    executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    executablePath: process.env.BIOQUEST_CHROME_PATH || undefined
   });
   try {
     for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {

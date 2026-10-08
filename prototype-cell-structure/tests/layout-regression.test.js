@@ -2,8 +2,8 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
-const { chromium } = require("/Users/biomin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
-const sharp = require("/Users/biomin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/sharp");
+const { chromium } = require("playwright");
+const sharp = require("sharp");
 
 const root = process.env.BQ_TEST_ROOT ? path.resolve(process.env.BQ_TEST_ROOT) : path.resolve(__dirname, "..");
 const artifactDir = path.join(__dirname, "artifacts", "cell-structure-submitted-retry-ia-v1");
@@ -343,7 +343,7 @@ async function makeContactSheet(viewportWidth) {
 }
 
 (async () => {
-  const browser = await chromium.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" });
+  const browser = await chromium.launch({ executablePath: process.env.BIOQUEST_CHROME_PATH || undefined });
   try {
     await checkViewport(browser, { width: 1440, height: 900 });
     await checkViewport(browser, { width: 390, height: 844 });

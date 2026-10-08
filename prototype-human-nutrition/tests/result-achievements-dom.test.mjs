@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import playwright from "/Users/biomin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.js";
+import playwright from "playwright";
 
 const { chromium } = playwright;
 
@@ -77,7 +77,7 @@ function stateFor(mode, screen) {
 async function inspect(mode, screen, viewport) {
   const browser = await chromium.launch({
     headless: true,
-    executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    executablePath: process.env.BIOQUEST_CHROME_PATH || undefined
   });
   const context = await browser.newContext({ viewport });
   const errors = [];

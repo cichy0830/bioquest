@@ -5,7 +5,7 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import playwright from "/Users/biomin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.js";
+import playwright from "playwright";
 
 const { chromium } = playwright;
 
@@ -451,7 +451,7 @@ async function auditUnit(browser, baseUrl, unit, viewport) {
 const { server, port } = await startServer();
 const browser = await chromium.launch({
   headless: true,
-  executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  executablePath: process.env.BIOQUEST_CHROME_PATH || undefined
 });
 const results = [];
 try {

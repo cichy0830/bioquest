@@ -2,12 +2,14 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
-const { chromium } = require("/Users/biomin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
+const { chromium } = require("playwright");
 
 const defaultRoot = path.resolve(__dirname, "..", "..");
 const runningInsidePublish = path.basename(defaultRoot) === "bioquest" && path.basename(path.dirname(defaultRoot)) === "_publish";
 const workspaceRoot = runningInsidePublish ? path.resolve(defaultRoot, "..", "..") : defaultRoot;
-const publishRoot = runningInsidePublish ? defaultRoot : path.join(workspaceRoot, "_publish", "bioquest");
+const legacyPublishRoot = path.join(workspaceRoot, "_publish", "bioquest");
+// Codex 時期的 _publish 目錄已不存在時，直接測 repo 本身。
+const publishRoot = runningInsidePublish || !fs.existsSync(legacyPublishRoot) ? defaultRoot : legacyPublishRoot;
 const artifactDir = path.join(__dirname, "artifacts", "20260731-u7-submitted-retry-ia-v1");
 const cache = "20260731-cell-observation-submitted-retry-ia-v1";
 

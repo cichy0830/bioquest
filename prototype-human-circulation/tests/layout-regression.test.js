@@ -5,14 +5,14 @@ import { createRequire } from "node:module";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const require = createRequire(import.meta.url);
-const { chromium } = require("/Users/biomin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
-const sharp = require("/Users/biomin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/sharp");
+const { chromium } = require("playwright");
+const sharp = require("sharp");
 const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-human-circulation")
   : sourceRoot;
 const Q = (n) => `human_circulation_q${String(n).padStart(2, "0")}`;
-const browser = await chromium.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" });
+const browser = await chromium.launch({ executablePath: process.env.BIOQUEST_CHROME_PATH || undefined });
 
 async function sceneVisibilityMetrics(buffer) {
   const image = sharp(buffer);

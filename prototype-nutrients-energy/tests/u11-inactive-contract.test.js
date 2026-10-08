@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
 const vm = require("node:vm");
-const { chromium } = require("/Users/biomin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright");
+const { chromium } = require("playwright");
 
 const root = path.resolve(__dirname, "..", "..");
 const unitRoot = path.resolve(__dirname, "..");
@@ -403,7 +403,7 @@ async function assertResultAchievementsRules(browser, baseUrl, viewport, status)
 
 async function runBrowserContract() {
   const { server, port } = await startServer();
-  const browser = await chromium.launch({ executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" });
+  const browser = await chromium.launch({ executablePath: process.env.BIOQUEST_CHROME_PATH || undefined });
   try {
     const baseUrl = `http://127.0.0.1:${port}`;
     for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {

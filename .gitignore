@@ -1,3 +1,6 @@
 **/_generated_sources/
 .DS_Store
 **/.DS_Store
+node_modules/
+# 測試輸出的截圖與報告不進公開 repo（已追蹤的舊檔不受影響）
+prototype-*/tests/artifacts/

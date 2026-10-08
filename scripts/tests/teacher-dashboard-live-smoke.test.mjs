@@ -20,8 +20,11 @@ const sourceTestPath = path.join(workspaceRoot, "scripts", "tests", "teacher-das
 const publishTestPath = path.join(workspaceRoot, "_publish", "bioquest", "scripts", "tests", "teacher-dashboard-live-smoke.test.mjs");
 const sourceScript = fs.readFileSync(sourceScriptPath, "utf8");
 
-assert.equal(fs.readFileSync(publishScriptPath, "utf8"), sourceScript, "source/publish live-smoke scripts differ");
-assert.equal(fs.readFileSync(publishTestPath, "utf8"), fs.readFileSync(sourceTestPath, "utf8"), "source/publish live-smoke tests differ");
+// Codex 時期的 _publish 雙份目錄已不存在；只有在兩份都存在時才比對。
+if (fs.existsSync(publishScriptPath) && fs.existsSync(publishTestPath)) {
+  assert.equal(fs.readFileSync(publishScriptPath, "utf8"), sourceScript, "source/publish live-smoke scripts differ");
+  assert.equal(fs.readFileSync(publishTestPath, "utf8"), fs.readFileSync(sourceTestPath, "utf8"), "source/publish live-smoke tests differ");
+}
 assert.equal(AUTHORIZED_LIVE_FLAG, "--authorized-live");
 assert.equal(TEACHER_KEY_ENV, "BIOQUEST_TEACHER_DASHBOARD_KEY");
 assert.match(deploymentUrlFromSharedConfig(), /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/);

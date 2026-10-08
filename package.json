@@ -1,0 +1,8 @@
+{
+  "name": "bioquest-site",
+  "private": true,
+  "description": "BioQuest 學生端靜態網站；此檔只供本機／雲端測試安裝 Playwright，網站本身不需要建置。",
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}
