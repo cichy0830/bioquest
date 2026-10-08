@@ -47,7 +47,12 @@ async function forceScroll(page) {
 }
 
 async function expectAtTop(page, label) {
-  await page.waitForTimeout(80);
+  // 登入流程會先等兩個 animation frame 顯示忙碌提示，固定等待 80ms 在較慢的環境不夠；
+  // 改為輪詢到歸零（最多 3 秒），之後仍以下方斷言判定。
+  await page.waitForFunction(() => window.scrollY === 0
+    && document.documentElement.scrollTop === 0
+    && document.body.scrollTop === 0
+    && (document.querySelector(".main-stage")?.scrollTop || 0) === 0, null, { timeout: 3000 }).catch(() => {});
   const scroll = await page.evaluate(() => ({
     windowY: window.scrollY,
     documentY: document.documentElement.scrollTop,
@@ -76,6 +81,7 @@ try {
     });
     await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260813-plant-material-transport-scroll-v1`);
     await page.locator("#guestBtn").click();
+    await page.waitForFunction(() => document.querySelector("#screen")?.dataset.bioquestScreen === "brief");
     await expectAtTop(page, "guest login");
     await forceScroll(page);
     await page.locator('[data-next="scan"]').click();
@@ -127,7 +133,7 @@ try {
     });
     assert.equal(await page.locator(".result-stack .badge-wall img").count(), readyEarnedCount, "result should only render earned badges with ready images");
     assert.equal(await page.locator(".result-stack .bq-badge-asset-pending").count(), 0, "result should not show pending badge placeholders");
-    const resultBadgeSrcs = await page.locator(".result-stack .badge-wall img").evaluateAll((imgs) => imgs.map((img) => img.currentSrc));
+    const resultBadgeSrcs = await page.locator(".result-stack .badge-wall img").evaluateAll((imgs) => imgs.map((img) => img.currentSrc || img.src));
     assert.equal(resultBadgeSrcs.every((src) => src.includes("20260813-plant-material-transport-scroll-v1")), true, "ready badge srcs should carry runtime cache");
     await forceScroll(page);
     await page.locator('[data-next="achievements"]').click();

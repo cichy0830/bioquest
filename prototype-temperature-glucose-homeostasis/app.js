@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260813-temperature-glucose-homeostasis-mapping-v1";
+const VERSION = "20261008-temperature-glucose-homeostasis-scroll-v1";
 const QUESTION_VERSION = "20260718-temperature-glucose-homeostasis-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -946,6 +946,7 @@ async function submitMission() {
   });
   saveState();
   renderApp();
+  resetScreenScroll();
 }
 
 function renderLogin() {
