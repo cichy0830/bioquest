@@ -6,6 +6,7 @@ import { runSimulation } from "../simulate-achievement-progress.mjs";
 // 已知、已回報老師但尚未修正的差異。修正後請從這裡移除，讓測試重新守住。
 const KNOWN_ISSUES = [
   /^\[photosynthesis(#\d)?\] /, // 第 14 站：後台無徽章目錄、前端未送 badge_eval_json（2026-10-09 回報）
+  /^\[[a-z_]+#\d\] 登入稱號頭像=/, // 後台登入回應沿用 StudentProgress 舊頭像（性別錯、稱號升級後未更新）（2026-10-10 回報）
 ];
 
 const result = runSimulation();

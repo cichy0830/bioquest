@@ -206,6 +206,16 @@ function readFrontend(unitId) {
   return fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
 }
 
+// 依該站 app.js 推出前端送出的徽章圖片路徑（去掉 ?v= 快取參數）
+export function frontendBadgePath(frontend, unitId, id) {
+  const esc = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const explicit = frontend.match(new RegExp(`id:\\s*"${esc}"[^\\n]*?badge_image_path:\\s*\`([^\`?]+)`));
+  if (explicit) return explicit[1];
+  const template = frontend.match(/const badgeAsset = \(id\) => `([^`?]+)/);
+  if (template) return template[1].replace("${id}", id);
+  return `../shared-assets/badges/${unitId}/badge-${unitId}-${id}.webp`;
+}
+
 function post(context, action, payload) {
   const out = context.doPost({ parameter: { action }, postData: { type: "application/json", contents: JSON.stringify(payload) } });
   return JSON.parse(out.getContent());
@@ -276,9 +286,9 @@ export function runSimulation({ units = DEFAULT_UNITS, gender = "female" } = {})
         confidence_score: 4,
       };
       if (frontendSendsBadgeImages) {
-        // 模擬前端：附上每枚徽章的圖片路徑（真實路徑由各站 badgeAsset() 產生，這裡用可辨識的模擬路徑）
+        // 模擬前端：附上每枚徽章的圖片路徑（取自該站 app.js 的 badge_image_path 或 badgeAsset()，與真實前端送出的一致）
         const ids = new Set([...catalog, ...(frontend.match(/\b[a-z][a-z0-9_]{3,}\b/g) || [])]);
-        payload.badge_eval_json = JSON.stringify([...ids].map((id) => ({ badge_id: id, badge_image_path: `${prototypeDirFor(unitId)}/assets/badges/${id}.webp` })));
+        payload.badge_eval_json = JSON.stringify([...ids].map((id) => ({ badge_id: id, badge_image_path: frontendBadgePath(frontend, unitId, id) })));
       }
       const res = post(context, "submitAttempt", payload);
       if (!res.ok) { fail(where, `submitAttempt 失敗 ${res.error} ${JSON.stringify(res.missing_question_ids || res.details || "")}`); return; }
@@ -344,13 +354,15 @@ export function runSimulation({ units = DEFAULT_UNITS, gender = "female" } = {})
       const after = get(context, { action: "getStudentAndAttemptStatus", student_id: student.student_id, unit_id: unitId });
       if (after.progress.total_exp !== expectedTotal) fail(where, `登入累積 EXP=${after.progress.total_exp}，預期 ${expectedTotal}`);
       if (after.progress.current_title_id !== title.id) fail(where, `登入稱號=${after.progress.current_title_id}`);
+      const loginAvatar = String(after.progress.title_avatar_path || "").split("/").pop();
+      if (!loginAvatar.includes(`${title.id}-${gender}.webp`)) fail(where, `登入稱號頭像=${loginAvatar}，預期 ${title.id}-${gender}（提交回應為 ${String(sp.title_avatar_path).split("/").pop()}）`);
 
       steps.push({
         unit_id: unitId, step: index + 1, label: plan.label,
         attempt_total_exp: v.attempt_total_exp, unit_credited_exp: res.unit_credited_exp,
         badges, total_exp: sp.total_exp, title_id: sp.current_title_id,
         // 給 Playwright 注入用：該步驟的後台回應
-        login_response_after: after, submit_response: res,
+        login_response_before: login, start_response: start, login_response_after: after, submit_response: res,
       });
     });
   }
