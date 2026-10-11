@@ -2,7 +2,7 @@
 // 跨站成就一致性 2a（前端部分）：把 simulate-achievement-progress.mjs 模擬出的後台登入回應
 // 注入各站（Playwright 攔截 Apps Script 請求，不連正式後台），登入後打開「成就」頁，
 // 檢查稱號、累積 EXP、完成站數、稱號頭像與全冊徽章總覽是否和後台模擬結果一致。
-// 結算頁（需逐站作答到提交）留待下一步。
+// 結算頁見 audit-achievement-result.mjs。
 //
 // 用法：
 //   BIOQUEST_WORKSPACE=../bioquest-workspace node scripts/audit-achievement-injection.mjs [--units=life_world,scale] [--shots=dir]
@@ -20,7 +20,7 @@ function contentType(file) {
   return { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8", ".json": "application/json", ".webp": "image/webp", ".png": "image/png", ".jpg": "image/jpeg", ".svg": "image/svg+xml" }[path.extname(file).toLowerCase()] || "application/octet-stream";
 }
 
-function startServer() {
+export function startServer() {
   const server = http.createServer((req, res) => {
     const clean = decodeURIComponent(new URL(req.url, "http://127.0.0.1").pathname).replace(/^\/+/, "") || "index.html";
     const file = path.resolve(root, clean);
@@ -34,7 +34,7 @@ function startServer() {
   return new Promise((resolve) => server.listen(0, "127.0.0.1", () => resolve({ server, port: server.address().port })));
 }
 
-const avatarFile = (src) => decodeURIComponent(String(src || "").split("?")[0].split("/").pop());
+export const avatarFile = (src) => decodeURIComponent(String(src || "").split("?")[0].split("/").pop());
 
 async function auditUnit(browser, baseUrl, unitId, loginResponse, injectedLogin, startResponse, viewport, shotsDir, notes) {
   const where = `${unitId}@${viewport.width}`;

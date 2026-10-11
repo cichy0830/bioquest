@@ -190,6 +190,12 @@ const SCENARIO = [
   { label: "再挑戰退步（2 題錯）", wrong: [5, 6], hints: [], reflection: "blank" },
 ];
 
+// 「再挑戰有 retry_exp」情境：首次正確率低、再挑戰進步但未滿分 → 後台應給再挑戰補分（retry_exp > 0）。
+export const RETRY_EXP_SCENARIO = [
+  { label: "首次（6 題錯、回報空白）", wrong: [0, 1, 2, 3, 4, 5], hints: [], reflection: "blank" },
+  { label: "再挑戰進步（3 題錯，應有再挑戰補分）", wrong: [0, 1, 2], hints: [], reflection: "blank" },
+];
+
 function resolvePlan(plan, registry) {
   const qids = Object.keys(registry.questions);
   return { ...plan, wrong: plan.wrong.map((i) => qids[i]), hints: plan.hints.map((i) => qids[i]) };
@@ -225,7 +231,7 @@ function get(context, params) {
   return JSON.parse(context.doGet({ parameter: params }).getContent());
 }
 
-export function runSimulation({ units = DEFAULT_UNITS, gender = "female" } = {}) {
+export function runSimulation({ units = DEFAULT_UNITS, gender = "female", scenario = SCENARIO } = {}) {
   const loaderPath = findLoader();
   if (!loaderPath) return { skipped: true, reason: "找不到 bioquest-workspace（請設定 BIOQUEST_WORKSPACE）" };
   const { loadAppsScriptSource } = require(loaderPath);
@@ -256,7 +262,7 @@ export function runSimulation({ units = DEFAULT_UNITS, gender = "female" } = {})
     if (!catalog.length && !frontendSendsBadgeImages) fail(unitId, "後台沒有此站徽章目錄，前端提交也沒帶 badge_eval_json（徽章圖片路徑）→ 成就總覽無法顯示此站徽章名稱與圖片");
     else if (!catalog.length) warn(unitId, "後台沒有此站徽章目錄，徽章名稱／圖片完全依賴前端提交的 badge_eval_json");
 
-    SCENARIO.forEach((rawPlan, index) => {
+    scenario.forEach((rawPlan, index) => {
       const plan = resolvePlan(rawPlan, registry);
       const where = `${unitId}#${index + 1}`;
       const login = get(context, { action: "getStudentAndAttemptStatus", student_id: student.student_id, unit_id: unitId });
