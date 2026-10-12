@@ -1,4 +1,4 @@
-// 跨站成就一致性 2a（結算頁）：把後台模擬的提交回應注入第 13、14 站，作答到提交，
+// 跨站成就一致性 2a（結算頁）：把後台模擬的提交回應注入第 13–15 站，作答到提交，
 // 檢查結算頁與提交後成就頁；含「再挑戰有 retry_exp」情境。
 // 會啟動 Playwright（瀏覽器對外連線由 run-tests.mjs 阻擋；Apps Script 請求全部被攔截）。
 import assert from "node:assert/strict";
@@ -9,6 +9,10 @@ const KNOWN_ISSUES = [
   /^\[photosynthesis[^\]]*\] 結算頁沒有回到頁首/, // submitMission 結尾沒有捲回頁首（22 站共同問題，2026-10-08 記錄，整頓時處理）
   /^\[photosynthesis[^\]]*\] EXP 明細「(直接答對|回報)」顯示/, // 第 14 站讀 direct_exp／reflection_exp，後台送 concept_exp／question_exp（2026-10-11 發現）
   /^\[photosynthesis[^\]]*\] 提交後總覽本站縮圖 0 張/, // 第 14 站後台無徽章目錄、前端未送 badge_eval_json（W3，2026-10-09 回報）
+  // 第 15 站 applyBackendSubmitResponse 讀錯後台欄位名（2026-10-12 發現）：
+  /^\[human_nutrition[^\]]*\] 本次取得顯示 \d+ EXP/, // 讀 attempt_exp，後台送 attempt_total_exp
+  /^\[human_nutrition[^\]]*\] EXP 明細「(直接答對|回報)」顯示/, // 讀 direct_exp／reflection_exp，後台送 concept_exp／question_exp
+  /^\[human_nutrition[^\]]*\] 本次徽章(少|多)顯示/, // backendBadgeIds 沒讀 verified_attempt.badges，改顯示本機判定的徽章
 ];
 
 const result = await runResultAudit();

@@ -8,7 +8,7 @@
 // 若前端沿用本機計算值，就會和後台不一致而被抓到。
 //
 // 用法：
-//   BIOQUEST_WORKSPACE=../bioquest-workspace node scripts/audit-achievement-result.mjs [--units=enzymes,photosynthesis] [--shots=dir]
+//   BIOQUEST_WORKSPACE=../bioquest-workspace node scripts/audit-achievement-result.mjs [--units=enzymes,photosynthesis,human_nutrition] [--shots=dir]
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -54,6 +54,47 @@ const DRIVERS = {
     await page.locator('[data-next="reflection"]').click();
     await page.locator("#submitMission").click();
   },
+  async human_nutrition(page) {
+    const choice = { q03: "glands", q05: "digestion", q07: "bile", q08: "protein", q09: "small_intestine", q10: "absorb", q11: "absorb_transport", q13: "small_intestine", q14: "different" };
+    const maps = {
+      q01: { mouth: "tract", esophagus: "tract", stomach: "tract", small_intestine: "tract", large_intestine: "tract", salivary_gland: "gland", gastric_gland: "gland", intestinal_gland: "gland", liver: "gland", pancreas: "gland" },
+      q04: { mouth: "chew", esophagus: "push", stomach: "mix", small_intestine: "absorb_nutrients", large_intestine: "absorb_water" },
+      q06: { amylase: "starch", protease: "protein", lipase: "lipid" },
+      q12: { starch_break: "digestion", enter_wall: "absorption", protein_break: "digestion", enter_blood: "absorption" },
+    };
+    const click = (qid) => page.locator(`[data-answer="${qid}"][data-value="${choice[qid]}"]`).click();
+    // 每次 change 都會重繪，逐一選取
+    const map = async (qid) => { for (const [item, value] of Object.entries(maps[qid])) await page.locator(`select[data-map-question="${qid}"][data-map-item="${item}"]`).selectOption(value); };
+    // 排序題：用「上移」按鈕把每個位置換成正確項目（每次點擊都會重繪）
+    const sequence = async (qid, order) => {
+      for (let i = 0; i < order.length; i += 1) {
+        for (;;) {
+          const now = await page.locator(`[data-sequence="${qid}"] [data-sequence-item]`).evaluateAll((els) => els.map((el) => el.dataset.sequenceItem));
+          if (now.indexOf(order[i]) <= i) break;
+          await page.locator(`[data-move="${qid}"][data-item="${order[i]}"][data-dir="-1"]`).click();
+        }
+      }
+    };
+    await page.locator('[data-next="scan"]').click();
+    await page.locator('[data-next="checkpoint1"]').click();
+    await map("q01");
+    await sequence("q02", ["mouth", "esophagus", "stomach", "small_intestine", "large_intestine", "anus"]);
+    await click("q03");
+    await map("q04");
+    await page.locator('[data-section-next="checkpoint1"]').click();
+    await page.waitForSelector("#screen[data-bioquest-screen='checkpoint2']");
+    await click("q05");
+    await map("q06");
+    for (const qid of ["q07", "q08"]) await click(qid);
+    await page.locator('[data-section-next="checkpoint2"]').click();
+    await page.waitForSelector("#screen[data-bioquest-screen='checkpoint3']");
+    for (const qid of ["q09", "q10", "q11"]) await click(qid);
+    await map("q12");
+    for (const qid of ["q13", "q14"]) await click(qid);
+    await page.locator('[data-section-next="checkpoint3"]').click();
+    await page.locator('[data-next="reflection"]').click();
+    await page.locator("#submitMission").click();
+  },
 };
 
 // ---------- 各站結算頁讀值：統一成 { attemptExp, creditedExp, ledger, correct, total } ----------
@@ -85,6 +126,25 @@ const READERS = {
       correct: null,
       total: null,
       verifiedNotice: /後台已回傳正式認列資料/.test(text),
+    };
+  },
+  human_nutrition: () => {
+    // 結算頁版面與第 14 站相同（ledger-grid）；本次徽章沒有 data-badge-id，改用徽章名稱對回 id
+    const text = document.querySelector("#screen").textContent.replace(/\s+/g, " ");
+    const num = (re) => { const m = text.match(re); return m ? Number(m[1]) : null; };
+    const rows = Object.fromEntries([...document.querySelectorAll("#screen .ledger-grid article")].map((a) => [a.querySelector("span").textContent.trim(), Number(a.querySelector("strong").textContent)]));
+    const byName = Object.fromEntries((window.__human_nutritionTest?.badges || []).map((b) => [b.name, b.id]));
+    const cards = [...document.querySelectorAll("#screen .badge-wall .badge.earned")];
+    return {
+      attemptExp: num(/本次取得：(\d+)/),
+      creditedExp: num(/本單元正式認列：(\d+) EXP/),
+      ledger: { completion: rows["完成任務"], direct: rows["直接答對"], revision: rows["提示後修正"], reflection: rows["回報 EXP"], mastery: rows["精熟 EXP"], retry: rows["再挑戰補分"] },
+      ledgerTotal: rows["總計"] ?? null,
+      correct: null,
+      total: null,
+      verifiedNotice: /後台已回傳正式認列資料/.test(text),
+      badges: cards.map((el) => byName[el.querySelector("strong")?.textContent.trim()] || `?${el.querySelector("strong")?.textContent.trim()}`),
+      badgeImagesBroken: cards.filter((el) => { const img = el.querySelector("img"); return !img || !(img.complete && img.naturalWidth > 0); }).map((el) => byName[el.querySelector("strong")?.textContent.trim()] || "?"),
     };
   },
 };
@@ -156,6 +216,8 @@ async function auditStep(browser, baseUrl, step, viewport, shotsDir, mutateSubmi
       overflow: document.documentElement.scrollWidth > innerWidth + 1,
       scrollY: Math.round(scrollY + (document.querySelector("#screen")?.scrollTop || 0)),
     }));
+    // 沒有 data-badge-id 的站由 READERS 自行回報本次徽章
+    if (shown.badges) { dom.badges = shown.badges; dom.badgeImagesBroken = shown.badgeImagesBroken || []; }
     // 預期值一律取模擬後台的原始回應（mutateSubmit 只竄改注入頁面的資料，供自我驗證）
     const want = expectedFromSubmit(step.submit_response);
     if (!shown.verifiedNotice) fail("結算頁沒有顯示「後台已回傳正式認列資料」");
