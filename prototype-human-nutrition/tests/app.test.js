@@ -23,7 +23,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-human-nutrition/app.js" });
 
 const api = context.window.__human_nutritionTest;
-assert.equal(api.VERSION, "20261003-student-id-example-115001-v1");
+assert.equal(api.VERSION, "20261013-human-nutrition-result-fields-v1");
 assert.equal(api.QUESTION_VERSION, "20260723-human-nutrition-digestive-classification-v2");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
