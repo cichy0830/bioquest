@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261002-student-id-example-115001-v1";
+const VERSION = "20261013-photosynthesis-result-fields-v1";
 const QUESTION_VERSION = "20260721-photosynthesis-q09-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -723,20 +723,20 @@ function applyBackendSubmitResponse(response, localResult) {
   return {
     ...localResult,
     verification_status: verified.verification_status || response.verification_status || "server_verified",
-    correct_count: Number(verified.correct_count ?? localResult.correct_count),
+    correct_count: Number(verified.correct_count ?? verified.correct ?? localResult.correct_count),
     total_questions: Number(verified.total_questions ?? localResult.total_questions),
     accuracy: Number(verified.accuracy ?? localResult.accuracy),
-    hint_used_count: Number(verified.hint_used_count ?? localResult.hint_used_count),
+    hint_used_count: Number(verified.hint_used_count ?? verified.hints_used ?? localResult.hint_used_count),
     completion_exp: Number(verified.completion_exp ?? localResult.completion_exp),
-    direct_exp: Number(verified.direct_exp ?? localResult.direct_exp),
+    direct_exp: Number(verified.direct_exp ?? verified.concept_exp ?? localResult.direct_exp),
     revision_exp: Number(verified.revision_exp ?? localResult.revision_exp),
-    reflection_exp: Number(verified.reflection_exp ?? localResult.reflection_exp),
+    reflection_exp: Number(verified.reflection_exp ?? verified.question_exp ?? localResult.reflection_exp),
     mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
     retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
     attempt_exp: Number(verified.attempt_exp ?? verified.attempt_total_exp ?? localResult.attempt_exp),
     unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
     exp_delta: Number(verified.credited_delta ?? verified.exp_delta ?? localResult.exp_delta),
-    earned_badges: backendBadgeIds.length ? backendBadgeIds : localResult.earned_badges,
+    earned_badges: backendBadgeIds.length || Array.isArray(verified.badges) || typeof verified.badges_json === "string" ? backendBadgeIds : localResult.earned_badges,
     backend_response: response
   };
 }
@@ -1074,7 +1074,7 @@ function renderResult() {
           ${ledgerRow("回報 EXP", result.reflection_exp)}
           ${ledgerRow("精熟 EXP", result.mastery_exp)}
           ${ledgerRow("再挑戰補分", result.retry_exp)}
-          ${ledgerRow("總計", result.unit_credited_exp)}
+          ${ledgerRow("總計", result.attempt_exp)}
         </div>
         <p class="muted">${statusCopy.detail}</p>
         <div class="button-row">
