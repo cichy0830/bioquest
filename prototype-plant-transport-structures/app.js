@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260812-plant-transport-structures-mapping-v1";
+const VERSION = "20261014-plant-transport-structures-spec-sync-v1";
 const QUESTION_VERSION = "20260727-plant-transport-structures-q03-continuity-v3";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -118,11 +118,11 @@ const questions = [
   {id:"q07",section:"checkpoint2",concept:"phloem_function",type:"choice",answer:"phloem",prompt:"葉片行光合作用製造的養分，要運送到根或其他部位，主要和哪一類構造有關？",hint:"想想葉片製造的養分要離開葉片時會走哪類管線。",misconception:"all_nutrients_from_roots",options:[{id:"phloem",text:"韌皮部"},{id:"xylem",text:"木質部"},{id:"root_hair",text:"根毛表皮"},{id:"petal",text:"花瓣"}]},
   {id:"q08",section:"checkpoint2",concept:"leaf_vein_transport",type:"choice",answer:"veins_contain_vascular_bundle",prompt:"有同學說：「葉脈只是讓葉子看起來有紋路，主要沒有運輸功能。」哪個修正較合理？",hint:"回想葉片上的脈絡會連到莖內的管線。",misconception:"leaf_vein_only_support",options:[{id:"veins_contain_vascular_bundle",text:"葉脈含有維管束，和水分、礦物質與養分運輸有關"},{id:"flower_only",text:"葉脈只負責開花"},{id:"animal_vessel",text:"葉脈是動物血管"},{id:"soil_absorb",text:"葉脈只能吸收土壤水分"}]},
   {id:"q09",section:"checkpoint3",concept:"transpiration_basic",type:"sequence",prompt:"請拖曳排序卡，排出水分從土壤到葉片並與蒸散作用連結的基礎流程。",hint:"先從土壤和根部開始，再看運輸管線，最後連到葉片水分散失。",misconception:"transpiration_only_waste",steps:sequenceSteps,answer:correctSequence},
-  {id:"q10",section:"checkpoint3",concept:"transpiration_basic",type:"choice",answer:"transpiration_linked_to_upward_transport",prompt:"植物葉片的部分水分會經氣孔散失。這種蒸散作用和水分運輸的關係，哪個說法較合理？",hint:"注意水分從葉片散失和根部吸水、木質部運水的連續關係。",misconception:"transpiration_only_waste",options:[{id:"transpiration_linked_to_upward_transport",text:"蒸散作用和水分由根往上運輸有關"},{id:"instant_death",text:"蒸散作用只會讓植物立刻死亡"},{id:"make_glucose",text:"蒸散作用只會製造葡萄糖"},{id:"no_stoma",text:"蒸散作用和氣孔無關"}]},
-  {id:"q11",section:"checkpoint3",concept:"vascular_bundle",type:"choice",answer:"material_transport",prompt:"某植物莖橫切面中可見成束排列的管線狀構造，這些構造最可能和哪一功能有關？",hint:"從管線狀、成束排列和根葉連接的線索判斷。",misconception:"transport_only_in_stem",options:[{id:"material_transport",text:"物質運輸"},{id:"flower_scent",text:"產生花香"},{id:"genetic_code",text:"儲存遺傳密碼"},{id:"color",text:"決定花瓣顏色"}]},
+  {id:"q10",section:"checkpoint3",concept:"transpiration_basic",type:"choice",answer:"transpiration_linked_to_upward_transport",prompt:"植物葉片的部分水分會經氣孔散失。這種蒸散作用和水分運輸的關係，哪個說法較合理？",hint:"注意水分從葉片散失和根部吸水、木質部運水可能形成連續關係。",misconception:"transpiration_only_waste",options:[{id:"transpiration_linked_to_upward_transport",text:"蒸散作用和水分由根往上運輸有關"},{id:"instant_death",text:"蒸散作用只會讓植物立刻死亡"},{id:"make_glucose",text:"蒸散作用只會製造葡萄糖"},{id:"no_stoma",text:"蒸散作用和氣孔無關"}]},
+  {id:"q11",section:"checkpoint3",concept:"vascular_bundle",type:"choice",answer:"material_transport",prompt:"某植物莖橫切面中可見一圈一圈或成束排列的管線狀構造，這些構造最可能和哪一功能有關？",hint:"從管線狀、成束排列和根葉連接的線索判斷。",misconception:"transport_only_in_stem",options:[{id:"material_transport",text:"物質運輸"},{id:"flower_scent",text:"產生花香"},{id:"genetic_code",text:"儲存遺傳密碼"},{id:"color",text:"吸引昆蟲授粉"}]},
   {id:"q12",section:"checkpoint3",concept:"cambium_basic",type:"choice",answer:"cambium",prompt:"木本植物的莖逐漸增粗時，哪個構造和這項變化較相關？",hint:"這是莖內一層能持續產生新細胞的構造。",misconception:"bark_wood_bundle_confusion",options:[{id:"cambium",text:"形成層"},{id:"stoma",text:"氣孔"},{id:"root_hair",text:"根毛"},{id:"chloroplast",text:"葉綠體"}]},
-  {id:"q13",section:"checkpoint3",concept:"xylem_phloem_roles",type:"choice",answer:"roots_water_minerals_leaves_nutrients_phloem",prompt:"哪個說法最合理地描述根與葉製造或取得的物質如何被運輸？",hint:"比較根吸收的水分、礦物質和葉片製造的養分。",misconception:"all_nutrients_from_roots",options:[{id:"roots_water_minerals_leaves_nutrients_phloem",text:"根吸收水分與礦物質；葉片製造養分，並可經韌皮部運送"},{id:"xylem_leaf_sugar",text:"木質部只把葉片糖分送到根"},{id:"no_nutrient_transport",text:"植物不需要運送養分"},{id:"phloem_only_water",text:"韌皮部只運送水分"}]},
-  {id:"q14",section:"checkpoint3",concept:"xylem_phloem_roles",type:"choice",answer:"xylem_water_minerals_phloem_nutrients",prompt:"下列哪一組木質部與韌皮部的說法較合理？",hint:"先比對根吸收的物質與葉片製造的養分。",misconception:"xylem_phloem_confusion",options:[{id:"xylem_water_minerals_phloem_nutrients",text:"木質部主要運水分與礦物質；韌皮部主要運養分"},{id:"xylem_pollen",text:"木質部主要運花粉"},{id:"phloem_leaf_support",text:"韌皮部只支撐葉片"},{id:"same_function",text:"兩者主要功能完全相同"}]}
+  {id:"q13",section:"checkpoint3",concept:"xylem_phloem_roles",type:"choice",answer:"roots_water_minerals_leaves_nutrients_phloem",prompt:"有同學說：「植物所有養分都由根吸收，再用木質部往上送。」哪個修正較合理？",hint:"比較根吸收的水分、礦物質和葉片製造的養分。",misconception:"all_nutrients_from_roots",options:[{id:"roots_water_minerals_leaves_nutrients_phloem",text:"根主要吸收水分與礦物質；葉片可製造養分，養分主要由韌皮部運送"},{id:"xylem_leaf_sugar",text:"木質部主要運送葉片製造的糖"},{id:"no_nutrient_transport",text:"植物不需要運輸養分"},{id:"phloem_only_water",text:"韌皮部只運送水分"}]},
+  {id:"q14",section:"checkpoint3",concept:"xylem_phloem_roles",type:"choice",answer:"xylem_water_minerals_phloem_nutrients",prompt:"有同學把木質部和韌皮部功能混在一起。哪個整理較合理？",hint:"先比對根吸收的物質與葉片製造的養分。",misconception:"xylem_phloem_confusion",options:[{id:"xylem_water_minerals_phloem_nutrients",text:"木質部主要運輸水分和礦物質；韌皮部主要運輸光合作用製造的養分"},{id:"xylem_pollen",text:"木質部主要運送花粉"},{id:"phloem_leaf_support",text:"韌皮部只負責支撐葉片"},{id:"same_function",text:"兩者功能完全一樣"}]}
 ];
 
 const questionMap = Object.fromEntries(questions.map((question) => [question.id, question]));
@@ -786,17 +786,26 @@ function firstBadgeIds(...values) {
 
 function backendBadgeIds(response = {}, verified = null) {
   const attemptResult = response.attempt_result || response.attempt_result_json || response.result || {};
-  return firstBadgeIds(
+  const sources = [
     attemptResult.newly_credited_badges_json,
     attemptResult.newly_credited_badges,
+    response.newly_credited_badges_json,
+    verified?.newly_credited_badges_json,
     attemptResult.earned_badges_json,
     attemptResult.earned_badges,
-    response.newly_credited_badges_json,
     response.earned_badges_json,
+    verified?.earned_badges_json,
     verified?.earned_badges,
     verified?.badges,
     verified?.badges_json
-  );
+  ];
+  // 依序取第一個「有內容」的清單；前面欄位是空陣列時繼續往下找
+  for (const value of sources) {
+    const ids = badgeIdsFromValue(value);
+    if (ids && ids.length) return [...new Set(ids)];
+  }
+  // 後台已正式回傳徽章清單（即使是空的）時，不改用本機判定
+  return firstBadgeIds(...sources);
 }
 
 function applyBackendSubmitResponse(response, localResult) {
@@ -820,10 +829,10 @@ function applyBackendSubmitResponse(response, localResult) {
   return {
     ...localResult,
     verification_status: verificationStatus,
-    correct_count: Number(verified.correct_count ?? localResult.correct_count),
+    correct_count: Number(verified.correct_count ?? verified.correct ?? localResult.correct_count),
     total_questions: Number(verified.total_questions ?? localResult.total_questions),
     accuracy: Number(verified.accuracy ?? localResult.accuracy),
-    hint_used_count: Number(verified.hint_used_count ?? localResult.hint_used_count),
+    hint_used_count: Number(verified.hint_used_count ?? verified.hints_used ?? localResult.hint_used_count),
     completion_exp: numberFromAliases(verified.completion_exp, attemptResult.completion_exp, localFallback("completion_exp")) ?? 0,
     direct_exp: numberFromAliases(verified.direct_exp, verified.concept_exp, attemptResult.direct_exp, attemptResult.concept_exp, localFallback("direct_exp")) ?? 0,
     revision_exp: numberFromAliases(verified.revision_exp, attemptResult.revision_exp, localFallback("revision_exp")) ?? 0,
@@ -918,7 +927,7 @@ function renderBrief() {
         <div class="scene-copy bq-brief-scene-caption">
           <p class="eyebrow">${mission.mission_area}</p>
           <h2>${mission.mission_title}</h2>
-          <p>綠植運輸管線站收到一份植物由根到葉的運輸紀錄。請協助整理根毛、維管束、木質部、韌皮部、葉脈與蒸散作用的基本關係。</p>
+          <p>綠植運輸管線站的根、莖、葉運輸紀錄亂掉了。阿澤老師提醒：植物沒有像人體一樣的血管和心臟，但根、莖、葉中有專門的運輸構造。貓頭鷹助理已整理好根毛、維管束、木質部、韌皮部與葉脈圖卡，請你協助判斷植物如何把水分與養分送到需要的位置。</p>
         </div>
         <div class="button-row">
           <button class="primary" data-next="scan">查看進關卡提醒</button>
@@ -930,7 +939,7 @@ function renderBrief() {
 }
 
 function renderScan() {
-  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入綠植運輸管線站前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assetUrl(assets.owlPrep)}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚根吸收、木質部運水與韌皮部運養分。</h3><p>根毛增加接觸面積；維管束連接根、莖與葉；葉脈也包含運輸構造。</p></div></div><figure class="prep-overview-figure"><img src="${assetUrl(assets.evidenceOverview)}" alt="植物運輸構造概念總覽圖" onerror="this.closest('.prep-overview-figure').hidden=true"><figcaption>概念總覽圖僅供進入關卡前建立情境；作答仍以題幹與選項為準。</figcaption></figure><div class="concept-grid"><article><strong>根毛</strong><p>協助吸收水分與礦物質。</p></article><article><strong>維管束</strong><p>在根、莖、葉之間形成運輸管線。</p></article><article><strong>木質部與韌皮部</strong><p>分別連結水分礦物質與葉片製造的養分。</p></article><article><strong>蒸散</strong><p>從土壤、根、木質部到葉片的水分路徑。</p></article></div><button class="primary" data-next="checkpoint1">開始綠植管線辨識</button></section></div>`;
+  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入綠植運輸管線站前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assetUrl(assets.owlPrep)}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚根吸收、木質部運水與韌皮部運養分。</h3><p>根可吸收水分與礦物質；莖和葉脈中都有維管束。</p></div></div><figure class="prep-overview-figure"><img src="${assetUrl(assets.evidenceOverview)}" alt="植物運輸構造概念總覽圖" onerror="this.closest('.prep-overview-figure').hidden=true"><figcaption>概念總覽圖僅供進入關卡前建立情境；作答仍以題幹與選項為準。</figcaption></figure><div class="concept-grid"><article><strong>根</strong><p>可吸收水分與礦物質。</p></article><article><strong>維管束</strong><p>莖和葉脈中都有維管束。</p></article><article><strong>木質部與韌皮部</strong><p>木質部主要運輸水分與礦物質；韌皮部主要運輸光合作用製造的養分。</p></article><article><strong>蒸散作用</strong><p>葉片水分散失和水分運輸有關。</p></article></div><button class="primary" data-next="checkpoint1">開始綠植管線辨識</button></section></div>`;
 }
 
 function renderCheckpoint(section) {

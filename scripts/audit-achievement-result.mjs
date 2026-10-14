@@ -95,6 +95,33 @@ const DRIVERS = {
     await page.locator('[data-next="reflection"]').click();
     await page.locator("#submitMission").click();
   },
+  async plant_transport_structures(page) {
+    const choice = { q01: "transport_structure", q02: "root_hair_absorption", q03: "continuous_vascular_bundle_system", q04: "vascular_bundle", q06: "xylem", q07: "phloem", q08: "veins_contain_vascular_bundle", q10: "transpiration_linked_to_upward_transport", q11: "material_transport", q13: "roots_water_minerals_leaves_nutrients_phloem", q14: "xylem_water_minerals_phloem_nutrients" };
+    const click = (qid) => page.locator(`[data-answer="${qid}"][data-value="${choice[qid]}"]`).click();
+    const sequence = async (qid, order) => {
+      for (let i = 0; i < order.length; i += 1) {
+        for (;;) {
+          const now = await page.locator(`[data-sequence="${qid}"] [data-sequence-item]`).evaluateAll((els) => els.map((el) => el.dataset.sequenceItem));
+          if (now.indexOf(order[i]) <= i) break;
+          await page.locator(`[data-move="${qid}"][data-item="${order[i]}"][data-dir="-1"]`).click();
+        }
+      }
+    };
+    await page.locator('[data-next="scan"]').click();
+    await page.locator('[data-next="checkpoint1"]').click();
+    for (const qid of ["q01", "q02", "q03", "q04"]) await click(qid);
+    await page.locator('[data-section-next="checkpoint1"]').click();
+    await page.waitForSelector("#screen[data-bioquest-screen='checkpoint2']");
+    for (const [item, value] of Object.entries({ xylem: "water_and_minerals", phloem: "photosynthetic_nutrients" })) await page.locator(`select[data-map-question="q05"][data-map-item="${item}"]`).selectOption(value);
+    for (const qid of ["q06", "q07", "q08"]) await click(qid);
+    await page.locator('[data-section-next="checkpoint2"]').click();
+    await page.waitForSelector("#screen[data-bioquest-screen='checkpoint3']");
+    await sequence("q09", ["soil_contact", "root_hair_absorption", "xylem_upward_transport", "water_reaches_leaf", "transpiration_from_stoma"]);
+    for (const qid of ["q10", "q11", "q13", "q14"]) await click(qid);
+    await page.locator('[data-section-next="checkpoint3"]').click();
+    await page.locator('[data-next="reflection"]').click();
+    await page.locator("#submitMission").click();
+  },
 };
 
 // ---------- 各站結算頁讀值：統一成 { attemptExp, creditedExp, ledger, correct, total } ----------
@@ -140,6 +167,26 @@ const READERS = {
       creditedExp: num(/本單元正式認列：(\d+) EXP/),
       ledger: { completion: rows["完成任務"], direct: rows["直接答對"], revision: rows["提示後修正"], reflection: rows["回報 EXP"], mastery: rows["精熟 EXP"], retry: rows["再挑戰補分"] },
       ledgerTotal: rows["總計"] ?? null,
+      correct: null,
+      total: null,
+      verifiedNotice: /後台已回傳正式認列資料/.test(text),
+      badges: cards.map((el) => byName[el.querySelector("strong")?.textContent.trim()] || `?${el.querySelector("strong")?.textContent.trim()}`),
+      badgeImagesBroken: cards.filter((el) => { const img = el.querySelector("img"); return !img || !(img.complete && img.naturalWidth > 0); }).map((el) => byName[el.querySelector("strong")?.textContent.trim()] || "?"),
+    };
+  },
+  plant_transport_structures: () => {
+    // 結算頁 ledger-grid；明細最後兩列是「正式認列總計」「正式認列／累積增量」，標示為正式認列，不當作本次總計比對
+    const text = document.querySelector("#screen").textContent.replace(/\s+/g, " ");
+    const num = (re) => { const m = text.match(re); return m ? Number(m[1]) : null; };
+    const rows = Object.fromEntries([...document.querySelectorAll("#screen .ledger-grid article")].map((a) => [a.querySelector("span").textContent.trim(), Number(a.querySelector("strong").textContent)]));
+    const byName = Object.fromEntries((window.__plant_transport_structuresTest?.badges || []).map((b) => [b.name, b.id]));
+    const cards = [...document.querySelectorAll("#screen .badge-wall .badge.earned")];
+    return {
+      attemptExp: num(/本次取得：(\d+)/),
+      creditedExp: num(/本單元正式認列：(\d+) EXP/),
+      ledger: { completion: rows["完成任務"], direct: rows["直接答對"], revision: rows["提示後修正"], reflection: rows["回報 EXP"], mastery: rows["精熟 EXP"], retry: rows["再挑戰補分"] },
+      ledgerTotal: null,
+      officialTotal: rows["正式認列總計"] ?? null,
       correct: null,
       total: null,
       verifiedNotice: /後台已回傳正式認列資料/.test(text),
@@ -230,6 +277,7 @@ async function auditStep(browser, baseUrl, step, viewport, shotsDir, mutateSubmi
     if (shown.ledgerTotal != null && shown.ledgerTotal !== want.attemptExp) {
       notes.push({ where, message: `EXP 明細「總計」顯示 ${shown.ledgerTotal}（= 本單元正式認列），但各項加總是本次 ${want.attemptExp}；退步再挑戰時兩者不同，容易誤讀` });
     }
+    if (shown.officialTotal != null && shown.officialTotal !== want.creditedExp) fail(`EXP 明細「正式認列總計」顯示 ${shown.officialTotal}，後台 unit_credited_exp=${want.creditedExp}`);
     if (shown.correct != null && shown.correct !== want.correct) fail(`答對顯示 ${shown.correct}，後台 correct=${want.correct}`);
     if (shown.total != null && shown.total !== want.total) fail(`題數顯示 ${shown.total}，後台 total_questions=${want.total}`);
     const missing = want.badges.filter((b) => !dom.badges.includes(b));
@@ -299,8 +347,8 @@ export async function runResultAudit({ units = RESULT_UNITS, viewports = VIEWPOR
   if (unknown.length) throw new Error(`這些站還沒有作答流程：${unknown.join(", ")}`);
   const plans = [];
   if (scenarios.includes("main")) {
-    // 模擬第 1–15 站完整累積，取目標站的步驟（登入前已有前面各站的進度）
-    const sim = runSimulation({ units: DEFAULT_UNITS });
+    // 模擬第 1–15 站（加上要檢查的後續站）完整累積，取目標站的步驟（登入前已有前面各站的進度）
+    const sim = runSimulation({ units: [...DEFAULT_UNITS, ...units.filter((u) => !DEFAULT_UNITS.includes(u))] });
     if (sim.skipped) return sim;
     for (const s of sim.steps.filter((x) => units.includes(x.unit_id))) plans.push({ step: { ...s, scenario: "" }, viewports });
   }
