@@ -25,7 +25,7 @@ try {
         return { ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) };
       };
     });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261014-plant-transport-structures-spec-sync-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261015-plant-transport-structures-reflection-spec-v1`);
     await page.evaluate(() => document.querySelector("#guestBtn")?.click());
     await page.waitForFunction(() => window.__plant_transport_structuresTest.state().screen === "brief");
     await page.evaluate(() => window.scrollTo(0, 520));
@@ -150,6 +150,16 @@ try {
     });
     assert.equal(await page.locator(".bq-report-assistant img:visible").count(), 1, "reflection report owl should be visible exactly once");
     assert.equal(await page.locator(".owl-panel.bq-report-assistant:visible").count(), 0, "legacy local report owl should be removed");
+    assert.equal(await page.locator("#uncertainConcept").count(), 1, "reflection should ask which part is still uncertain");
+    assert.equal(await page.locator("[data-direction]").count(), 7, "reflection should offer the seven q15 direction words");
+    const questionPlaceholder = await page.locator("#studentQuestion").getAttribute("placeholder");
+    assert.ok(questionPlaceholder.startsWith("關鍵詞"), "question placeholder should list keywords, not a copyable sentence");
+    await page.locator("#studentQuestion").fill("我想確認韌皮部為什麼能把葉製造的養分往下送？");
+    await page.locator('[data-direction="韌皮部"]').click();
+    assert.equal(await page.locator('[data-direction="韌皮部"]').getAttribute("aria-pressed"), "true", "direction chip should toggle on");
+    assert.equal(await page.locator("#studentQuestion").inputValue(), "我想確認韌皮部為什麼能把葉製造的養分往下送？", "choosing a direction must keep typed text");
+    assert.equal(await page.evaluate(() => window.__plant_transport_structuresTest.state().reflection.direction), "韌皮部");
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "reflection horizontal overflow");
     await page.evaluate(() => {
       const api = window.__plant_transport_structuresTest;
       const current = api.state();

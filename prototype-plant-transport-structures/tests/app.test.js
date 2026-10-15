@@ -12,7 +12,7 @@ const context = { console, window: null, document: { readyState: "loading", quer
 context.window = context; context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-plant-transport-structures/app.js" });
 const api = context.window.__plant_transport_structuresTest;
-assert.equal(api.VERSION, "20261014-plant-transport-structures-spec-sync-v1");
+assert.equal(api.VERSION, "20261015-plant-transport-structures-reflection-spec-v1");
 assert.equal(api.QUESTION_VERSION, "20260727-plant-transport-structures-q03-continuity-v3");
 assert.equal(api.mission.unit_id, "plant_transport_structures");
 assert.equal(api.questions.length, 14);
@@ -35,8 +35,8 @@ for (const badge of api.badges) {
 assert(source.includes("BioQuestLoginUX?.begin"));
 const styles = fs.readFileSync(path.join(root, "styles.css"), "utf8");
 assert(styles.includes("repeating-linear-gradient"));
-assert(styles.includes("plant-transport-structures-ambient-background-neutral.webp?v=20261014-plant-transport-structures-spec-sync-v1"));
-assert(styles.includes("plant-transport-structures-ambient-background-neutral-390w.webp?v=20261014-plant-transport-structures-spec-sync-v1"));
+assert(styles.includes("plant-transport-structures-ambient-background-neutral.webp?v=20261015-plant-transport-structures-reflection-spec-v1"));
+assert(styles.includes("plant-transport-structures-ambient-background-neutral-390w.webp?v=20261015-plant-transport-structures-reflection-spec-v1"));
 const bodyAmbientCss = styles.slice(styles.indexOf("body {"), styles.indexOf("button, input"));
 const bodyBeforeCss = styles.slice(styles.indexOf("body::before"), styles.indexOf("button, input"));
 const briefSceneCss = styles.slice(styles.indexOf(".brief-scene {"), styles.indexOf(".scene-copy"));
@@ -63,11 +63,18 @@ api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "pl
 assert.equal(api.scoreAttempt().unit_credited_exp, 500);
 api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "hint", attempt_session_token: "guest", question_version: api.QUESTION_VERSION, answers, hints: { q09: true }, hintEventStatus: { q09: "sent" }, reflection: { question: "我想確認木質部運水分與礦物質、韌皮部運養分的差異。" } });
 score = api.scoreAttempt(); assert(score.unit_credited_exp < 500); assert(!score.earned_badges.includes("plant_transport_structures_flawless"));
-for (const [text, exp] of [["", 0], ["老師好帥", 0], ["根毛吸收水分與礦物質", 0], ["我想知道葉脈中的維管束如何同時和水分與養分運輸有關？", 40]]) { api.setState({ reflection: { question: text } }); assert.equal(api.evaluateReflection().question_exp, exp); }
+for (const [text, exp] of [["", 0], ["老師好帥", 0], ["根毛吸收", 0], ["木質部", 0], ["蒸散作用", 0], ["我想減肥", 0], ["根莖葉", 0], ["我想知道葉脈中的維管束如何同時和水分與養分運輸有關？", 40]]) { api.setState({ reflection: { question: text } }); assert.equal(api.evaluateReflection().question_exp, exp); }
 api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "server", attempt_session_token: "token", question_version: api.QUESTION_VERSION, answers, hints: { q09: true }, reflection: { question: "我想確認蒸散作用如何與水分往上運輸連結？" } });
 const payload = api.buildBackendPayload(api.scoreAttempt());
 assert.equal(payload.unit_id, "plant_transport_structures"); assert.equal(payload.question_logs.length, 13); assert.deepEqual(payload.raw_answers.q09, answers.q09_sequence);
 assert.equal(payload.question_version, api.QUESTION_VERSION);
+api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "server_reflection", attempt_session_token: "token", question_version: api.QUESTION_VERSION, answers, reflection: { confident: "木質部運水", uncertain: "韌皮部", direction: "韌皮部", question: "我想確認韌皮部為什麼能把葉製造的養分往下送？", confidence: "4" } });
+const reflectionPayload = api.buildBackendPayload(api.scoreAttempt());
+assert.equal(reflectionPayload.uncertain_concept, "韌皮部");
+assert.equal(reflectionPayload.question_direction, "韌皮部");
+assert.equal(reflectionPayload.report_question_id, "plant_transport_structures_q15");
+assert.equal(String(reflectionPayload.confidence_score), "4");
+assert.deepEqual([...api.REPORT_DIRECTIONS], ["根毛吸收", "維管束", "木質部", "韌皮部", "葉脈", "蒸散作用", "形成層"]);
 assert.equal(payload.raw_answers.q03, "continuous_vascular_bundle_system");
 assert(!payload.question_logs.some((log) => log.question_id === "q12"));
 assert(!Object.prototype.hasOwnProperty.call(payload.raw_answers, "q12"));

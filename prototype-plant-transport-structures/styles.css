@@ -22,7 +22,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans TC", "PingFang TC", sans-serif;
   background:
     linear-gradient(120deg, rgba(246, 237, 218, .32), rgba(221, 241, 232, .34)),
-    url("assets/plant-transport-structures-ambient-background-neutral.webp?v=20261014-plant-transport-structures-spec-sync-v1"),
+    url("assets/plant-transport-structures-ambient-background-neutral.webp?v=20261015-plant-transport-structures-reflection-spec-v1"),
     linear-gradient(135deg, #dcefe7, #b9d7cc 45%, #f3dcb6);
   background-attachment: fixed;
   background-size: cover, cover, cover;
@@ -250,6 +250,27 @@ textarea { resize: vertical; min-height: 116px; }
   background: #e7f8df;
   box-shadow: inset 0 0 0 2px rgba(47,159,104,.14);
 }
+.direction-picker {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 4px 0 10px;
+  padding: 0;
+  border: 0;
+}
+.direction-picker legend {
+  padding: 0;
+  margin-bottom: 8px;
+  color: var(--green-dark);
+  font-weight: 900;
+}
+.direction-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 8px;
+}
+.direction-chip { min-height: 48px; text-align: center; }
+.field-help { color: var(--muted); font-size: 15px; font-weight: 700; line-height: 1.6; }
 .checkbox-dot {
   display: inline-grid;
   place-items: center;
@@ -418,7 +439,7 @@ textarea { resize: vertical; min-height: 116px; }
   body {
     background-image:
       linear-gradient(120deg, rgba(246, 237, 218, .32), rgba(221, 241, 232, .34)),
-      url("assets/plant-transport-structures-ambient-background-neutral-1440w.webp?v=20261014-plant-transport-structures-spec-sync-v1"),
+      url("assets/plant-transport-structures-ambient-background-neutral-1440w.webp?v=20261015-plant-transport-structures-reflection-spec-v1"),
       linear-gradient(135deg, #dcefe7, #b9d7cc 45%, #f3dcb6);
   }
 }
@@ -427,7 +448,7 @@ textarea { resize: vertical; min-height: 116px; }
   body {
     background-image:
       linear-gradient(120deg, rgba(246, 237, 218, .34), rgba(221, 241, 232, .38)),
-      url("assets/plant-transport-structures-ambient-background-neutral-960w.webp?v=20261014-plant-transport-structures-spec-sync-v1"),
+      url("assets/plant-transport-structures-ambient-background-neutral-960w.webp?v=20261015-plant-transport-structures-reflection-spec-v1"),
       linear-gradient(135deg, #dcefe7, #b9d7cc 45%, #f3dcb6);
   }
 }
@@ -469,7 +490,7 @@ textarea { resize: vertical; min-height: 116px; }
   body {
     background-image:
       linear-gradient(120deg, rgba(246, 237, 218, .38), rgba(221, 241, 232, .42)),
-      url("assets/plant-transport-structures-ambient-background-neutral-390w.webp?v=20261014-plant-transport-structures-spec-sync-v1"),
+      url("assets/plant-transport-structures-ambient-background-neutral-390w.webp?v=20261015-plant-transport-structures-reflection-spec-v1"),
       linear-gradient(135deg, #dcefe7, #b9d7cc 45%, #f3dcb6);
     background-attachment: scroll;
   }

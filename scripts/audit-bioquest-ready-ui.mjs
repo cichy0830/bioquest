@@ -71,7 +71,7 @@ appVersionOverrides.set("biological_organization", "20260929-student-id-example-
 appVersionOverrides.set("cell_transport", "20260922-student-id-example-115001-v1");
 appVersionOverrides.set("plant_material_transport", "20260813-plant-material-transport-scroll-v1");
 appVersionOverrides.set("human_nutrition", "20261013-human-nutrition-result-fields-v1");
-appVersionOverrides.set("plant_transport_structures", "20261014-plant-transport-structures-spec-sync-v1");
+appVersionOverrides.set("plant_transport_structures", "20261015-plant-transport-structures-reflection-spec-v1");
 appVersionOverrides.set("cardiovascular_components", "20260812-cardiovascular-components-mapping-v1");
 appVersionOverrides.set("human_circulation", "20260813-human-circulation-mapping-v1");
 appVersionOverrides.set("stimulus_response", "20260813-stimulus-response-mapping-v1");

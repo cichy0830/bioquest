@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261014-plant-transport-structures-spec-sync-v1";
+const VERSION = "20261015-plant-transport-structures-reflection-spec-v1";
 const QUESTION_VERSION = "20260727-plant-transport-structures-q03-continuity-v3";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -66,11 +66,13 @@ const assets = {
 const assetUrl = (src) => `${src}?v=${VERSION}`;
 const badgeAsset = (id) => `../shared-assets/badges/plant_transport_structures/badge-plant_transport_structures-${id}.webp?v=${VERSION}`;
 const reflectionRules = {
-  conceptTerms: ["根毛", "維管束", "木質部", "韌皮部", "葉脈", "蒸散作用", "形成層", "水分", "礦物質", "養分", "根", "莖", "葉", "氣孔", "光合作用", "運輸"],
-  irrelevantTerms: ["老師好帥", "帥", "下課", "遊戲", "天氣", "好笑", "午餐", "放假"],
+  conceptTerms: ["根毛", "維管束", "木質部", "韌皮部", "葉脈", "水分", "礦物質", "養分", "蒸散", "氣孔", "形成層"],
+  irrelevantTerms: ["老師好帥", "帥", "午餐", "下課", "遊戲", "天氣", "好笑", "減肥", "身材"],
   lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
-  copiedDirections: ["根毛吸收水分與礦物質", "根、莖、葉和維管束的關係", "木質部和韌皮部運輸什麼", "葉脈和運輸的關係", "蒸散作用與水分運輸", "形成層與莖增粗", "根吸收的物質和葉片製造的養分"]
+  copiedDirections: ["根毛吸收", "維管束", "木質部", "韌皮部", "葉脈", "蒸散作用", "形成層"]
 };
+const REPORT_QUESTION_ID = "plant_transport_structures_q15";
+const REPORT_DIRECTIONS = reflectionRules.copiedDirections;
 
 const readyBadgeIds = new Set([
   "plant_transport_structures_entry",
@@ -163,7 +165,7 @@ function createEmptyState() {
     submitted: false,
     submitLockedAt: "",
     completedScreens: ["login"],
-    reflection: { confident: "", question: "", confidence: "3" },
+    reflection: { confident: "", uncertain: "", direction: "", question: "", confidence: "3" },
     result: null,
     notice: ""
   };
@@ -739,6 +741,10 @@ function buildBackendPayload(result = scoreAttempt()) {
     })),
     student_question: state.reflection.question,
     confident_concept: state.reflection.confident,
+    uncertain_concept: state.reflection.uncertain || "",
+    report_question_id: REPORT_QUESTION_ID,
+    question_direction: state.reflection.direction || "",
+    confidence_score: state.reflection.confidence,
     confidence_level: state.reflection.confidence,
     client_summary: result
   };
@@ -1074,21 +1080,33 @@ function feedbackTitle(stateName) {
 }
 
 function renderReflection() {
+  const selectedDirection = state.reflection.direction || "";
   return `
     <div class="mission-layout reflection-layout">
       <section class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把想問老師的地方留下來</h2>
-        <p class="lead">空白可以提交但沒有回報 EXP；具體且與本單元概念相關的問題，會取得較高回報 EXP。</p>
-        <label>我最能掌握的一項概念
-          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="例如：植物運輸和吸收的差異">
+        <p class="lead">空白可以提交但沒有回報 EXP；只複製方向詞、無關玩笑或敷衍句不會取得回報 EXP。具體且與本單元概念相關的疑問，才會取得較高回報 EXP。</p>
+        <label>這次任務中，我最能掌握的一項植物運輸構造概念是什麼？
+          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="關鍵詞：構造名稱、運送的物質">
         </label>
-        <label>我想上課請老師說明的部分
-          <textarea id="studentQuestion" rows="5" placeholder="例如：我想確認根毛、木質部、韌皮部和葉脈在植物運輸中各自扮演什麼角色。">${escapeHtml(state.reflection.question)}</textarea>
+        <label>我還不確定根毛、維管束、木質部、韌皮部、葉脈或蒸散作用中的哪一部分？
+          <input id="uncertainConcept" type="text" value="${escapeHtml(state.reflection.uncertain || "")}" placeholder="關鍵詞：哪個構造、哪裡容易混淆">
         </label>
-        <label>信心程度
+        <fieldset class="direction-picker">
+          <legend>選一個你想帶到課堂討論、希望老師再解釋的方向</legend>
+          <div class="direction-grid" role="group" aria-label="課堂討論方向">
+            ${REPORT_DIRECTIONS.map((direction) => `<button type="button" class="option-card direction-chip ${selectedDirection === direction ? "selected" : ""}" data-direction="${escapeHtml(direction)}" aria-pressed="${selectedDirection === direction ? "true" : "false"}">${escapeHtml(direction)}</button>`).join("")}
+          </div>
+        </fieldset>
+        <label>用自己的話補充你想確認的地方
+          <span class="field-help">可以先想：你最容易混淆的是哪個構造、運送什麼物質，或是根、莖、葉如何連成一套運輸系統。</span>
+          <textarea id="studentQuestion" rows="5" placeholder="關鍵詞：方向＋我不確定的地方＋為什麼">${escapeHtml(state.reflection.question)}</textarea>
+        </label>
+        <label>完成任務後，我對「植物的運輸構造」的理解信心是幾分？
+          <span class="field-help">5 分代表我能自己說明本單元重點概念。</span>
           <select id="confidenceLevel">
-            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level}｜${level === 5 ? "能自己說明本單元重點概念" : "仍需要一些協助"}</option>`).join("")}
+            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level} 分</option>`).join("")}
           </select>
         </label>
         <div class="button-row">
@@ -1317,6 +1335,18 @@ function bindScreenEvents() {
   const confidence = screen.querySelector("#confidenceLevel");
   textarea?.addEventListener("input", () => { state.reflection.question = textarea.value; saveState(); });
   confident?.addEventListener("input", () => { state.reflection.confident = confident.value; saveState(); });
+  const uncertain = screen.querySelector("#uncertainConcept");
+  uncertain?.addEventListener("input", () => { state.reflection.uncertain = uncertain.value; saveState(); });
+  screen.querySelectorAll("[data-direction]").forEach((button) => button.addEventListener("click", () => {
+    const direction = button.dataset.direction;
+    state.reflection.direction = state.reflection.direction === direction ? "" : direction;
+    screen.querySelectorAll("[data-direction]").forEach((item) => {
+      const active = item.dataset.direction === state.reflection.direction;
+      item.classList.toggle("selected", active);
+      item.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    saveState();
+  }));
   confidence?.addEventListener("change", () => { state.reflection.confidence = confidence.value; saveState(); });
   screen.querySelector("#submitMission")?.addEventListener("click", submitMission);
 }
@@ -1351,6 +1381,8 @@ if (typeof window !== "undefined") {
     backendBadgeIds,
     applyBackendSubmitResponse,
     evaluateReflection,
+    REPORT_DIRECTIONS,
+    reflectionRules,
     titleAvatarPath,
     orderedOptions,
     renderQuestionEvidence,
