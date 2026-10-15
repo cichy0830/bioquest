@@ -5,7 +5,6 @@ import { runInjectionAudit } from "../audit-achievement-injection.mjs";
 
 // 已知、已回報老師但尚未修正的差異。修正後請從這裡移除，讓測試重新守住。
 const KNOWN_ISSUES = [
-  /^\[[a-z_]+@\d+\] 稱號頭像=/, // 後台登入回應沿用 StudentProgress 舊頭像（性別錯、升級後未更新）（2026-10-10 回報）
 ];
 
 const result = await runInjectionAudit();

@@ -7,7 +7,6 @@ import { runResultAudit } from "../audit-achievement-result.mjs";
 // 已知、已回報老師但尚未修正的差異。修正後請從這裡移除，讓測試重新守住。
 const KNOWN_ISSUES = [
   /^\[photosynthesis[^\]]*\] 結算頁沒有回到頁首/, // submitMission 結尾沒有捲回頁首（22 站共同問題，2026-10-08 記錄，整頓時處理）
-  /^\[photosynthesis[^\]]*\] 提交後總覽本站縮圖 0 張/, // 第 14 站後台無徽章目錄、前端未送 badge_eval_json（W3，2026-10-09 回報）
 ];
 
 const result = await runResultAudit();
