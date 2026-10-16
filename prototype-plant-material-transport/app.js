@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260813-plant-material-transport-scroll-v1";
+const VERSION = "20261016-plant-material-transport-spec-sync-v1";
 const QUESTION_VERSION = "20260720-plant-material-transport-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -122,17 +122,17 @@ const correctSequence = sequenceSteps.map((step) => step.id);
 const questions = [
   {id:"q01",section:"checkpoint1",concept:"transport_overview",type:"choice",answer:"material_transport",prompt:"一株植物的根吸收水分與礦物質，葉片製造養分，其他部位也需要這些物質。這最能說明植物需要哪一種功能？",hint:"先想不同部位取得或製造的物質，是否都只留在原來位置。",misconception:"material_stays_local",options:[{id:"material_transport",text:"物質運輸"},{id:"petal_color",text:"花色改變"},{id:"seed_dormancy",text:"種子休眠"},{id:"outer_support_only",text:"只靠外表支撐"}]},
   {id:"q02",section:"checkpoint1",concept:"water_mineral_absorption",type:"choice",answer:"root_hair_soil_contact",prompt:"若要判斷植物水分和礦物質主要從哪裡進入植物體，哪個線索最值得先看？",hint:"注意題目問的是水分和礦物質從外界進入植物的位置。",misconception:"leaf_absorbs_water_mainly",options:[{id:"root_hair_soil_contact",text:"根毛與土壤接觸"},{id:"petal_color",text:"花瓣顏色"},{id:"fruit_skin",text:"果皮厚度"},{id:"pollen_shape",text:"花粉形狀"}]},
-  {id:"q03",section:"checkpoint1",concept:"transport_overview",type:"mapping",prompt:"請把下列物質依主要來源分類。",hint:"先分辨這些物質是從土壤進入，還是由葉片利用光合作用製造。",misconception:"all_nutrients_from_roots",items:[{id:"water",label:"水分"},{id:"minerals",label:"礦物質"},{id:"sugar",label:"葉片製造的糖類養分"}],choices:[{id:"root_source",text:"根從土壤取得"},{id:"leaf_source",text:"葉片光合作用製造"}],answer:{water:"root_source",minerals:"root_source",sugar:"leaf_source"}},
+  {id:"q03",section:"checkpoint1",concept:"transport_overview",type:"mapping",prompt:"請把下列物質依「主要來源」分類。",hint:"先分辨這些物質是從土壤進入，還是由葉片利用光合作用製造。",misconception:"all_nutrients_from_roots",items:[{id:"water",label:"水分"},{id:"minerals",label:"礦物質"},{id:"sugar",label:"葉片製造的糖類養分"}],choices:[{id:"root_source",text:"根從土壤取得"},{id:"leaf_source",text:"葉片光合作用製造"}],answer:{water:"root_source",minerals:"root_source",sugar:"leaf_source"}},
   {id:"q04",section:"checkpoint1",concept:"evidence_interpretation",type:"choice",answer:"water_moves_up_inside",prompt:"將白色花枝插入有色水中一段時間後，莖和花瓣部分位置出現顏色。這個觀察較適合用來支持哪一類推論？",hint:"先把有色水想成水分移動的線索，再判斷它能支持哪一種有限推論。",misconception:"unfair_data_conclusion",options:[{id:"water_moves_up_inside",text:"水分可沿植物內部運輸構造往上移動"},{id:"petal_makes_minerals",text:"花瓣能製造所有礦物質"},{id:"no_roots_needed",text:"植物完全不需要根"},{id:"phloem_air_only",text:"韌皮部只運送空氣"}]},
   {id:"q05",section:"checkpoint2",concept:"xylem_upward_transport",type:"choice",answer:"root_xylem_upward",prompt:"根吸收的水分和礦物質要送到莖與葉，最合理的運輸路徑是哪一個？",hint:"觀察題目中的物質是水分與礦物質，並想想它們最初從哪個部位進入植物。",misconception:"xylem_phloem_confusion",options:[{id:"root_xylem_upward",text:"根毛吸收後，主要經木質部往上運送"},{id:"leaf_to_root_water",text:"葉片先吸水再送到根"},{id:"petal_minerals_to_soil",text:"花瓣先製造礦物質再送到土壤"},{id:"phloem_drains_water",text:"韌皮部只把水分往外排"}]},
   {id:"q06",section:"checkpoint2",concept:"phloem_nutrient_transport",type:"choice",answer:"phloem",prompt:"葉片在光合作用後製造的養分，要送到根或果實等部位使用或儲存，主要和哪一類構造有關？",hint:"先看題目中的物質是葉片製造的養分，而不是根吸收的水分。",misconception:"all_nutrients_from_roots",options:[{id:"phloem",text:"韌皮部"},{id:"xylem",text:"木質部"},{id:"root_surface",text:"根毛外表"},{id:"stoma_wall",text:"氣孔外壁"}]},
   {id:"q07",section:"checkpoint2",concept:"phloem_nutrient_transport",type:"choice",answer:"roots_water_leaves_sugar",prompt:"有同學說：「植物養分一定都是從根吸收，再一路往上送。」哪個修正較合理？",hint:"先分開看「根吸收」和「葉製造」兩件事，再判斷養分來源。",misconception:"all_nutrients_from_roots",options:[{id:"roots_water_leaves_sugar",text:"根主要吸收水分與礦物質；葉片可製造養分，並送到需要或儲存的部位"},{id:"root_all_glucose",text:"根會直接吸收所有葡萄糖"},{id:"leaf_no_sugar",text:"葉片不能製造養分"},{id:"sugar_stays_leaf",text:"養分只能停留在葉片"}]},
   {id:"q08",section:"checkpoint2",concept:"phloem_nutrient_transport",type:"choice",answer:"phloem_to_needed_parts",prompt:"下列哪個說法較符合國中階段對韌皮部運輸的理解？",hint:"不必背高階機制，先抓住「葉片製造的養分」和「送到需要的位置」。",misconception:"phloem_only_downward",options:[{id:"phloem_to_needed_parts",text:"韌皮部可將葉製造的養分送到需要或儲存的部位"},{id:"phloem_water_root_to_leaf",text:"韌皮部只會把水分由根送往葉"},{id:"phloem_green_only",text:"韌皮部只負責讓葉片變綠"},{id:"phloem_no_nutrients",text:"韌皮部和養分運輸無關"}]},
-  {id:"q09",section:"checkpoint3",concept:"transpiration_link",type:"sequence",prompt:"請拖曳排序卡，排出水分從土壤進入植物並和蒸散作用連結的基礎流程。",hint:"先從水分接觸根部開始，再看往上運輸，最後連到葉片氣孔。",misconception:"transpiration_only_waste",steps:sequenceSteps,answer:correctSequence},
+  {id:"q09",section:"checkpoint3",concept:"transpiration_link",type:"sequence",prompt:"請拖曳排序卡，排出「水分從土壤進入植物並和蒸散作用連結」的基礎流程。",hint:"先從水分接觸根部開始，再看往上運輸，最後連到葉片氣孔。",misconception:"transpiration_only_waste",steps:sequenceSteps,answer:correctSequence},
   {id:"q10",section:"checkpoint3",concept:"transpiration_link",type:"choice",answer:"transpiration_transport_link",prompt:"有同學說：「蒸散作用只是浪費水，和植物體內運輸沒有關係。」哪個修正較合理？",hint:"注意「水分散失」不等於沒有功能，回想葉片水分散失和根部吸水可能形成連續關係。",misconception:"transpiration_only_waste",options:[{id:"transpiration_transport_link",text:"蒸散作用會造成水分散失，但也和水分由根往上運輸有基本關聯"},{id:"transpiration_makes_glucose",text:"蒸散作用會直接製造葡萄糖"},{id:"root_only",text:"蒸散作用只發生在根毛"},{id:"no_water_movement",text:"蒸散作用完全不影響水分移動"}]},
   {id:"q11",section:"checkpoint3",concept:"stomata_balance",type:"choice",answer:"water_loss_and_gas_exchange",prompt:"天氣炎熱乾燥時，植物若關閉部分氣孔，最直接可能同時影響哪兩件事？",hint:"想想氣孔位在葉片表面，和水蒸氣、二氧化碳、氧氣進出都有關。",misconception:"stomata_single_function",options:[{id:"water_loss_and_gas_exchange",text:"水分散失與氣體交換"},{id:"flower_fruit",text:"花瓣顏色與果實甜度"},{id:"root_seed",text:"根毛數量與種子形狀"},{id:"xylem_chloroplast",text:"木質部是否消失與葉綠體是否變多"}]},
   {id:"q12",section:"checkpoint3",concept:"evidence_interpretation",type:"choice",answer:"more_leaves_more_water_drops",prompt:"同一植物兩枝相近枝條套上透明袋，枝條 A 葉片較多、枝條 B 葉片較少；一段時間後 A 袋內水珠較多。若其他條件相近，較合理的推論是什麼？",hint:"先比較兩組主要不同條件，再把袋內水珠連到葉片水分散失。",misconception:"unfair_data_conclusion",options:[{id:"more_leaves_more_water_drops",text:"葉片較多時，水分散失的證據可能較明顯"},{id:"few_leaves_no_life",text:"葉片較少一定沒有生命活動"},{id:"soil_drips_into_bag",text:"水珠一定來自土壤直接滴入袋中"},{id:"leaf_count_unrelated",text:"葉片多寡和水分散失完全無關"}]},
-  {id:"q13",section:"checkpoint3",concept:"evidence_interpretation",type:"set",prompt:"若要比較「風」是否會影響蒸散作用，哪些條件應盡量保持相同？（可複選，選好後按「確認這組答案」）",hint:"題目想看風的影響，因此除了風之外，其他可能影響水分散失的條件要盡量相同。",misconception:"unfair_data_conclusion",options:[{id:"plant_type_size",text:"植物種類與大小"},{id:"leaf_area",text:"葉片數量或面積"},{id:"light_time",text:"照光時間"},{id:"temperature",text:"溫度"},{id:"wind",text:"是否有風"},{id:"container_color_random",text:"容器顏色任意改變"}],answer:["plant_type_size","leaf_area","light_time","temperature"]},
+  {id:"q13",section:"checkpoint3",concept:"evidence_interpretation",type:"set",prompt:"若要比較「風」是否會影響蒸散作用，哪些條件應盡量保持相同，才比較能判斷風的影響？（可複選，選好後按「確認這組答案」）",hint:"題目想看風的影響，因此除了風之外，其他可能影響水分散失的條件要盡量相同。",misconception:"unfair_data_conclusion",options:[{id:"plant_type_size",text:"植物種類與大小"},{id:"leaf_area",text:"葉片數量或面積"},{id:"light_time",text:"照光時間"},{id:"temperature",text:"溫度"},{id:"wind",text:"是否有風"},{id:"container_color_random",text:"容器顏色任意改變"}],answer:["plant_type_size","leaf_area","light_time","temperature"]},
   {id:"q14",section:"checkpoint3",concept:"xylem_upward_transport",type:"choice",answer:"xylem_water_phloem_sugar",prompt:"有同學把木質部和韌皮部功能混在一起。哪個整理較合理？",hint:"用「根吸收的水分礦物質」和「葉製造的養分」兩組線索分開看。",misconception:"xylem_phloem_confusion",options:[{id:"xylem_water_phloem_sugar",text:"木質部主要運送水分與礦物質；韌皮部主要運送葉製造的養分"},{id:"xylem_pollen",text:"木質部主要運送花粉"},{id:"phloem_transpiration_only",text:"韌皮部只負責葉片散水"},{id:"same_function",text:"兩者完全相同"}]}
 ];
 
@@ -898,7 +898,7 @@ function renderBrief() {
         <div class="scene-copy bq-brief-scene-caption">
           <p class="eyebrow">${mission.mission_area}</p>
           <h2>${mission.mission_title}</h2>
-          <p>綠植運輸調度站收到一株植物的移動紀錄：根取得水分與礦物質，葉製造養分，氣孔影響水分散失與氣體交換。請用來源、管線、方向與證據協助判讀。</p>
+          <p>綠植運輸調度站收到一株植物的即時紀錄：根部吸收水分和礦物質後，水分訊號一路往莖與葉移動；葉片在光下製造養分後，養分又被送到植物其他部位。阿澤老師提醒：植物沒有心臟推動血液循環，但植物體內仍有讓物質移動的構造。貓頭鷹助理已整理好運輸箭頭、簡化資料表和迷思卡，請你用「物質來源、運輸構造、移動方向、資料證據」協助判讀不同物質如何送到需要的位置。</p>
         </div>
         <div class="button-row">
           <button class="primary" data-next="scan">查看進關卡提醒</button>
@@ -910,7 +910,7 @@ function renderBrief() {
 }
 
 function renderScan() {
-  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入綠植運輸調度站前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚物質來源、運輸構造、移動方向與資料證據。</h3><p>根毛吸收水分與礦物質；木質部主要往上運水分與礦物質；韌皮部主要運送葉製造的養分；氣孔和蒸散、氣體交換有關。</p></div></div><div class="concept-grid"><article><strong>來源</strong><p>水分與礦物質多由根取得；糖類養分由葉片製造。</p></article><article><strong>管線</strong><p>木質部、韌皮部負責不同物質的運輸任務。</p></article><article><strong>方向</strong><p>水分從根往莖葉；養分送到需要或儲存的部位。</p></article><article><strong>證據</strong><p>有色水、套袋水珠與控制變因可作有限推論。</p></article></div><button class="primary" data-next="checkpoint1">開始綠植運輸判讀</button></section></div>`;
+  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入綠植運輸調度站前，先抓住五個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚物質來源、運輸構造、移動方向與資料證據。</h3><p>關卡中會用到下面五個在前一站學過的概念。</p></div></div><div class="concept-grid"><article><strong>根毛</strong><p>吸收水分與礦物質。</p></article><article><strong>木質部</strong><p>主要運送水分與礦物質。</p></article><article><strong>葉片</strong><p>可製造養分。</p></article><article><strong>韌皮部</strong><p>主要運送葉製造的養分。</p></article><article><strong>氣孔</strong><p>與水分散失、氣體交換有關。</p></article></div><button class="primary" data-next="checkpoint1">開始綠植運輸判讀</button></section></div>`;
 }
 
 function renderCheckpoint(section) {
@@ -937,7 +937,7 @@ function conceptLabel(concept) { return {transport_overview:"植物運輸總覽"
 
 function renderQuestionEvidence(qid) {
   if (qid === "q01") return `<div class="evidence-card"><strong>整株植物情境卡</strong><p>根、葉與其他部位會取得、製造、使用或儲存不同物質；請根據部位與物質來源，判斷植物可能需要哪種功能。</p><figure class="question-asset"><img src="${assets.questionOverview}" alt="整株植物示意圖，呈現根、莖、葉與其他部位的位置關係，供學生觀察不同部位。"></figure></div>`;
-  if (qid === "q04") return `<div class="evidence-card"><strong>有色水觀察卡</strong><p>有色水出現在莖與花瓣部分位置，只能支持和水分移動相關的有限推論。</p></div>`;
+  if (qid === "q04") return `<div class="evidence-card"><strong>有色水觀察卡</strong><p>白色花枝插入有色水中一段時間後，觀察到莖與花瓣部分位置出現顏色。</p></div>`;
   if (qid === "q12") return `<div class="evidence-card evidence-table"><strong>套袋水珠資料</strong><table><thead><tr><th>枝條</th><th>葉片狀態</th><th>一段時間後袋內觀察</th></tr></thead><tbody><tr><td>A</td><td>葉片較多</td><td>水珠較多</td></tr><tr><td>B</td><td>葉片較少</td><td>水珠較少</td></tr></tbody></table></div>`;
   return "";
 }

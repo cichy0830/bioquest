@@ -1,4 +1,4 @@
-// 跨站成就一致性 2a（結算頁）：把後台模擬的提交回應注入第 13–16 站，作答到提交，
+// 跨站成就一致性 2a（結算頁）：把後台模擬的提交回應注入第 13–17 站，作答到提交，
 // 檢查結算頁與提交後成就頁；含「再挑戰有 retry_exp」情境。
 // 會啟動 Playwright（瀏覽器對外連線由 run-tests.mjs 阻擋；Apps Script 請求全部被攔截）。
 import assert from "node:assert/strict";

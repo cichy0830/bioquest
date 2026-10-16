@@ -15,7 +15,7 @@ const context = { console, window: null, document: { readyState: "loading", quer
 context.window = context; context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-plant-material-transport/app.js" });
 const api = context.window.__plant_material_transportTest;
-assert.equal(api.VERSION, "20260813-plant-material-transport-scroll-v1");
+assert.equal(api.VERSION, "20261016-plant-material-transport-spec-sync-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-plant-material-transport-canonical-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -119,6 +119,14 @@ assert.equal(api.assets.owlPrep, "assets/owl-plant-material-transport-prep-repor
 assert(api.renderQuestionEvidence("q01").includes("plant-material-transport-overview-visual.webp"));
 for (const qid of ["q03", "q05", "q06", "q07", "q08", "q09", "q10", "q11", "q13", "q14"]) assert.equal(api.renderQuestionEvidence(qid), "", `${qid} should not render an answer-leading evidence card`);
 assert(api.renderQuestionEvidence("q12").includes("套袋水珠資料"));
+// 2026-10-16 規格對齊：q04 觀察卡只描述現象，不先寫出「水分移動」推論；簡報頁有角色引入；題幹照規格
+assert(api.renderQuestionEvidence("q04").includes("有色水觀察卡"));
+assert(!/水分移動|推論|木質部/.test(api.renderQuestionEvidence("q04")), "q04 evidence card must not state the inference");
+assert(/阿澤老師/.test(api.renderBrief()) && /貓頭鷹助理/.test(api.renderBrief()), "brief should introduce both roles");
+const promptOf = (qid) => api.questions.find((q) => q.id === qid).prompt;
+assert(promptOf("q03").startsWith("請把下列物質依「主要來源」分類。"));
+assert(promptOf("q09").includes("「水分從土壤進入植物並和蒸散作用連結」"));
+assert(promptOf("q13").includes("才比較能判斷風的影響？"));
 assert(!api.renderReflection().includes("bq-report-assistant"));
 assert(api.renderBrief().includes("bq-brief-scene-stage"));
 assert(!api.renderReview().includes("mentor-card"));
