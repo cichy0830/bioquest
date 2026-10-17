@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261016-plant-material-transport-spec-sync-v1";
+const VERSION = "20261017-plant-material-transport-reflection-spec-v1";
 const QUESTION_VERSION = "20260720-plant-material-transport-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -76,6 +76,8 @@ const reflectionRules = {
   lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
   copiedDirections: ["水分與礦物質", "木質部", "韌皮部", "蒸散作用", "氣孔", "資料判讀", "木質部和水分、礦物質上升運輸", "葉片製造的養分如何送到其他部位"]
 };
+const REPORT_QUESTION_ID = "plant_material_transport_q15";
+const REPORT_DIRECTIONS = ["水分與礦物質", "木質部", "葉製造養分", "韌皮部", "蒸散作用", "氣孔", "資料判讀"];
 
 const badges = [
   ["plant_material_transport_entry", "綠植調度入門徽章", "完成綠植運輸調度任務。"],
@@ -173,7 +175,7 @@ function createEmptyState() {
     submitted: false,
     submitLockedAt: "",
     completedScreens: ["login"],
-    reflection: { confident: "", question: "", confidence: "3" },
+    reflection: { confident: "", uncertain: "", direction: "", question: "", confidence: "3" },
     result: null,
     notice: ""
   };
@@ -719,6 +721,10 @@ function buildBackendPayload(result = scoreAttempt()) {
     })),
     student_question: state.reflection.question,
     confident_concept: state.reflection.confident,
+    uncertain_concept: state.reflection.uncertain || "",
+    report_question_id: REPORT_QUESTION_ID,
+    question_direction: state.reflection.direction || "",
+    confidence_score: state.reflection.confidence,
     confidence_level: state.reflection.confidence,
     client_summary: result
   };
@@ -1005,9 +1011,31 @@ function renderSetQuestion(question) {
 function conceptFeedback() {
   const missed = requiredQuestionIds.filter((id) => !isCorrect(id)).map((id) => questionMap[id].misconception);
   const unique = [...new Set(missed)];
-  const stable = requiredQuestionIds.filter((id) => isCorrect(id) && !state.hints[id]).map((id) => conceptLabel(questionMap[id].concept));
-  return { missed: unique, stable: [...new Set(stable)] };
+  const byConcept = {};
+  requiredQuestionIds.forEach((id) => {
+    const concept = questionMap[id].concept;
+    byConcept[concept] = byConcept[concept] || { total: 0, correct: 0, firstTryClean: false };
+    byConcept[concept].total += 1;
+    if (isCorrect(id)) byConcept[concept].correct += 1;
+    if (isCorrect(id) && !state.hints[id]) byConcept[concept].firstTryClean = true;
+  });
+  const stable = Object.keys(STABLE_CONCEPT_TEXT).filter((concept) => {
+    const stat = byConcept[concept];
+    if (!stat) return false;
+    return stat.firstTryClean || (stat.total >= 2 && stat.correct / stat.total >= 0.8);
+  }).map((concept) => STABLE_CONCEPT_TEXT[concept]);
+  return { missed: unique, stable };
 }
+
+const STABLE_CONCEPT_TEXT = {
+  transport_overview: "你能理解植物體內需要把不同物質送到不同部位。",
+  water_mineral_absorption: "你能把根毛和水分、礦物質吸收連起來。",
+  xylem_upward_transport: "你能判斷水分與礦物質主要經木質部往上運送。",
+  phloem_nutrient_transport: "你能判斷葉片製造的養分主要經韌皮部運送。",
+  transpiration_link: "你能把蒸散作用和水分上升運輸作基本連結。",
+  stomata_balance: "你能理解氣孔和水分散失、氣體交換都有關。",
+  evidence_interpretation: "你能用簡化資料比較蒸散或水分運輸證據。"
+};
 
 function renderReview() {
   const result = scoreAttempt();
@@ -1022,7 +1050,7 @@ function renderReview() {
         <div class="feedback-columns">
           <article>
             <h3>目前較穩定</h3>
-            <ul>${(feedback.stable.length ? feedback.stable.slice(0, 6) : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+            <ul>${(feedback.stable.length ? feedback.stable : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
           </article>
           <article>
             <h3>建議再確認</h3>
@@ -1048,21 +1076,33 @@ function feedbackTitle(stateName) {
 }
 
 function renderReflection() {
+  const selectedDirection = state.reflection.direction || "";
   return `
     <div class="mission-layout reflection-layout">
       <section class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把想問老師的地方留下來</h2>
-        <p class="lead">空白可以提交但沒有回報 EXP；具體且與本單元概念相關的問題，會取得較高回報 EXP。</p>
-        <label>我最能掌握的一項概念
-          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="例如：木質部運送水分和礦物質">
+        <p class="lead">空白可以提交但沒有回報 EXP；只複製方向詞、無關玩笑或敷衍句不會取得回報 EXP。具體且與本單元概念相關的疑問，才會取得較高回報 EXP。</p>
+        <label>這次任務中，我最能掌握的一項植物體內運輸概念是什麼？
+          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="關鍵詞：運送的物質、構造、方向">
         </label>
-        <label>我想上課請老師說明的部分
-          <textarea id="studentQuestion" rows="5" placeholder="例如：我想確認韌皮部把葉片製造的養分送到根或果實時，是看哪裡需要養分，還是固定方向？">${escapeHtml(state.reflection.question)}</textarea>
+        <label>我還不確定水分、礦物質、葉製造養分、木質部、韌皮部、蒸散作用或氣孔中的哪一部分？
+          <input id="uncertainConcept" type="text" value="${escapeHtml(state.reflection.uncertain || "")}" placeholder="關鍵詞：哪種物質、哪個構造、哪裡容易混淆">
         </label>
-        <label>信心程度
+        <fieldset class="direction-picker">
+          <legend>選一個你想帶到課堂討論、希望老師再解釋的方向</legend>
+          <div class="direction-grid" role="group" aria-label="課堂討論方向">
+            ${REPORT_DIRECTIONS.map((direction) => `<button type="button" class="option-card direction-chip ${selectedDirection === direction ? "selected" : ""}" data-direction="${escapeHtml(direction)}" aria-pressed="${selectedDirection === direction ? "true" : "false"}">${escapeHtml(direction)}</button>`).join("")}
+          </div>
+        </fieldset>
+        <label>用自己的話補充你想確認的地方
+          <span class="field-help">可以先想：你最容易混淆的是物質來源、運輸方向、構造角色，還是資料證據。</span>
+          <textarea id="studentQuestion" rows="5" placeholder="關鍵詞：方向＋我不確定的地方＋為什麼">${escapeHtml(state.reflection.question)}</textarea>
+        </label>
+        <label>完成任務後，我對「植物體內物質的運輸」的理解信心是幾分？
+          <span class="field-help">5 分代表我能自己說明本單元重點概念。</span>
           <select id="confidenceLevel">
-            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level}｜${level === 5 ? "能自己說明本單元重點概念" : "仍需要一些協助"}</option>`).join("")}
+            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level} 分</option>`).join("")}
           </select>
         </label>
         <div class="button-row">
@@ -1286,6 +1326,18 @@ function bindScreenEvents() {
   const confidence = screen.querySelector("#confidenceLevel");
   textarea?.addEventListener("input", () => { state.reflection.question = textarea.value; saveState(); });
   confident?.addEventListener("input", () => { state.reflection.confident = confident.value; saveState(); });
+  const uncertain = screen.querySelector("#uncertainConcept");
+  uncertain?.addEventListener("input", () => { state.reflection.uncertain = uncertain.value; saveState(); });
+  screen.querySelectorAll("[data-direction]").forEach((button) => button.addEventListener("click", () => {
+    const direction = button.dataset.direction;
+    state.reflection.direction = state.reflection.direction === direction ? "" : direction;
+    screen.querySelectorAll("[data-direction]").forEach((item) => {
+      const active = item.dataset.direction === state.reflection.direction;
+      item.classList.toggle("selected", active);
+      item.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    saveState();
+  }));
   confidence?.addEventListener("change", () => { state.reflection.confidence = confidence.value; saveState(); });
   screen.querySelector("#submitMission")?.addEventListener("click", submitMission);
 }
@@ -1316,6 +1368,9 @@ if (typeof window !== "undefined") {
     scoreAttempt,
     buildBackendPayload,
     evaluateReflection,
+    REPORT_DIRECTIONS,
+    reflectionRules,
+    conceptFeedback,
     titleAvatarPath,
     orderedOptions,
     backendBadgeIds,

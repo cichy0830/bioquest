@@ -15,7 +15,7 @@ const context = { console, window: null, document: { readyState: "loading", quer
 context.window = context; context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-plant-material-transport/app.js" });
 const api = context.window.__plant_material_transportTest;
-assert.equal(api.VERSION, "20261016-plant-material-transport-spec-sync-v1");
+assert.equal(api.VERSION, "20261017-plant-material-transport-reflection-spec-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-plant-material-transport-canonical-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -56,6 +56,23 @@ for (const [text, exp] of [["", 0], ["老師好帥", 0], ["木質部", 0], ["我
 api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "server", attempt_session_token: "token", question_version: api.QUESTION_VERSION, answers, hints: { q09: true }, reflection: { question: "我想確認蒸散作用如何與水分往上運輸連結？" } });
 const payload = api.buildBackendPayload(api.scoreAttempt());
 assert.equal(payload.unit_id, "plant_material_transport"); assert.equal(payload.question_version, api.QUESTION_VERSION); assert.equal(payload.question_logs.length, 14); assert.deepEqual(payload.raw_answers.q09, answers.q09_sequence);
+assert.deepEqual(Array.from(api.REPORT_DIRECTIONS), ["水分與礦物質", "木質部", "葉製造養分", "韌皮部", "蒸散作用", "氣孔", "資料判讀"], "q15 directions follow spec");
+api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "server-reflection", attempt_session_token: "token", question_version: api.QUESTION_VERSION, answers, reflection: { confident: "木質部", uncertain: "韌皮部方向", direction: "韌皮部", question: "我想確認韌皮部是看哪裡需要養分嗎？", confidence: "4" } });
+const reflectionPayload = api.buildBackendPayload(api.scoreAttempt());
+assert.equal(reflectionPayload.uncertain_concept, "韌皮部方向"); assert.equal(reflectionPayload.confidence_score, "4"); assert.equal(reflectionPayload.confidence_level, "4");
+assert.equal(reflectionPayload.question_direction, "韌皮部"); assert.equal(reflectionPayload.report_question_id, "plant_material_transport_q15");
+const reflectionHtml = api.renderReflection();
+assert(reflectionHtml.includes("我還不確定水分、礦物質、葉製造養分、木質部、韌皮部、蒸散作用或氣孔中的哪一部分？"));
+assert(reflectionHtml.includes("5 分代表我能自己說明本單元重點概念"));
+assert(!reflectionHtml.includes("例如："), "reflection placeholders should be keywords, not copyable sentences");
+assert.equal((reflectionHtml.match(/data-direction=/g) || []).length, 7);
+api.setState({ answers, hints: {} });
+assert.equal(api.conceptFeedback().stable.length, 7);
+assert(api.conceptFeedback().stable.includes("你能判斷葉片製造的養分主要經韌皮部運送。"));
+api.setState({ answers: { ...answers, q06: "xylem" }, hints: { q07: true, q08: true } });
+assert(!api.conceptFeedback().stable.includes("你能判斷葉片製造的養分主要經韌皮部運送。"), "phloem concept needs a clean first try or >=80% accuracy");
+api.setState({ answers, hints: { q07: true, q08: true } });
+assert(api.conceptFeedback().stable.includes("你能判斷葉片製造的養分主要經韌皮部運送。"), "phloem concept stable when accuracy >= 80% across >=2 questions");
 for (const attemptId of ["u17-sequence-a", "u17-sequence-b"]) {
   api.setState({ attempt_id: attemptId });
   const firstOrder = Array.from(api.orderedOptions(q09).map((item) => item.id));
