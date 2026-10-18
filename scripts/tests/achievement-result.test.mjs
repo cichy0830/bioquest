@@ -1,4 +1,4 @@
-// 跨站成就一致性 2a（結算頁）：把後台模擬的提交回應注入第 13–17 站，作答到提交，
+// 跨站成就一致性 2a（結算頁）：把後台模擬的提交回應注入第 13–18 站，作答到提交，
 // 檢查結算頁與提交後成就頁；含「再挑戰有 retry_exp」情境。
 // 會啟動 Playwright（瀏覽器對外連線由 run-tests.mjs 阻擋；Apps Script 請求全部被攔截）。
 import assert from "node:assert/strict";
@@ -7,6 +7,9 @@ import { runResultAudit } from "../audit-achievement-result.mjs";
 // 已知、已回報老師但尚未修正的差異。修正後請從這裡移除，讓測試重新守住。
 const KNOWN_ISSUES = [
   /^\[photosynthesis[^\]]*\] 結算頁沒有回到頁首/, // submitMission 結尾沒有捲回頁首（22 站共同問題，2026-10-08 記錄，整頓時處理）
+  // 第 18 站 14 枚徽章只有 2 枚有正式圖（其餘 image_status=pending，刻意不顯示、不請求缺圖）；2026-10-18 已列生圖需求，圖接上後移除
+  /^\[cardiovascular_components[^\]]*\] 本次徽章少顯示 \d+ 枚/,
+  /^\[cardiovascular_components[^\]]*\] 提交後總覽本站縮圖 \d+ 張/,
 ];
 
 const result = await runResultAudit();

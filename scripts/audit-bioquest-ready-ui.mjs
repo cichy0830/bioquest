@@ -72,7 +72,7 @@ appVersionOverrides.set("cell_transport", "20260922-student-id-example-115001-v1
 appVersionOverrides.set("plant_material_transport", "20261017-plant-material-transport-reflection-spec-v1");
 appVersionOverrides.set("human_nutrition", "20261013-human-nutrition-result-fields-v1");
 appVersionOverrides.set("plant_transport_structures", "20261015-plant-transport-structures-reflection-spec-v1");
-appVersionOverrides.set("cardiovascular_components", "20260812-cardiovascular-components-mapping-v1");
+appVersionOverrides.set("cardiovascular_components", "20261018-cardiovascular-components-spec-sync-v1");
 appVersionOverrides.set("human_circulation", "20260813-human-circulation-mapping-v1");
 appVersionOverrides.set("stimulus_response", "20260813-stimulus-response-mapping-v1");
 appVersionOverrides.set("nervous_system", "20260813-nervous-system-mapping-v1");

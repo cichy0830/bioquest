@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260812-cardiovascular-components-mapping-v1";
+const VERSION = "20261018-cardiovascular-components-spec-sync-v1";
 const QUESTION_VERSION = "20260718-cardiovascular-components-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -112,13 +112,13 @@ const questions = [
   {id:"cardiovascular_components_q05",section:"checkpoint1",concept:"valves_direction",type:"choice",answer:"valves_reduce_backflow",prompt:"有同學說：「心臟裡的血液可以任意往前或往後流。」哪個修正較合理？",hint:"想像瓣膜像單向門，重點是方向控制。",misconception:"valves_unimportant",options:[{id:"valves_reduce_backflow",text:"瓣膜可幫助血液朝固定方向流動，減少逆流"},{id:"valves_make_red_cells",text:"瓣膜負責製造紅血球"},{id:"blood_never_moves",text:"血液在心臟內完全不流動"},{id:"valves_color_heart",text:"瓣膜只負責讓心臟變紅"}]},
   {id:"cardiovascular_components_q06",section:"checkpoint2",concept:"vessel_types",type:"mapping",prompt:"請將血管類型與主要方向或功能配對。",hint:"先不要用紅藍顏色判斷，改用血液相對於心臟的流動方向與交換功能。",misconception:"artery_vein_oxygen_rule",items:[{id:"artery",label:"動脈"},{id:"vein",label:"靜脈"},{id:"capillary",label:"微血管"}],choices:[{id:"away_from_heart",text:"通常把血液帶離心臟"},{id:"back_to_heart",text:"通常把血液帶回心臟"},{id:"exchange_near_tissue",text:"利於血液和組織進行物質交換"}],answer:{artery:"away_from_heart",vein:"back_to_heart",capillary:"exchange_near_tissue"}},
   {id:"cardiovascular_components_q07",section:"checkpoint2",concept:"vessel_types",type:"choice",answer:"direction_not_oxygen_only",prompt:"有同學說：「動脈一定流含氧血，靜脈一定流缺氧血。」哪個修正較合理？",hint:"回想血管命名先看相對於心臟的方向，不是只看顏色或氧氣多寡。",misconception:"artery_vein_oxygen_rule",options:[{id:"direction_not_oxygen_only",text:"動脈和靜脈主要依血液離開或回到心臟來區分，不能只用含氧量判斷"},{id:"artery_no_pressure",text:"動脈一定沒有血壓"},{id:"vein_no_blood",text:"靜脈一定不流血"},{id:"capillary_heart_only",text:"微血管只存在心臟裡"}]},
-  {id:"cardiovascular_components_q08",section:"checkpoint2",concept:"vessel_structure_function",type:"choice",answer:"artery",prompt:"某種血管管壁較厚、彈性較明顯，較能承受心臟推出血液時的壓力。這比較像哪一類血管的特徵？",hint:"想想哪類血管最常接收心臟剛推出的血液。",misconception:"same_vessel_structure",options:[{id:"artery",text:"動脈"},{id:"capillary",text:"微血管"},{id:"lymph_vessel",text:"淋巴管"},{id:"bile_duct",text:"膽管"}]},
+  {id:"cardiovascular_components_q08",section:"checkpoint2",concept:"vessel_structure_function",type:"choice",answer:"artery",prompt:"下列哪個判斷最合理？",hint:"想想哪類血管最常接收心臟剛推出的血液。",misconception:"same_vessel_structure",options:[{id:"artery",text:"動脈的管壁較厚、彈性較明顯，較能承受心臟推出血液時的壓力"},{id:"vein",text:"靜脈的管壁最厚，最適合承受剛離開心臟的壓力"},{id:"capillary",text:"微血管的管壁最厚，最適合承受剛離開心臟的壓力"},{id:"same_vessel",text:"三種血管的管壁厚度和功能都相同"}]},
   {id:"cardiovascular_components_q09",section:"checkpoint2",concept:"vessel_structure_function",type:"choice",answer:"capillary",prompt:"哪一種血管很細、分布廣，較適合讓血液和組織細胞附近進行物質交換？",hint:"注意「很細、分布廣、靠近組織」這些線索。",misconception:"same_vessel_structure",options:[{id:"capillary",text:"微血管"},{id:"large_artery",text:"動脈主幹"},{id:"large_vein",text:"大靜脈"},{id:"trachea",text:"氣管"}]},
   {id:"cardiovascular_components_q10",section:"checkpoint3",concept:"blood_components",type:"mapping",prompt:"請將血液成分與主要功能配對。",hint:"先把「液體部分、氧氣運送、防禦、止血」四個功能分開看。",misconception:"blood_only_red_cells",items:[{id:"plasma",label:"血漿"},{id:"red_blood_cell",label:"紅血球"},{id:"white_blood_cell",label:"白血球"},{id:"platelet",label:"血小板"}],choices:[{id:"liquid_transport",text:"液體部分，可運送多種物質"},{id:"oxygen_transport",text:"主要和氧氣運送有關"},{id:"defense",text:"和身體防禦有關"},{id:"clotting",text:"和止血有關"}],answer:{plasma:"liquid_transport",red_blood_cell:"oxygen_transport",white_blood_cell:"defense",platelet:"clotting"}},
   {id:"cardiovascular_components_q11",section:"checkpoint3",concept:"red_blood_cells",type:"choice",answer:"red_blood_cell",prompt:"血液中哪一種成分最常被連到氧氣運送？",hint:"想想哪一種血液成分數量多，且和血液呈紅色及氧氣運送常被連在一起。",misconception:"blood_cell_function_confusion",options:[{id:"red_blood_cell",text:"紅血球"},{id:"platelet",text:"血小板"},{id:"gastric_juice",text:"胃液"},{id:"bile",text:"膽汁"}]},
   {id:"cardiovascular_components_q12",section:"checkpoint3",concept:"white_platelets_plasma",type:"mapping",prompt:"請將下列情境與較相關的血液成分配對。",hint:"先看題目中的功能詞：防禦、止血、液體運輸。",misconception:"blood_cell_function_confusion",items:[{id:"defense_case",label:"身體防禦"},{id:"wound_clotting",label:"傷口止血"},{id:"liquid_environment",label:"運送養分和廢物的液體環境"}],choices:[{id:"white_blood_cell",text:"白血球"},{id:"platelet",text:"血小板"},{id:"plasma",text:"血漿"}],answer:{defense_case:"white_blood_cell",wound_clotting:"platelet",liquid_environment:"plasma"}},
-  {id:"cardiovascular_components_q13",section:"checkpoint3",concept:"pulse_blood_pressure",type:"choice",answer:"heartbeat_vessel_pulse",prompt:"手腕摸到的脈搏，最直接和下列哪一項活動有關？",hint:"想想脈搏是一下一下的搏動感，和哪個器官規律收縮最相關。",misconception:"pulse_pressure_confusion",options:[{id:"heartbeat_vessel_pulse",text:"心臟跳動造成血管搏動"},{id:"stomach_digestion",text:"胃消化食物"},{id:"bone_growth",text:"骨骼長高"},{id:"alveoli_make_rbc",text:"肺泡製造紅血球"}]},
-  {id:"cardiovascular_components_q14",section:"checkpoint3",concept:"pulse_blood_pressure",type:"choice",answer:"pressure_on_vessel_wall",prompt:"血壓的基礎意義較接近下列哪一項？",hint:"注意「壓」這個字，想想血液在血管中流動時會對血管壁造成什麼。",misconception:"pulse_pressure_confusion",options:[{id:"pressure_on_vessel_wall",text:"血液對血管壁的壓力"},{id:"blood_sugar_taste",text:"血液中糖分的味道"},{id:"rbc_color_depth",text:"紅血球的顏色深淺"},{id:"wbc_fixed_count",text:"白血球的數量一定值"}]},
+  {id:"cardiovascular_components_q13",section:"checkpoint3",concept:"pulse_blood_pressure",type:"choice",answer:"heartbeat_vessel_pulse",prompt:"手腕摸到的脈搏，最直接和下列哪一項活動有關？",hint:"想想脈搏是一下一下的搏動感，和哪個器官規律收縮最相關。",misconception:"pulse_pressure_confusion",options:[{id:"heartbeat_vessel_pulse",text:"心臟跳動造成血管搏動"},{id:"blood_flow_sound",text:"脈搏只是血液流過血管的聲音"},{id:"wrist_muscle_contraction",text:"脈搏是手腕肌肉規律收縮"},{id:"bone_growth_vibration",text:"脈搏是骨骼生長造成的震動"}]},
+  {id:"cardiovascular_components_q14",section:"checkpoint3",concept:"pulse_blood_pressure",type:"choice",answer:"pressure_on_vessel_wall",prompt:"血壓的基礎意義較接近下列哪一項？",hint:"先區分心跳次數、血管搏動與血管內壓力這幾種資料。",misconception:"pulse_pressure_confusion",options:[{id:"pressure_on_vessel_wall",text:"血液對血管壁的壓力"},{id:"heartbeats_per_minute",text:"心臟每分鐘跳動的次數"},{id:"blood_oxygen_amount",text:"血液中氧氣的多寡"},{id:"rbc_color_depth",text:"紅血球的顏色深淺"}]},
   {id:"cardiovascular_components_q15",section:"checkpoint3",concept:"cardiovascular_overview",type:"sequence",prompt:"請拖曳排序卡，依「推動 → 流動與攜帶 → 交換」的基礎關係整理心血管系統如何合作。這不是體循環或肺循環的路徑題。",hint:"先找推動來源，再想血液在流動時會做什麼，最後找最利於交換的位置。",misconception:"heart_only_system",steps:sequenceSteps,answer:correctSequence}
 ];
 
@@ -282,11 +282,22 @@ function stableShuffle(items, seed) {
   return copy;
 }
 
+function guardedOptionOrder(order, question, ids) {
+  const allowed = new Set(ids);
+  const normalized = Array.isArray(order) ? order.filter((id) => allowed.has(id)) : [];
+  ids.forEach((id) => { if (!normalized.includes(id)) normalized.push(id); });
+  if (question.type === "sequence" && Array.isArray(question.answer) && normalized.length > 1 && normalized.every((id, index) => id === question.answer[index])) {
+    [normalized[0], normalized[1]] = [normalized[1], normalized[0]];
+  }
+  return normalized;
+}
+
 function orderedOptions(question) {
+  const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
   if (!state.optionOrders[question.id]) {
-    const ids = (question.type === "sequence" ? question.steps : question.options || []).map((item) => item.id);
     state.optionOrders[question.id] = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}`);
   }
+  state.optionOrders[question.id] = guardedOptionOrder(state.optionOrders[question.id], question, ids);
   const source = Object.fromEntries((question.type === "sequence" ? question.steps : question.options || []).map((item) => [item.id, item]));
   return state.optionOrders[question.id].map((id) => source[id]).filter(Boolean);
 }
@@ -939,7 +950,7 @@ function renderBrief() {
         <div class="scene-copy bq-brief-scene-caption">
           <p class="eyebrow">${mission.mission_area}</p>
           <h2>${mission.mission_title}</h2>
-          <p>心血管調度中心收到一批人體運輸零件圖：心臟剖面、血管比較卡、血液成分卡與脈搏血壓紀錄。請用組成、功能、方向與資料線索協助判讀。</p>
+          <p>心血管調度中心收到一組人體運輸系統零件：心臟剖面圖、不同血管截面、血液成分卡，以及脈搏和血壓的觀察紀錄。阿澤老師提醒：人體不像植物依靠木質部與韌皮部運送物質，而是由心臟推動血液在血管中流動，並由血液攜帶各種物質。貓頭鷹助理已整理好心臟構造、血管比較與血液成分圖卡，請你用「組成、功能、方向、資料線索」協助判斷各零件的主要功能。</p>
         </div>
         <div class="button-row">
           <button class="primary" data-next="scan">查看進關卡提醒</button>
@@ -951,7 +962,7 @@ function renderBrief() {
 }
 
 function renderScan() {
-  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入心血管調度中心前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚系統組成、心臟幫浦、血管方向與血液成分。</h3><p>心臟推動血液流動；血管包含動脈、靜脈、微血管；血液含血漿與血球等成分；脈搏與血壓是可觀察的基礎線索。</p></div></div><div class="concept-grid"><article><strong>組成</strong><p>心血管系統由心臟、血管與血液共同完成物質運送。</p></article><article><strong>心臟</strong><p>心房多接收血液，心室多推出血液，瓣膜協助單向流動。</p></article><article><strong>血管</strong><p>動脈通常離心，靜脈通常回心，微血管適合物質交換。</p></article><article><strong>血液</strong><p>血漿、紅血球、白血球與血小板各有不同功能。</p></article></div><button class="primary" data-next="checkpoint1">開始心血管零件判讀</button></section></div>`;
+  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入心血管調度中心前，先抓住五個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚組成、功能、方向與資料線索。</h3><p>關卡中會用到下面五個基礎概念。</p></div></div><div class="concept-grid"><article><strong>心臟</strong><p>推動血液流動。</p></article><article><strong>血管</strong><p>包含動脈、靜脈、微血管。</p></article><article><strong>血液</strong><p>含血漿和血球等成分。</p></article><article><strong>脈搏</strong><p>與心臟活動有關。</p></article><article><strong>血壓</strong><p>和血液在血管中流動有關的觀察資料，作答時要和心跳次數分開看。</p></article></div><button class="primary" data-next="checkpoint1">開始心血管零件判讀</button></section></div>`;
 }
 
 function renderCheckpoint(section) {
@@ -1367,6 +1378,9 @@ if (typeof window !== "undefined") {
     evaluateReflection,
     titleAvatarPath,
     renderQuestionEvidence,
+    renderBrief,
+    renderScan,
+    orderedOptions,
     renderCheckpoint,
     renderReview,
     renderReflection,

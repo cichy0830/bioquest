@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-cardiovascular-components/app.js" });
 const api = context.window.__cardiovascular_componentsTest;
 
-assert.equal(api.VERSION, "20260812-cardiovascular-components-mapping-v1");
+assert.equal(api.VERSION, "20261018-cardiovascular-components-spec-sync-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-cardiovascular-components-ready-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -122,6 +122,29 @@ assert.equal(api.renderQuestionEvidence(Q(13)), "");
 assert(api.renderQuestionEvidence(Q(3)).includes("不需背完整循環路徑"));
 assert(api.renderQuestionEvidence(Q(15)).includes("不要求背完整體循環或肺循環路徑"));
 assert(api.renderCheckpoint("checkpoint3").includes("上移"));
+// 2026-10-18 規格對齊：簡報角色引入、準備頁不洩答、q08／q13／q14 誘答與 q14 提示、q15 初始順序防撞
+assert(/阿澤老師/.test(api.renderBrief()) && /貓頭鷹助理/.test(api.renderBrief()), "brief should introduce both roles");
+const scanHtml = api.renderScan();
+assert(scanHtml.includes("五個判斷線索"));
+for (const leak of ["心房多接收", "心室多推出", "動脈通常離心", "靜脈通常回心", "微血管適合物質交換", "血液對血管壁的壓力", "共同完成物質運送"]) assert(!scanHtml.includes(leak), `prep page should not leak: ${leak}`);
+const qById = Object.fromEntries(api.questions.map((question) => [question.id, question]));
+assert.equal(qById[Q(8)].prompt, "下列哪個判斷最合理？");
+assert.deepEqual(Array.from(qById[Q(8)].options.map((option) => option.id)), ["artery", "vein", "capillary", "same_vessel"]);
+assert.equal(qById[Q(8)].answer, "artery");
+assert(!qById[Q(8)].options.some((option) => /淋巴管|膽管/.test(option.text)));
+assert(!qById[Q(13)].options.some((option) => /肺泡|胃消化/.test(option.text)));
+assert.equal(qById[Q(13)].answer, "heartbeat_vessel_pulse");
+assert(qById[Q(13)].options.some((option) => option.text === "脈搏是手腕肌肉規律收縮"));
+assert.equal(qById[Q(14)].answer, "pressure_on_vessel_wall");
+assert(!qById[Q(14)].hint.includes("壓」這個字"));
+assert(qById[Q(14)].options.some((option) => option.text === "心臟每分鐘跳動的次數"));
+assert(!qById[Q(14)].options.some((option) => /糖分的味道|白血球的數量/.test(option.text)));
+api.setState({ attempt_id: "u18-forced-collision", optionOrders: { [Q(15)]: [...qById[Q(15)].answer] } });
+assert.notDeepEqual(Array.from(api.orderedOptions(qById[Q(15)]).map((item) => item.id)), Array.from(qById[Q(15)].answer), "q15 stored collision should be guarded");
+for (let n = 0; n < 200; n += 1) {
+  api.setState({ attempt_id: `u18-seed-${n}` });
+  assert.notDeepEqual(Array.from(api.orderedOptions(qById[Q(15)]).map((item) => item.id)), Array.from(qById[Q(15)].answer), `q15 initial order must not equal answer (seed ${n})`);
+}
 assert.equal(api.assets.briefingSceneHook, "assets/cardiovascular-components-briefing-azhe-wide.webp");
 assert.equal(api.assets.ambientBackgroundHook, "assets/cardiovascular-components-entry-wide.webp");
 assert.equal(api.assets.owlPrep, "assets/owl-cardiovascular-components-prep-report.webp");
