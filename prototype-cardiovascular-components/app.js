@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261018-cardiovascular-components-spec-sync-v1";
+const VERSION = "20261019-cardiovascular-components-reflection-spec-v1";
 const QUESTION_VERSION = "20260718-cardiovascular-components-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -75,6 +75,8 @@ const reflectionRules = {
   lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
   copiedDirections: ["心臟", "心房與心室", "瓣膜", "動脈靜脈微血管", "血液成分", "脈搏", "血壓"]
 };
+const REPORT_QUESTION_ID = "cardiovascular_components_reflection_report";
+const REPORT_DIRECTIONS = ["心臟", "心房與心室", "瓣膜", "動脈靜脈微血管", "血液成分", "脈搏", "血壓"];
 
 const badges = [
   ["cardiovascular_components_entry", "心血管調度入門徽章", "完成心血管零件辨識任務。"],
@@ -159,7 +161,7 @@ function createEmptyState() {
     submitted: false,
     submitLockedAt: "",
     completedScreens: ["login"],
-    reflection: { confident: "", question: "", confidence: "3" },
+    reflection: { confident: "", uncertain: "", direction: "", question: "", confidence: "3" },
     result: null,
     notice: ""
   };
@@ -750,6 +752,10 @@ function buildBackendPayload(result = scoreAttempt()) {
     })),
     student_question: state.reflection.question,
     confident_concept: state.reflection.confident,
+    uncertain_concept: state.reflection.uncertain || "",
+    report_question_id: REPORT_QUESTION_ID,
+    question_direction: state.reflection.direction || "",
+    confidence_score: state.reflection.confidence,
     confidence_level: state.reflection.confidence,
     client_summary: result
   };
@@ -1061,9 +1067,33 @@ function renderSetQuestion(question) {
 function conceptFeedback() {
   const missed = requiredQuestionIds.filter((id) => !isCorrect(id)).map((id) => questionMap[id].misconception);
   const unique = [...new Set(missed)];
-  const stable = requiredQuestionIds.filter((id) => isCorrect(id) && !state.hints[id]).map((id) => conceptLabel(questionMap[id].concept));
-  return { missed: unique, stable: [...new Set(stable)] };
+  const byConcept = {};
+  requiredQuestionIds.forEach((id) => {
+    const concept = questionMap[id].concept;
+    byConcept[concept] = byConcept[concept] || { total: 0, correct: 0, firstTryClean: false };
+    byConcept[concept].total += 1;
+    if (isCorrect(id)) byConcept[concept].correct += 1;
+    if (isCorrect(id) && !state.hints[id]) byConcept[concept].firstTryClean = true;
+  });
+  const conceptStable = (concept) => {
+    const stat = byConcept[concept];
+    if (!stat) return false;
+    return stat.firstTryClean || (stat.total >= 2 && stat.correct / stat.total >= 0.8);
+  };
+  const stable = STABLE_CONCEPT_TEXT.filter((item) => item.concepts.every(conceptStable)).map((item) => item.text);
+  return { missed: unique, stable };
 }
+
+// 規格「目前較穩定概念」7 句；一句涵蓋多個概念時，每個概念都要達到穩定條件才顯示。
+const STABLE_CONCEPT_TEXT = [
+  { concepts: ["cardiovascular_overview"], text: "你能理解心血管系統由心臟、血管與血液共同組成。" },
+  { concepts: ["heart_pump"], text: "你能把心臟和推動血液流動連起來。" },
+  { concepts: ["atria_ventricles", "valves_direction"], text: "你能區分心房、心室與瓣膜的基本功能。" },
+  { concepts: ["vessel_types"], text: "你能用血液相對於心臟的方向分辨動脈與靜脈。" },
+  { concepts: ["vessel_structure_function"], text: "你能理解微血管和物質交換有關。" },
+  { concepts: ["blood_components", "red_blood_cells", "white_platelets_plasma"], text: "你能分辨血漿、紅血球、白血球與血小板的主要功能。" },
+  { concepts: ["pulse_blood_pressure"], text: "你能說出脈搏與血壓的基礎意義。" }
+];
 
 function renderReview() {
   const result = scoreAttempt();
@@ -1078,7 +1108,7 @@ function renderReview() {
         <div class="feedback-columns">
           <article>
             <h3>目前較穩定</h3>
-            <ul>${(feedback.stable.length ? feedback.stable.slice(0, 6) : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+            <ul>${(feedback.stable.length ? feedback.stable : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
           </article>
           <article>
             <h3>建議再確認</h3>
@@ -1104,22 +1134,33 @@ function feedbackTitle(stateName) {
 }
 
 function renderReflection() {
+  const selectedDirection = state.reflection.direction || "";
   return `
     <div class="stack reflection-layout">
       <section class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把想問老師的地方留下來</h2>
-        <p class="lead">空白可以提交但沒有回報 EXP；具體且與本單元概念相關的問題，會取得較高回報 EXP。</p>
-        <p class="muted">可以從心臟、心房心室、瓣膜、動脈靜脈微血管、血液成分、脈搏或血壓中選一個方向。</p>
-        <label>我最能掌握的一項概念
-          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="例如：動脈通常把血液帶離心臟">
+        <p class="lead">空白可以提交但沒有回報 EXP；只複製方向詞、無關玩笑或敷衍句不會取得回報 EXP。具體且與本單元概念相關的疑問，才會取得較高回報 EXP。</p>
+        <label>這次任務中，我最能掌握的一項心血管系統組成概念是什麼？
+          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="關鍵詞：構造、功能、方向">
         </label>
-        <label>我想上課請老師說明的部分
-          <textarea id="studentQuestion" rows="5" placeholder="例如：我想確認為什麼動脈和靜脈要用離開或回到心臟判斷，而不是只看含氧量？">${escapeHtml(state.reflection.question)}</textarea>
+        <label>我還不確定心臟、血管、血液成分、脈搏或血壓中的哪一部分？
+          <input id="uncertainConcept" type="text" value="${escapeHtml(state.reflection.uncertain || "")}" placeholder="關鍵詞：哪個構造、哪種成分、哪裡容易混淆">
         </label>
-        <label>信心程度
+        <fieldset class="direction-picker">
+          <legend>選一個你想帶到課堂討論、希望老師再解釋的方向</legend>
+          <div class="direction-grid" role="group" aria-label="課堂討論方向">
+            ${REPORT_DIRECTIONS.map((direction) => `<button type="button" class="option-card direction-chip ${selectedDirection === direction ? "selected" : ""}" data-direction="${escapeHtml(direction)}" aria-pressed="${selectedDirection === direction ? "true" : "false"}">${escapeHtml(direction)}</button>`).join("")}
+          </div>
+        </fieldset>
+        <label>用自己的話補充你想確認的地方
+          <span class="field-help">可以先想：你最容易混淆的是構造名稱、功能、血液流動方向，還是觀察數據的意義。</span>
+          <textarea id="studentQuestion" rows="5" placeholder="關鍵詞：方向＋我不確定的地方＋為什麼">${escapeHtml(state.reflection.question)}</textarea>
+        </label>
+        <label>完成任務後，我對「人體心血管系統的組成」的理解信心是幾分？
+          <span class="field-help">5 分代表我能自己說明本單元重點概念。</span>
           <select id="confidenceLevel">
-            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level}｜${level === 5 ? "能自己說明本單元重點概念" : "仍需要一些協助"}</option>`).join("")}
+            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level} 分</option>`).join("")}
           </select>
         </label>
         <div class="button-row">
@@ -1343,6 +1384,18 @@ function bindScreenEvents() {
   const confidence = screen.querySelector("#confidenceLevel");
   textarea?.addEventListener("input", () => { state.reflection.question = textarea.value; saveState(); });
   confident?.addEventListener("input", () => { state.reflection.confident = confident.value; saveState(); });
+  const uncertain = screen.querySelector("#uncertainConcept");
+  uncertain?.addEventListener("input", () => { state.reflection.uncertain = uncertain.value; saveState(); });
+  screen.querySelectorAll("[data-direction]").forEach((button) => button.addEventListener("click", () => {
+    const direction = button.dataset.direction;
+    state.reflection.direction = state.reflection.direction === direction ? "" : direction;
+    screen.querySelectorAll("[data-direction]").forEach((item) => {
+      const active = item.dataset.direction === state.reflection.direction;
+      item.classList.toggle("selected", active);
+      item.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    saveState();
+  }));
   confidence?.addEventListener("change", () => { state.reflection.confidence = confidence.value; saveState(); });
   screen.querySelector("#submitMission")?.addEventListener("click", submitMission);
 }
@@ -1376,6 +1429,9 @@ if (typeof window !== "undefined") {
     backendBadgeIds,
     applyBackendSubmitResponse,
     evaluateReflection,
+    REPORT_DIRECTIONS,
+    reflectionRules,
+    conceptFeedback,
     titleAvatarPath,
     renderQuestionEvidence,
     renderBrief,

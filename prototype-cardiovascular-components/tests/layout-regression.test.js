@@ -72,7 +72,7 @@ try {
     });
     page.on("dialog", (dialog) => dialog.accept());
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261018-cardiovascular-components-spec-sync-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261019-cardiovascular-components-reflection-spec-v1`);
     await page.locator("#guestBtn").click();
     await page.locator(".bq-brief-scene-image").waitFor();
     const briefScene = await page.evaluate(() => {
@@ -142,6 +142,12 @@ try {
     await page.waitForFunction(() => window.scrollY <= 8);
     assert(await page.evaluate(() => window.scrollY <= 8), "review to reflection should reset to page top");
     assert.equal(await page.locator(".bq-report-assistant").count(), 1, "report owl should be exactly one");
+    assert.equal(await page.locator("[data-direction]").count(), 7, "reflection should show 7 spec direction chips");
+    await page.locator('[data-direction="血壓"]').click();
+    assert.equal(await page.locator('[data-direction="血壓"]').getAttribute("aria-pressed"), "true", "direction chip should toggle on");
+    assert.equal(await page.evaluate(() => window.__cardiovascular_componentsTest.state().reflection.direction), "血壓");
+    await page.locator("#uncertainConcept").fill("血壓");
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "horizontal overflow on reflection");
     await page.locator("#submitMission").click();
     await page.locator(".result-panel").waitFor();
     await page.waitForFunction(() => window.scrollY <= 8);
