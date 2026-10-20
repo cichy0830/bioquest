@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260813-human-circulation-mapping-v1";
+const VERSION = "20261020-human-circulation-spec-sync-v1";
 const QUESTION_VERSION = "20260718-human-circulation-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -17,6 +17,33 @@ const navButtons = typeof document !== "undefined" ? [...document.querySelectorA
 const studentMini = typeof document !== "undefined" ? document.querySelector("#studentMini") : null;
 const LOCK_MESSAGE = "本次任務已提交，作答結果已鎖定；若要再挑戰，請重新登入並從頭完成。";
 const LOCKED_SCREENS_AFTER_SUBMIT = new Set(["brief", "scan", "checkpoint1", "checkpoint2", "checkpoint3", "review", "reflection"]);
+
+const RESULT_STATUS_COPY = {
+  guest: {
+    summaryLabel: "guest 測試預估",
+    creditLabel: "正式累積狀態",
+    creditValue: "不列入正式累積",
+    noticeClass: "warn",
+    lead: "guest 測試：本次預估 {exp}/500 EXP，不列入正式累積。",
+    detail: "這次結果只供老師或學生試看流程，不會寫入 Google Sheet，也不更新正式徽章或稱號進度。"
+  },
+  pending: {
+    summaryLabel: "本次預估",
+    creditLabel: "後台確認狀態",
+    creditValue: "待後台確認",
+    noticeClass: "warn",
+    lead: "本次預估 {exp}/500 EXP，待後台確認。",
+    detail: "確認完成前，這些數字只代表本次作答預覽；不作為已確認結果或累積進度。"
+  },
+  verified: {
+    summaryLabel: "本次取得",
+    creditLabel: "本單元正式認列",
+    creditValue: "{credit} EXP",
+    noticeClass: "good",
+    lead: "後台已回傳正式認列資料。",
+    detail: "本次取得是這次挑戰的原始表現；本單元正式認列會保留最高表現並受 500 EXP 上限限制。"
+  }
+};
 
 const mission = {
   unit_id: "human_circulation",
@@ -91,7 +118,7 @@ const questions = [
   {id:"human_circulation_q02",section:"checkpoint1",concept:"route_reasoning",type:"sequence",answer:correctSequence,prompt:"請拖曳排序，排出「血液完成一次肺部與全身循環」的基礎路徑。",hint:"先找「送往肺部」和「送往全身」分別從哪一側心臟出發，再看交換後回到哪裡。",misconception:"right_left_route_confusion",steps:sequenceSteps},
   {id:"human_circulation_q03",section:"checkpoint1",concept:"pulmonary_circulation",type:"choice",answer:"right_lung_left",prompt:"下列哪些位置屬於肺循環路徑的主要節點？",hint:"題目問的是和「肺部氣體交換」直接相連的路徑。",misconception:"pulmonary_systemic_confusion",options:[{id:"right_lung_left",text:"右心室、肺部、左心房"},{id:"left_body_right",text:"左心室、全身組織、右心房"},{id:"digestive",text:"胃、小腸、大腸"},{id:"urinary",text:"腎臟、膀胱、尿道"}]},
   {id:"human_circulation_q04",section:"checkpoint1",concept:"systemic_circulation",type:"choice",answer:"left_body_right",prompt:"下列哪些位置屬於體循環路徑的主要節點？",hint:"題目問的是血液把物質送到「全身組織」的路徑。",misconception:"pulmonary_systemic_confusion",options:[{id:"left_body_right",text:"左心室、全身組織、右心房"},{id:"right_lung_left",text:"右心室、肺部、左心房"},{id:"airway",text:"肺泡、氣管、鼻腔"},{id:"blood_parts",text:"白血球、血小板、血漿"}]},
-  {id:"human_circulation_q05",section:"checkpoint2",concept:"oxygen_content_shift",type:"choice",answer:"oxygen_up_co2_down",prompt:"血液經過肺部微血管後，最合理的變化是什麼？",hint:"想想肺部讓吸入空氣中的哪種氣體進入血液，並把哪種氣體排出。",misconception:"lung_exchange_reversed",options:[{id:"oxygen_up_co2_down",text:"氧氣增加，二氧化碳減少"},{id:"oxygen_down_co2_up",text:"氧氣減少，二氧化碳增加"},{id:"becomes_gastric_juice",text:"血液變成胃液"},{id:"rbc_to_wbc",text:"紅血球全部變成白血球"}]},
+  {id:"human_circulation_q05",section:"checkpoint2",concept:"oxygen_content_shift",type:"choice",answer:"oxygen_up_co2_down",prompt:"血液經過肺部微血管後，最合理的變化是什麼？",hint:"想想肺部的任務是讓吸入空氣中的哪種氣體進入血液，並把哪種氣體排出。",misconception:"lung_exchange_reversed",options:[{id:"oxygen_up_co2_down",text:"氧氣增加，二氧化碳減少"},{id:"oxygen_down_co2_up",text:"氧氣減少，二氧化碳增加"},{id:"becomes_gastric_juice",text:"血液變成胃液"},{id:"rbc_to_wbc",text:"紅血球全部變成白血球"}]},
   {id:"human_circulation_q06",section:"checkpoint2",concept:"oxygen_content_shift",type:"choice",answer:"exchange_not_make",prompt:"有同學說：「肺會製造氧氣，再把氧氣送進血液。」哪個修正較符合國中自然概念？",hint:"先想氧氣從哪裡來，再想肺部在氣體交換中扮演什麼角色。",misconception:"lung_makes_oxygen",options:[{id:"exchange_not_make",text:"肺不是製造氧氣，而是讓吸入空氣中的氧氣進入血液"},{id:"blood_to_food",text:"肺會把血液變成食物"},{id:"blood_leaves_body",text:"肺只負責讓血液離開身體"},{id:"stomach_makes_oxygen",text:"氧氣主要由胃製造"}]},
   {id:"human_circulation_q07",section:"checkpoint2",concept:"oxygen_content_shift",type:"choice",answer:"pulmonary_exception",prompt:"關於肺動脈與肺靜脈，下列哪個說法最合理？",hint:"先用「離開心臟或回到心臟」判斷動靜脈，再看是否已經經過肺部交換。",misconception:"artery_vein_oxygen_rule",options:[{id:"pulmonary_exception",text:"肺動脈把血送離心臟到肺，通常含氧量較低；肺靜脈把血從肺送回心臟，通常含氧量較高"},{id:"all_artery_oxygen",text:"所有動脈一定含氧量高，所有靜脈一定含氧量低"},{id:"no_lung",text:"肺動脈和肺靜脈都不經過肺"},{id:"vein_to_stomach",text:"肺靜脈會把血送到胃進行消化"}]},
   {id:"human_circulation_q08",section:"checkpoint2",concept:"oxygen_content_shift",type:"choice",answer:"lung_exchange",prompt:"資料表顯示某段血管經過肺部後，血液含氧量由低變高。這段變化最可能和哪個過程有關？",hint:"看資料中的關鍵變化：含氧量從低變高，且地點和肺部有關。",misconception:"oxygen_data_misread",options:[{id:"lung_exchange",text:"肺部氣體交換"},{id:"stomach_grinding",text:"食物在胃中磨碎"},{id:"bone_support",text:"骨骼支撐身體"},{id:"skin_temperature",text:"皮膚感覺溫度"}]},
@@ -944,7 +971,7 @@ function renderBrief() {
         <div class="scene-copy bq-brief-scene-caption">
           <p class="eyebrow">${mission.mission_area}</p>
           <h2>${mission.mission_title}</h2>
-          <p>循環調度中心的血流地圖出現錯亂箭頭。請追蹤血液如何經過肺部與全身，並判斷微血管附近的物質交換方向。</p>
+          <p>循環調度中心的血流地圖出現多條錯亂箭頭：有些把肺部的路線接到全身，有些把血管的含氧量標錯，也有人以為血液從心臟流出去後就不會回來。阿澤老師請你先用「右心到肺、左心到全身」追蹤路徑，再到微血管交換站判斷氧氣、二氧化碳、養分與廢物的移動方向。貓頭鷹助理已準備好路線卡與交換站資料，完成後會整理概念回饋給你。</p>
         </div>
         <div class="button-row">
           <button class="primary" data-next="scan">查看進關卡提醒</button>
@@ -956,11 +983,11 @@ function renderBrief() {
 }
 
 function renderScan() {
-  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入循環調度中心前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先用「右心到肺、左心到全身」追蹤血流。</h3><p>動脈和靜脈先看離開或回到心臟；肺部讓血液取得氧氣，全身組織微血管附近則發生物質交換。</p></div></div><div class="concept-grid"><article><strong>肺循環</strong><p>右心室把血送往肺部，肺部交換後回到左心房。</p></article><article><strong>體循環</strong><p>左心室把血送往全身組織，交換後回到右心房。</p></article><article><strong>含氧量</strong><p>肺部交換後含氧量上升；全身組織交換後含氧量下降。</p></article><article><strong>交換站</strong><p>微血管附近適合血液與細胞周圍環境交換物質。</p></article></div><button class="primary" data-next="checkpoint1">開始追蹤血流路線</button></section></div>`;
+  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入循環調度中心前，先抓住五個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先看出發點、目的地與回到心臟的位置。</h3><p>關卡中會用到下面五個判斷線索。</p></div></div><div class="concept-grid"><article><strong>回到哪裡</strong><p>追蹤血液離開心臟之後，最後會流到哪裡。</p></article><article><strong>右心</strong><p>右心和肺部的路徑相連。</p></article><article><strong>左心</strong><p>左心和全身的路徑相連。</p></article><article><strong>交換位置</strong><p>留意血管的管壁厚薄、分布範圍，以及是否靠近細胞。</p></article><article><strong>動脈與靜脈</strong><p>先看血液是離開心臟還是回到心臟。</p></article></div><button class="primary" data-next="checkpoint1">開始追蹤血流路線</button></section></div>`;
 }
 
 function renderCheckpoint(section) {
-  const heading = { checkpoint1:["肺循環與體循環路徑","用右心到肺、左心到全身的線索，整理血液如何回到心臟形成循環。"], checkpoint2:["含氧量與肺部交換","判斷肺部氣體交換、肺動脈/肺靜脈特例與含氧量資料。"], checkpoint3:["微血管交換與路徑推理","整理全身組織交換、組織液淋巴基礎，以及不只靠顏色判斷路徑。"] }[section];
+  const heading = { checkpoint1:["肺循環與體循環路徑","用出發點、目的地與回到心臟的位置，整理血液的流動路線。"], checkpoint2:["含氧量與肺部交換","判斷肺部氣體交換、肺動脈/肺靜脈特例與含氧量資料。"], checkpoint3:["微血管交換與路徑推理","整理全身組織交換、組織液淋巴基礎，以及不只靠顏色判斷路徑。"] }[section];
   return `<div class="stack checkpoint-stack"><section class="panel"><p class="eyebrow">互動關卡</p><h2>${heading[0]}</h2><p class="lead">${heading[1]}</p></section>${sections[section].map((id)=>renderQuestion(questionMap[id])).join("")}<section class="panel action-panel"><p class="muted">本區每題都需留下作答紀錄；不確定時可先選擇，任務後會給概念回饋。</p><button class="primary" data-section-next="${section}">${section === "checkpoint3" ? "整理任務回饋" : "前往下一關"}</button></section></div>`;
 }
 
@@ -1143,18 +1170,22 @@ function renderReflection() {
 
 function renderResult() {
   const result = state.result || scoreAttempt();
-  const credit = creditStatusText(result);
+  const statusCopy = resultStatusCopy(result);
+  const mode = resultMode(result);
+  const estimatedTotal = Number(result.attempt_exp ?? result.unit_credited_exp ?? 0) || 0;
+  const officialTotal = mode === "verified" ? Number(result.unit_credited_exp ?? estimatedTotal) || 0 : 0;
+  const officialDelta = mode === "verified" ? Number(result.exp_delta ?? result.credited_delta ?? officialTotal) || 0 : 0;
   return `
     <div class="stack result-stack">
       <section class="panel result-panel">
         <p class="eyebrow">任務結算</p>
         <h2>血流路線追蹤任務結算</h2>
         <p class="lock-note">提交後本次作答已鎖定；若要再挑戰，請重新登入並從頭完成。</p>
+        <div class="feedback ${statusCopy.noticeClass}">${statusCopy.lead}</div>
         <div class="exp-summary">
-          <strong>${result.unit_credited_exp} / ${UNIT_EXP_CAP} EXP</strong>
-          <span>${escapeHtml(credit.resultLine)}</span>
+          <strong>${statusCopy.summaryValue}</strong>
+          <span>${statusCopy.summaryLabel}：${estimatedTotal}｜${statusCopy.creditLabel}：${statusCopy.creditValue}</span>
         </div>
-        <p class="muted">${escapeHtml(credit.note)}</p>
         <div class="ledger-grid">
           ${ledgerRow("完成任務", result.completion_exp)}
           ${ledgerRow("直接答對", result.direct_exp)}
@@ -1162,15 +1193,17 @@ function renderResult() {
           ${ledgerRow("回報 EXP", result.reflection_exp)}
           ${ledgerRow("精熟 EXP", result.mastery_exp)}
           ${ledgerRow("再挑戰補分", result.retry_exp)}
-          ${ledgerRow("總計", result.unit_credited_exp)}
+          ${ledgerRow(mode === "verified" ? "正式認列總計" : "本次預估明細總計", mode === "verified" ? officialTotal : estimatedTotal)}
+          ${ledgerRow("正式認列／累積增量", officialDelta)}
         </div>
+        <p class="muted">${statusCopy.detail}</p>
         <div class="button-row">
           <button class="primary" data-next="achievements">查看成就</button>
           <button class="secondary" data-next="rules">查看規則</button>
           <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
         </div>
       </section>
-      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode: credit.status })}
+      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode })}
     </div>
   `;
 }
@@ -1179,26 +1212,23 @@ function ledgerRow(label, value) {
   return `<article><span>${label}</span><strong>${Number(value || 0)}</strong></article>`;
 }
 
-function creditStatusText(result) {
+function resultMode(result = state.result || {}) {
   const status = result?.verification_status || (state.student?.is_guest ? "local_guest" : "pending_backend");
-  if (state.student?.is_guest || status === "local_guest") {
-    return {
-      status: "guest",
-      resultLine: `guest 測試：本次預估 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，不列入正式累積`,
-      note: "正式累積、完成單元與全冊徽章需使用學生帳號登入並經後台確認。"
-    };
-  }
-  if (status === "server_verified" || status === "server_verified_credited") {
-    return {
-      status: "verified",
-      resultLine: `本單元後台認列 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP`,
-      note: "已依後台回傳資料更新正式累積與稱號。"
-    };
-  }
+  if (state.student?.is_guest || status === "local_guest") return "guest";
+  if (String(status).includes("server_verified") || status === "verified") return "verified";
+  return "pending";
+}
+
+function resultStatusCopy(result = state.result || scoreAttempt()) {
+  const mode = resultMode(result);
+  const copy = RESULT_STATUS_COPY[mode] || RESULT_STATUS_COPY.pending;
+  const attemptExp = Number(result.attempt_exp ?? result.unit_credited_exp ?? 0) || 0;
+  const creditExp = Number(result.unit_credited_exp ?? attemptExp) || 0;
   return {
-    status: "pending",
-    resultLine: `本次預估 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，待後台確認`,
-    note: "本次資料已保留為待確認狀態，完成後台同步後才會更新正式累積。"
+    ...copy,
+    summaryValue: mode === "verified" ? `${creditExp} / ${UNIT_EXP_CAP} EXP` : `${attemptExp} / ${UNIT_EXP_CAP} EXP`,
+    lead: copy.lead.replace("{exp}", String(attemptExp)).replace("{credit}", String(creditExp)),
+    creditValue: copy.creditValue.replace("{exp}", String(attemptExp)).replace("{credit}", String(creditExp))
   };
 }
 
@@ -1387,6 +1417,8 @@ if (typeof window !== "undefined") {
     evaluateReflection,
     titleAvatarPath,
     renderQuestionEvidence,
+    renderBrief,
+    renderScan,
     renderCheckpoint,
     renderReview,
     renderReflection,

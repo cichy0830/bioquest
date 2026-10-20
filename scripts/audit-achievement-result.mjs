@@ -187,6 +187,34 @@ const DRIVERS = {
     await page.locator('[data-next="reflection"]').click();
     await page.locator("#submitMission").click();
   },
+  async human_circulation(page) {
+    const Q = (n) => `human_circulation_q${String(n).padStart(2, "0")}`;
+    const choice = { 1: "loops_back", 3: "right_lung_left", 4: "left_body_right", 5: "oxygen_up_co2_down", 6: "exchange_not_make", 7: "pulmonary_exception", 8: "lung_exchange", 9: "blood_to_tissue", 10: "tissue_to_blood", 11: "capillary", 12: "fluid_lymph_recovery", 13: "direction_route_first", 14: "systemic" };
+    const click = (n) => page.locator(`[data-answer="${Q(n)}"][data-value="${choice[n]}"]`).click();
+    const sequence = async (qid, order) => {
+      for (let i = 0; i < order.length; i += 1) {
+        for (;;) {
+          const now = await page.locator(`[data-sequence="${qid}"] [data-sequence-item]`).evaluateAll((els) => els.map((el) => el.dataset.sequenceItem));
+          if (now.indexOf(order[i]) <= i) break;
+          await page.locator(`[data-move="${qid}"][data-item="${order[i]}"][data-dir="-1"]`).click();
+        }
+      }
+    };
+    await page.locator('[data-next="scan"]').click();
+    await page.locator('[data-next="checkpoint1"]').click();
+    await click(1);
+    await sequence(Q(2), ["right_ventricle", "lungs", "left_atrium", "left_ventricle", "body_tissues", "right_atrium"]);
+    for (const n of [3, 4]) await click(n);
+    await page.locator('[data-section-next="checkpoint1"]').click();
+    await page.waitForSelector("#screen[data-bioquest-screen='checkpoint2']");
+    for (const n of [5, 6, 7, 8]) await click(n);
+    await page.locator('[data-section-next="checkpoint2"]').click();
+    await page.waitForSelector("#screen[data-bioquest-screen='checkpoint3']");
+    for (const n of [9, 10, 11, 12, 13, 14]) await click(n);
+    await page.locator('[data-section-next="checkpoint3"]').click();
+    await page.locator('[data-next="reflection"]').click();
+    await page.locator("#submitMission").click();
+  },
 };
 
 // ---------- 各站結算頁讀值：統一成 { attemptExp, creditedExp, ledger, correct, total } ----------
@@ -285,6 +313,26 @@ const READERS = {
     const num = (re) => { const m = text.match(re); return m ? Number(m[1]) : null; };
     const rows = Object.fromEntries([...document.querySelectorAll("#screen .ledger-grid article")].map((a) => [a.querySelector("span").textContent.trim(), Number(a.querySelector("strong").textContent)]));
     const byName = Object.fromEntries((window.__cardiovascular_componentsTest?.badges || []).map((b) => [b.name, b.id]));
+    const cards = [...document.querySelectorAll("#screen .badge-wall .badge.earned")];
+    return {
+      attemptExp: num(/本次取得：(\d+)/),
+      creditedExp: num(/本單元正式認列：(\d+) EXP/),
+      ledger: { completion: rows["完成任務"], direct: rows["直接答對"], revision: rows["提示後修正"], reflection: rows["回報 EXP"], mastery: rows["精熟 EXP"], retry: rows["再挑戰補分"] },
+      ledgerTotal: null,
+      officialTotal: rows["正式認列總計"] ?? null,
+      correct: null,
+      total: null,
+      verifiedNotice: /後台已回傳正式認列資料/.test(text),
+      badges: cards.map((el) => byName[el.querySelector("strong")?.textContent.trim()] || `?${el.querySelector("strong")?.textContent.trim()}`),
+      badgeImagesBroken: cards.filter((el) => { const img = el.querySelector("img"); return img && !(img.complete && img.naturalWidth > 0); }).map((el) => byName[el.querySelector("strong")?.textContent.trim()] || "?"),
+    };
+  },
+  human_circulation: () => {
+    // 版面同第 16–18 站
+    const text = document.querySelector("#screen").textContent.replace(/\s+/g, " ");
+    const num = (re) => { const m = text.match(re); return m ? Number(m[1]) : null; };
+    const rows = Object.fromEntries([...document.querySelectorAll("#screen .ledger-grid article")].map((a) => [a.querySelector("span").textContent.trim(), Number(a.querySelector("strong").textContent)]));
+    const byName = Object.fromEntries((window.__human_circulationTest?.badges || []).map((b) => [b.name, b.id]));
     const cards = [...document.querySelectorAll("#screen .badge-wall .badge.earned")];
     return {
       attemptExp: num(/本次取得：(\d+)/),

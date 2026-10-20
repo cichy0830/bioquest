@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-human-circulation/app.js" });
 const api = context.window.__human_circulationTest;
 
-assert.equal(api.VERSION, "20260813-human-circulation-mapping-v1");
+assert.equal(api.VERSION, "20261020-human-circulation-spec-sync-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-human-circulation-ready-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -257,4 +257,16 @@ const snapshot = api.loadVerifiedSnapshot();
 assert.equal(snapshot.student_id, "S70102");
 assert.equal(snapshot.progress.total_exp, 4320);
 assert(snapshot.progress.unit_badge_summary_json.includes("cell_basic_unit"));
+// 2026-10-20：簡報頁照規格故事補角色引入；準備頁改規格五線索、不直接給題目答案
+api.setState({ student: { student_id: "guest", is_guest: true, progress: {} } });
+const briefHtml = api.renderBrief();
+assert(briefHtml.includes("阿澤老師") && briefHtml.includes("貓頭鷹助理"), "brief should introduce both characters per spec story");
+assert(briefHtml.includes("右心到肺、左心到全身"), "brief should keep the spec route-tracking strategy");
+const scanHtml = api.renderScan();
+assert.equal((scanHtml.match(/<article>/g) || []).length, 5, "scan should list the five spec clues");
+for (const leak of ["右心室把血送往肺部", "回到左心房", "回到右心房", "含氧量上升", "含氧量下降", "持續循環", "最適合物質交換", "取得氧氣"]) {
+  assert(!scanHtml.includes(leak), `scan must not reveal answer text: ${leak}`);
+}
+assert(!api.renderCheckpoint("checkpoint1").includes("回到心臟形成循環"), "checkpoint1 lead must not restate the q01 answer");
+assert.equal(api.questions.find((q) => q.id === Q(5)).hint, "想想肺部的任務是讓吸入空氣中的哪種氣體進入血液，並把哪種氣體排出。");
 console.log("prototype-human-circulation app regression passed");

@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-human-circulation")
   : sourceRoot;
-const VERSION = "20260813-human-circulation-mapping-v1";
+const VERSION = "20261020-human-circulation-spec-sync-v1";
 const STORAGE_KEY = "bioquest_human_circulation_state_v1";
 const QUESTION_VERSION = "20260718-human-circulation-ready-v1";
 const UNIT_ID = "human_circulation";
@@ -94,7 +94,7 @@ try {
       let { page, consoleErrors, failedImages } = await openSeededPage(viewport, status, "result");
       await page.locator(".result-panel").waitFor();
       const resultText = await page.locator("#screen").textContent();
-      if (status === "verified") assert(resultText.includes("本單元後台認列"), "verified result should use official credited wording");
+      if (status === "verified") assert(resultText.includes("後台已回傳正式認列資料") && resultText.includes("本單元正式認列") && resultText.includes("正式認列總計"), "verified result should use official credited wording");
       if (status === "pending") assert(resultText.includes("待後台確認"), "pending result should use pending wording");
       if (status === "guest") assert(resultText.includes("不列入正式累積"), "guest result should state no official accumulation");
       assert(resultText.includes("本次取得徽章"), "result should show earned-only badge heading");
