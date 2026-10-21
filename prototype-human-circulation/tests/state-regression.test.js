@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-human-circulation")
   : sourceRoot;
-const VERSION = "20261020-human-circulation-spec-sync-v1";
+const VERSION = "20261021-human-circulation-reflection-spec-v1";
 const STORAGE_KEY = "bioquest_human_circulation_state_v1";
 const QUESTION_VERSION = "20260718-human-circulation-ready-v1";
 const UNIT_ID = "human_circulation";

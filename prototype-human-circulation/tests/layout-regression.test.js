@@ -75,7 +75,7 @@ try {
     });
     page.on("dialog", (dialog) => dialog.accept());
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261020-human-circulation-spec-sync-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261021-human-circulation-reflection-spec-v1`);
     await page.locator("#guestBtn").click();
     await page.locator(".bq-brief-scene-image").waitFor();
     assert.equal(await page.locator(".bq-brief-scene-image").count(), 1, "brief scene image should be exactly one");
@@ -143,6 +143,12 @@ try {
     await page.locator("#submitMission").waitFor();
     await assertAtTop(page, "review to reflection");
     assert.equal(await page.locator(".bq-report-assistant").count(), 1, "report owl should be exactly one");
+    assert.equal(await page.locator("[data-direction]").count(), 6, "reflection should show 6 spec direction chips");
+    await page.locator('[data-direction="肺循環"]').click();
+    assert.equal(await page.locator('[data-direction="肺循環"]').getAttribute("aria-pressed"), "true", "direction chip should toggle on");
+    assert.equal(await page.evaluate(() => window.__human_circulationTest.state().reflection.direction), "肺循環");
+    await page.locator("#uncertainConcept").fill("肺循環");
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "horizontal overflow on reflection");
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await page.locator("#submitMission").click();
     await page.locator(".result-panel").waitFor();

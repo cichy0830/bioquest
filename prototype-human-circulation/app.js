@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261020-human-circulation-spec-sync-v1";
+const VERSION = "20261021-human-circulation-reflection-spec-v1";
 const QUESTION_VERSION = "20260718-human-circulation-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -84,6 +84,9 @@ const reflectionRules = {
   lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
   copiedDirections: ["體循環", "肺循環", "含氧量變化", "微血管交換", "組織液與淋巴", "動靜脈判斷"]
 };
+const REPORT_QUESTION_ID = "human_circulation_reflection_report";
+// 規格 q15 任務回報的六個方向詞（與前後台 copiedDirections 相同）。
+const REPORT_DIRECTIONS = ["體循環", "肺循環", "含氧量變化", "微血管交換", "組織液與淋巴", "動靜脈判斷"];
 
 const badges = [
   ["human_circulation_entry", "循環追蹤入門徽章", "完成血流路線追蹤任務。"],
@@ -167,7 +170,7 @@ function createEmptyState() {
     submitted: false,
     submitLockedAt: "",
     completedScreens: ["login"],
-    reflection: { confident: "", question: "", confidence: "3" },
+    reflection: { confident: "", uncertain: "", direction: "", question: "", confidence: "3" },
     result: null,
     notice: ""
   };
@@ -764,6 +767,10 @@ function buildBackendPayload(result = scoreAttempt()) {
     })),
     student_question: state.reflection.question,
     confident_concept: state.reflection.confident,
+    uncertain_concept: state.reflection.uncertain || "",
+    report_question_id: REPORT_QUESTION_ID,
+    question_direction: state.reflection.direction || "",
+    confidence_score: state.reflection.confidence,
     confidence_level: state.reflection.confidence,
     client_summary: result
   };
@@ -1080,9 +1087,25 @@ function renderSetQuestion(question) {
 function conceptFeedback() {
   const missed = requiredQuestionIds.filter((id) => !isCorrect(id)).map((id) => questionMap[id].misconception);
   const unique = [...new Set(missed)];
-  const stable = requiredQuestionIds.filter((id) => isCorrect(id) && !state.hints[id]).map((id) => conceptLabel(questionMap[id].concept));
-  return { missed: unique, stable: [...new Set(stable)] };
+  const groupStable = (ids) => {
+    const correct = ids.filter((id) => isCorrect(id)).length;
+    const clean = ids.every((id) => isCorrect(id) && !state.hints[id]);
+    return clean || (ids.length >= 2 && correct / ids.length >= 0.8);
+  };
+  const stable = STABLE_CONCEPT_TEXT.filter((item) => groupStable(item.questions.map(Q_ID))).map((item) => item.text);
+  return { missed: unique, stable };
 }
+
+// 規格「目前較穩定概念」6 句。每句對應的題目：全部首次答對且未用提示，或兩題以上且答對率達 80%，才顯示。
+const Q_ID = (n) => `human_circulation_q${String(n).padStart(2, "0")}`;
+const STABLE_CONCEPT_TEXT = [
+  { questions: [1], text: "你能理解血液會在心臟、肺部與全身之間持續循環。" },
+  { questions: [2], text: "你能用「右心到肺、左心到全身」追蹤主要血流方向。" },
+  { questions: [3, 4, 14], text: "你能區分肺循環與體循環的目的地與回心位置。" },
+  { questions: [5, 8, 9, 10], text: "你能判斷肺部和全身組織的氣體交換方向。" },
+  { questions: [11], text: "你能理解微血管是物質交換的重要位置。" },
+  { questions: [7, 13], text: "你能用血流方向判斷動脈與靜脈，不只靠含氧量或顏色。" }
+];
 
 function renderReview() {
   const result = scoreAttempt();
@@ -1097,7 +1120,7 @@ function renderReview() {
         <div class="feedback-columns">
           <article>
             <h3>目前較穩定</h3>
-            <ul>${(feedback.stable.length ? feedback.stable.slice(0, 6) : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+            <ul>${(feedback.stable.length ? feedback.stable : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
           </article>
           <article>
             <h3>建議再確認</h3>
@@ -1116,17 +1139,17 @@ function renderReview() {
 }
 
 function misconceptionText(tag) { return {
-  blood_one_way_only:"血液不是流出心臟後就停住，而是會經過交換後回到心臟。",
+  blood_one_way_only:"剛才有幾個概念還值得再確認：血液不是流出心臟後就停住，而是會經過交換後回到心臟。",
   pulmonary_systemic_confusion:"建議再區分肺循環與體循環：到肺部的是肺循環，到全身組織的是體循環。",
   right_left_route_confusion:"建議再確認主要方向：右心把血送往肺，左心把血送往全身。",
   lung_exchange_reversed:"建議再確認肺部交換：氧氣進入血液，二氧化碳從血液進入肺泡後排出。",
-  lung_makes_oxygen:"肺不是製造氧氣，而是進行吸入空氣和血液之間的氣體交換。",
-  artery_vein_oxygen_rule:"動脈與靜脈先看血液離開或回到心臟，再看含氧量是否因肺部交換而改變。",
-  oxygen_data_misread:"建議練習用資料中的地點與含氧量變化判斷交換方向。",
-  tissue_exchange_reversed:"全身組織取得氧氣與養分，釋出二氧化碳與部分廢物。",
-  exchange_in_large_vessels:"微血管比大血管更適合進行物質交換。",
-  lymph_is_blood:"淋巴和組織液回收有關，不等於紅血球或血液本身。",
-  tissue_fluid_unrelated:"細胞附近的液體環境有助於物質進出。",
+  lung_makes_oxygen:"建議再分清楚：肺不是製造氧氣，而是進行吸入空氣和血液之間的氣體交換。",
+  artery_vein_oxygen_rule:"建議再比較動脈與靜脈：先看血液離開或回到心臟，再看含氧量是否因肺部交換而改變。",
+  oxygen_data_misread:"建議練習讀資料：地點在肺部且含氧量上升，通常表示血液取得氧氣。",
+  tissue_exchange_reversed:"建議再整理全身組織交換：細胞取得氧氣與養分，釋出二氧化碳與部分廢物。",
+  exchange_in_large_vessels:"建議再確認交換位置：微血管比大血管更適合進行物質交換。",
+  lymph_is_blood:"建議再理解淋巴基礎：它和組織液回收有關，不等於紅血球或血液本身。",
+  tissue_fluid_unrelated:"建議再把組織液放回交換情境：細胞附近的液體環境有助於物質進出。",
   color_based_route_guess:"建議看箭頭與路徑，不要只靠紅藍顏色判斷血管或循環類型。"
 }[tag] || tag; }
 
@@ -1141,22 +1164,33 @@ function feedbackTitle(stateName) {
 }
 
 function renderReflection() {
+  const selectedDirection = state.reflection.direction || "";
   return `
     <div class="stack reflection-layout">
       <section class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把想問老師的地方留下來</h2>
-        <p class="lead">空白可以提交但沒有回報 EXP；具體且與本單元概念相關的問題，會取得較高回報 EXP。</p>
-        <p class="muted">可以從體循環、肺循環、含氧量變化、微血管交換、組織液與淋巴、動靜脈判斷中選一個方向。</p>
-        <label>我最能掌握的一項概念
-          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="例如：動脈通常把血液帶離心臟">
+        <p class="lead">空白可以提交但沒有回報 EXP；只複製方向詞、無關玩笑或敷衍句不會取得回報 EXP。具體且與本單元概念相關的疑問，才會取得較高回報 EXP。</p>
+        <label>這次任務中，我最能掌握的一項循環系統概念是什麼？
+          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="關鍵詞：路徑、交換、方向">
         </label>
-        <label>我想上課請老師說明的部分
-          <textarea id="studentQuestion" rows="5" placeholder="例如：我想確認為什麼動脈和靜脈要用離開或回到心臟判斷，而不是只看含氧量？">${escapeHtml(state.reflection.question)}</textarea>
+        <label>我還不確定體循環、肺循環、含氧量變化、微血管交換或淋巴回收中的哪一部分？
+          <input id="uncertainConcept" type="text" value="${escapeHtml(state.reflection.uncertain || "")}" placeholder="關鍵詞：哪段路徑、哪個交換、哪裡容易混淆">
         </label>
-        <label>信心程度
+        <fieldset class="direction-picker">
+          <legend>選一個你想帶到課堂討論、希望老師再解釋的方向</legend>
+          <div class="direction-grid" role="group" aria-label="課堂討論方向">
+            ${REPORT_DIRECTIONS.map((direction) => `<button type="button" class="option-card direction-chip ${selectedDirection === direction ? "selected" : ""}" data-direction="${escapeHtml(direction)}" aria-pressed="${selectedDirection === direction ? "true" : "false"}">${escapeHtml(direction)}</button>`).join("")}
+          </div>
+        </fieldset>
+        <label>用自己的話補充你想確認的地方
+          <span class="field-help">可以先想：你最容易混淆的是路徑、氣體交換方向、含氧量，還是圖上的箭頭判斷。</span>
+          <textarea id="studentQuestion" rows="5" placeholder="關鍵詞：方向＋我不確定的地方＋為什麼">${escapeHtml(state.reflection.question)}</textarea>
+        </label>
+        <label>完成任務後，我對「人體的循環系統」的理解信心是幾分？
+          <span class="field-help">5 分代表我能自己說明本單元重點概念。</span>
           <select id="confidenceLevel">
-            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level}｜${level === 5 ? "能自己說明本單元重點概念" : "仍需要一些協助"}</option>`).join("")}
+            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level} 分</option>`).join("")}
           </select>
         </label>
         <div class="button-row">
@@ -1376,6 +1410,18 @@ function bindScreenEvents() {
   const confidence = screen.querySelector("#confidenceLevel");
   textarea?.addEventListener("input", () => { state.reflection.question = textarea.value; saveState(); });
   confident?.addEventListener("input", () => { state.reflection.confident = confident.value; saveState(); });
+  const uncertain = screen.querySelector("#uncertainConcept");
+  uncertain?.addEventListener("input", () => { state.reflection.uncertain = uncertain.value; saveState(); });
+  screen.querySelectorAll("[data-direction]").forEach((button) => button.addEventListener("click", () => {
+    const direction = button.dataset.direction;
+    state.reflection.direction = state.reflection.direction === direction ? "" : direction;
+    screen.querySelectorAll("[data-direction]").forEach((item) => {
+      const active = item.dataset.direction === state.reflection.direction;
+      item.classList.toggle("selected", active);
+      item.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    saveState();
+  }));
   confidence?.addEventListener("change", () => { state.reflection.confidence = confidence.value; saveState(); });
   screen.querySelector("#submitMission")?.addEventListener("click", submitMission);
 }
@@ -1415,6 +1461,9 @@ if (typeof window !== "undefined") {
     resetForRelogin,
     canUseNav,
     evaluateReflection,
+    REPORT_DIRECTIONS,
+    reflectionRules,
+    conceptFeedback,
     titleAvatarPath,
     renderQuestionEvidence,
     renderBrief,
