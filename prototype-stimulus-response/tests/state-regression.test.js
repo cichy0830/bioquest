@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-stimulus-response")
   : sourceRoot;
-const VERSION = "20260813-stimulus-response-mapping-v1";
+const VERSION = "20261022-stimulus-response-spec-sync-v1";
 const STORAGE_KEY = "bioquest_stimulus_response_state_v1";
 const QUESTION_VERSION = "20260718-stimulus-response-ready-v1";
 const UNIT_ID = "stimulus_response";
@@ -91,14 +91,14 @@ try {
       let { page, consoleErrors, failedImages } = await openSeededPage(browser, viewport, status, "result");
       await page.locator(".result-panel").waitFor();
       const resultText = await page.locator("#screen").textContent();
-      if (status === "verified") assert(resultText.includes("本單元後台認列"), "verified result should use official credited wording");
+      if (status === "verified") assert(resultText.includes("後台已回傳正式認列資料") && resultText.includes("本單元正式認列") && resultText.includes("正式認列總計"), "verified result should use official credited wording");
       if (status === "pending") {
         assert(resultText.includes("本次預估 500/500 EXP，待後台確認"), "pending result should show estimated total");
-        assert(resultText.includes("正式認列 / 累積增量 0"), "pending result should keep official delta at zero");
+        assert(resultText.includes("正式認列／累積增量0"), "pending result should keep official delta at zero");
       }
       if (status === "guest") {
         assert(resultText.includes("guest 測試：本次預估 500/500 EXP，不列入正式累積"), "guest result should show local estimate only");
-        assert(resultText.includes("正式認列 / 累積增量 0"), "guest result should keep official delta at zero");
+        assert(resultText.includes("正式認列／累積增量0"), "guest result should keep official delta at zero");
       }
       assert(resultText.includes("本次取得徽章"), "result should show earned-only badge section");
       assert(!resultText.includes("本單元 15 枚徽章"), "result must not render full unit badge catalog");

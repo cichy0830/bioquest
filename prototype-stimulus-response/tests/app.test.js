@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-stimulus-response/app.js" });
 const api = context.window.__stimulus_responseTest;
 
-assert.equal(api.VERSION, "20260813-stimulus-response-mapping-v1");
+assert.equal(api.VERSION, "20261022-stimulus-response-spec-sync-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-stimulus-response-ready-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -154,7 +154,7 @@ assert(!api.renderReflection().includes("bq-report-assistant"));
 assert(fs.readFileSync(path.join(root, "index.html"), "utf8").includes("data-report-owl-src"));
 api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "guest_result", attempt_session_token: "guest", question_version: api.QUESTION_VERSION, answers, reflection: { question: "" }, result: api.scoreAttempt(), submitted: true });
 assert(api.renderResult().includes("提交後本次作答已鎖定"));
-assert(api.renderResult().includes("正式認列 / 累積增量 0"));
+assert(api.renderResult().includes("正式認列／累積增量") && api.renderResult().includes("不列入正式累積") && api.renderResult().includes("本次預估明細總計"));
 assert(api.renderResult().includes('data-relogin="true"'));
 assert(api.renderResult().includes("本次取得徽章"));
 assert(!api.renderResult().includes("本單元 15 枚徽章"));
@@ -246,4 +246,30 @@ const snapshot = api.loadVerifiedSnapshot();
 assert.equal(snapshot.student_id, "S70102");
 assert.equal(snapshot.progress.total_exp, 8600);
 assert(snapshot.progress.unit_badge_summary_json.includes("human_circulation"));
+// 2026-10-22 規格對齊：簡報角色引入、準備頁規格四線索不洩答、第 2 關導言不列流程順序、q07 初始順序防撞、結算頁新版版面
+api.setState({ student: { student_id: "guest", is_guest: true, progress: {} } });
+const briefHtml = api.renderBrief();
+assert(briefHtml.includes("阿澤老師") && briefHtml.includes("貓頭鷹助理"), "brief should introduce both characters per spec story");
+const scanHtml = api.renderScan();
+assert.equal((scanHtml.match(/<article>/g) || []).length, 4, "scan should list the four spec clues");
+for (const clue of ["刺激是可被感受的變化", "受器接收刺激", "動器產生反應", "反應時間可受注意力、疲勞與測量方式影響"]) {
+  assert(scanHtml.includes(clue), `scan should include spec clue: ${clue}`);
+}
+for (const leak of ["眼、耳", "肌肉", "腺體", "刺激出現到做出反應所花的時間", "訊息經過協調後"]) {
+  assert(!scanHtml.includes(leak), `scan must not reveal answer text: ${leak}`);
+}
+assert(!api.renderCheckpoint("checkpoint2").includes("接收刺激、訊息協調、產生反應"), "checkpoint2 lead must not list the q07 order");
+const q07 = api.questions.find((q) => q.id === Q(7));
+api.setState({ attempt_id: "u20-collision", optionOrders: { [Q(7)]: [...q07.answer] } });
+assert.notDeepEqual(Array.from(api.orderedOptions(q07).map((item) => item.id)), Array.from(q07.answer), "q07 stored collision should be guarded");
+const guardedOnce = api.orderedOptions(q07).map((item) => item.id);
+assert.deepEqual(guardedOnce, api.orderedOptions(q07).map((item) => item.id), "q07 guarded order should stay stable within one attempt");
+for (let n = 0; n < 200; n += 1) {
+  api.setState({ attempt_id: `u20-seed-${n}` });
+  assert.notDeepEqual(Array.from(api.orderedOptions(q07).map((item) => item.id)), Array.from(q07.answer), `q07 initial order must not equal answer (seed ${n})`);
+}
+api.setState({ student: { student_id: "S70101", is_guest: false, progress: {} }, submitted: true, result: { ...api.scoreAttempt(), verification_status: "server_verified", attempt_exp: 480, unit_credited_exp: 500, exp_delta: 20 } });
+const verifiedHtml = api.renderResult();
+assert(verifiedHtml.includes("後台已回傳正式認列資料") && verifiedHtml.includes("本單元正式認列") && verifiedHtml.includes("正式認列總計"), "verified result should use the new official layout");
+assert(verifiedHtml.includes("500 / 500 EXP") && verifiedHtml.includes("本次取得：480"), "verified summary should separate attempt EXP and unit credit");
 console.log("prototype-stimulus-response app regression passed");
