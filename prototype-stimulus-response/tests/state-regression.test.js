@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-stimulus-response")
   : sourceRoot;
-const VERSION = "20261022-stimulus-response-spec-sync-v1";
+const VERSION = "20261023-stimulus-response-reflection-spec-v1";
 const STORAGE_KEY = "bioquest_stimulus_response_state_v1";
 const QUESTION_VERSION = "20260718-stimulus-response-ready-v1";
 const UNIT_ID = "stimulus_response";
