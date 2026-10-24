@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261024-endocrine-system-spec-sync-v1";
+const VERSION = "20261024-endocrine-system-reflection-spec-v1";
 const QUESTION_VERSION = "20260718-endocrine-system-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -71,6 +71,9 @@ const reflectionRules = {
   lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
   copiedDirections: ["內分泌腺與激素", "血液運送", "目標器官", "主要腺體功能", "胰島素/升糖素", "神經調節和激素調節比較"]
 };
+const REPORT_QUESTION_ID = "endocrine_system_reflection_report";
+// 規格 q15 任務回報的六個方向詞，與前後台 copiedDirections 相同（只複製方向詞判為複製、不給回報 EXP）。
+const REPORT_DIRECTIONS = [...reflectionRules.copiedDirections];
 
 const badges = [
   ["endocrine_system_entry", "內分泌任務入門徽章", "完成激素訊號追蹤任務。"],
@@ -159,7 +162,7 @@ function createEmptyState() {
     submitted: false,
     submitLockedAt: "",
     completedScreens: ["login"],
-    reflection: { confident: "", question: "", confidence: "3" },
+    reflection: { confident: "", uncertain: "", direction: "", question: "", confidence: "3" },
     result: null,
     notice: ""
   };
@@ -742,6 +745,10 @@ function buildBackendPayload(result = scoreAttempt()) {
     })),
     student_question: state.reflection.question,
     confident_concept: state.reflection.confident,
+    uncertain_concept: state.reflection.uncertain || "",
+    report_question_id: REPORT_QUESTION_ID,
+    question_direction: state.reflection.direction || "",
+    confidence_score: state.reflection.confidence,
     confidence_level: state.reflection.confidence,
     client_summary: result
   };
@@ -1070,9 +1077,26 @@ function renderSetQuestion(question) {
 function conceptFeedback() {
   const missed = requiredQuestionIds.filter((id) => !isCorrect(id)).map((id) => questionMap[id].misconception);
   const unique = [...new Set(missed)];
-  const stable = requiredQuestionIds.filter((id) => isCorrect(id) && !state.hints[id]).map((id) => conceptLabel(questionMap[id].concept));
-  return { missed: unique, stable: [...new Set(stable)] };
+  const groupStable = (ids) => {
+    const correct = ids.filter((id) => isCorrect(id)).length;
+    const clean = ids.every((id) => isCorrect(id) && !state.hints[id]);
+    return clean || (ids.length >= 2 && correct / ids.length >= 0.8);
+  };
+  const stable = STABLE_CONCEPT_TEXT.filter((item) => groupStable(item.questions.map(Q_ID))).map((item) => item.text);
+  return { missed: unique, stable };
 }
+
+// 規格「目前較穩定概念」7 句。每句對應的題目：全部首次答對且未用提示，或兩題以上且答對率達 80%，才顯示。
+const Q_ID = (n) => `endocrine_system_q${String(n).padStart(2, "0")}`;
+const STABLE_CONCEPT_TEXT = [
+  { questions: [1], text: "你能說明內分泌腺會分泌激素。" },
+  { questions: [2, 4], text: "你能理解激素通常經血液運送到身體各處。" },
+  { questions: [3], text: "你能分辨激素主要作用於目標器官或細胞。" },
+  { questions: [14], text: "你能比較神經調節與激素調節的差異。" },
+  { questions: [5, 6, 7, 8], text: "你能將主要內分泌腺和功能方向配對。" },
+  { questions: [9, 10, 11, 13], text: "你能判斷胰島素與升糖素對血糖的基本作用方向。" },
+  { questions: [12], text: "你能理解激素需要適量，不是越多越好。" }
+];
 
 function renderReview() {
   const result = scoreAttempt();
@@ -1087,7 +1111,7 @@ function renderReview() {
         <div class="feedback-columns">
           <article>
             <h3>目前較穩定</h3>
-            <ul>${(feedback.stable.length ? feedback.stable.slice(0, 6) : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+            <ul>${(feedback.stable.length ? feedback.stable : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
           </article>
           <article>
             <h3>建議再確認</h3>
@@ -1106,7 +1130,7 @@ function renderReview() {
 }
 
 function misconceptionText(tag) { return {
-  gland_hormone_confusion:"建議再確認：內分泌腺會分泌激素，激素可協助調節身體活動。",
+  gland_hormone_confusion:"剛才有幾個概念還值得再確認：內分泌腺會分泌激素，激素可協助調節身體活動。",
   hormone_nerve_confusion:"建議再比較傳訊方式：激素通常經血液運送，神經訊息沿神經路徑傳遞。",
   target_organ_confusion:"建議再理解目標器官：激素不會讓所有細胞都產生一樣反應。",
   endocrine_pathway_order_confusion:"建議再整理激素流程：腺體分泌激素，激素進入血液，再到目標器官產生作用。",
@@ -1128,22 +1152,33 @@ function feedbackTitle(stateName) {
 }
 
 function renderReflection() {
+  const selectedDirection = state.reflection.direction || "";
   return `
     <div class="stack reflection-layout">
       <section class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把想問老師的地方留下來</h2>
-        <p class="lead">空白可以提交但沒有回報 EXP；具體且與本單元概念相關的問題，會取得較高回報 EXP。</p>
-        <p class="muted">可以從內分泌腺與激素、血液運送、目標器官、主要腺體功能、胰島素/升糖素，或神經調節和激素調節比較中選一個方向。</p>
-        <label>我最能掌握的一項概念
-          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="例如：激素通常經血液運送到目標器官">
+        <p class="lead">空白可以提交但沒有回報 EXP；只複製方向詞、無關玩笑或敷衍句不會取得回報 EXP。具體且與本單元概念相關的疑問，才會取得較高回報 EXP。</p>
+        <label>這次任務中，我最能掌握的一項內分泌系統概念是什麼？
+          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="關鍵詞：腺體、運送方式、作用對象">
         </label>
-        <label>我想上課請老師說明的部分
-          <textarea id="studentQuestion" rows="5" placeholder="例如：我想確認胰島素和升糖素為什麼作用方向不同，卻都和血糖調節有關？">${escapeHtml(state.reflection.question)}</textarea>
+        <label>我還不確定內分泌腺/激素、血液運送、目標器官、腺體功能或血糖調節中的哪一部分？
+          <input id="uncertainConcept" type="text" value="${escapeHtml(state.reflection.uncertain || "")}" placeholder="關鍵詞：哪個腺體、哪種運送方式、哪個方向容易混淆">
         </label>
-        <label>信心程度
+        <fieldset class="direction-picker">
+          <legend>選一個你想帶到課堂討論、希望老師再解釋的方向</legend>
+          <div class="direction-grid" role="group" aria-label="課堂討論方向">
+            ${REPORT_DIRECTIONS.map((direction) => `<button type="button" class="option-card direction-chip ${selectedDirection === direction ? "selected" : ""}" data-direction="${escapeHtml(direction)}" aria-pressed="${selectedDirection === direction ? "true" : "false"}">${escapeHtml(direction)}</button>`).join("")}
+          </div>
+        </fieldset>
+        <label>用自己的話補充你想確認的地方
+          <span class="field-help">可以先想：你最容易混淆的是運送方式、腺體功能，還是血糖調節方向。</span>
+          <textarea id="studentQuestion" rows="5" placeholder="關鍵詞：方向＋我不確定的地方＋為什麼">${escapeHtml(state.reflection.question)}</textarea>
+        </label>
+        <label>完成任務後，我對「內分泌系統」的理解信心是幾分？
+          <span class="field-help">5 分代表我能自己說明本單元重點概念。</span>
           <select id="confidenceLevel">
-            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level}｜${level === 5 ? "能自己說明本單元重點概念" : "仍需要一些協助"}</option>`).join("")}
+            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level} 分</option>`).join("")}
           </select>
         </label>
         <div class="button-row">
@@ -1366,6 +1401,18 @@ function bindScreenEvents() {
   const confidence = screen.querySelector("#confidenceLevel");
   textarea?.addEventListener("input", () => { state.reflection.question = textarea.value; saveState(); });
   confident?.addEventListener("input", () => { state.reflection.confident = confident.value; saveState(); });
+  const uncertain = screen.querySelector("#uncertainConcept");
+  uncertain?.addEventListener("input", () => { state.reflection.uncertain = uncertain.value; saveState(); });
+  screen.querySelectorAll("[data-direction]").forEach((button) => button.addEventListener("click", () => {
+    const direction = button.dataset.direction;
+    state.reflection.direction = state.reflection.direction === direction ? "" : direction;
+    screen.querySelectorAll("[data-direction]").forEach((item) => {
+      const active = item.dataset.direction === state.reflection.direction;
+      item.classList.toggle("selected", active);
+      item.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    saveState();
+  }));
   confidence?.addEventListener("change", () => { state.reflection.confidence = confidence.value; saveState(); });
   screen.querySelector("#submitMission")?.addEventListener("click", submitMission);
 }
@@ -1405,6 +1452,9 @@ if (typeof window !== "undefined") {
     resetForRelogin,
     canUseNav,
     evaluateReflection,
+    REPORT_DIRECTIONS,
+    reflectionRules,
+    conceptFeedback,
     titleAvatarPath,
     resultMode,
     renderBrief,

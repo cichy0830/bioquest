@@ -11,7 +11,7 @@ const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-endocrine-system")
   : sourceRoot;
 const Q = (n) => `endocrine_system_q${String(n).padStart(2, "0")}`;
-const APP_VERSION = "20261024-endocrine-system-spec-sync-v1";
+const APP_VERSION = "20261024-endocrine-system-reflection-spec-v1";
 const QUESTION_VERSION = "20260718-endocrine-system-ready-v1";
 const browser = await chromium.launch({ executablePath: process.env.BIOQUEST_CHROME_PATH || undefined });
 
@@ -207,6 +207,12 @@ try {
       assert.equal(await page.locator(".bq-report-assistant").count(), 1, "report owl should be exactly one");
       const owlTop = await page.locator(".bq-report-assistant").first().boundingBox().then((box) => box?.y ?? -999);
       assert(owlTop >= 0, `report owl should not be clipped at top, got ${owlTop}`);
+      assert.equal(await page.locator("[data-direction]").count(), 6, "reflection should show 6 spec direction chips");
+      await page.locator('[data-direction="血液運送"]').click();
+      assert.equal(await page.locator('[data-direction="血液運送"]').getAttribute("aria-pressed"), "true", "direction chip should toggle on");
+      assert.equal(await page.evaluate(() => window.__endocrine_systemTest.state().reflection.direction), "血液運送");
+      await page.locator("#uncertainConcept").fill("目標器官");
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${mode} horizontal overflow on reflection ${viewport.width}`);
       await page.locator("#submitMission").click();
       await page.locator(".result-panel").waitFor();
       await page.waitForTimeout(120);
