@@ -313,7 +313,30 @@ const DRIVERS = {
     await page.locator('[data-section-next="checkpoint3"]').click();
     await page.locator('[data-next="reflection"]').click();
     await page.locator("#submitMission").click();
+  },  async behavior_sensing(page) {
+    const Q = (n) => `behavior_sensing_q${String(n).padStart(2, "0")}`;
+    const choice = { 1: "organisms_respond_to_stimuli", 2: "parental_behavior_reproduction", 4: "behavior_supports_survival_reproduction", 5: "taxis_whole_body_moves", 6: "taxis_not_plant_bending", 7: "phototropism_growth_direction", 9: "touch_nastic_response", 10: "sleep_movement_day_night", 11: "plants_respond_without_animal_nerves", 12: "light_affects_growth_direction", 13: "reversible_touch_response", 14: "touch_response_belongs_behavior_sensing" };
+    const click = (n) => page.locator(`[data-answer="${Q(n)}"][data-value="${choice[n]}"]`).click();
+    const map = async (n, answers) => {
+      for (const [item, value] of Object.entries(answers)) await page.locator(`select[data-map-question="${Q(n)}"][data-map-item="${item}"]`).selectOption(value);
+    };
+    await page.locator('[data-next="scan"]').click();
+    await page.locator('[data-next="checkpoint1"]').click();
+    for (const n of [1, 2]) await click(n);
+    await map(3, { butterfly_nectar: "feeding", rabbit_hide_sound: "avoid_predator", peacock_display: "courtship", bird_feed_young: "parental_care" });
+    await click(4);
+    await page.locator('[data-section-next="checkpoint1"]').click();
+    await page.waitForSelector("#screen[data-bioquest-screen='checkpoint2']");
+    for (const n of [5, 6, 7]) await click(n);
+    await map(8, { bug_to_dark: "taxis", stem_bends_to_window: "tropism", root_grows_down: "tropism", unicell_away_strong_light: "taxis" });
+    await page.locator('[data-section-next="checkpoint2"]').click();
+    await page.waitForSelector("#screen[data-bioquest-screen='checkpoint3']");
+    for (const n of [9, 10, 11, 12, 13, 14]) await click(n);
+    await page.locator('[data-section-next="checkpoint3"]').click();
+    await page.locator('[data-next="reflection"]').click();
+    await page.locator("#submitMission").click();
   },
+
 };
 
 // ---------- 各站結算頁讀值：統一成 { attemptExp, creditedExp, ledger, correct, total } ----------
@@ -492,6 +515,25 @@ const READERS = {
     const num = (re) => { const m = text.match(re); return m ? Number(m[1]) : null; };
     const rows = Object.fromEntries([...document.querySelectorAll("#screen .ledger-grid article")].map((a) => [a.querySelector("span").textContent.trim(), Number(a.querySelector("strong").textContent)]));
     const byName = Object.fromEntries((window.__endocrine_systemTest?.badges || []).map((b) => [b.name, b.id]));
+    const cards = [...document.querySelectorAll("#screen .badge-wall .badge.earned")];
+    return {
+      attemptExp: num(/本次取得：(\d+)/),
+      creditedExp: num(/本單元正式認列：(\d+) EXP/),
+      ledger: { completion: rows["完成任務"], direct: rows["直接答對"], revision: rows["提示後修正"], reflection: rows["回報 EXP"], mastery: rows["精熟 EXP"], retry: rows["再挑戰補分"] },
+      ledgerTotal: null,
+      officialTotal: rows["正式認列總計"] ?? null,
+      correct: null,
+      total: null,
+      verifiedNotice: /後台已回傳正式認列資料/.test(text),
+      badges: cards.map((el) => byName[el.querySelector("strong")?.textContent.trim()] || `?${el.querySelector("strong")?.textContent.trim()}`),
+      badgeImagesBroken: cards.filter((el) => { const img = el.querySelector("img"); return img && !(img.complete && img.naturalWidth > 0); }).map((el) => byName[el.querySelector("strong")?.textContent.trim()] || "?"),
+    };
+  },  behavior_sensing: () => {
+    // 版面同第 16–22 站
+    const text = document.querySelector("#screen").textContent.replace(/\s+/g, " ");
+    const num = (re) => { const m = text.match(re); return m ? Number(m[1]) : null; };
+    const rows = Object.fromEntries([...document.querySelectorAll("#screen .ledger-grid article")].map((a) => [a.querySelector("span").textContent.trim(), Number(a.querySelector("strong").textContent)]));
+    const byName = Object.fromEntries((window.__behavior_sensingTest?.badges || []).map((b) => [b.name, b.id]));
     const cards = [...document.querySelectorAll("#screen .badge-wall .badge.earned")];
     return {
       attemptExp: num(/本次取得：(\d+)/),

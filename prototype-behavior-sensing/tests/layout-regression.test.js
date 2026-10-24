@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-behavior-sensing")
   : sourceRoot;
-const APP_VERSION = "20260813-behavior-sensing-mapping-v1";
+const APP_VERSION = "20261024-behavior-sensing-spec-sync-v1";
 const QUESTION_VERSION = "20260718-behavior-sensing-v1";
 const Q = (n) => `behavior_sensing_q${String(n).padStart(2, "0")}`;
 const browser = await chromium.launch({ executablePath: process.env.BIOQUEST_CHROME_PATH || undefined });
@@ -186,7 +186,7 @@ async function completeFlow(page, mode) {
   const resultText = await page.locator(".result-panel").textContent();
   if (mode === "guest") assert(resultText.includes("guest 測試"), "guest result should be local only");
   if (mode === "pending") assert(resultText.includes("待後台確認"), "pending result should wait for backend confirmation");
-  if (mode === "verified") assert(resultText.includes("後台認列"), "verified result should use formal backend wording");
+  if (mode === "verified") assert(resultText.includes("後台已回傳正式認列資料"), "verified result should use formal backend wording");
   assert.equal(await page.locator(".result-panel [data-relogin]").count(), 1, `${mode} result relogin entry missing`);
   assert(await page.locator(".result-stack").textContent().then((text) => text.includes("本次取得徽章")), `${mode} result earned badge heading missing`);
   assert.equal(await page.locator(".result-stack .badge-visual img").count(), 0, `${mode} result should not render controlled pending badge images`);

@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260813-behavior-sensing-mapping-v1";
+const VERSION = "20261024-behavior-sensing-spec-sync-v1";
 const QUESTION_VERSION = "20260718-behavior-sensing-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -17,6 +17,33 @@ const navButtons = typeof document !== "undefined" ? [...document.querySelectorA
 const studentMini = typeof document !== "undefined" ? document.querySelector("#studentMini") : null;
 const LOCK_MESSAGE = "本次任務已提交，作答結果已鎖定；若要再挑戰，請重新登入並從頭完成。";
 const LOCKED_SCREENS_AFTER_SUBMIT = new Set(["brief", "scan", "checkpoint1", "checkpoint2", "checkpoint3", "review", "reflection"]);
+
+const RESULT_STATUS_COPY = {
+  guest: {
+    summaryLabel: "guest 測試預估",
+    creditLabel: "正式累積狀態",
+    creditValue: "不列入正式累積",
+    noticeClass: "warn",
+    lead: "guest 測試：本次預估 {exp}/500 EXP，不列入正式累積。",
+    detail: "這次結果只供老師或學生試看流程，不會寫入 Google Sheet，也不更新正式徽章或稱號進度。"
+  },
+  pending: {
+    summaryLabel: "本次預估",
+    creditLabel: "後台確認狀態",
+    creditValue: "待後台確認",
+    noticeClass: "warn",
+    lead: "本次預估 {exp}/500 EXP，待後台確認。",
+    detail: "確認完成前，這些數字只代表本次作答預覽；不作為已確認結果或累積進度。"
+  },
+  verified: {
+    summaryLabel: "本次取得",
+    creditLabel: "本單元正式認列",
+    creditValue: "{credit} EXP",
+    noticeClass: "good",
+    lead: "後台已回傳正式認列資料。",
+    detail: "本次取得是這次挑戰的原始表現；本單元正式認列會保留最高表現並受 500 EXP 上限限制。"
+  }
+};
 
 const mission = {
   unit_id: "behavior_sensing",
@@ -88,7 +115,7 @@ const questions = [
   {id:"behavior_sensing_q11",section:"checkpoint3",concept:"plant_response_boundary",type:"choice",answer:"plants_respond_without_animal_nerves",prompt:"有同學說：「植物沒有神經，所以一定不會對刺激產生反應。」哪個修正較合理？",hint:"想想向光彎長或含羞草閉合是否都需要動物式神經系統。",misconception:"plants_do_not_respond",options:[{id:"plants_respond_without_animal_nerves",text:"植物沒有像動物一樣的神經系統，但仍能對光、重力、觸碰或晝夜變化產生反應"},{id:"plants_use_alveoli",text:"植物一定用肺泡接收刺激"},{id:"plants_use_insulin",text:"植物只靠胰島素移動"},{id:"plants_never_change",text:"植物完全不能改變任何構造或姿態"}]},
   {id:"behavior_sensing_q12",section:"checkpoint3",concept:"tropism_growth_direction",type:"choice",answer:"light_affects_growth_direction",prompt:"一組觀察紀錄顯示：把幼苗單側照光三天後，莖逐漸往光源方向彎長。這份紀錄最支持哪個判斷？",hint:"從資料看「三天後」「莖彎長」兩個線索，不必加入其他系統。",misconception:"plant_tropism_as_taxis",options:[{id:"light_affects_growth_direction",text:"光會影響植物莖的生長方向"},{id:"whole_plant_walks",text:"植物整株像動物一樣走向光源"},{id:"light_alveoli_exchange",text:"光讓肺泡交換氧氣"},{id:"insulin_bends_stem",text:"胰島素讓莖彎曲"}]},
   {id:"behavior_sensing_q13",section:"checkpoint3",concept:"plant_nastic_response",type:"choice",answer:"reversible_touch_response",prompt:"觀察含羞草：碰觸後葉片很快閉合，等待一段時間又打開；同一天再碰觸也可能再次閉合。這份紀錄較支持哪個判斷？",hint:"先看反應是否由碰觸引發、是否局部、是否可逆。",misconception:"nastic_vs_tropism_confusion",options:[{id:"reversible_touch_response",text:"這是受碰觸影響的局部、可逆反應"},{id:"whole_plant_migration",text:"這表示整株植物正在遷徙"},{id:"leaf_pulmonary",text:"這表示葉片正在進行肺循環"},{id:"plants_no_response",text:"這表示所有植物都完全不會反應"}]},
-  {id:"behavior_sensing_q14",section:"checkpoint3",concept:"plant_response_boundary",type:"choice",answer:"touch_response_belongs_behavior_sensing",prompt:"下列哪一個情境最適合放在「行為與感應」本單元核心檢核？",hint:"找出與環境刺激造成的行為或植物反應最直接相關的情境。",misconception:"unit_boundary_confusion",options:[{id:"touch_response_belongs_behavior_sensing",text:"含羞草受到碰觸後葉片閉合"},{id:"alveoli_oxygen_to_blood",text:"肺泡讓氧氣進入血液"},{id:"insulin_lowers_blood_glucose",text:"胰島素協助血糖降低"},{id:"diaphragm_inhale",text:"橫膈下降造成吸氣"}]}
+  {id:"behavior_sensing_q14",section:"checkpoint3",concept:"plant_response_boundary",type:"choice",answer:"touch_response_belongs_behavior_sensing",prompt:"下列哪一個情境最適合放在「行為與感應」本單元核心檢核？",hint:"找出與環境刺激造成動物行為或植物感應最直接相關的情境。",misconception:"unit_boundary_confusion",options:[{id:"touch_response_belongs_behavior_sensing",text:"含羞草受到碰觸後葉片閉合"},{id:"alveoli_oxygen_to_blood",text:"肺泡讓氧氣進入血液"},{id:"insulin_lowers_blood_glucose",text:"胰島素協助血糖降低"},{id:"diaphragm_inhale",text:"橫膈下降造成吸氣"}]}
 ];
 
 const questionMap = Object.fromEntries(questions.map((question) => [question.id, question]));
@@ -259,12 +286,43 @@ function orderedOptions(question) {
   return state.optionOrders[question.id].map((id) => source[id]).filter(Boolean);
 }
 
+function mappingItemsLookGrouped(question, ids) {
+  const choiceIndex = Object.fromEntries((question.choices || []).map((choice, index) => [choice.id, index]));
+  const groups = ids.map((id) => question.answer?.[id]);
+  const indexes = groups.map((group) => choiceIndex[group] ?? 0);
+  // 與選項順序一一對齊（例如 q03 第 1 項配第 1 個選項…）或答案群組只在一處切換（例如 q08 趨性、趨性、向性、向性），都會讓排列透露答案
+  if (indexes.every((value, index) => index === 0 || value >= indexes[index - 1])) return true;
+  let changes = 0;
+  for (let index = 1; index < groups.length; index += 1) if (groups[index] !== groups[index - 1]) changes += 1;
+  return new Set(groups).size < groups.length && changes <= new Set(groups).size - 1;
+}
+
+function orderedMappingItems(question) {
+  const key = `${question.id}_items`;
+  const ids = (question.items || []).map((item) => item.id);
+  if (!state.optionOrders[key] || state.optionOrders[key].length !== ids.length) {
+    let order = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}-items`);
+    for (let tries = 1; tries < 24 && mappingItemsLookGrouped(question, order); tries += 1) {
+      order = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}-items-${tries}`);
+    }
+    if (mappingItemsLookGrouped(question, order)) {
+      // 備援：依選項倒序輪流從各答案群組取項目，保證不對齊、不成群
+      const buckets = [...(question.choices || [])].reverse().map((choice) => ids.filter((id) => question.answer?.[id] === choice.id));
+      order = [];
+      while (order.length < ids.length && buckets.some((bucket) => bucket.length)) buckets.forEach((bucket) => { if (bucket.length) order.push(bucket.shift()); });
+    }
+    state.optionOrders[key] = order;
+  }
+  const source = Object.fromEntries((question.items || []).map((item) => [item.id, item]));
+  return state.optionOrders[key].map((id) => source[id]).filter(Boolean);
+}
+
 function formatSelected(question) {
   const value = answerValue(question.id);
   if (question.type === "choice") return question.options.find((option) => option.id === value)?.text || "尚未選擇";
   if (question.type === "mapping") {
     const choices = Object.fromEntries(question.choices.map((item) => [item.id, item.text]));
-    return question.items.map((item) => `${item.label}：${choices[value?.[item.id]] || "尚未選擇"}`).join("；");
+    return orderedMappingItems(question).map((item) => `${item.label}：${choices[value?.[item.id]] || "尚未選擇"}`).join("；");
   }
   if (question.type === "sequence") {
     const labels = Object.fromEntries(question.steps.map((item) => [item.id, item.label]));
@@ -894,6 +952,7 @@ async function submitMission() {
   });
   saveState();
   renderApp();
+  resetViewportScroll();
 }
 
 function renderLogin() {
@@ -939,7 +998,7 @@ function renderBrief() {
         <div class="scene-copy bq-brief-scene-caption">
           <p class="eyebrow">${mission.mission_area}</p>
           <h2>${mission.mission_title}</h2>
-          <p>反應控制室收到多筆環境訊號紀錄。請判斷動物與植物如何回應光、觸碰、氣味與晝夜變化，並分辨趨性、向性與植物感應運動。</p>
+          <p>反應控制室偵測到許多環境訊號：光線、觸碰、氣味、晝夜變化與危險線索。阿澤老師請你協助判讀生物如何回應這些刺激：有些動物會靠近食物或躲避危險，有些植物會改變生長方向，有些植物部位會快速開合。貓頭鷹助理準備了情境卡、分類卡與資料卡，協助你分辨「整個生物移動」、「植物生長方向改變」和「植物局部感應運動」，完成後會整理概念回饋給你。</p>
           <p class="muted">目前稱號：${escapeHtml(titleInfo.current.title)}｜${titleInfo.totalExp} EXP</p>
         </div>
        <div class="button-row">
@@ -952,7 +1011,7 @@ function renderBrief() {
 }
 
 function renderScan() {
-  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入反應控制室前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先看「刺激、反應者、反應方式、觀察時間」。</h3><p>先找情境中的環境線索與生物反應，再比較反應者、位置、方向或姿態的變化。</p></div></div><div class="concept-grid"><article><strong>刺激與反應</strong><p>先確認情境中出現了什麼環境線索，以及生物做出了什麼可觀察反應。</p></article><article><strong>動物行為功能</strong><p>動物行為可以回到生活需求與情境證據判斷，不只看動物名稱。</p></article><article><strong>比較反應方式</strong><p>先比較反應者、反應發生的位置，以及變化是位置、方向或姿態；不要只看名詞就判斷。</p></article><article><strong>植物感應</strong><p>植物反應可從刺激來源、反應部位、反應速度與是否恢復等線索閱讀。</p></article></div><button class="primary" data-next="checkpoint1">開始判讀環境訊號</button></section></div>`;
+  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入反應控制室前，先記得三個判讀方向</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>前幾站追蹤了身體裡的訊號，這一站要看生物怎麼回應外在環境。</h3><p>關卡中會用到下面三個判讀方向；答案要在關卡中自己判斷。</p></div></div><div class="concept-grid"><article><strong>環境線索</strong><p>先找情境中出現了哪些環境線索，再看生物接著出現什麼可觀察的改變。</p></article><article><strong>動物做了什麼</strong><p>留意動物做出的行為，再想一想這個行為和牠的生活需求可能有什麼關係。</p></article><article><strong>植物哪裡有變化</strong><p>留意變化出現在植物的哪個部位、出現得快或慢，以及過一段時間後是否恢復。</p></article></div><button class="primary" data-next="checkpoint1">開始判讀環境訊號</button></section></div>`;
 }
 
 function renderCheckpoint(section) {
@@ -1006,7 +1065,7 @@ function renderChoiceQuestion(question) {
 
 function renderMappingQuestion(question) {
   const current = state.answers[question.id] || {};
-  return `<div class="mapping-list">${question.items.map((item) => `
+  return `<div class="mapping-list">${orderedMappingItems(question).map((item) => `
     <label class="mapping-row">
       <span>${escapeHtml(item.label)}</span>
       <select data-map-question="${question.id}" data-map-item="${item.id}">
@@ -1132,18 +1191,22 @@ function renderReflection() {
 
 function renderResult() {
   const result = state.result || scoreAttempt();
-  const credit = creditStatusText(result);
+  const statusCopy = resultStatusCopy(result);
+  const mode = resultMode(result);
+  const estimatedTotal = Number(result.attempt_exp ?? result.unit_credited_exp ?? 0) || 0;
+  const officialTotal = mode === "verified" ? Number(result.unit_credited_exp ?? estimatedTotal) || 0 : 0;
+  const officialDelta = mode === "verified" ? Number(result.exp_delta ?? result.credited_delta ?? officialTotal) || 0 : 0;
   return `
     <div class="stack result-stack">
       <section class="panel result-panel">
         <p class="eyebrow">任務結算</p>
         <h2>環境訊號判讀任務結算</h2>
         <p class="lock-note">提交後本次作答已鎖定；若要再挑戰，請重新登入並從頭完成。</p>
+        <div class="feedback ${statusCopy.noticeClass}">${statusCopy.lead}</div>
         <div class="exp-summary">
-          <strong>${result.unit_credited_exp} / ${UNIT_EXP_CAP} EXP</strong>
-          <span>${escapeHtml(credit.resultLine)}</span>
+          <strong>${statusCopy.summaryValue}</strong>
+          <span>${statusCopy.summaryLabel}：${estimatedTotal}｜${statusCopy.creditLabel}：${statusCopy.creditValue}</span>
         </div>
-        <p class="muted">${escapeHtml(credit.note)}</p>
         <div class="ledger-grid">
           ${ledgerRow("完成任務", result.completion_exp)}
           ${ledgerRow("直接答對", result.direct_exp)}
@@ -1151,15 +1214,17 @@ function renderResult() {
           ${ledgerRow("回報 EXP", result.reflection_exp)}
           ${ledgerRow("精熟 EXP", result.mastery_exp)}
           ${ledgerRow("再挑戰補分", result.retry_exp)}
-          ${ledgerRow("總計", result.unit_credited_exp)}
+          ${ledgerRow(mode === "verified" ? "正式認列總計" : "本次預估明細總計", mode === "verified" ? officialTotal : estimatedTotal)}
+          ${ledgerRow("正式認列／累積增量", officialDelta)}
         </div>
+        <p class="muted">${statusCopy.detail}</p>
         <div class="button-row">
           <button class="primary" data-next="achievements">查看成就</button>
           <button class="secondary" data-next="rules">查看規則</button>
           <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
         </div>
       </section>
-      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode: credit.status })}
+      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode })}
     </div>
   `;
 }
@@ -1168,26 +1233,23 @@ function ledgerRow(label, value) {
   return `<article><span>${label}</span><strong>${Number(value || 0)}</strong></article>`;
 }
 
-function creditStatusText(result) {
+function resultMode(result = state.result || {}) {
   const status = result?.verification_status || (state.student?.is_guest ? "local_guest" : "pending_backend");
-  if (state.student?.is_guest || status === "local_guest") {
-    return {
-      status: "guest",
-      resultLine: `guest 測試：本次預估 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，不列入正式累積`,
-      note: "正式累積、完成單元與全冊徽章需使用學生帳號登入並經後台確認。"
-    };
-  }
-  if (status === "server_verified" || status === "server_verified_credited") {
-    return {
-      status: "verified",
-      resultLine: `本單元後台認列 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP`,
-      note: "已依後台回傳資料更新正式累積與稱號。"
-    };
-  }
+  if (state.student?.is_guest || status === "local_guest") return "guest";
+  if (String(status).includes("server_verified") || status === "verified") return "verified";
+  return "pending";
+}
+
+function resultStatusCopy(result = state.result || scoreAttempt()) {
+  const mode = resultMode(result);
+  const copy = RESULT_STATUS_COPY[mode] || RESULT_STATUS_COPY.pending;
+  const attemptExp = Number(result.attempt_exp ?? result.unit_credited_exp ?? 0) || 0;
+  const creditExp = Number(result.unit_credited_exp ?? attemptExp) || 0;
   return {
-    status: "pending",
-    resultLine: `本次預估 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，待後台確認`,
-    note: "本次資料已保留為待確認狀態，完成後台同步後才會更新正式累積。"
+    ...copy,
+    summaryValue: mode === "verified" ? `${creditExp} / ${UNIT_EXP_CAP} EXP` : `${attemptExp} / ${UNIT_EXP_CAP} EXP`,
+    lead: copy.lead.replace("{exp}", String(attemptExp)).replace("{credit}", String(creditExp)),
+    creditValue: copy.creditValue.replace("{exp}", String(attemptExp)).replace("{credit}", String(creditExp))
   };
 }
 
@@ -1374,7 +1436,11 @@ if (typeof window !== "undefined") {
     backendBadgeIds,
     evaluateReflection,
     titleAvatarPath,
+    resultMode,
     renderBrief,
+    renderScan,
+    orderedMappingItems,
+    mappingItemsLookGrouped,
     renderQuestionEvidence,
     checkpointIdForQuestion,
     analysisGroupForQuestion,

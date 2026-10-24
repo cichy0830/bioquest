@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-behavior-sensing/app.js" });
 const api = context.window.__behavior_sensingTest;
 
-assert.equal(api.VERSION, "20260813-behavior-sensing-mapping-v1");
+assert.equal(api.VERSION, "20261024-behavior-sensing-spec-sync-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-behavior-sensing-v1");
 assert.equal(api.mission.unit_id, "behavior_sensing");
 assert.equal(api.questions.length, 14);
@@ -230,4 +230,47 @@ assert.equal(api.loadAttempts().length, 1);
 assert.equal(api.loadVerifiedSnapshot().student_id, "S23023");
 assert.equal(api.loadVerifiedSnapshot().progress.completed_unit_count, 22);
 assert.equal(JSON.parse(api.loadVerifiedSnapshot().progress.unit_badge_summary_json)[0].unit_id, "life_world");
+// 2026-10-24 規格對齊：q14 提示、簡報角色引入、準備頁中性判讀方向不洩答、q03／q08 分類項目初始順序不透露答案（多種子）、結算頁新版版面
+assert.equal(api.questions.find((q) => q.id === Q(14)).hint, "找出與環境刺激造成動物行為或植物感應最直接相關的情境。", "q14 hint should follow spec");
+api.setState({ student: { student_id: "guest", is_guest: true, progress: {} } });
+assert.equal(api.mission.mission_area, "反應控制室", "mission area should follow spec");
+const briefHtml = api.renderBrief();
+assert(briefHtml.includes("阿澤老師") && briefHtml.includes("貓頭鷹助理"), "brief should introduce both characters per spec story");
+const scanHtml = api.renderScan();
+assert.equal((scanHtml.match(/<article>/g) || []).length, 3, "scan should list three reading directions");
+for (const leak of ["趨性", "向性", "觸發運動", "睡眠運動", "感應運動", "整體移動", "整個生物", "生長方向", "適應", "取食", "避敵", "求偶", "育幼", "神經", "局部", "可逆", "含羞草"]) {
+  assert(!scanHtml.includes(leak), `scan must not reveal answer text: ${leak}`);
+}
+for (const qid of [Q(3), Q(8)]) {
+  const mq = api.questions.find((q) => q.id === qid);
+  const choiceIndex = Object.fromEntries(mq.choices.map((c, i) => [c.id, i]));
+  const seen = new Set();
+  for (let n = 0; n < 200; n += 1) {
+    api.setState({ attempt_id: `u23-seed-${n}` });
+    const order = Array.from(api.orderedMappingItems(mq).map((item) => item.id));
+    assert.equal(order.length, mq.items.length, `${qid} should keep every item (seed ${n})`);
+    assert.equal(new Set(order).size, mq.items.length);
+    const idx = order.map((id) => choiceIndex[mq.answer[id]]);
+    assert(!idx.every((v, i) => i === 0 || v >= idx[i - 1]), `${qid} item order must not line up with choice order (seed ${n})`);
+    const groups = order.map((id) => mq.answer[id]);
+    const changes = groups.filter((g, i) => i > 0 && g !== groups[i - 1]).length;
+    if (new Set(groups).size < groups.length) assert(changes > new Set(groups).size - 1, `${qid} items must not be grouped by answer (seed ${n})`);
+    assert.equal(api.mappingItemsLookGrouped(mq, order), false);
+    seen.add(order.join(","));
+  }
+  assert(seen.size > 1, `${qid} item order should vary across attempts`);
+}
+api.setState({ attempt_id: "u23-render", answers: {} });
+const cp1 = api.renderCheckpoint("checkpoint1");
+const q03Html = cp1.slice(cp1.indexOf(`data-question-id="${Q(3)}"`));
+const firstItem = q03Html.match(/data-map-item="([^"]+)"/)[1];
+assert.equal(firstItem, api.orderedMappingItems(api.questions.find((q) => q.id === Q(3)))[0].id, "q03 should render items in the attempt order");
+api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "guest_result_layout", answers, result: api.scoreAttempt(), submitted: true });
+const guestResultHtml = api.renderResult();
+assert(guestResultHtml.includes("正式認列／累積增量") && guestResultHtml.includes("不列入正式累積") && guestResultHtml.includes("本次預估明細總計"), "guest result should use the new estimate layout");
+api.setState({ student: { student_id: "S23001", is_guest: false, progress: {} }, submitted: true, result: { ...api.scoreAttempt(), verification_status: "server_verified", attempt_exp: 480, unit_credited_exp: 500, exp_delta: 20 } });
+const verifiedHtml = api.renderResult();
+assert(verifiedHtml.includes("後台已回傳正式認列資料") && verifiedHtml.includes("本單元正式認列") && verifiedHtml.includes("正式認列總計"), "verified result should use the new official layout");
+assert(verifiedHtml.includes("500 / 500 EXP") && verifiedHtml.includes("本次取得：480"), "verified summary should separate attempt EXP and unit credit");
+assert.equal(api.resultMode(), "verified");
 console.log("prototype-behavior-sensing app regression passed");
