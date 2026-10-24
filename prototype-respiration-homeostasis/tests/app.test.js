@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-respiration-homeostasis/app.js" });
 const api = context.window.__respiration_homeostasisTest;
 
-assert.equal(api.VERSION, "20260813-respiration-homeostasis-mapping-v1");
+assert.equal(api.VERSION, "20261025-respiration-homeostasis-spec-sync-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-respiration-homeostasis-v1");
 assert.equal(api.mission.unit_id, "respiration_homeostasis");
 assert.equal(api.questions.length, 14);
@@ -253,4 +253,72 @@ assert.equal(api.state().submitted, false);
 assert.equal(api.loadAttempts().length, 1);
 assert.equal(api.loadVerifiedSnapshot().student_id, "S24024");
 assert.equal(api.loadVerifiedSnapshot().total_exp, 11200);
+
+// 2026-10-25 規格對齊（第一批）
+{
+  const qs = Object.fromEntries(api.questions.map((question) => [question.id, question]));
+  // 簡報頁：規格故事引入阿澤老師與貓頭鷹助理，不直接列完整吸吐氣流程或氣體交換答案
+  const brief = api.renderBrief();
+  assert(brief.includes("阿澤老師") && brief.includes("貓頭鷹助理"), "brief introduces both roles");
+  for (const banned of ["橫膈下降", "胸腔變大", "氧氣由肺泡進入血液", "鼻腔或口腔進入"]) assert(!brief.includes(banned), `brief leaks ${banned}`);
+  // 準備頁：不直接給 q02／q03／q04／q05／q06／q07–q09 答案
+  const scan = api.renderScan();
+  for (const banned of ["經氣管、支氣管", "壁薄", "數量多", "微血管", "氧氣進入血液", "二氧化碳進入肺泡", "胸腔變大", "胸腔變小", "細胞利用氧氣和養分釋放能量", "肺泡是氣體交換", "橫膈下降", "橫膈上升"]) assert(!scan.includes(banned), `scan leaks ${banned}`);
+  assert(scan.includes("三個判讀方向"));
+  // 題前卡：採規格 2026-07-21 文案
+  assert(api.renderQuestionEvidence(Q(1)).includes("呼吸概念觀察卡"));
+  assert(api.renderQuestionEvidence(Q(3)).includes("空氣路徑觀察卡"));
+  assert(api.renderQuestionEvidence(Q(4)).includes("構造位置觀察卡"));
+  assert(api.renderQuestionEvidence(Q(5)).includes("肺泡觀察卡"));
+  assert(api.renderQuestionEvidence(Q(9)).includes("胸腔變化觀察卡"));
+  assert(api.renderQuestionEvidence(Q(10)).includes("資料閱讀卡"));
+  assert(api.renderQuestionEvidence(Q(11)).includes("活動情境觀察卡"));
+  assert(api.renderQuestionEvidence(Q(12)).includes("生物構造觀察卡"));
+  assert(api.renderQuestionEvidence(Q(14)).includes("單元範圍判斷卡"));
+  const allEvidence = Array.from({ length: 14 }, (_, i) => api.renderQuestionEvidence(Q(i + 1))).join("\n");
+  for (const banned of ["數量多、壁薄", "氧氣由肺泡進入血液", "身體使用氧氣並排出二氧化碳", "人類：", "魚類：鰓"]) assert(!allEvidence.includes(banned), `evidence leaks ${banned}`);
+  // q04／q09／q12 配對項目初始順序：不與選項對齊、不按答案成群，依 attempt 穩定且會變化
+  for (const n of [4, 9, 12]) {
+    const question = qs[Q(n)];
+    const seen = new Set();
+    for (let seed = 0; seed < 200; seed += 1) {
+      api.setState({ attempt_id: `mapping_seed_${seed}` });
+      const order = api.orderedMappingItems(question).map((item) => item.id);
+      assert.equal(order.length, question.items.length);
+      assert.equal(new Set(order).size, question.items.length);
+      assert.equal(api.mappingItemsLookGrouped(question, order), false, `q${n} seed ${seed} grouped: ${order}`);
+      assert.deepEqual(api.orderedMappingItems(question).map((item) => item.id), order, "stable within attempt");
+      seen.add(order.join(","));
+    }
+    assert(seen.size > 3, `q${n} order should vary across attempts`);
+  }
+  assert.equal(api.mappingItemsLookGrouped(qs[Q(4)], ["nasal_cavity", "trachea", "bronchi", "alveoli"]), true);
+  assert.equal(api.mappingItemsLookGrouped(qs[Q(9)], ["diaphragm_down", "chest_expands", "air_enters_lungs", "diaphragm_up", "chest_smaller", "air_leaves_lungs"]), true);
+  assert.equal(api.mappingItemsLookGrouped(qs[Q(9)], ["diaphragm_up", "chest_smaller", "air_leaves_lungs", "diaphragm_down", "chest_expands", "air_enters_lungs"]), true);
+  // checkpoint_id 改用規格 IDs
+  api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "cp_ids", answers, reflection: { question: "" } });
+  const cpLogs = Object.fromEntries(api.scoreAttempt().logs.map((log) => [log.question_id, log.checkpoint_id]));
+  assert.equal(cpLogs[Q(1)], "respiration_homeostasis_cp1_terms_and_air_path");
+  assert.equal(cpLogs[Q(4)], "respiration_homeostasis_cp1_terms_and_air_path");
+  assert.equal(cpLogs[Q(10)], "respiration_homeostasis_cp2_alveoli_and_gas_exchange");
+  assert.equal(cpLogs[Q(7)], "respiration_homeostasis_cp3_breathing_mechanics");
+  assert.equal(cpLogs[Q(9)], "respiration_homeostasis_cp3_breathing_mechanics");
+  assert.equal(cpLogs[Q(14)], "respiration_homeostasis_cp4_balance_diversity_boundary");
+  // 結算頁新版版面：guest／pending／verified
+  const guestResult = api.renderResult();
+  assert(guestResult.includes("guest 測試：本次預估") && guestResult.includes("不列入正式累積") && guestResult.includes("本次預估明細總計"));
+  assert(!guestResult.includes("正式認列總計"));
+  api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "pending_result", answers, reflection: { question: "" }, result: { ...api.scoreAttempt(), verification_status: "pending_backend" } });
+  const pendingResult = api.renderResult();
+  assert(pendingResult.includes("待後台確認") && pendingResult.includes("本次預估明細總計"));
+  api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "verified_result", answers, reflection: { question: "" }, result: { ...api.scoreAttempt(), verification_status: "server_verified", attempt_exp: 420, unit_credited_exp: 480, exp_delta: 0, earned_badges: [] } });
+  assert.equal(api.resultMode(), "verified");
+  const verifiedResult = api.renderResult();
+  assert(verifiedResult.includes("後台已回傳正式認列資料"));
+  assert(verifiedResult.includes("本次取得：420") && verifiedResult.includes("本單元正式認列：480 EXP"));
+  assert(verifiedResult.includes("正式認列總計") && verifiedResult.includes("480 / 500 EXP"));
+  // 提交後捲回頁首
+  const submitBody = source.slice(source.indexOf("async function submitMission"), source.indexOf("function renderLogin"));
+  assert(submitBody.includes("renderApp();\n  resetViewportScroll();"), "submitMission should reset scroll");
+}
 console.log("prototype-respiration-homeostasis app regression passed");

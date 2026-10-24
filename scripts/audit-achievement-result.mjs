@@ -337,6 +337,40 @@ const DRIVERS = {
     await page.locator("#submitMission").click();
   },
 
+  async respiration_homeostasis(page) {
+    const Q = (n) => `respiration_homeostasis_q${String(n).padStart(2, "0")}`;
+    const choice = { 1: "breathing_and_cellular_respiration_distinct", 2: "cells_use_oxygen_for_energy", 5: "alveoli_thin_many_capillaries", 6: "alveoli_o2_in_co2_out", 7: "inhalation_diaphragm_down_chest_expands", 8: "exhalation_diaphragm_up_chest_smaller", 10: "exhaled_air_less_o2_more_co2", 11: "exercise_breathing_gas_balance", 13: "plants_also_respire_exchange_gases", 14: "alveoli_exchange_belongs_respiration" };
+    const click = (n) => page.locator(`[data-answer="${Q(n)}"][data-value="${choice[n]}"]`).click();
+    const map = async (n, answers) => {
+      for (const [item, value] of Object.entries(answers)) await page.locator(`select[data-map-question="${Q(n)}"][data-map-item="${item}"]`).selectOption(value);
+    };
+    const sequence = async (qid, order) => {
+      for (let i = 0; i < order.length; i += 1) {
+        for (;;) {
+          const now = await page.locator(`[data-sequence="${qid}"] [data-sequence-item]`).evaluateAll((els) => els.map((el) => el.dataset.sequenceItem));
+          if (now.indexOf(order[i]) <= i) break;
+          await page.locator(`[data-move="${qid}"][data-item="${order[i]}"][data-dir="-1"]`).click();
+        }
+      }
+    };
+    await page.locator('[data-next="scan"]').click();
+    await page.locator('[data-next="checkpoint1"]').click();
+    for (const n of [1, 2]) await click(n);
+    await sequence(Q(3), ["nose_or_mouth", "trachea", "bronchi", "lungs", "alveoli"]);
+    await map(4, { nasal_cavity: "filter_warm_moisten", trachea: "air_passage_to_lungs", bronchi: "branches_to_lungs", alveoli: "gas_exchange_site" });
+    await page.locator('[data-section-next="checkpoint1"]').click();
+    await page.waitForSelector("#screen[data-bioquest-screen='checkpoint2']");
+    for (const n of [5, 6, 7, 8]) await click(n);
+    await page.locator('[data-section-next="checkpoint2"]').click();
+    await page.waitForSelector("#screen[data-bioquest-screen='checkpoint3']");
+    await map(9, { diaphragm_down: "inhale", chest_expands: "inhale", air_enters_lungs: "inhale", diaphragm_up: "exhale", chest_smaller: "exhale", air_leaves_lungs: "exhale" });
+    for (const n of [10, 11]) await click(n);
+    await map(12, { human: "lungs_alveoli", fish: "gills", insect: "tracheal_system", plant_leaf: "stomata" });
+    for (const n of [13, 14]) await click(n);
+    await page.locator('[data-section-next="checkpoint3"]').click();
+    await page.locator('[data-next="reflection"]').click();
+    await page.locator("#submitMission").click();
+  },
 };
 
 // ---------- 各站結算頁讀值：統一成 { attemptExp, creditedExp, ledger, correct, total } ----------
@@ -548,6 +582,27 @@ const READERS = {
       badgeImagesBroken: cards.filter((el) => { const img = el.querySelector("img"); return img && !(img.complete && img.naturalWidth > 0); }).map((el) => byName[el.querySelector("strong")?.textContent.trim()] || "?"),
     };
   },
+  respiration_homeostasis: () => {
+    // 版面同第 16–23 站
+    const text = document.querySelector("#screen").textContent.replace(/\s+/g, " ");
+    const num = (re) => { const m = text.match(re); return m ? Number(m[1]) : null; };
+    const rows = Object.fromEntries([...document.querySelectorAll("#screen .ledger-grid article")].map((a) => [a.querySelector("span").textContent.trim(), Number(a.querySelector("strong").textContent)]));
+    const byName = Object.fromEntries((window.__respiration_homeostasisTest?.badges || []).map((b) => [b.name, b.id]));
+    const cards = [...document.querySelectorAll("#screen .badge-wall .badge.earned")];
+    return {
+      attemptExp: num(/本次取得：(\d+)/),
+      creditedExp: num(/本單元正式認列：(\d+) EXP/),
+      ledger: { completion: rows["完成任務"], direct: rows["直接答對"], revision: rows["提示後修正"], reflection: rows["回報 EXP"], mastery: rows["精熟 EXP"], retry: rows["再挑戰補分"] },
+      ledgerTotal: null,
+      officialTotal: rows["正式認列總計"] ?? null,
+      correct: null,
+      total: null,
+      verifiedNotice: /後台已回傳正式認列資料/.test(text),
+      badges: cards.map((el) => byName[el.querySelector("strong")?.textContent.trim()] || `?${el.querySelector("strong")?.textContent.trim()}`),
+      badgeImagesBroken: cards.filter((el) => { const img = el.querySelector("img"); return img && !(img.complete && img.naturalWidth > 0); }).map((el) => byName[el.querySelector("strong")?.textContent.trim()] || "?"),
+    };
+  },
+
 };
 
 export const RESULT_UNITS = Object.keys(DRIVERS);

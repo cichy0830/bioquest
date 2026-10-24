@@ -42,8 +42,8 @@ const env = {
 
 const failed = [];
 for (const file of files) {
-  // 結算頁注入稽核（scripts/tests/achievement-result.test.mjs）跑第 13–17 站約需 4 分鐘，單檔上限放寬到 8 分鐘
-  const result = spawnSync(process.execPath, [file], { cwd: root, env, encoding: "utf8", timeout: 480000 });
+  // 結算頁注入稽核（scripts/tests/achievement-result.test.mjs）跑第 13–24 站（96 次提交）在雲端約需 10 分鐘，單檔上限放寬到 20 分鐘
+  const result = spawnSync(process.execPath, [file], { cwd: root, env, encoding: "utf8", timeout: 1200000 });
   const ok = result.status === 0;
   if (!ok) {
     const lines = `${result.stderr || ""}\n${result.stdout || ""}`

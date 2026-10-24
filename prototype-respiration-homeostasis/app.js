@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260813-respiration-homeostasis-mapping-v1";
+const VERSION = "20261025-respiration-homeostasis-spec-sync-v1";
 const QUESTION_VERSION = "20260718-respiration-homeostasis-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -17,6 +17,33 @@ const navButtons = typeof document !== "undefined" ? [...document.querySelectorA
 const studentMini = typeof document !== "undefined" ? document.querySelector("#studentMini") : null;
 const LOCK_MESSAGE = "本次任務已提交，作答結果已鎖定；若要再挑戰，請重新登入並從頭完成。";
 const LOCKED_SCREENS_AFTER_SUBMIT = new Set(["brief", "scan", "checkpoint1", "checkpoint2", "checkpoint3", "review", "reflection"]);
+
+const RESULT_STATUS_COPY = {
+  guest: {
+    summaryLabel: "guest 測試預估",
+    creditLabel: "正式累積狀態",
+    creditValue: "不列入正式累積",
+    noticeClass: "warn",
+    lead: "guest 測試：本次預估 {exp}/500 EXP，不列入正式累積。",
+    detail: "這次結果只供老師或學生試看流程，不會寫入 Google Sheet，也不更新正式徽章或稱號進度。"
+  },
+  pending: {
+    summaryLabel: "本次預估",
+    creditLabel: "後台確認狀態",
+    creditValue: "待後台確認",
+    noticeClass: "warn",
+    lead: "本次預估 {exp}/500 EXP，待後台確認。",
+    detail: "確認完成前，這些數字只代表本次作答預覽；不作為已確認結果或累積進度。"
+  },
+  verified: {
+    summaryLabel: "本次取得",
+    creditLabel: "本單元正式認列",
+    creditValue: "{credit} EXP",
+    noticeClass: "good",
+    lead: "後台已回傳正式認列資料。",
+    detail: "本次取得是這次挑戰的原始表現；本單元正式認列會保留最高表現並受 500 EXP 上限限制。"
+  }
+};
 
 const mission = {
   unit_id: "respiration_homeostasis",
@@ -278,12 +305,43 @@ function orderedOptions(question) {
   return state.optionOrders[question.id].map((id) => source[id]).filter(Boolean);
 }
 
+function mappingItemsLookGrouped(question, ids) {
+  const choiceIndex = Object.fromEntries((question.choices || []).map((choice, index) => [choice.id, index]));
+  const groups = ids.map((id) => question.answer?.[id]);
+  const indexes = groups.map((group) => choiceIndex[group] ?? 0);
+  // 與選項順序一一對齊（例如 q04 第 1 項配第 1 個功能…）或答案群組只在一處切換（例如 q09 吸氣×3、呼氣×3），都會讓排列透露答案
+  if (indexes.every((value, index) => index === 0 || value >= indexes[index - 1])) return true;
+  let changes = 0;
+  for (let index = 1; index < groups.length; index += 1) if (groups[index] !== groups[index - 1]) changes += 1;
+  return new Set(groups).size < groups.length && changes <= new Set(groups).size - 1;
+}
+
+function orderedMappingItems(question) {
+  const key = `${question.id}_items`;
+  const ids = (question.items || []).map((item) => item.id);
+  if (!state.optionOrders[key] || state.optionOrders[key].length !== ids.length) {
+    let order = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}-items`);
+    for (let tries = 1; tries < 24 && mappingItemsLookGrouped(question, order); tries += 1) {
+      order = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}-items-${tries}`);
+    }
+    if (mappingItemsLookGrouped(question, order)) {
+      // 備援：依選項倒序輪流從各答案群組取項目，保證不對齊、不成群
+      const buckets = [...(question.choices || [])].reverse().map((choice) => ids.filter((id) => question.answer?.[id] === choice.id));
+      order = [];
+      while (order.length < ids.length && buckets.some((bucket) => bucket.length)) buckets.forEach((bucket) => { if (bucket.length) order.push(bucket.shift()); });
+    }
+    state.optionOrders[key] = order;
+  }
+  const source = Object.fromEntries((question.items || []).map((item) => [item.id, item]));
+  return state.optionOrders[key].map((id) => source[id]).filter(Boolean);
+}
+
 function formatSelected(question) {
   const value = answerValue(question.id);
   if (question.type === "choice") return question.options.find((option) => option.id === value)?.text || "尚未選擇";
   if (question.type === "mapping") {
     const choices = Object.fromEntries(question.choices.map((item) => [item.id, item.text]));
-    return question.items.map((item) => `${item.label}：${choices[value?.[item.id]] || "尚未選擇"}`).join("；");
+    return orderedMappingItems(question).map((item) => `${item.label}：${choices[value?.[item.id]] || "尚未選擇"}`).join("；");
   }
   if (question.type === "sequence") {
     const labels = Object.fromEntries(question.steps.map((item) => [item.id, item.label]));
@@ -765,8 +823,17 @@ function analysisGroupForQuestion(questionId) {
   return "respiration_terms_boundary";
 }
 
+const SPEC_CHECKPOINT_IDS = {
+  respiration_homeostasis_cp1_terms_and_air_path: [1, 2, 3, 4],
+  respiration_homeostasis_cp2_alveoli_and_gas_exchange: [5, 6, 10],
+  respiration_homeostasis_cp3_breathing_mechanics: [7, 8, 9],
+  respiration_homeostasis_cp4_balance_diversity_boundary: [11, 12, 13, 14]
+};
+
 function checkpointIdForQuestion(questionId) {
-  return questionMap[questionId]?.section || "";
+  // 規格 checkpoint IDs 依題號分組（與網頁三個關卡分段不同）
+  const number = Number(String(questionId || "").match(/q(\d+)$/)?.[1] || 0);
+  return Object.keys(SPEC_CHECKPOINT_IDS).find((id) => SPEC_CHECKPOINT_IDS[id].includes(number)) || "";
 }
 
 async function submitAttemptToBackend(payload) {
@@ -922,6 +989,7 @@ async function submitMission() {
   });
   saveState();
   renderApp();
+  resetViewportScroll();
 }
 
 function renderLogin() {
@@ -967,7 +1035,7 @@ function renderBrief() {
         <div class="scene-copy bq-brief-scene-caption">
           <p class="eyebrow">${mission.mission_area}</p>
           <h2>${mission.mission_title}</h2>
-          <p>恆定調節站收到多筆氣體監測紀錄。請追蹤空氣如何進入肺泡、氧氣與二氧化碳如何交換，以及吸氣呼氣時胸腔和橫膈如何變化。</p>
+          <p>恆定調節站的氣體監測器亮起提醒：身體需要讓氧氣進入血液並送到細胞，同時把細胞產生的二氧化碳帶回肺部排出。阿澤老師請你協助判讀呼吸道、肺泡、胸腔運動與氣體資料。貓頭鷹助理準備了呼吸道卡、肺泡觀察卡、胸腔變化卡與不同生物的氣體交換構造卡，協助你分清楚呼吸運動、氣體交換與細胞利用氧氣，完成後會整理概念回饋給你。</p>
           <p class="muted">目前稱號：${escapeHtml(titleInfo.current.title)}｜${titleInfo.totalExp} EXP</p>
         </div>
        <div class="button-row">
@@ -980,7 +1048,7 @@ function renderBrief() {
 }
 
 function renderScan() {
-  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入恆定調節站前，先抓住四個呼吸線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚「空氣進出肺、肺泡氣體交換、細胞利用氧氣」。</h3><p>本任務會用路徑、構造、氣體方向與胸腔變化，幫你判斷呼吸與氣體恆定。</p></div></div><div class="concept-grid"><article><strong>呼吸運動與細胞呼吸作用</strong><p>呼吸運動讓空氣進出肺；身體各處細胞利用氧氣和養分釋放能量。</p></article><article><strong>空氣路徑</strong><p>空氣由鼻腔或口腔進入，經氣管、支氣管、肺，到達肺泡。</p></article><article><strong>肺泡氣體交換</strong><p>肺泡壁薄、數量多且周圍有微血管，有利氧氣進入血液、二氧化碳進入肺泡。</p></article><article><strong>吸氣與呼氣</strong><p>吸氣胸腔變大、空氣進入；呼氣胸腔變小、空氣排出。</p></article></div><button class="primary" data-next="checkpoint1">開始監測氣體平衡</button></section></div>`;
+  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入恆定調節站前，先記得三個判讀方向</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>上一站看生物怎麼回應外在環境，這一站要追蹤身體裡的氣體進出與平衡。</h3><p>關卡中會用到下面三個判讀方向；答案要在關卡中自己判斷。</p></div></div><div class="concept-grid"><article><strong>看到「呼吸」先分清楚</strong><p>題目說的是空氣進出身體、氣體被運送，還是身體某處需要能量？不要只看到「呼吸」兩字就當成同一件事。</p></article><article><strong>空氣走到哪裡</strong><p>先找外界空氣的入口，再追蹤管道如何往肺內分支，留意每個構造在路徑上的位置。</p></article><article><strong>胸腔與氣體的變化</strong><p>留意空氣是進入還是離開、胸腔空間如何改變，以及氣體在哪兩側之間移動。</p></article></div><button class="primary" data-next="checkpoint1">開始監測氣體平衡</button></section></div>`;
 }
 
 function renderCheckpoint(section) {
@@ -1006,13 +1074,14 @@ function renderQuestion(question) {
 function conceptLabel(concept) { return {breathing_vs_cellular_respiration:"呼吸名詞",respiratory_air_path:"呼吸道",alveolus_exchange_structure:"肺泡構造",alveolus_gas_direction:"氣體方向",inhalation_mechanics:"吸氣機制",exhalation_mechanics:"呼氣機制",gas_balance_activity:"活動需求",gas_exchange_diversity:"多樣構造",unit_boundary_control:"單元邊界"}[concept] || concept; }
 
 function renderQuestionEvidence(qid) {
-  if (["respiration_homeostasis_q01", "respiration_homeostasis_q02"].includes(qid)) return `<div class="evidence-card"><strong>呼吸名詞卡</strong><p>先判斷題目是在說空氣進出身體、氣體被運送，還是身體細胞需要能量；不要只看到「呼吸」兩字就當成同一件事。</p></div>`;
-  if (["respiration_homeostasis_q03", "respiration_homeostasis_q04"].includes(qid)) return `<div class="evidence-card"><strong>呼吸道路徑卡</strong><p>從外界入口、主要管道、分支到肺內交換位置，判斷構造順序與功能。</p></div>`;
-  if (["respiration_homeostasis_q05", "respiration_homeostasis_q06"].includes(qid)) return `<div class="evidence-card"><strong>肺泡資料閱讀</strong><p>先看交換位置附近的距離、接觸面與血液流動線索，再依題目資訊判斷。</p></div>`;
-  if (["respiration_homeostasis_q07", "respiration_homeostasis_q08", "respiration_homeostasis_q09"].includes(qid)) return `<div class="evidence-card"><strong>吸氣呼氣線索卡</strong><p>用橫膈位置、胸腔大小與空氣方向一起判斷吸氣或呼氣。</p></div>`;
+  if (["respiration_homeostasis_q01", "respiration_homeostasis_q02"].includes(qid)) return `<div class="evidence-card"><strong>呼吸概念觀察卡</strong><p>先判斷題目是在說空氣進出身體、氣體被運送，還是身體細胞需要能量；不要只看到「呼吸」兩字就當成同一件事。</p></div>`;
+  if (qid === "respiration_homeostasis_q03") return `<div class="evidence-card"><strong>空氣路徑觀察卡</strong><p>先找外界空氣的入口，再觀察主要管道如何往肺內分支；排序時用構造位置判斷，不靠背第幾步。</p></div>`;
+  if (qid === "respiration_homeostasis_q04") return `<div class="evidence-card"><strong>構造位置觀察卡</strong><p>先看構造位在入口、主要通道、左右分支，還是肺內末端；再回到題目判斷較合適的功能。</p></div>`;
+  if (["respiration_homeostasis_q05", "respiration_homeostasis_q06"].includes(qid)) return `<div class="evidence-card"><strong>肺泡觀察卡</strong><p>先觀察肺泡和周圍微血管的距離、壁的厚薄與接觸位置，再判斷哪些條件有利氣體在兩側移動。</p></div>`;
+  if (["respiration_homeostasis_q07", "respiration_homeostasis_q08", "respiration_homeostasis_q09"].includes(qid)) return `<div class="evidence-card"><strong>胸腔變化觀察卡</strong><p>先看空氣是進入還是離開，再對照胸腔空間與橫膈位置如何改變；不要只背單一構造名稱。</p></div>`;
   if (qid === "respiration_homeostasis_q10") return `<div class="evidence-card evidence-chart-card">
-    <strong>氣體資料閱讀圖</strong>
-    <p>先確認比較對象、氣體種類與刻度，再回到選項判斷資料支持哪個說法。</p>
+    <strong>資料閱讀卡</strong>
+    <p>先分清楚比較對象是吸入空氣和呼出空氣，再看每一種氣體的相對變化；解讀時只使用資料支持的範圍。</p>
     <div class="gas-chart" role="img" aria-label="橫軸是吸入空氣與呼出空氣，縱軸是相對含量百分比。氧氣在吸入空氣約二十一、呼出空氣約十六；二氧化碳在吸入空氣約零點零四、呼出空氣約四。">
       <span class="chart-y-label">相對含量（%）</span>
       <div class="chart-bars">
@@ -1025,9 +1094,9 @@ function renderQuestionEvidence(qid) {
       <div class="chart-legend"><span><i class="oxygen"></i>氧氣</span><span><i class="carbon"></i>二氧化碳</span></div>
     </div>
   </div>`;
-  if (qid === "respiration_homeostasis_q11") return `<div class="evidence-card"><strong>活動資料閱讀</strong><p>先比較情境中的身體需求是否改變，再依題目資料判斷呼吸變化的合理解釋。</p></div>`;
-  if (["respiration_homeostasis_q12", "respiration_homeostasis_q13"].includes(qid)) return `<div class="evidence-card"><strong>多樣構造判讀</strong><p>先看生物生活環境、氣體接觸位置與題目提供的構造描述，再做配對或判斷。</p></div>`;
-  if (qid === "respiration_homeostasis_q14") return `<div class="evidence-card"><strong>單元邊界提醒</strong><p>先找題目是否聚焦空氣進出、身體內的氣體交換，或相鄰主題中的其他調節現象。</p></div>`;
+  if (qid === "respiration_homeostasis_q11") return `<div class="evidence-card"><strong>活動情境觀察卡</strong><p>先看活動前後身體需求是否改變，再思考呼吸變化可能和氣體進出、血液運送或細胞活動哪一部分有關。</p></div>`;
+  if (["respiration_homeostasis_q12", "respiration_homeostasis_q13"].includes(qid)) return `<div class="evidence-card"><strong>生物構造觀察卡</strong><p>先觀察生物類型與交換氣體的位置，再判斷哪個構造較可能負責和外界交換氣體；不要把所有生物都套成人類。</p></div>`;
+  if (qid === "respiration_homeostasis_q14") return `<div class="evidence-card"><strong>單元範圍判斷卡</strong><p>先找哪個情境最直接呈現空氣進出、肺泡或氣體交換；其他熟悉名詞要再確認是否屬於本單元核心。</p></div>`;
   return "";
 }
 
@@ -1050,7 +1119,7 @@ function renderChoiceQuestion(question) {
 
 function renderMappingQuestion(question) {
   const current = state.answers[question.id] || {};
-  return `<div class="mapping-list">${question.items.map((item) => `
+  return `<div class="mapping-list">${orderedMappingItems(question).map((item) => `
     <label class="mapping-row">
       <span>${escapeHtml(item.label)}</span>
       <select data-map-question="${question.id}" data-map-item="${item.id}">
@@ -1181,18 +1250,22 @@ function renderReflection() {
 
 function renderResult() {
   const result = state.result || scoreAttempt();
-  const credit = creditStatusText(result);
+  const statusCopy = resultStatusCopy(result);
+  const mode = resultMode(result);
+  const estimatedTotal = Number(result.attempt_exp ?? result.unit_credited_exp ?? 0) || 0;
+  const officialTotal = mode === "verified" ? Number(result.unit_credited_exp ?? estimatedTotal) || 0 : 0;
+  const officialDelta = mode === "verified" ? Number(result.exp_delta ?? result.credited_delta ?? officialTotal) || 0 : 0;
   return `
     <div class="stack result-stack">
       <section class="panel result-panel">
         <p class="eyebrow">任務結算</p>
         <h2>氣體平衡監測任務結算</h2>
         <p class="lock-note">提交後本次作答已鎖定；若要再挑戰，請重新登入並從頭完成。</p>
+        <div class="feedback ${statusCopy.noticeClass}">${statusCopy.lead}</div>
         <div class="exp-summary">
-          <strong>${result.unit_credited_exp} / ${UNIT_EXP_CAP} EXP</strong>
-          <span>${escapeHtml(credit.resultLine)}</span>
+          <strong>${statusCopy.summaryValue}</strong>
+          <span>${statusCopy.summaryLabel}：${estimatedTotal}｜${statusCopy.creditLabel}：${statusCopy.creditValue}</span>
         </div>
-        <p class="muted">${escapeHtml(credit.note)}</p>
         <div class="ledger-grid">
           ${ledgerRow("完成任務", result.completion_exp)}
           ${ledgerRow("直接答對", result.direct_exp)}
@@ -1200,15 +1273,17 @@ function renderResult() {
           ${ledgerRow("回報 EXP", result.reflection_exp)}
           ${ledgerRow("精熟 EXP", result.mastery_exp)}
           ${ledgerRow("再挑戰補分", result.retry_exp)}
-          ${ledgerRow("總計", result.unit_credited_exp)}
+          ${ledgerRow(mode === "verified" ? "正式認列總計" : "本次預估明細總計", mode === "verified" ? officialTotal : estimatedTotal)}
+          ${ledgerRow("正式認列／累積增量", officialDelta)}
         </div>
+        <p class="muted">${statusCopy.detail}</p>
         <div class="button-row">
           <button class="primary" data-next="achievements">查看成就</button>
           <button class="secondary" data-next="rules">查看規則</button>
           <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
         </div>
       </section>
-      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode: credit.status })}
+      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode })}
     </div>
   `;
 }
@@ -1217,26 +1292,23 @@ function ledgerRow(label, value) {
   return `<article><span>${label}</span><strong>${Number(value || 0)}</strong></article>`;
 }
 
-function creditStatusText(result) {
+function resultMode(result = state.result || {}) {
   const status = result?.verification_status || (state.student?.is_guest ? "local_guest" : "pending_backend");
-  if (state.student?.is_guest || status === "local_guest") {
-    return {
-      status: "guest",
-      resultLine: `guest 測試：本次預估 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，不列入正式累積`,
-      note: "正式累積、完成單元與全冊徽章需使用學生帳號登入並經後台確認。"
-    };
-  }
-  if (status === "server_verified" || status === "server_verified_credited") {
-    return {
-      status: "verified",
-      resultLine: `本單元後台認列 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP`,
-      note: "已依後台回傳資料更新正式累積與稱號。"
-    };
-  }
+  if (state.student?.is_guest || status === "local_guest") return "guest";
+  if (String(status).includes("server_verified") || status === "verified") return "verified";
+  return "pending";
+}
+
+function resultStatusCopy(result = state.result || scoreAttempt()) {
+  const mode = resultMode(result);
+  const copy = RESULT_STATUS_COPY[mode] || RESULT_STATUS_COPY.pending;
+  const attemptExp = Number(result.attempt_exp ?? result.unit_credited_exp ?? 0) || 0;
+  const creditExp = Number(result.unit_credited_exp ?? attemptExp) || 0;
   return {
-    status: "pending",
-    resultLine: `本次預估 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，待後台確認`,
-    note: "本次資料已保留為待確認狀態，完成後台同步後才會更新正式累積。"
+    ...copy,
+    summaryValue: mode === "verified" ? `${creditExp} / ${UNIT_EXP_CAP} EXP` : `${attemptExp} / ${UNIT_EXP_CAP} EXP`,
+    lead: copy.lead.replace("{exp}", String(attemptExp)).replace("{credit}", String(creditExp)),
+    creditValue: copy.creditValue.replace("{exp}", String(attemptExp)).replace("{credit}", String(creditExp))
   };
 }
 
@@ -1425,7 +1497,11 @@ if (typeof window !== "undefined") {
     backendBadgeIds,
     evaluateReflection,
     titleAvatarPath,
+    resultMode,
     renderBrief,
+    renderScan,
+    orderedMappingItems,
+    mappingItemsLookGrouped,
     renderQuestionEvidence,
     renderCheckpoint,
     renderReview,
