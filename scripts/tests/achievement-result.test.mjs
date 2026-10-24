@@ -1,4 +1,4 @@
-// 跨站成就一致性 2a（結算頁）：把後台模擬的提交回應注入第 13–24 站，作答到提交，
+// 跨站成就一致性 2a（結算頁）：把後台模擬的提交回應注入第 13–25 站，作答到提交，
 // 檢查結算頁與提交後成就頁；含「再挑戰有 retry_exp」情境。
 // 會啟動 Playwright（瀏覽器對外連線由 run-tests.mjs 阻擋；Apps Script 請求全部被攔截）。
 import assert from "node:assert/strict";
@@ -25,6 +25,9 @@ const KNOWN_ISSUES = [
   // 第 24 站 17 枚徽章皆尚無正式圖（image_status=pending、badgeAsset 回傳空字串）；圖接上後移除
   /^\[respiration_homeostasis[^\]]*\] 本次徽章少顯示 \d+ 枚/,
   /^\[respiration_homeostasis[^\]]*\] 提交後總覽本站縮圖 \d+ 張/,
+  // 第 25 站 17 枚徽章皆尚無正式圖（image_status=pending、badgeAsset 回傳空字串）；圖接上後移除
+  /^\[excretion_water_homeostasis[^\]]*\] 本次徽章少顯示 \d+ 枚/,
+  /^\[excretion_water_homeostasis[^\]]*\] 提交後總覽本站縮圖 \d+ 張/,
 ];
 
 const result = await runResultAudit();

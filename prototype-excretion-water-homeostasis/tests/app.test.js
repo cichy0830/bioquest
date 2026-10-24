@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-excretion-water-homeostasis/app.js" });
 const api = context.window.__excretion_water_homeostasisTest;
 
-assert.equal(api.VERSION, "20260813-excretion-water-homeostasis-mapping-v1");
+assert.equal(api.VERSION, "20261025-excretion-water-homeostasis-spec-sync-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-excretion-water-homeostasis-v1");
 assert.equal(api.mission.unit_id, "excretion_water_homeostasis");
 assert.equal(api.questions.length, 14);
@@ -230,4 +230,76 @@ assert.equal(api.state().screen, "login");
 assert.equal(api.state().student, null);
 assert.equal(api.loadVerifiedSnapshot().student_id, "S99999");
 assert.equal(api.loadVerifiedSnapshot().total_exp, 7800);
+
+// 2026-10-25 規格對齊（第一批）
+{
+  const qs = Object.fromEntries(api.questions.map((question) => [question.id, question]));
+  // 簡報頁：規格故事引入阿澤老師與貓頭鷹助理，不直接列完整泌尿路徑或器官功能答案
+  const brief = api.renderBrief();
+  assert(brief.includes("阿澤老師") && brief.includes("貓頭鷹助理"), "brief introduces both roles");
+  for (const banned of ["輸尿管", "膀胱暫", "尿道排出", "腎臟形成尿液", "尿素、鹽分"]) assert(!brief.includes(banned), `brief leaks ${banned}`);
+  // 準備頁：規格三個先備概念，不直接給 q01／q04／q05／q07／q08／q11／q13 答案
+  const scan = api.renderScan();
+  assert(scan.includes("三個先備概念"));
+  for (const phrase of ["排泄不同於排遺", "腎臟與泌尿系統可形成並排出尿液", "飲水、流汗與排尿會影響水分恆定"]) assert(scan.includes(phrase), `scan missing ${phrase}`);
+  for (const banned of ["代謝廢物", "食物殘渣", "輸尿管", "膀胱", "尿道", "暫存", "尿素", "鹽分", "食物含水", "尿量可能減少", "尿量增加", "較濃"]) assert(!scan.includes(banned), `scan leaks ${banned}`);
+  // 題前卡：規格 2026-07-28 定稿文案，q09 資料圖保留
+  assert(api.renderQuestionEvidence(Q(1)).includes("廢物來源觀察卡"));
+  assert(api.renderQuestionEvidence(Q(4)).includes("泌尿構造觀察卡"));
+  assert(api.renderQuestionEvidence(Q(5)).includes("尿液路徑觀察卡"));
+  assert(api.renderQuestionEvidence(Q(13)).includes("腎臟與膀胱觀察卡"));
+  assert(api.renderQuestionEvidence(Q(7)).includes("尿液成分觀察卡"));
+  assert(api.renderQuestionEvidence(Q(11)).includes("水分收支觀察卡"));
+  assert(api.renderQuestionEvidence(Q(9)).includes("u25-q09-water-intake-urine-output-data-chart"));
+  assert(api.renderQuestionEvidence(Q(12)).includes("含氮廢物觀察卡"));
+  assert(api.renderQuestionEvidence(Q(14)).includes("單元範圍判斷卡"));
+  // q04／q11 配對項目初始順序：不與選項對齊、不按答案成群，依 attempt 穩定且會變化
+  for (const n of [4, 11]) {
+    const question = qs[Q(n)];
+    const seen = new Set();
+    for (let seed = 0; seed < 200; seed += 1) {
+      api.setState({ attempt_id: `mapping_seed_${seed}` });
+      const order = api.orderedMappingItems(question).map((item) => item.id);
+      assert.equal(order.length, question.items.length);
+      assert.equal(new Set(order).size, question.items.length);
+      assert.equal(api.mappingItemsLookGrouped(question, order), false, `q${n} seed ${seed} grouped: ${order}`);
+      assert.deepEqual(api.orderedMappingItems(question).map((item) => item.id), order, "stable within attempt");
+      seen.add(order.join(","));
+    }
+    assert(seen.size > 3, `q${n} order should vary across attempts`);
+  }
+  assert.equal(api.mappingItemsLookGrouped(qs[Q(4)], ["kidney", "ureter", "bladder", "urethra"]), true);
+  assert.equal(api.mappingItemsLookGrouped(qs[Q(11)], ["drinking_water", "water_in_food", "urination", "sweating"]), true);
+  assert.equal(api.mappingItemsLookGrouped(qs[Q(11)], ["sweating", "urination", "water_in_food", "drinking_water"]), true);
+  // q05 排序初始順序不等於正解
+  for (let seed = 0; seed < 200; seed += 1) {
+    api.setState({ attempt_id: `sequence_seed_${seed}` });
+    assert.notDeepEqual(api.orderedOptions(qs[Q(5)]).map((step) => step.id), ["kidney", "ureter", "bladder", "urethra"]);
+  }
+  // checkpoint_id 為規格 IDs、q13／q14 teacher group 依規格
+  api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "cp_ids", answers, reflection: { question: "" } });
+  const cpLogs = Object.fromEntries(api.scoreAttempt().logs.map((log) => [log.question_id, log]));
+  assert.equal(cpLogs[Q(3)].checkpoint_id, "excretion_water_homeostasis_cp1_excretion_basics");
+  assert.equal(cpLogs[Q(7)].checkpoint_id, "excretion_water_homeostasis_cp2_urinary_system");
+  assert.equal(cpLogs[Q(12)].checkpoint_id, "excretion_water_homeostasis_cp3_water_balance");
+  assert.equal(cpLogs[Q(13)].checkpoint_id, "excretion_water_homeostasis_cp4_boundary_and_misconceptions");
+  assert.equal(cpLogs[Q(13)].teacher_group_id, "urinary_system_functions");
+  assert.equal(cpLogs[Q(14)].teacher_group_id, "unit_boundary_control");
+  // 結算頁新版版面：guest／pending／verified
+  const guestResult = api.renderResult();
+  assert(guestResult.includes("guest 測試：本次預估") && guestResult.includes("不列入正式累積") && guestResult.includes("本次預估明細總計"));
+  assert(!guestResult.includes("正式認列總計"));
+  api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "pending_result", answers, reflection: { question: "" }, result: { ...api.scoreAttempt(), verification_status: "pending_backend" } });
+  const pendingResult = api.renderResult();
+  assert(pendingResult.includes("待後台確認") && pendingResult.includes("本次預估明細總計"));
+  api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "verified_result", answers, reflection: { question: "" }, result: { ...api.scoreAttempt(), verification_status: "server_verified", attempt_exp: 420, unit_credited_exp: 480, exp_delta: 0, earned_badges: [] } });
+  assert.equal(api.resultMode(), "verified");
+  const verifiedResult = api.renderResult();
+  assert(verifiedResult.includes("後台已回傳正式認列資料"));
+  assert(verifiedResult.includes("本次取得：420") && verifiedResult.includes("本單元正式認列：480 EXP"));
+  assert(verifiedResult.includes("正式認列總計") && verifiedResult.includes("480 / 500 EXP"));
+  // 提交後捲回頁首
+  const submitBody = source.slice(source.indexOf("async function submitMission"), source.indexOf("function renderLogin"));
+  assert(submitBody.includes("renderApp();\n  resetViewportScroll();"), "submitMission should reset scroll");
+}
 console.log("prototype-excretion-water-homeostasis app regression passed");
