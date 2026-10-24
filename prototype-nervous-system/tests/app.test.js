@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-nervous-system/app.js" });
 const api = context.window.__nervous_systemTest;
 
-assert.equal(api.VERSION, "20260813-nervous-system-mapping-v1");
+assert.equal(api.VERSION, "20261024-nervous-system-spec-sync-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-nervous-system-ready-v1");
 assert.equal(api.mission.unit_id, "nervous_system");
 assert.equal(api.questions.length, 14);
@@ -229,4 +229,30 @@ const snapshot = api.loadVerifiedSnapshot();
 assert.equal(snapshot.student_id, "S21001");
 assert.equal(snapshot.total_exp, 9800);
 assert.equal(snapshot.progress.completed_unit_count, 21);
+// 2026-10-24 規格對齊：簡報角色引入、準備頁規格三句先備概念不洩答、q08 初始順序防撞（多種子）、結算頁新版版面
+api.setState({ student: { student_id: "guest", is_guest: true, progress: {} } });
+assert.equal(api.mission.mission_area, "反應控制室", "mission area should follow spec");
+const briefHtml = api.renderBrief();
+assert(briefHtml.includes("阿澤老師") && briefHtml.includes("貓頭鷹助理"), "brief should introduce both characters per spec story");
+const scanHtml = api.renderScan();
+assert.equal((scanHtml.match(/<article>/g) || []).length, 3, "scan should list the three spec prerequisites");
+for (const clue of ["刺激會被受器接收", "神經系統負責傳遞與協調訊息", "動器依訊息產生反應"]) {
+  assert(scanHtml.includes(clue), `scan should include spec clue: ${clue}`);
+}
+for (const leak of ["神經纖維集合", "腦與脊髓屬", "周圍神經", "感覺神經元", "運動神經元", "中間神經元", "反射很快", "傳入中樞", "傳向動器"]) {
+  assert(!scanHtml.includes(leak), `scan must not reveal answer text: ${leak}`);
+}
+const q08Guard = api.questions.find((q) => q.id === Q(8));
+for (let n = 0; n < 200; n += 1) {
+  api.setState({ attempt_id: `u21-seed-${n}` });
+  assert.notDeepEqual(Array.from(api.orderedOptions(q08Guard).map((item) => item.id)), Array.from(q08Guard.answer), `q08 initial order must not equal answer (seed ${n})`);
+}
+api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "guest_result_layout", answers, result: api.scoreAttempt(), submitted: true });
+const guestResultHtml = api.renderResult();
+assert(guestResultHtml.includes("正式認列／累積增量") && guestResultHtml.includes("不列入正式累積") && guestResultHtml.includes("本次預估明細總計"), "guest result should use the new estimate layout");
+api.setState({ student: { student_id: "S21001", is_guest: false, progress: {} }, submitted: true, result: { ...api.scoreAttempt(), verification_status: "server_verified", attempt_exp: 480, unit_credited_exp: 500, exp_delta: 20 } });
+const verifiedHtml = api.renderResult();
+assert(verifiedHtml.includes("後台已回傳正式認列資料") && verifiedHtml.includes("本單元正式認列") && verifiedHtml.includes("正式認列總計"), "verified result should use the new official layout");
+assert(verifiedHtml.includes("500 / 500 EXP") && verifiedHtml.includes("本次取得：480"), "verified summary should separate attempt EXP and unit credit");
+assert.equal(api.resultMode(), "verified");
 console.log("prototype-nervous-system app regression passed");

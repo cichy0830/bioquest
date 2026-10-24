@@ -248,6 +248,41 @@ const DRIVERS = {
     await page.locator('[data-next="reflection"]').click();
     await page.locator("#submitMission").click();
   },
+  async nervous_system(page) {
+    const Q = (n) => `nervous_system_q${String(n).padStart(2, "0")}`;
+    const choice = { 1: "neuron_transmits_messages", 2: "neuron_cell_nerve_bundle", 4: "peripheral_nerves_connect_body_cns", 5: "sensory_neuron_to_cns", 6: "motor_neuron_to_effector", 9: "reflex_still_nervous_system", 10: "spinal_cord_cns_reflex", 11: "skull_protects_brain", 12: "brain_awareness_after_reflex", 14: "nervous_system_more_than_brain" };
+    const click = (n) => page.locator(`[data-answer="${Q(n)}"][data-value="${choice[n]}"]`).click();
+    const map = async (n, answers) => {
+      for (const [item, value] of Object.entries(answers)) await page.locator(`select[data-map-question="${Q(n)}"][data-map-item="${item}"]`).selectOption(value);
+    };
+    const sequence = async (qid, order) => {
+      for (let i = 0; i < order.length; i += 1) {
+        for (;;) {
+          const now = await page.locator(`[data-sequence="${qid}"] [data-sequence-item]`).evaluateAll((els) => els.map((el) => el.dataset.sequenceItem));
+          if (now.indexOf(order[i]) <= i) break;
+          await page.locator(`[data-move="${qid}"][data-item="${order[i]}"][data-dir="-1"]`).click();
+        }
+      }
+    };
+    await page.locator('[data-next="scan"]').click();
+    await page.locator('[data-next="checkpoint1"]').click();
+    for (const n of [1, 2]) await click(n);
+    await map(3, { brain: "central", spinal_cord: "central", arm_nerve: "peripheral", leg_nerve: "peripheral" });
+    await click(4);
+    await page.locator('[data-section-next="checkpoint1"]').click();
+    await page.waitForSelector("#screen[data-bioquest-screen='checkpoint2']");
+    for (const n of [5, 6]) await click(n);
+    await map(7, { sensory: "to_cns", interneuron: "inside_cns", motor: "to_effector" });
+    await sequence(Q(8), ["skin_receptor", "sensory_to_spinal", "interneuron_spinal", "motor_to_muscle", "muscle_contract"]);
+    await page.locator('[data-section-next="checkpoint2"]').click();
+    await page.waitForSelector("#screen[data-bioquest-screen='checkpoint3']");
+    for (const n of [9, 10, 11, 12]) await click(n);
+    await map(13, { to_cns: "sensory", inside_spinal: "interneuron", to_muscle: "motor", muscle_contract: "effector" });
+    await click(14);
+    await page.locator('[data-section-next="checkpoint3"]').click();
+    await page.locator('[data-next="reflection"]').click();
+    await page.locator("#submitMission").click();
+  },
 };
 
 // ---------- 各站結算頁讀值：統一成 { attemptExp, creditedExp, ledger, correct, total } ----------
@@ -386,6 +421,26 @@ const READERS = {
     const num = (re) => { const m = text.match(re); return m ? Number(m[1]) : null; };
     const rows = Object.fromEntries([...document.querySelectorAll("#screen .ledger-grid article")].map((a) => [a.querySelector("span").textContent.trim(), Number(a.querySelector("strong").textContent)]));
     const byName = Object.fromEntries((window.__stimulus_responseTest?.badges || []).map((b) => [b.name, b.id]));
+    const cards = [...document.querySelectorAll("#screen .badge-wall .badge.earned")];
+    return {
+      attemptExp: num(/本次取得：(\d+)/),
+      creditedExp: num(/本單元正式認列：(\d+) EXP/),
+      ledger: { completion: rows["完成任務"], direct: rows["直接答對"], revision: rows["提示後修正"], reflection: rows["回報 EXP"], mastery: rows["精熟 EXP"], retry: rows["再挑戰補分"] },
+      ledgerTotal: null,
+      officialTotal: rows["正式認列總計"] ?? null,
+      correct: null,
+      total: null,
+      verifiedNotice: /後台已回傳正式認列資料/.test(text),
+      badges: cards.map((el) => byName[el.querySelector("strong")?.textContent.trim()] || `?${el.querySelector("strong")?.textContent.trim()}`),
+      badgeImagesBroken: cards.filter((el) => { const img = el.querySelector("img"); return img && !(img.complete && img.naturalWidth > 0); }).map((el) => byName[el.querySelector("strong")?.textContent.trim()] || "?"),
+    };
+  },
+  nervous_system: () => {
+    // 版面同第 16–20 站
+    const text = document.querySelector("#screen").textContent.replace(/\s+/g, " ");
+    const num = (re) => { const m = text.match(re); return m ? Number(m[1]) : null; };
+    const rows = Object.fromEntries([...document.querySelectorAll("#screen .ledger-grid article")].map((a) => [a.querySelector("span").textContent.trim(), Number(a.querySelector("strong").textContent)]));
+    const byName = Object.fromEntries((window.__nervous_systemTest?.badges || []).map((b) => [b.name, b.id]));
     const cards = [...document.querySelectorAll("#screen .badge-wall .badge.earned")];
     return {
       attemptExp: num(/本次取得：(\d+)/),

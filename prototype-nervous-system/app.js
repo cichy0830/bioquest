@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260813-nervous-system-mapping-v1";
+const VERSION = "20261024-nervous-system-spec-sync-v1";
 const QUESTION_VERSION = "20260718-nervous-system-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -18,11 +18,38 @@ const studentMini = typeof document !== "undefined" ? document.querySelector("#s
 const LOCK_MESSAGE = "本次任務已提交，作答結果已鎖定；若要再挑戰，請重新登入並從頭完成。";
 const LOCKED_SCREENS_AFTER_SUBMIT = new Set(["brief", "scan", "checkpoint1", "checkpoint2", "checkpoint3", "review", "reflection"]);
 
+const RESULT_STATUS_COPY = {
+  guest: {
+    summaryLabel: "guest 測試預估",
+    creditLabel: "正式累積狀態",
+    creditValue: "不列入正式累積",
+    noticeClass: "warn",
+    lead: "guest 測試：本次預估 {exp}/500 EXP，不列入正式累積。",
+    detail: "這次結果只供老師或學生試看流程，不會寫入 Google Sheet，也不更新正式徽章或稱號進度。"
+  },
+  pending: {
+    summaryLabel: "本次預估",
+    creditLabel: "後台確認狀態",
+    creditValue: "待後台確認",
+    noticeClass: "warn",
+    lead: "本次預估 {exp}/500 EXP，待後台確認。",
+    detail: "確認完成前，這些數字只代表本次作答預覽；不作為已確認結果或累積進度。"
+  },
+  verified: {
+    summaryLabel: "本次取得",
+    creditLabel: "本單元正式認列",
+    creditValue: "{credit} EXP",
+    noticeClass: "good",
+    lead: "後台已回傳正式認列資料。",
+    detail: "本次取得是這次挑戰的原始表現；本單元正式認列會保留最高表現並受 500 EXP 上限限制。"
+  }
+};
+
 const mission = {
   unit_id: "nervous_system",
   unit_title: "神經系統",
   mission_title: "神經訊號追蹤任務",
-  mission_area: "神經訊號中樞"
+  mission_area: "反應控制室"
 };
 
 const assets = {
@@ -898,6 +925,7 @@ async function submitMission() {
   });
   saveState();
   renderApp();
+  resetScreenScroll();
 }
 
 function renderLogin() {
@@ -931,7 +959,7 @@ function renderBrief() {
           <div class="scene-copy">
             <p class="eyebrow">${mission.mission_area}</p>
             <h2>${mission.mission_title}</h2>
-            <p>反應控制室收到多筆身體訊號紀錄。請追蹤神經元、腦與脊髓、周圍神經如何合作，並判斷快速反射的訊息路徑。</p>
+            <p>反應控制室收到一批身體訊號紀錄：碰到熱物縮手、聽到聲音轉頭、看到物體伸手拿取。阿澤老師請你不只判斷刺激與反應，還要追蹤訊息在神經系統中的傳遞路徑。貓頭鷹助理準備了神經元卡、中樞與周圍神經圖卡、反射情境卡，協助你找出「訊息從哪裡來、往哪裡去、由誰協調、由誰執行」，完成後會整理概念回饋給你。</p>
           </div>
           <div class="title-avatar-brief">
             <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
@@ -952,7 +980,7 @@ function renderBrief() {
 }
 
 function renderScan() {
-  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入神經訊號中樞前，先抓住四個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先用「構造層級、訊息方向、中樞位置、反射路徑」拆解情境。</h3><p>神經元是傳遞訊息的細胞；腦與脊髓屬於中樞神經系統；周圍神經把中樞和身體各處連起來。</p></div></div><div class="concept-grid"><article><strong>神經元與神經</strong><p>神經元是細胞；神經可視為許多神經纖維集合成的訊息通道。</p></article><article><strong>中樞與周圍</strong><p>腦與脊髓屬中樞；連到身體各處的是周圍神經。</p></article><article><strong>三類神經元</strong><p>感覺神經元傳入中樞，中間神經元在中樞連接，運動神經元傳向動器。</p></article><article><strong>反射路徑</strong><p>反射很快，但仍由神經系統傳遞與協調，不代表沒有神經路徑。</p></article></div><button class="primary" data-next="checkpoint1">開始追蹤神經訊號</button></section></div>`;
+  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入反應控制室前，先記得三個先備概念</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>這些是上一站學過的流程，這一站要追蹤訊息怎麼走。</h3><p>關卡中會用到下面三個先備概念。</p></div></div><div class="concept-grid"><article><strong>受器</strong><p>刺激會被受器接收。</p></article><article><strong>神經系統</strong><p>神經系統負責傳遞與協調訊息。</p></article><article><strong>動器</strong><p>動器依訊息產生反應。</p></article></div><button class="primary" data-next="checkpoint1">開始追蹤神經訊號</button></section></div>`;
 }
 
 function renderCheckpoint(section) {
@@ -1139,18 +1167,22 @@ function renderReflection() {
 
 function renderResult() {
   const result = state.result || scoreAttempt();
-  const credit = creditStatusText(result);
+  const statusCopy = resultStatusCopy(result);
+  const mode = resultMode(result);
+  const estimatedTotal = Number(result.attempt_exp ?? result.unit_credited_exp ?? 0) || 0;
+  const officialTotal = mode === "verified" ? Number(result.unit_credited_exp ?? estimatedTotal) || 0 : 0;
+  const officialDelta = mode === "verified" ? Number(result.exp_delta ?? result.credited_delta ?? officialTotal) || 0 : 0;
   return `
     <div class="stack result-stack">
       <section class="panel result-panel">
         <p class="eyebrow">任務結算</p>
         <h2>神經訊號追蹤任務結算</h2>
         <p class="lock-note">提交後本次作答已鎖定；若要再挑戰，請重新登入並從頭完成。</p>
+        <div class="feedback ${statusCopy.noticeClass}">${statusCopy.lead}</div>
         <div class="exp-summary">
-          <strong>${result.unit_credited_exp} / ${UNIT_EXP_CAP} EXP</strong>
-          <span>${escapeHtml(credit.resultLine)}</span>
+          <strong>${statusCopy.summaryValue}</strong>
+          <span>${statusCopy.summaryLabel}：${estimatedTotal}｜${statusCopy.creditLabel}：${statusCopy.creditValue}</span>
         </div>
-        <p class="muted">${escapeHtml(credit.note)}</p>
         <div class="ledger-grid">
           ${ledgerRow("完成任務", result.completion_exp)}
           ${ledgerRow("直接答對", result.direct_exp)}
@@ -1158,15 +1190,17 @@ function renderResult() {
           ${ledgerRow("回報 EXP", result.reflection_exp)}
           ${ledgerRow("精熟 EXP", result.mastery_exp)}
           ${ledgerRow("再挑戰補分", result.retry_exp)}
-          ${ledgerRow("總計", result.unit_credited_exp)}
+          ${ledgerRow(mode === "verified" ? "正式認列總計" : "本次預估明細總計", mode === "verified" ? officialTotal : estimatedTotal)}
+          ${ledgerRow("正式認列／累積增量", officialDelta)}
         </div>
+        <p class="muted">${statusCopy.detail}</p>
         <div class="button-row">
           <button class="primary" data-next="achievements">查看成就</button>
           <button class="secondary" data-next="rules">查看規則</button>
           <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
         </div>
       </section>
-      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode: credit.status })}
+      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode })}
     </div>
   `;
 }
@@ -1175,26 +1209,23 @@ function ledgerRow(label, value) {
   return `<article><span>${label}</span><strong>${Number(value || 0)}</strong></article>`;
 }
 
-function creditStatusText(result) {
+function resultMode(result = state.result || {}) {
   const status = result?.verification_status || (state.student?.is_guest ? "local_guest" : "pending_backend");
-  if (state.student?.is_guest || status === "local_guest") {
-    return {
-      status: "guest",
-      resultLine: `guest 測試：本次預估 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，不列入正式累積`,
-      note: "正式累積、完成單元與全冊徽章需使用學生帳號登入並經後台確認。"
-    };
-  }
-  if (status === "server_verified" || status === "server_verified_credited") {
-    return {
-      status: "verified",
-      resultLine: `本單元後台認列 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP`,
-      note: "已依後台回傳資料更新正式累積與稱號。"
-    };
-  }
+  if (state.student?.is_guest || status === "local_guest") return "guest";
+  if (String(status).includes("server_verified") || status === "verified") return "verified";
+  return "pending";
+}
+
+function resultStatusCopy(result = state.result || scoreAttempt()) {
+  const mode = resultMode(result);
+  const copy = RESULT_STATUS_COPY[mode] || RESULT_STATUS_COPY.pending;
+  const attemptExp = Number(result.attempt_exp ?? result.unit_credited_exp ?? 0) || 0;
+  const creditExp = Number(result.unit_credited_exp ?? attemptExp) || 0;
   return {
-    status: "pending",
-    resultLine: `本次預估 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，待後台確認`,
-    note: "本次資料已保留為待確認狀態，完成後台同步後才會更新正式累積。"
+    ...copy,
+    summaryValue: mode === "verified" ? `${creditExp} / ${UNIT_EXP_CAP} EXP` : `${attemptExp} / ${UNIT_EXP_CAP} EXP`,
+    lead: copy.lead.replace("{exp}", String(attemptExp)).replace("{credit}", String(creditExp)),
+    creditValue: copy.creditValue.replace("{exp}", String(attemptExp)).replace("{credit}", String(creditExp))
   };
 }
 
@@ -1382,6 +1413,9 @@ if (typeof window !== "undefined") {
     canUseNav,
     evaluateReflection,
     titleAvatarPath,
+    resultMode,
+    renderBrief,
+    renderScan,
     renderQuestionEvidence,
     renderCheckpoint,
     renderReview,

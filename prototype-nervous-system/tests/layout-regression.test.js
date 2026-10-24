@@ -63,7 +63,7 @@ try {
         return { ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) };
       };
     });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20260813-nervous-system-mapping-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261024-nervous-system-spec-sync-v1`);
     await page.locator("#guestBtn").click();
     await page.locator('[data-next="scan"]').click();
     assert.equal(await page.locator(".prep-owl-hero").count(), 1, "prep owl hero missing");
