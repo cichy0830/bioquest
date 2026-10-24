@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-nervous-system")
   : sourceRoot;
-const VERSION = "20261024-nervous-system-spec-sync-v1";
+const VERSION = "20261024-nervous-system-reflection-spec-v1";
 const QUESTION_VERSION = "20260718-nervous-system-ready-v1";
 const storageKey = "bioquest_nervous_system_state_v1";
 const attemptsKey = "bioquest_attempts_v1";

@@ -63,7 +63,7 @@ try {
         return { ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) };
       };
     });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261024-nervous-system-spec-sync-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261024-nervous-system-reflection-spec-v1`);
     await page.locator("#guestBtn").click();
     await page.locator('[data-next="scan"]').click();
     assert.equal(await page.locator(".prep-owl-hero").count(), 1, "prep owl hero missing");
@@ -91,6 +91,12 @@ try {
     await page.locator('[data-section-next="checkpoint3"]').click();
     await page.locator('[data-next="reflection"]').click();
     assert.equal(await page.locator(".bq-report-assistant").count(), 1, "report owl should be exactly one");
+    assert.equal(await page.locator("[data-direction]").count(), 6, "reflection should show 6 spec direction chips");
+    await page.locator('[data-direction="反射路徑"]').click();
+    assert.equal(await page.locator('[data-direction="反射路徑"]').getAttribute("aria-pressed"), "true", "direction chip should toggle on");
+    assert.equal(await page.evaluate(() => window.__nervous_systemTest.state().reflection.direction), "反射路徑");
+    await page.locator("#uncertainConcept").fill("中間神經元");
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "horizontal overflow on reflection");
     await page.locator("#submitMission").click();
     await page.locator(".result-panel").waitFor();
     assert(await page.locator(".result-panel").textContent().then((text) => text.includes("460 / 500 EXP")), "blank reflection guest result should be 460/500");

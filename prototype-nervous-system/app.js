@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261024-nervous-system-spec-sync-v1";
+const VERSION = "20261024-nervous-system-reflection-spec-v1";
 const QUESTION_VERSION = "20260718-nervous-system-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -75,6 +75,9 @@ const reflectionRules = {
   lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
   copiedDirections: ["神經元與神經", "腦與脊髓", "周圍神經", "感覺/運動/中間神經元", "反射路徑", "反射和大腦的關係"]
 };
+const REPORT_QUESTION_ID = "nervous_system_reflection_report";
+// 規格 q15 任務回報的六個方向詞，與前後台 copiedDirections 相同（只複製方向詞判為複製、不給回報 EXP）。
+const REPORT_DIRECTIONS = [...reflectionRules.copiedDirections];
 
 const badges = [
   ["nervous_system_entry", "神經訊號入門徽章", "完成神經訊號追蹤任務。"],
@@ -163,7 +166,7 @@ function createEmptyState() {
     submitted: false,
     submitLockedAt: "",
     completedScreens: ["login"],
-    reflection: { confident: "", question: "", confidence: "3" },
+    reflection: { confident: "", uncertain: "", direction: "", question: "", confidence: "3" },
     result: null,
     notice: ""
   };
@@ -755,6 +758,10 @@ function buildBackendPayload(result = scoreAttempt()) {
     })),
     student_question: state.reflection.question,
     confident_concept: state.reflection.confident,
+    uncertain_concept: state.reflection.uncertain || "",
+    report_question_id: REPORT_QUESTION_ID,
+    question_direction: state.reflection.direction || "",
+    confidence_score: state.reflection.confidence,
     confidence_level: state.reflection.confidence,
     client_summary: result
   };
@@ -1078,9 +1085,25 @@ function renderSetQuestion(question) {
 function conceptFeedback() {
   const missed = requiredQuestionIds.filter((id) => !isCorrect(id)).map((id) => questionMap[id].misconception);
   const unique = [...new Set(missed)];
-  const stable = requiredQuestionIds.filter((id) => isCorrect(id) && !state.hints[id]).map((id) => conceptLabel(questionMap[id].concept));
-  return { missed: unique, stable: [...new Set(stable)] };
+  const groupStable = (ids) => {
+    const correct = ids.filter((id) => isCorrect(id)).length;
+    const clean = ids.every((id) => isCorrect(id) && !state.hints[id]);
+    return clean || (ids.length >= 2 && correct / ids.length >= 0.8);
+  };
+  const stable = STABLE_CONCEPT_TEXT.filter((item) => groupStable(item.questions.map(Q_ID))).map((item) => item.text);
+  return { missed: unique, stable };
 }
+
+// 規格「目前較穩定概念」6 句。每句對應的題目：全部首次答對且未用提示，或兩題以上且答對率達 80%，才顯示。
+const Q_ID = (n) => `nervous_system_q${String(n).padStart(2, "0")}`;
+const STABLE_CONCEPT_TEXT = [
+  { questions: [1], text: "你能說明神經元和訊息傳遞的關係。" },
+  { questions: [2], text: "你能區分神經元和神經的層級。" },
+  { questions: [3, 4, 10, 14], text: "你能分辨中樞神經系統與周圍神經系統。" },
+  { questions: [5, 6, 7, 13], text: "你能用訊息方向判斷感覺神經元與運動神經元。" },
+  { questions: [8], text: "你能整理反射路徑的基本順序。" },
+  { questions: [9, 12], text: "你能理解反射仍由神經系統控制，不一定先經過有意識思考。" }
+];
 
 function renderReview() {
   const result = scoreAttempt();
@@ -1095,7 +1118,7 @@ function renderReview() {
         <div class="feedback-columns">
           <article>
             <h3>目前較穩定</h3>
-            <ul>${(feedback.stable.length ? feedback.stable.slice(0, 6) : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+            <ul>${(feedback.stable.length ? feedback.stable : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
           </article>
           <article>
             <h3>建議再確認</h3>
@@ -1114,9 +1137,9 @@ function renderReview() {
 }
 
 function misconceptionText(tag) { return {
-  neuron_nerve_confusion:"建議再區分：神經元是細胞，神經是許多神經纖維集合成的訊息通道。",
-  cns_pns_confusion:"建議再比較中樞與周圍神經：腦和脊髓是中樞，周圍神經連結身體各處與中樞。",
-  sensory_motor_confusion:"建議用訊息方向判斷：傳向中樞的是感覺神經元，傳向動器的是運動神經元。",
+  neuron_nerve_confusion:"剛才有幾個概念還值得再確認：神經元是細胞，神經是許多神經纖維集合成的訊息通道。",
+  cns_pns_confusion:"建議再比較中樞與周圍神經：腦和脊髓是中樞，周圍神經連結中樞與身體各處。",
+  sensory_motor_confusion:"建議再用訊息方向判斷：傳向中樞的是感覺神經元，傳向動器的是運動神經元。",
   neuron_role_confusion:"建議再整理三種神經元：感覺傳入、中間在中樞連接、運動傳出。",
   reflex_pathway_order_confusion:"建議再練習反射路徑：受器接收後，訊息傳入脊髓，再傳出到肌肉產生反應。",
   reflex_not_nervous_system:"建議再確認：反射很快，但仍需要神經系統傳遞與協調訊息。",
@@ -1138,22 +1161,33 @@ function feedbackTitle(stateName) {
 }
 
 function renderReflection() {
+  const selectedDirection = state.reflection.direction || "";
   return `
     <div class="stack reflection-layout">
       <section class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把想問老師的地方留下來</h2>
-        <p class="lead">空白可以提交但沒有回報 EXP；具體且與本單元概念相關的問題，會取得較高回報 EXP。</p>
-        <p class="muted">可以從神經元與神經、腦與脊髓、周圍神經、三類神經元、反射路徑或反射和大腦的關係中選一個方向。</p>
-        <label>我最能掌握的一項概念
-          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="例如：感覺神經元把訊息傳向中樞">
+        <p class="lead">空白可以提交但沒有回報 EXP；只複製方向詞、無關玩笑或敷衍句不會取得回報 EXP。具體且與本單元概念相關的疑問，才會取得較高回報 EXP。</p>
+        <label>這次任務中，我最能掌握的一項神經系統概念是什麼？
+          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="關鍵詞：構造、訊息方向、反射">
         </label>
-        <label>我想上課請老師說明的部分
-          <textarea id="studentQuestion" rows="5" placeholder="例如：我想確認反射為什麼不一定先經過大腦完整思考，卻仍然算神經系統控制？">${escapeHtml(state.reflection.question)}</textarea>
+        <label>我還不確定神經元/神經、中樞/周圍神經、神經元分工或反射路徑中的哪一部分？
+          <input id="uncertainConcept" type="text" value="${escapeHtml(state.reflection.uncertain || "")}" placeholder="關鍵詞：哪個構造、哪個方向、哪一步容易混淆">
         </label>
-        <label>信心程度
+        <fieldset class="direction-picker">
+          <legend>選一個你想帶到課堂討論、希望老師再解釋的方向</legend>
+          <div class="direction-grid" role="group" aria-label="課堂討論方向">
+            ${REPORT_DIRECTIONS.map((direction) => `<button type="button" class="option-card direction-chip ${selectedDirection === direction ? "selected" : ""}" data-direction="${escapeHtml(direction)}" aria-pressed="${selectedDirection === direction ? "true" : "false"}">${escapeHtml(direction)}</button>`).join("")}
+          </div>
+        </fieldset>
+        <label>用自己的話補充你想確認的地方
+          <span class="field-help">可以先想：你最容易混淆的是構造位置、訊息方向，還是反射路徑。</span>
+          <textarea id="studentQuestion" rows="5" placeholder="關鍵詞：方向＋我不確定的地方＋為什麼">${escapeHtml(state.reflection.question)}</textarea>
+        </label>
+        <label>完成任務後，我對「神經系統」的理解信心是幾分？
+          <span class="field-help">5 分代表我能自己說明本單元重點概念。</span>
           <select id="confidenceLevel">
-            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level}｜${level === 5 ? "能自己說明本單元重點概念" : "仍需要一些協助"}</option>`).join("")}
+            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level} 分</option>`).join("")}
           </select>
         </label>
         <div class="button-row">
@@ -1373,6 +1407,18 @@ function bindScreenEvents() {
   const confidence = screen.querySelector("#confidenceLevel");
   textarea?.addEventListener("input", () => { state.reflection.question = textarea.value; saveState(); });
   confident?.addEventListener("input", () => { state.reflection.confident = confident.value; saveState(); });
+  const uncertain = screen.querySelector("#uncertainConcept");
+  uncertain?.addEventListener("input", () => { state.reflection.uncertain = uncertain.value; saveState(); });
+  screen.querySelectorAll("[data-direction]").forEach((button) => button.addEventListener("click", () => {
+    const direction = button.dataset.direction;
+    state.reflection.direction = state.reflection.direction === direction ? "" : direction;
+    screen.querySelectorAll("[data-direction]").forEach((item) => {
+      const active = item.dataset.direction === state.reflection.direction;
+      item.classList.toggle("selected", active);
+      item.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    saveState();
+  }));
   confidence?.addEventListener("change", () => { state.reflection.confidence = confidence.value; saveState(); });
   screen.querySelector("#submitMission")?.addEventListener("click", submitMission);
 }
@@ -1412,6 +1458,9 @@ if (typeof window !== "undefined") {
     resetForRelogin,
     canUseNav,
     evaluateReflection,
+    REPORT_DIRECTIONS,
+    reflectionRules,
+    conceptFeedback,
     titleAvatarPath,
     resultMode,
     renderBrief,
