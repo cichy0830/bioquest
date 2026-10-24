@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-endocrine-system")
   : sourceRoot;
-const VERSION = "20260813-endocrine-system-mapping-v1";
+const VERSION = "20261024-endocrine-system-spec-sync-v1";
 const QUESTION_VERSION = "20260718-endocrine-system-ready-v1";
 const storageKey = "bioquest_endocrine_system_state_v1";
 const attemptsKey = "bioquest_attempts_v1";
@@ -146,6 +146,13 @@ try {
       assert.equal(await page.locator(".result-panel [data-relogin]").count(), 1, `${status} result relogin missing`);
       assert(await page.locator(".result-stack").textContent().then((text) => text.includes("本次取得徽章")), `${status} result earned heading missing`);
       assert.equal(await page.locator(".result-stack .badge-visual img").count(), 0, `${status} result should not render pending badge images`);
+      if (status === "guest") {
+        assert(await page.locator(".result-panel").textContent().then((text) => text.includes("不列入正式累積") && text.includes("正式認列／累積增量0")), "guest result wording must not imply official progress");
+      } else if (status === "pending") {
+        assert(await page.locator(".result-panel").textContent().then((text) => text.includes("待後台確認") && text.includes("正式認列／累積增量0")), "pending result wording must wait for backend");
+      } else {
+        assert(await page.locator(".result-panel").textContent().then((text) => text.includes("後台已回傳正式認列資料") && text.includes("本單元正式認列") && text.includes("正式認列總計")), "verified result wording must use backend recognition");
+      }
 
       await page.locator('[data-next="achievements"]').click();
       await page.locator(".achievements-stack").waitFor();

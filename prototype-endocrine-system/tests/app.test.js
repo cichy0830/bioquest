@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-endocrine-system/app.js" });
 const api = context.window.__endocrine_systemTest;
 
-assert.equal(api.VERSION, "20260813-endocrine-system-mapping-v1");
+assert.equal(api.VERSION, "20261024-endocrine-system-spec-sync-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-endocrine-system-ready-v1");
 assert.equal(api.mission.unit_id, "endocrine_system");
 assert.equal(api.questions.length, 14);
@@ -222,4 +222,27 @@ assert.equal(api.state().submitted, false);
 assert.equal(api.loadAttempts().length, 1);
 assert.equal(api.loadVerifiedSnapshot().student_id, "S99022");
 assert.equal(api.loadVerifiedSnapshot().total_exp, 10400);
+// 2026-10-24 規格對齊：任務區域、簡報角色引入、準備頁中性判讀方向不洩答、q04 初始順序防撞（多種子）、結算頁新版版面
+api.setState({ student: { student_id: "guest", is_guest: true, progress: {} } });
+assert.equal(api.mission.mission_area, "反應控制室", "mission area should follow spec");
+const briefHtml = api.renderBrief();
+assert(briefHtml.includes("阿澤老師") && briefHtml.includes("貓頭鷹助理"), "brief should introduce both characters per spec story");
+const scanHtml = api.renderScan();
+assert.equal((scanHtml.match(/<article>/g) || []).length, 4, "scan should list four reading directions");
+for (const leak of ["分泌激素", "經血液", "隨血液", "目標器官", "胰島素", "升糖素", "血糖降低", "血糖升高", "適量", "腦垂腺", "甲狀腺", "較快", "較慢"]) {
+  assert(!scanHtml.includes(leak), `scan must not reveal answer text: ${leak}`);
+}
+const q04Guard = api.questions.find((q) => q.id === Q(4));
+for (let n = 0; n < 200; n += 1) {
+  api.setState({ attempt_id: `u22-seed-${n}` });
+  assert.notDeepEqual(Array.from(api.orderedOptions(q04Guard).map((item) => item.id)), Array.from(q04Guard.answer), `q04 initial order must not equal answer (seed ${n})`);
+}
+api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "guest_result_layout", answers, result: api.scoreAttempt(), submitted: true });
+const guestResultHtml = api.renderResult();
+assert(guestResultHtml.includes("正式認列／累積增量") && guestResultHtml.includes("不列入正式累積") && guestResultHtml.includes("本次預估明細總計"), "guest result should use the new estimate layout");
+api.setState({ student: { student_id: "S22001", is_guest: false, progress: {} }, submitted: true, result: { ...api.scoreAttempt(), verification_status: "server_verified", attempt_exp: 480, unit_credited_exp: 500, exp_delta: 20 } });
+const verifiedHtml = api.renderResult();
+assert(verifiedHtml.includes("後台已回傳正式認列資料") && verifiedHtml.includes("本單元正式認列") && verifiedHtml.includes("正式認列總計"), "verified result should use the new official layout");
+assert(verifiedHtml.includes("500 / 500 EXP") && verifiedHtml.includes("本次取得：480"), "verified summary should separate attempt EXP and unit credit");
+assert.equal(api.resultMode(), "verified");
 console.log("prototype-endocrine-system app regression passed");
