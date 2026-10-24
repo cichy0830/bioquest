@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-behavior-sensing")
   : sourceRoot;
-const APP_VERSION = "20261024-behavior-sensing-spec-sync-v1";
+const APP_VERSION = "20261024-behavior-sensing-reflection-spec-v1";
 const QUESTION_VERSION = "20260718-behavior-sensing-v1";
 const Q = (n) => `behavior_sensing_q${String(n).padStart(2, "0")}`;
 const browser = await chromium.launch({ executablePath: process.env.BIOQUEST_CHROME_PATH || undefined });
@@ -181,6 +181,12 @@ async function completeFlow(page, mode) {
   assert.equal(await page.locator(".mentor-card").count(), 0, "legacy mentor-card should not render");
   await clickAndExpectTop(page, '[data-next="reflection"]', `${mode} review to reflection`);
   assert.equal(await page.locator(".bq-report-assistant").count(), 1, "report owl should be exactly one");
+  assert.equal(await page.locator("[data-direction]").count(), 7, "reflection should show 7 spec direction chips");
+  await page.locator('[data-direction="觸發運動"]').click();
+  assert.equal(await page.locator('[data-direction="觸發運動"]').getAttribute("aria-pressed"), "true", "direction chip should toggle on");
+  assert.equal(await page.evaluate(() => window.__behavior_sensingTest.state().reflection.direction), "觸發運動");
+  await page.locator("#uncertainConcept").fill("睡眠運動");
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${mode} horizontal overflow on reflection`);
   await page.locator("#submitMission").click();
   await page.locator(".result-panel").waitFor();
   const resultText = await page.locator(".result-panel").textContent();

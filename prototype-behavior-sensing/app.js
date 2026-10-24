@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261024-behavior-sensing-spec-sync-v1";
+const VERSION = "20261024-behavior-sensing-reflection-spec-v1";
 const QUESTION_VERSION = "20260718-behavior-sensing-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -71,6 +71,10 @@ const reflectionRules = {
   lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
   copiedDirections: ["動物行為功能", "趨性", "向性", "觸發運動", "睡眠運動", "植物反應方式", "資料判讀"]
 };
+// 規格 active contract：reflection_report_question_id = behavior_sensing_q15（不列入直接計分題）。
+const REPORT_QUESTION_ID = "behavior_sensing_q15";
+// 規格 q15 任務回報的七個方向詞，與前後台 copiedDirections 相同（只複製方向詞判為複製、不給回報 EXP）。
+const REPORT_DIRECTIONS = [...reflectionRules.copiedDirections];
 
 const badges = [
   ["behavior_sensing_entry", "環境訊號入門徽章", "完成環境訊號判讀任務。"],
@@ -155,7 +159,7 @@ function createEmptyState() {
     submitted: false,
     submitLockedAt: "",
     completedScreens: ["login"],
-    reflection: { confident: "", question: "", confidence: "3" },
+    reflection: { confident: "", uncertain: "", direction: "", question: "", confidence: "3" },
     result: null,
     notice: ""
   };
@@ -771,6 +775,10 @@ function buildBackendPayload(result = scoreAttempt()) {
 	    })),
     student_question: state.reflection.question,
     confident_concept: state.reflection.confident,
+    uncertain_concept: state.reflection.uncertain || "",
+    report_question_id: REPORT_QUESTION_ID,
+    question_direction: state.reflection.direction || "",
+    confidence_score: state.reflection.confidence,
     confidence_level: state.reflection.confidence,
     client_summary: result
   };
@@ -1109,9 +1117,25 @@ function renderSetQuestion(question) {
 function conceptFeedback() {
   const missed = requiredQuestionIds.filter((id) => !isCorrect(id)).map((id) => questionMap[id].misconception);
   const unique = [...new Set(missed)];
-  const stable = requiredQuestionIds.filter((id) => isCorrect(id) && !state.hints[id]).map((id) => conceptLabel(questionMap[id].concept));
-  return { missed: unique, stable: [...new Set(stable)] };
+  const groupStable = (ids) => {
+    const correct = ids.filter((id) => isCorrect(id)).length;
+    const clean = ids.every((id) => isCorrect(id) && !state.hints[id]);
+    return clean || (ids.length >= 2 && correct / ids.length >= 0.8);
+  };
+  const stable = STABLE_CONCEPT_TEXT.filter((item) => groupStable(item.questions.map(Q_ID))).map((item) => item.text);
+  return { missed: unique, stable };
 }
+
+// 規格「目前較穩定概念」6 句。每句對應的題目：全部首次答對且未用提示，或兩題以上且答對率達 80%，才顯示。
+const Q_ID = (n) => `behavior_sensing_q${String(n).padStart(2, "0")}`;
+const STABLE_CONCEPT_TEXT = [
+  { questions: [1, 11], text: "你能說明生物會對環境刺激產生反應。" },
+  { questions: [2, 3, 4], text: "你能用取食、避敵、求偶或育幼等方向理解動物行為。" },
+  { questions: [5, 6, 8], text: "你能分辨趨性和向性的主要線索。" },
+  { questions: [7, 12], text: "你能判斷植物向光彎長屬於生長方向受刺激影響。" },
+  { questions: [9, 10, 13], text: "你能用含羞草或睡眠運動例子理解植物感應運動。" },
+  { questions: [14], text: "你能避免把內分泌或呼吸恆定內容混入本單元。" }
+];
 
 function renderReview() {
   const result = scoreAttempt();
@@ -1126,7 +1150,7 @@ function renderReview() {
         <div class="feedback-columns">
           <article>
             <h3>目前較穩定</h3>
-            <ul>${(feedback.stable.length ? feedback.stable.slice(0, 6) : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+            <ul>${(feedback.stable.length ? feedback.stable : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
           </article>
           <article>
             <h3>建議再確認</h3>
@@ -1140,7 +1164,7 @@ function renderReview() {
 }
 
 function misconceptionText(tag) { return {
-  plants_do_not_respond:"建議再確認：植物沒有動物式神經系統，但仍能對光、重力、觸碰或晝夜變化產生反應。",
+  plants_do_not_respond:"剛才有幾個概念還值得再確認：植物沒有動物式神經系統，但仍能對光、重力、觸碰或晝夜變化產生反應。",
   animal_behavior_function_confusion:"建議再用生活功能理解動物行為：取食、避敵、求偶、育幼等方向可幫助判讀情境。",
   animal_behavior_no_function:"建議再確認：許多動物行為和存活、繁殖或適應環境有關，不只是隨意活動。",
   taxis_tropism_confusion:"建議再比較趨性與向性：趨性看整個生物移動，向性看植物生長方向改變。",
@@ -1162,22 +1186,33 @@ function feedbackTitle(stateName) {
 }
 
 function renderReflection() {
+  const selectedDirection = state.reflection.direction || "";
   return `
     <div class="stack reflection-layout">
       <section class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把想問老師的地方留下來</h2>
-        <p class="lead">空白可以提交但沒有回報 EXP；具體且與本單元概念相關的問題，會取得較高回報 EXP。</p>
-        <p class="muted">可以從動物行為功能、趨性、向性、觸發運動、睡眠運動、植物反應方式或資料判讀中選一個方向。</p>
-        <label>我最能掌握的一項概念
-          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="例如：趨性看整個生物體移動">
+        <p class="lead">空白可以提交但沒有回報 EXP；只複製方向詞、無關玩笑或敷衍句不會取得回報 EXP。具體且與本單元概念相關的疑問，才會取得較高回報 EXP。</p>
+        <label>這次任務中，我最能掌握的一項行為與感應概念是什麼？
+          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="關鍵詞：刺激、反應者、反應方式">
         </label>
-        <label>我想上課請老師說明的部分
-          <textarea id="studentQuestion" rows="5" placeholder="例如：我想確認含羞草閉合和豆苗向光彎長都算植物反應，為什麼一個不是向性？">${escapeHtml(state.reflection.question)}</textarea>
+        <label>我還不確定動物行為、趨性、向性、觸發運動、睡眠運動或植物反應方式中的哪一部分？
+          <input id="uncertainConcept" type="text" value="${escapeHtml(state.reflection.uncertain || "")}" placeholder="關鍵詞：哪種反應、哪個線索容易混淆">
         </label>
-        <label>信心程度
+        <fieldset class="direction-picker">
+          <legend>選一個你想帶到課堂討論、希望老師再解釋的方向</legend>
+          <div class="direction-grid" role="group" aria-label="課堂討論方向">
+            ${REPORT_DIRECTIONS.map((direction) => `<button type="button" class="option-card direction-chip ${selectedDirection === direction ? "selected" : ""}" data-direction="${escapeHtml(direction)}" aria-pressed="${selectedDirection === direction ? "true" : "false"}">${escapeHtml(direction)}</button>`).join("")}
+          </div>
+        </fieldset>
+        <label>用自己的話補充你想確認的地方
+          <span class="field-help">可以先想你最容易混淆的是動物行為功能、整體移動、生長方向，還是植物局部運動。</span>
+          <textarea id="studentQuestion" rows="5" placeholder="關鍵詞：方向＋我不確定的地方＋為什麼">${escapeHtml(state.reflection.question)}</textarea>
+        </label>
+        <label>完成任務後，我對「行為與感應」的理解信心是幾分？
+          <span class="field-help">5 分代表我能自己說明本單元重點概念。</span>
           <select id="confidenceLevel">
-            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level}｜${level === 5 ? "能自己說明本單元重點概念" : "仍需要一些協助"}</option>`).join("")}
+            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level} 分</option>`).join("")}
           </select>
         </label>
         <div class="button-row">
@@ -1400,6 +1435,18 @@ function bindScreenEvents() {
   const confidence = screen.querySelector("#confidenceLevel");
   textarea?.addEventListener("input", () => { state.reflection.question = textarea.value; saveState(); });
   confident?.addEventListener("input", () => { state.reflection.confident = confident.value; saveState(); });
+  const uncertain = screen.querySelector("#uncertainConcept");
+  uncertain?.addEventListener("input", () => { state.reflection.uncertain = uncertain.value; saveState(); });
+  screen.querySelectorAll("[data-direction]").forEach((button) => button.addEventListener("click", () => {
+    const direction = button.dataset.direction;
+    state.reflection.direction = state.reflection.direction === direction ? "" : direction;
+    screen.querySelectorAll("[data-direction]").forEach((item) => {
+      const active = item.dataset.direction === state.reflection.direction;
+      item.classList.toggle("selected", active);
+      item.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    saveState();
+  }));
   confidence?.addEventListener("change", () => { state.reflection.confidence = confidence.value; saveState(); });
   screen.querySelector("#submitMission")?.addEventListener("click", submitMission);
 }
@@ -1435,6 +1482,9 @@ if (typeof window !== "undefined") {
     shortQuestionId,
     backendBadgeIds,
     evaluateReflection,
+    REPORT_DIRECTIONS,
+    reflectionRules,
+    conceptFeedback,
     titleAvatarPath,
     resultMode,
     renderBrief,

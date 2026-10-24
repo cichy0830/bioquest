@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-behavior-sensing")
   : sourceRoot;
-const VERSION = "20261024-behavior-sensing-spec-sync-v1";
+const VERSION = "20261024-behavior-sensing-reflection-spec-v1";
 const QUESTION_VERSION = "20260718-behavior-sensing-v1";
 const storageKey = "bioquest_behavior_sensing_state_v1";
 const attemptsKey = "bioquest_attempts_v1";
