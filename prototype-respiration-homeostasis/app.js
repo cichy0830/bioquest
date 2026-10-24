@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261025-respiration-homeostasis-spec-sync-v1";
+const VERSION = "20261025-respiration-homeostasis-reflection-spec-v1";
 const QUESTION_VERSION = "20260718-respiration-homeostasis-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -71,6 +71,10 @@ const reflectionRules = {
   lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
   copiedDirections: ["呼吸運動與細胞呼吸作用", "空氣進入肺泡路徑", "肺泡氣體交換", "吸氣呼氣胸腔變化", "運動時氣體需求", "不同生物氣體交換構造"]
 };
+// 規格 active contract：reflection_report_question_id = respiration_homeostasis_q15（不列入直接計分題）。
+const REPORT_QUESTION_ID = "respiration_homeostasis_q15";
+// 規格 q15 任務回報的六個方向詞，與前後台 copiedDirections 相同（只複製方向詞判為複製、不給回報 EXP）。
+const REPORT_DIRECTIONS = [...reflectionRules.copiedDirections];
 
 const badges = [
   ["respiration_homeostasis_entry", "氣體平衡入門", "完成氣體平衡監測任務。"],
@@ -163,7 +167,7 @@ function createEmptyState() {
     submitted: false,
     submitLockedAt: "",
     completedScreens: ["login"],
-    reflection: { confident: "", question: "", confidence: "3" },
+    reflection: { confident: "", uncertain: "", direction: "", question: "", confidence: "3" },
     result: null,
     notice: ""
   };
@@ -803,6 +807,10 @@ function buildBackendPayload(result = scoreAttempt()) {
     })),
     student_question: state.reflection.question,
     confident_concept: state.reflection.confident,
+    uncertain_concept: state.reflection.uncertain || "",
+    report_question_id: REPORT_QUESTION_ID,
+    question_direction: state.reflection.direction || "",
+    confidence_score: state.reflection.confidence,
     confidence_level: state.reflection.confidence,
     client_summary: result
   };
@@ -1163,9 +1171,27 @@ function renderSetQuestion(question) {
 function conceptFeedback() {
   const missed = requiredQuestionIds.filter((id) => !isCorrect(id)).map((id) => questionMap[id].misconception);
   const unique = [...new Set(missed)];
-  const stable = requiredQuestionIds.filter((id) => isCorrect(id) && !state.hints[id]).map((id) => conceptLabel(questionMap[id].concept));
-  return { missed: unique, stable: [...new Set(stable)] };
+  const groupStable = (ids) => {
+    const correct = ids.filter((id) => isCorrect(id)).length;
+    const clean = ids.every((id) => isCorrect(id) && !state.hints[id]);
+    return clean || (ids.length >= 2 && correct / ids.length >= 0.8);
+  };
+  const stable = STABLE_CONCEPT_TEXT.filter((item) => groupStable(item.questions.map(Q_ID))).map((item) => item.text);
+  return { missed: unique, stable };
 }
+
+// 規格「目前較穩定概念」7 句。每句對應的題目：全部首次答對且未用提示，或兩題以上且答對率達 80%，才顯示。
+// 分組依規格各題 concept_id 與迷思出現位置；q14（單元邊界）規格未列穩定語句。
+const Q_ID = (n) => `respiration_homeostasis_q${String(n).padStart(2, "0")}`;
+const STABLE_CONCEPT_TEXT = [
+  { questions: [1, 2], text: "你能區分呼吸運動與細胞利用氧氣釋放能量。" },
+  { questions: [3, 4], text: "你能整理空氣進入肺泡的大方向路徑。" },
+  { questions: [5], text: "你能說明肺泡為何適合氣體交換。" },
+  { questions: [6, 10], text: "你能判斷氧氣與二氧化碳在肺泡和血液間的移動方向。" },
+  { questions: [7, 8, 9], text: "你能用橫膈、胸腔與空氣方向判斷吸氣和呼氣。" },
+  { questions: [11], text: "你能理解運動時呼吸改變和氣體需求有關。" },
+  { questions: [12, 13], text: "你能分辨不同生物的氣體交換構造。" }
+];
 
 function renderReview() {
   const result = scoreAttempt();
@@ -1180,7 +1206,7 @@ function renderReview() {
         <div class="feedback-columns">
           <article>
             <h3>目前較穩定</h3>
-            <ul>${(feedback.stable.length ? feedback.stable.slice(0, 6) : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+            <ul>${(feedback.stable.length ? feedback.stable : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
           </article>
           <article>
             <h3>建議再確認</h3>
@@ -1194,7 +1220,7 @@ function renderReview() {
 }
 
 function misconceptionText(tag) { return {
-  breathing_cellular_respiration_confusion:"建議再確認：呼吸運動是空氣進出肺；細胞呼吸作用是細胞利用氧氣與養分釋放能量。",
+  breathing_cellular_respiration_confusion:"剛才有幾個概念還值得再確認：呼吸運動是空氣進出肺，細胞呼吸作用是細胞利用氧氣與養分釋放能量。",
   oxygen_used_only_in_lungs:"建議再確認氧氣的去向：氧氣會由血液運送到身體各處細胞，不是只停在肺部。",
   respiratory_path_order_confusion:"建議再整理空氣路徑：鼻腔或口腔、氣管、支氣管、肺、肺泡。",
   respiratory_structure_function_confusion:"建議再用位置與功能配對呼吸構造：入口、通道、分支、氣體交換位置。",
@@ -1207,7 +1233,7 @@ function misconceptionText(tag) { return {
   lung_makes_energy_confusion:"建議再連結活動量和細胞：肺協助換氣，能量釋放主要在細胞中進行。",
   all_organisms_use_lungs:"建議再比較不同生物：魚類用鰓，昆蟲有氣管系統，植物葉片有氣孔。",
   plants_do_not_respire:"建議再確認植物也需要利用養分釋放能量，並會和外界交換氣體。",
-  respiration_unit_boundary_confusion:"建議再確認本單元邊界：呼吸與氣體交換在本單元；行為感應與腎臟排泄留在相鄰單元。"
+  respiration_unit_boundary_confusion:"建議再確認單元邊界：呼吸與氣體交換在本單元；腎臟與尿液形成留到下一站。"
 }[tag] || tag; }
 
 function feedbackTitle(stateName) {
@@ -1221,22 +1247,33 @@ function feedbackTitle(stateName) {
 }
 
 function renderReflection() {
+  const selectedDirection = state.reflection.direction || "";
   return `
     <div class="stack reflection-layout">
       <section class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把想問老師的地方留下來</h2>
-        <p class="lead">空白可以提交但沒有回報 EXP；具體且與本單元概念相關的問題，會取得較高回報 EXP。</p>
-        <p class="muted">可以從呼吸運動與細胞呼吸作用、空氣進入肺泡路徑、肺泡氣體交換、吸氣呼氣胸腔變化、運動時氣體需求、不同生物氣體交換構造中選一個方向。</p>
-        <label>我最能掌握的一項概念
-          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="例如：肺泡是氣體交換的重要位置">
+        <p class="lead">空白可以提交但沒有回報 EXP；只複製方向詞、無關玩笑或敷衍句不會取得回報 EXP。具體且與本單元概念相關的疑問，才會取得較高回報 EXP。</p>
+        <label>這次任務中，我最能掌握的一項呼吸與氣體恆定概念是什麼？
+          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="關鍵詞：構造、氣體、方向">
         </label>
-        <label>我想上課請老師說明的部分
-          <textarea id="studentQuestion" rows="5" placeholder="例如：我想確認呼吸運動和細胞利用氧氣釋放能量的關係要怎麼串起來？">${escapeHtml(state.reflection.question)}</textarea>
+        <label>我還不確定呼吸運動、呼吸道、肺泡氣體交換、吸氣呼氣變化或不同生物氣體交換構造中的哪一部分？
+          <input id="uncertainConcept" type="text" value="${escapeHtml(state.reflection.uncertain || "")}" placeholder="關鍵詞：哪個名詞、哪個方向容易混淆">
         </label>
-        <label>信心程度
+        <fieldset class="direction-picker">
+          <legend>選一個你想帶到課堂討論、希望老師再解釋的方向</legend>
+          <div class="direction-grid" role="group" aria-label="課堂討論方向">
+            ${REPORT_DIRECTIONS.map((direction) => `<button type="button" class="option-card direction-chip ${selectedDirection === direction ? "selected" : ""}" data-direction="${escapeHtml(direction)}" aria-pressed="${selectedDirection === direction ? "true" : "false"}">${escapeHtml(direction)}</button>`).join("")}
+          </div>
+        </fieldset>
+        <label>用自己的話補充你想確認的地方
+          <span class="field-help">可以先想你最容易混淆的是名詞、構造路徑、氣體方向，還是吸吐氣胸腔變化。</span>
+          <textarea id="studentQuestion" rows="5" placeholder="關鍵詞：方向＋我不確定的地方＋為什麼">${escapeHtml(state.reflection.question)}</textarea>
+        </label>
+        <label>完成任務後，我對「呼吸與氣體的恆定」的理解信心是幾分？
+          <span class="field-help">5 分代表我能自己說明本單元重點概念。</span>
           <select id="confidenceLevel">
-            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level}｜${level === 5 ? "能自己說明本單元重點概念" : "仍需要一些協助"}</option>`).join("")}
+            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level} 分</option>`).join("")}
           </select>
         </label>
         <div class="button-row">
@@ -1459,6 +1496,18 @@ function bindScreenEvents() {
   const confidence = screen.querySelector("#confidenceLevel");
   textarea?.addEventListener("input", () => { state.reflection.question = textarea.value; saveState(); });
   confident?.addEventListener("input", () => { state.reflection.confident = confident.value; saveState(); });
+  const uncertain = screen.querySelector("#uncertainConcept");
+  uncertain?.addEventListener("input", () => { state.reflection.uncertain = uncertain.value; saveState(); });
+  screen.querySelectorAll("[data-direction]").forEach((button) => button.addEventListener("click", () => {
+    const direction = button.dataset.direction;
+    state.reflection.direction = state.reflection.direction === direction ? "" : direction;
+    screen.querySelectorAll("[data-direction]").forEach((item) => {
+      const active = item.dataset.direction === state.reflection.direction;
+      item.classList.toggle("selected", active);
+      item.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    saveState();
+  }));
   confidence?.addEventListener("change", () => { state.reflection.confidence = confidence.value; saveState(); });
   screen.querySelector("#submitMission")?.addEventListener("click", submitMission);
 }
@@ -1496,6 +1545,9 @@ if (typeof window !== "undefined") {
     orderedOptions,
     backendBadgeIds,
     evaluateReflection,
+    REPORT_DIRECTIONS,
+    reflectionRules,
+    conceptFeedback,
     titleAvatarPath,
     resultMode,
     renderBrief,

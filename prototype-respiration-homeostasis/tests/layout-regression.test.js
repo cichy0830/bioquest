@@ -11,7 +11,7 @@ const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-respiration-homeostasis")
   : sourceRoot;
 const Q = (n) => `respiration_homeostasis_q${String(n).padStart(2, "0")}`;
-const VERSION = "20261025-respiration-homeostasis-spec-sync-v1";
+const VERSION = "20261025-respiration-homeostasis-reflection-spec-v1";
 const browser = await chromium.launch({ executablePath: process.env.BIOQUEST_CHROME_PATH || undefined });
 
 async function answerChoice(page, qid, value) {
@@ -106,6 +106,15 @@ try {
     assert.equal(await page.locator(".mentor-card").count(), 0, "legacy mentor-card should be removed");
     await clickAndExpectTop(page, '[data-next="reflection"]', "review to reflection");
     assert.equal(await page.locator(".bq-report-assistant").count(), 1, "report owl should be exactly one");
+    assert.equal(await page.locator("[data-direction]").count(), 6, "reflection should show 6 spec direction chips");
+    await page.locator('[data-direction="肺泡氣體交換"]').click();
+    assert.equal(await page.locator('[data-direction="肺泡氣體交換"]').getAttribute("aria-pressed"), "true", "direction chip should toggle on");
+    assert.equal(await page.evaluate(() => window.__respiration_homeostasisTest.state().reflection.direction), "肺泡氣體交換");
+    await page.locator('[data-direction="肺泡氣體交換"]').click();
+    assert.equal(await page.evaluate(() => window.__respiration_homeostasisTest.state().reflection.direction), "", "direction chip should toggle off");
+    await page.locator('[data-direction="吸氣呼氣胸腔變化"]').click();
+    await page.locator("#uncertainConcept").fill("氣體方向");
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "horizontal overflow on reflection");
     await page.locator("#submitMission").click();
     await page.locator(".result-panel").waitFor();
     await expectTop(page, "reflection to result");

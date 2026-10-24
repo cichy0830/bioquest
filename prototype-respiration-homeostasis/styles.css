@@ -562,3 +562,8 @@ textarea { resize: vertical; min-height: 116px; }
   .badge-visual { width: 74px; height: 74px; }
   .badge { min-height: 164px; }
 }
+.direction-picker { display: grid; gap: 8px; min-width: 0; margin: 4px 0 10px; padding: 0; border: 0; }
+.direction-picker legend { padding: 0; margin-bottom: 8px; color: var(--green-dark); font-weight: 900; }
+.direction-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.direction-chip { min-height: 48px; text-align: center; }
+.field-help { color: var(--muted); font-size: 15px; font-weight: 700; line-height: 1.6; }
