@@ -36,7 +36,8 @@ self.addEventListener("activate", (event) => {
           .filter((name) => name.startsWith(CACHE_PREFIX) && !CURRENT_CACHES.includes(name))
           .map((name) => caches.delete(name)),
       );
-      await self.clients.claim();
+      // 不呼叫 clients.claim()：第一次開站的頁面不中途改由 service worker 接手（避免和場景圖等首次載入搶資源），
+      // 從下一次開啟或重新整理起才接管。
     })(),
   );
 });
@@ -90,22 +91,22 @@ async function cacheFirst(event, cacheName, max) {
   return response;
 }
 
+// 圖片：有快取就先給快取，同時背景更新；沒有快取時網路回應「立刻」交給頁面，
+// 存快取在背景進行（不可等存完才回應，否則第一次開站時大張場景圖會明顯變慢）。
 async function staleWhileRevalidate(event, cacheName, max) {
-  const cache = await caches.open(cacheName);
-  const cached = await cache.match(event.request);
-  const update = fetch(event.request)
-    .then(async (response) => {
-      if (cacheable(response)) {
-        await cache.put(event.request, response.clone());
-        await trimCache(cacheName, max);
-      }
-      return response;
-    });
-  if (cached) {
-    event.waitUntil(update.catch(() => undefined));
-    return cached;
-  }
-  return update;
+  const request = event.request;
+  const cachePromise = caches.open(cacheName);
+  let stored = Promise.resolve();
+  const network = fetch(request).then((response) => {
+    if (cacheable(response)) {
+      const copy = response.clone();
+      stored = cachePromise.then((cache) => cache.put(request, copy)).then(() => trimCache(cacheName, max));
+    }
+    return response;
+  });
+  event.waitUntil(network.then(() => stored).catch(() => undefined));
+  const cached = await (await cachePromise).match(request);
+  return cached || network;
 }
 
 self.addEventListener("fetch", (event) => {

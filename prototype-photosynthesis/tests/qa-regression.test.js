@@ -239,6 +239,11 @@ async function runCase(browser, baseUrl, viewport, mode) {
   await page.goto(`${baseUrl}/prototype-photosynthesis/index.html?v=${version}`, { waitUntil: "domcontentloaded" });
   await login(page, mode);
   await page.waitForSelector("#screen[data-bioquest-screen='brief']");
+  // 場景圖載入需要時間（service worker 接管時稍慢）：等圖片載完再量，載不出來仍由下方斷言判失敗
+  await page.waitForFunction(() => {
+    const images = [...document.querySelectorAll(".bq-brief-scene-stage img, .bq-brief-scene-image")];
+    return images.length > 0 && images.every((img) => img.complete && img.naturalWidth > 0);
+  }, null, { timeout: 10000 }).catch(() => undefined);
   const brief = await page.locator("#screen").evaluate((root) => ({
     screen: root.dataset.bioquestScreen,
     sceneImages: document.querySelectorAll(".bq-brief-scene-image").length,

@@ -182,6 +182,11 @@ async function runCase(browser, baseUrl, viewport, mode) {
     throw new Error(`did not reach brief for ${mode} ${viewport.width}: ${JSON.stringify(debug)}`);
   }
 
+  // 場景圖載入需要時間（service worker 接管時稍慢）：等圖片載完再量，載不出來仍由下方斷言判失敗
+  await page.waitForFunction(() => {
+    const images = [...document.querySelectorAll(".bq-brief-scene-stage img, .bq-brief-scene-image")];
+    return images.length > 0 && images.every((img) => img.complete && img.naturalWidth > 0);
+  }, null, { timeout: 10000 }).catch(() => undefined);
   const brief = await page.locator(".bq-brief-scene-stage").evaluate((scene) => ({
     imageCount: scene.querySelectorAll(".bq-brief-scene-image").length,
     imageNaturalWidth: scene.querySelector(".bq-brief-scene-image")?.naturalWidth || 0,

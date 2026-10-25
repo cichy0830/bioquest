@@ -1,0 +1,34 @@
+{
+  "id": "./",
+  "name": "第 28 站 無性生殖｜生命祕境 BioQuest",
+  "short_name": "無性生殖",
+  "description": "生命祕境 BioQuest 第 28 站：無性生殖",
+  "lang": "zh-Hant",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#edf6f4",
+  "theme_color": "#0d5f73",
+  "icons": [
+    {
+      "src": "../shared-assets/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../shared-assets/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../shared-assets/pwa/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
