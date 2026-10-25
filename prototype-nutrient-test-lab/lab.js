@@ -59,7 +59,7 @@ function labTubeCell(sample, test) {
   }
   if (test === "iodine") {
     done = Boolean(lab.iodine[sample.id]);
-    if (done) { const r = labResult(sample.id, "iodine"); color = r.color; caption = r.text; }
+    if (done) { const r = labResult(sample.id, "iodine"); color = r.color; caption = r.text.replace("（碘液原本的顏色）", ""); }
     action = done ? "" : `<button class="lab-action" data-lab-iodine="${sample.id}">滴入碘液</button>`;
   }
   if (test === "benedict") {
@@ -114,7 +114,7 @@ function renderLab() {
   const predictBody = `<p>桌上有四支試管，丁是清水，甲、乙、丙是看不出成分的食物樣品。<strong>只看外觀，你覺得哪一支含有澱粉？</strong></p>
     <div class="lab-rack">${LAB_SAMPLES.filter((s) => !s.control).map((sample) => labTubeCell(sample, "look")).join("")}<button class="lab-tube lab-none${lab.prediction === "none" ? " picked" : ""}" data-lab-predict="none" aria-pressed="${lab.prediction === "none"}"><span class="lab-q">?</span><small>看不出來</small></button></div>`;
 
-  const iodineBody = `<p>在每一支試管滴入碘液，觀察顏色變化。</p><div class="lab-rack">${LAB_SAMPLES.map((sample) => labTubeCell(sample, "iodine")).join("")}</div>`;
+  const iodineBody = `<p>在每一支試管滴入碘液，觀察顏色變化。（碘液本身是黃褐色）</p><div class="lab-rack">${LAB_SAMPLES.map((sample) => labTubeCell(sample, "iodine")).join("")}</div>`;
 
   const benedictBody = `<p>另取一份樣品，在每一支試管加入本氏液。</p><div class="lab-rack">${LAB_SAMPLES.map((sample) => labTubeCell(sample, "benedict")).join("")}</div>
     ${labBenedictAdded() && !lab.heated ? `<div class="lab-heat-panel"><p><strong>剛加入本氏液，四支都是藍色。</strong>接下來要把試管放進熱水中隔水加熱。</p>

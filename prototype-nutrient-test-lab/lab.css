@@ -17,7 +17,7 @@ button.lab-tube:hover { background: rgba(255,255,255,.6); }
 .lab-tube small { font-size: 12px; line-height: 1.35; color: var(--muted); min-height: 2.7em; }
 .lab-tube.done small { color: var(--ink); font-weight: 700; }
 .lab-tube-label { font-weight: 900; font-size: 18px; }
-.lab-tube-label em { display: block; font-style: normal; font-size: 11px; color: var(--teal-dark); }
+.lab-tube-label em { display: inline; margin-left: 2px; font-style: normal; font-size: 11px; color: var(--teal-dark); }
 .lab-tube-svg { width: 40px; height: 128px; }
 .lab-tube-svg.mini { width: 22px; height: 70px; }
 .lab-liquid { transition: fill .7s ease; }
