@@ -832,7 +832,8 @@ textarea {
 }
 
 .data-grid {
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.9fr);
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 560px;
 }
 
 .data-panel {

@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260730-scientific-method-submitted-retry-ia-v1";
+const VERSION = "20261026-scientific-method-wording-r3-v1";
 const QUESTION_VERSION = "20260720-scientific-method-canonical-v1";
 
 const mission = {
@@ -168,8 +168,8 @@ const observationItems = [
 ];
 
 const observationCategories = [
-  { id: "observation", title: "觀察：看見或量到的資料" },
-  { id: "inference", title: "推論：根據資料提出可能原因" }
+  { id: "observation", title: "觀察：看到或量到的事實" },
+  { id: "inference", title: "推論：根據觀察推想的原因" }
 ];
 
 const variableItems = [
@@ -181,28 +181,28 @@ const variableItems = [
 ];
 
 const variableCategories = [
-  { id: "manipulated", title: "刻意改變的因素" },
-  { id: "responding", title: "要測量的結果" },
-  { id: "controlled", title: "需要保持相同" }
+  { id: "manipulated", title: "操作變因（刻意改變）" },
+  { id: "responding", title: "應變變因（測量的結果）" },
+  { id: "controlled", title: "控制變因（保持相同）" }
 ];
 
 const checkpoint1Choices = [
   {
     id: "testable_question",
     concept_id: "testable_question",
-    prompt: "觀察到室溫吐司比冰箱吐司更容易發霉後，下列哪個問題最適合用實驗檢驗？",
-    options: ["吐司發霉是否和環境溫度有關？", "吐司為什麼這麼討厭？", "黴菌是不是故意長出來？", "所有食物都一定會在同一天發霉嗎？"],
+    prompt: "室溫的吐司比冰箱裡的吐司更快發霉。下列哪個問題最適合用實驗來檢驗？",
+    options: ["吐司發霉是否和環境溫度有關？", "吐司為什麼這麼讓人討厭？", "黴菌是不是故意長在吐司上？", "發霉的吐司看起來噁心嗎？"],
     answer: "吐司發霉是否和環境溫度有關？",
-    hint: "好的科學問題通常能設計比較或測量，不只是情緒或無法驗證的想法。",
+    hint: "好的科學問題可以設計實驗來比較或測量。",
     misconception: "untestable_question"
   },
   {
     id: "hypothesis",
     concept_id: "hypothesis",
-    prompt: "下列哪個比較像可驗證的假說？",
-    options: ["吐司放在低溫處較室溫處不易發霉", "吐司發霉很噁心", "我不喜歡發霉吐司", "所有黴菌都一定怕冰箱"],
+    prompt: "下列哪一句是可以用實驗檢驗的假說？",
+    options: ["吐司放在低溫處較室溫處不易發霉", "發霉的吐司看起來真的很噁心", "我比較喜歡吃冰箱裡的吐司", "吐司會發霉只是因為運氣不好"],
     answer: "吐司放在低溫處較室溫處不易發霉",
-    hint: "找一個能用實驗資料支持或不支持的合理解釋。",
+    hint: "假說是對原因的合理猜測，之後可以用實驗結果支持或推翻。",
     misconception: "hypothesis_as_fact"
   }
 ];
@@ -211,26 +211,26 @@ const checkpoint2Choices = [
   {
     id: "mung_water",
     concept_id: "variables",
-    prompt: "如果想研究「水分是否影響綠豆發芽」，最可能被刻意改變的因素是什麼？",
-    options: ["水分", "綠豆種類", "容器大小", "記錄表顏色"],
+    prompt: "想研究「水分會不會影響綠豆發芽」，哪一項是操作變因（刻意改變的條件）？",
+    options: ["水分", "綠豆種類", "容器大小", "擺放位置"],
     answer: "水分",
-    hint: "先找研究主題中被拿來比較的條件，不要先看結果。",
+    hint: "這個實驗想比較的是哪一個條件？",
     misconception: "variable_confusion"
   },
   {
     id: "seedling_height",
     concept_id: "variables",
-    prompt: "在「光照時間是否影響豆苗生長高度」實驗中，最適合作為要測量的結果是什麼？",
+    prompt: "研究「光照時間會不會影響豆苗長高」，哪一項是應變變因（要測量的結果）？",
     options: ["豆苗生長高度", "光照時間", "種子種類", "花盆大小"],
     answer: "豆苗生長高度",
-    hint: "找實驗後要觀察或測量的結果。",
+    hint: "實驗做完後，要量的是什麼？",
     misconception: "variable_confusion"
   },
   {
     id: "control_reason",
     concept_id: "experimental_control_group",
-    prompt: "吐司發霉實驗中，冰箱組和室溫組除了溫度不同外，吐司大小、包裝與觀察天數應盡量相同。主要目的是什麼？",
-    options: ["減少其他因素干擾，讓溫度影響較容易判斷", "讓實驗看起來比較整齊", "讓吐司更好吃", "讓兩組都一定不會發霉"],
+    prompt: "吐司發霉實驗中，冰箱組和室溫組除了溫度不同，吐司大小、包裝和觀察天數都要相同。為什麼？",
+    options: ["減少其他因素干擾，讓溫度影響較容易判斷", "讓兩組實驗看起來比較整齊，方便拍照", "讓吐司放久一點也一樣好吃，不會浪費", "確保兩組吐司到最後都一定不會發霉"],
     answer: "減少其他因素干擾，讓溫度影響較容易判斷",
     hint: "如果兩組同時改變很多條件，最後會很難判斷是哪個因素造成差異。",
     misconception: "poor_control_design"
@@ -238,10 +238,10 @@ const checkpoint2Choices = [
   {
     id: "two_groups",
     concept_id: "experimental_control_group",
-    prompt: "有同學說：「只要有兩組實驗，就一定能知道原因。」哪個修正較合理？",
-    options: ["兩組需要設計成主要只差在操作變因，才較能比較", "兩組越不一樣越好", "對照組不需要任何紀錄", "實驗組一定要放在室溫"],
+    prompt: "同學說：「只要做兩組實驗，就一定能找出原因。」哪個說法才正確？",
+    options: ["兩組需要設計成主要只差在操作變因，才較能比較", "兩組的條件差越多越好，比較容易看出差別", "只要記錄實驗組就好，對照組不用記錄", "實驗組一定要放在室溫，對照組放在冰箱"],
     answer: "兩組需要設計成主要只差在操作變因，才較能比較",
-    hint: "兩組比較的價值在於控制其他條件，讓主要差異更清楚。",
+    hint: "如果兩組有很多條件都不同，結果的差別要算是哪一個條件造成的？",
     misconception: "poor_control_design"
   }
 ];
@@ -250,26 +250,26 @@ const checkpoint3Choices = [
   {
     id: "table_reading",
     concept_id: "data_graph_interpretation",
-    prompt: "某吐司發霉紀錄顯示：低溫組第十天 0%，室溫組第十天 95%。下列哪個判讀最合理？",
-    options: ["室溫組發霉比例明顯高於低溫組", "低溫組發霉最嚴重", "兩組完全沒有差異", "只看第一天就能確定全部結果"],
+    prompt: "看上面的紀錄表：第 10 天低溫組 0%，室溫組 95%。哪個判讀正確？",
+    options: ["室溫組發霉比例明顯高於低溫組", "低溫組發霉比例明顯高於室溫組", "兩組的發霉比例沒有明顯差異", "只看第 1 天就能知道全部結果"],
     answer: "室溫組發霉比例明顯高於低溫組",
-    hint: "先比較同一天兩組數據，再看差距方向。",
+    hint: "先比較同一天兩組的數字，再看哪一組比較高。",
     misconception: "graph_surface_reading"
   },
   {
     id: "chart_trend",
     concept_id: "data_graph_interpretation",
-    prompt: "折線趨勢中，室溫組發霉比例從第四天後快速上升，低溫組維持接近 0%。這最支持哪個說法？",
-    options: ["低溫處的吐司較室溫處不易發霉", "低溫處的吐司發霉更快", "溫度完全不影響發霉", "兩組結果完全相同"],
+    prompt: "從紀錄表看，室溫組從第 4 天起發霉比例越來越高，低溫組一直是 0%。這支持哪個說法？",
+    options: ["低溫處的吐司較室溫處不易發霉", "低溫處的吐司較室溫處容易發霉", "溫度高低和吐司發霉沒有關係", "兩組吐司發霉的速度完全相同"],
     answer: "低溫處的吐司較室溫處不易發霉",
-    hint: "看兩組變化方向與最後差距，不要只看顏色或單一時間點。",
+    hint: "比較兩組數字隨天數的變化，不要只看某一天。",
     misconception: "graph_surface_reading"
   },
   {
     id: "evidence_conclusion",
     concept_id: "evidence_conclusion",
-    prompt: "下列哪個結論最符合「吐司低溫組發霉比例始終低於室溫組」的資料？",
-    options: ["在此實驗條件下，吐司放在低溫處較室溫處不易發霉", "所有食物放冰箱都永遠不會壞", "吐司是否發霉只和包裝顏色有關", "只要第一天沒有發霉就一定不會發霉"],
+    prompt: "根據這份紀錄（低溫組的發霉比例一直低於室溫組），哪一個結論最恰當？",
+    options: ["在此實驗條件下，吐司放在低溫處較室溫處不易發霉", "所有食物只要放進冰箱，就永遠不會壞掉", "吐司會不會發霉，只和包裝袋的顏色有關", "只要第一天沒有發霉，之後就一定不會發霉"],
     answer: "在此實驗條件下，吐司放在低溫處較室溫處不易發霉",
     hint: "好的結論要貼近實驗範圍，不要把資料沒有檢驗的事情說得太絕對。",
     misconception: "overgeneralized_conclusion"
@@ -280,19 +280,19 @@ const checkpoint4Choices = [
   {
     id: "mismatch_revision",
     concept_id: "repeatable_verification",
-    prompt: "如果實驗結果不支持原本假說，最適合的做法是什麼？",
-    options: ["檢查假說與實驗設計，必要時修正後再驗證", "把資料改成符合假說", "直接宣布科學方法失敗", "只保留符合想法的紀錄"],
+    prompt: "如果實驗結果不支持原本的假說，應該怎麼做？",
+    options: ["檢查假說與實驗設計，必要時修正後再驗證", "把資料改成符合假說的數字，再寫結論", "宣布這次實驗失敗，把資料全部丟掉", "只保留符合想法的紀錄，其他不要寫"],
     answer: "檢查假說與實驗設計，必要時修正後再驗證",
-    hint: "科學探究重視證據；結果不符合想法時，資料本身仍有價值。",
+    hint: "結果和原本想的不一樣時，資料本身仍然有價值。",
     misconception: "mismatch_means_failure"
   },
   {
     id: "repeatable",
     concept_id: "repeatable_verification",
-    prompt: "為什麼同一個實驗常需要重複驗證，甚至讓不同人操作？",
-    options: ["確認結果是否穩定可靠", "讓實驗花更多時間", "讓紀錄表變厚", "讓每個人都得到不同答案"],
+    prompt: "為什麼同一個實驗常要重複做，甚至請不同的人來做？",
+    options: ["確認結果是否穩定可靠", "讓實驗花更多的時間", "讓紀錄表寫得更厚", "讓每個人得到不同答案"],
     answer: "確認結果是否穩定可靠",
-    hint: "一次結果可能受到偶然因素影響，重複驗證能幫助判斷穩定性。",
+    hint: "只做一次，結果可能剛好是意外。",
     misconception: "mismatch_means_failure"
   }
 ];
@@ -666,7 +666,7 @@ function renderBrief() {
             <div>
               <span>你的任務稱號</span>
               <strong>${title.current}</strong>
-              <p>${studentTitleVariantLabel()}角色形象已接入簡報頁；稱號文字與 EXP 進度由網頁顯示。</p>
+              <p>完成任務可以累積 EXP，升級稱號。</p>
             </div>
           </aside>
         </div>
@@ -692,16 +692,16 @@ function renderBrief() {
 }
 
 function renderScan() {
-  const tools = ["先記錄觀察，再提出推論", "把問題轉成可驗證", "假說不是已確定答案", "變因要分清楚角色", "用資料支持或修正結論"];
+  const tools = ["先記錄觀察，再提出推論", "提出能用實驗檢驗的問題", "假說不是已確定的答案", "分清楚三種變因", "用資料支持或修正結論"];
   return `
     <div class="stack">
       <div class="panel hero-panel">
         <p class="eyebrow">任務準備</p>
-        <h2 class="hero-title">進關卡前先整理證據工具</h2>
+        <h2 class="hero-title">進關卡前先複習重點</h2>
         <div class="prep-owl-hero">
           <div class="prep-owl-visual"><img src="${owlImages.scan}" alt="科學方法準備貓頭鷹助理"></div>
           <div class="story-panel">
-            <strong>調查站掃描提醒</strong>
+            <strong>貓頭鷹助理提醒</strong>
             <p>科學探究不是猜一次就結束。請從觀察現象開始，提出可驗證問題，設計公平比較，再依資料判斷假說是否被支持。</p>
           </div>
         </div>
@@ -845,8 +845,8 @@ function renderObservationClassify() {
       <div>
         <span class="multi-badge">可分類</span>
         <strong>請將敘述分成「觀察」或「推論」。</strong>
-        <p class="multi-instruction">先點選一張敘述卡，再點選分類欄。</p>
-        ${state.answers.checkpoint1Hints.observation ? `<div class="hint">先找哪些句子是在描述看見或量到的資料，哪些句子是在解釋可能原因。</div>` : ""}
+        <p class="multi-instruction">先點一句敘述，再點它屬於的那一欄。</p>
+        ${state.answers.checkpoint1Hints.observation ? `<div class="hint">哪些句子是看到或量到的？哪些是在猜原因？</div>` : ""}
       </div>
       <div>
         <div class="token-bank">
@@ -874,7 +874,7 @@ function renderCheckpoint1() {
     ${renderObservationClassify()}
     ${orderedById("checkpoint1Choices", checkpoint1Choices).map((item) => renderChoiceQuestion("checkpoint1", item)).join("")}
   `;
-  return checkpointShell("關卡一：科學流程與觀察判斷", "從發霉吐司現象出發，整理科學方法流程，並分辨觀察紀錄與推論說明。", rows, "checkpoint1Next");
+  return checkpointShell("關卡一：科學方法的步驟", "用發霉吐司的例子，排出科學方法的步驟，並分辨觀察與推論。", rows, "checkpoint1Next");
 }
 
 function renderVariableClassify() {
@@ -884,9 +884,9 @@ function renderVariableClassify() {
     <div class="question-row classify-question">
       <div>
         <span class="multi-badge">可分類</span>
-        <strong>在「吐司發霉與溫度的關係」實驗中，請將項目分成三類。</strong>
-        <p class="multi-instruction">提示只會提醒「刻意改變」「測量結果」「保持相同」，不直接說出分類答案。</p>
-        ${state.answers.checkpoint2Hints.variables ? `<div class="hint">先找實驗中刻意改變的因素，再找要測量的結果；其他條件應盡量保持相同。</div>` : ""}
+        <strong>在「溫度會不會影響吐司發霉」的實驗中，請把項目分成三類。</strong>
+        <p class="multi-instruction">先點一個項目，再點它屬於的那一欄。</p>
+        ${state.answers.checkpoint2Hints.variables ? `<div class="hint">這個實驗想比較什麼條件？最後要量什麼？其他條件呢？</div>` : ""}
       </div>
       <div>
         <div class="token-bank">
@@ -910,14 +910,14 @@ function renderVariableClassify() {
 
 function renderCheckpoint2() {
   const rows = `${renderVariableClassify()}${orderedById("checkpoint2Choices", checkpoint2Choices).map((item) => renderChoiceQuestion("checkpoint2", item)).join("")}`;
-  return checkpointShell("關卡二：變因偵查室", "辨識操作變因、應變變因、控制變因，並檢查實驗組與對照組是否能公平比較。", rows, "checkpoint2Next");
+  return checkpointShell("關卡二：變因與對照組", "分辨操作變因、應變變因、控制變因，並判斷實驗組和對照組能不能公平比較。", rows, "checkpoint2Next");
 }
 
 function renderDataVisual() {
   return `
     <div class="data-grid">
       <div class="data-panel">
-        <h3>吐司發霉比例紀錄</h3>
+        <h3>吐司發霉比例紀錄表</h3>
         <table class="data-table">
           <thead><tr><th>天數</th><th>低溫組</th><th>室溫組</th></tr></thead>
           <tbody>
@@ -928,26 +928,13 @@ function renderDataVisual() {
           </tbody>
         </table>
       </div>
-      <div class="data-panel">
-        <h3>趨勢掃描</h3>
-        <div class="chart-panel">
-          <div class="chart-bars">
-            <span class="bar cool" style="height:4%"></span>
-            <span class="bar" style="height:20%"></span>
-            <span class="bar cool" style="height:4%"></span>
-            <span class="bar" style="height:70%"></span>
-            <span class="bar" style="height:95%"></span>
-          </div>
-          <p class="muted">請比較同一天兩組數據與整體變化方向。</p>
-        </div>
-      </div>
     </div>
   `;
 }
 
 function renderCheckpoint3() {
   const rows = `${renderDataVisual()}${orderedById("checkpoint3Choices", checkpoint3Choices).map((item) => renderChoiceQuestion("checkpoint3", item)).join("")}`;
-  return checkpointShell("關卡三：證據儀表板", "讀取資料表與趨勢圖，用數據支持合理結論，避免過度推論。", rows, "checkpoint3Next");
+  return checkpointShell("關卡三：資料判讀與結論", "看紀錄表比較兩組結果，寫出不誇大的結論。", rows, "checkpoint3Next");
 }
 
 function renderCheckpoint4() {
@@ -958,7 +945,7 @@ function renderCheckpoint4() {
     </div>
     ${orderedById("checkpoint4Choices", checkpoint4Choices).map((item) => renderChoiceQuestion("checkpoint4", item)).join("")}
   `;
-  return checkpointShell("關卡四：修正與再驗證", "理解科學態度：資料不支持假說時，可以修正並重複驗證。", rows, "checkpoint4Next");
+  return checkpointShell("關卡四：修正與重複實驗", "資料不支持假說時，要修正假說或實驗設計，再重複驗證。", rows, "checkpoint4Next");
 }
 
 function renderChoiceQuestion(group, item) {
