@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260730-life-world-submitted-retry-ia-v1";
+const VERSION = "20261026-life-world-wording-r3-v1";
 const QUESTION_VERSION = "20260720-life-world-canonical-v1";
 
 const mission = {
@@ -560,7 +560,7 @@ function renderScan() {
           ${tools.map((tool) => `<div class="life-card"><span class="life-icon"></span><strong>${tool}</strong></div>`).join("")}
         </div>
         <div class="actions">
-          <button class="primary" id="scanNext">進入生命訊號分類</button>
+          <button class="primary" id="scanNext">進入關卡一</button>
         </div>
       </div>
     </div>
@@ -576,8 +576,8 @@ const classifyItems = [
 ];
 
 const classifyCategories = [
-  { id: "living", title: "有生命現象的生物" },
-  { id: "nonliving", title: "沒有生命現象的非生物" }
+  { id: "living", title: "生物" },
+  { id: "nonliving", title: "非生物" }
 ];
 
 const evidenceQuestions = [
@@ -585,57 +585,57 @@ const evidenceQuestions = [
     id: "remote_car",
     concept_id: "living_nonliving_evidence",
     prompt: "一台遙控車會移動、會轉彎，這樣就能判定它是生物嗎？",
-    options: ["不能，還需要生命現象證據", "能，因為會動就是生物", "能，因為會消耗電力", "不能，因為所有會動的東西都不是生物"],
+    options: ["不能，還需要生命現象證據", "能，因為會動的就是生物", "能，因為它會消耗電力", "不能，因為會動的都不是生物"],
     answer: "不能，還需要生命現象證據",
-    hint: "觀察移動之外，還要找是否有生長、代謝、感應或生殖等生命現象。",
+    hint: "除了會不會動，還要看它有沒有生長、代謝、感應或生殖。",
     misconception: "movement_equals_life"
   },
   {
     id: "livingstone",
     concept_id: "growth_development",
-    prompt: "生石花外表像石頭，但會慢慢長大並開花。這些線索主要支持哪個判斷？",
-    options: ["它是生物，因為有生長與生殖相關現象", "它是非生物，因為外表像石頭", "它是非生物，因為不會快速移動", "無法判斷，因為植物不算生物"],
+    prompt: "生石花看起來像石頭，但會慢慢長大，還會開花。它是生物還是非生物？",
+    options: ["它是生物，因為有生長與生殖相關現象", "它是非生物，因為外表和石頭很像", "它是非生物，因為它不會自己移動", "無法判斷，因為植物不算是生物"],
     answer: "它是生物，因為有生長與生殖相關現象",
-    hint: "不要只看外表，注意時間變化中出現了哪些生命現象。",
+    hint: "不要只看外表，想一想「長大」和「開花」各是哪一種生命現象。",
     misconception: "no_movement_not_life"
   }
 ];
 
 const phenomenonQuestions = [
-  { id: "metabolism", concept_id: "metabolism", prompt: "生物分解食物中的養分，並合成身體需要的物質，較符合哪一種生命現象？", options: ["代謝", "生殖", "保護色", "生物圈"], answer: "代謝", hint: "重點是體內物質與能量的轉換。", misconception: "metabolism_confusion" },
-  { id: "growth", concept_id: "growth_development", prompt: "豆苗逐漸長高、個體逐漸成熟，較符合哪一種生命現象？", options: ["生長與發育", "生殖", "代謝", "生物圈"], answer: "生長與發育", hint: "關鍵線索是大小與成熟程度隨時間改變。", misconception: "growth_confusion" },
-  { id: "response", concept_id: "response_movement", prompt: "含羞草受到觸碰後葉片合起來，較符合哪一種生命現象？", options: ["感應與運動", "生殖", "生物圈", "非生物堆積"], answer: "感應與運動", hint: "先找外界刺激，再看生物是否產生反應。", misconception: "no_movement_not_life" },
-  { id: "reproduction", concept_id: "reproduction", prompt: "植物開花後形成種子，讓新個體有機會產生，較符合哪一種生命現象？", options: ["生殖", "代謝", "生物圈", "保護色"], answer: "生殖", hint: "這個現象重點是能否延續下一代。", misconception: "reproduction_confusion" },
-  { id: "plant_response", concept_id: "response_movement", prompt: "有同學說：「植物不會跑，所以植物沒有感應與運動。」哪個修正較合理？", options: ["植物也可能對光、觸碰等刺激產生反應", "植物都不是生物", "只有動物有生命現象", "植物只有生殖，沒有其他生命現象"], answer: "植物也可能對光、觸碰等刺激產生反應", hint: "想想植物面對光線或觸碰時，是否可能出現方向或形態變化。", misconception: "plant_not_living" }
+  { id: "metabolism", concept_id: "metabolism", prompt: "生物把養分分解，再合成身體需要的物質。這是哪一種生命現象？", options: ["代謝", "生殖", "生長與發育", "感應與運動"], answer: "代謝", hint: "重點是身體裡的物質被分解和合成。", misconception: "metabolism_confusion" },
+  { id: "growth", concept_id: "growth_development", prompt: "豆苗一天天長高，葉子也越長越多。這是哪一種生命現象？", options: ["生長與發育", "生殖", "代謝", "感應與運動"], answer: "生長與發育", hint: "重點是身體隨著時間變大、變成熟。", misconception: "growth_confusion" },
+  { id: "response", concept_id: "response_movement", prompt: "含羞草被碰到後，葉片會合起來。這是哪一種生命現象？", options: ["感應與運動", "生殖", "生長與發育", "代謝"], answer: "感應與運動", hint: "先找出外界的刺激，再看生物有什麼反應。", misconception: "no_movement_not_life" },
+  { id: "reproduction", concept_id: "reproduction", prompt: "植物開花後結出種子，可以產生下一代。這是哪一種生命現象？", options: ["生殖", "代謝", "生長與發育", "感應與運動"], answer: "生殖", hint: "重點是有沒有產生新的個體。", misconception: "reproduction_confusion" },
+  { id: "plant_response", concept_id: "response_movement", prompt: "有同學說：「植物不會跑，所以沒有感應與運動。」哪個說法才正確？", options: ["植物也可能對光、觸碰等刺激產生反應", "植物不會移動位置，所以不是生物", "只有動物才有感應與運動的現象", "植物只有生殖，沒有其他生命現象"], answer: "植物也可能對光、觸碰等刺激產生反應", hint: "想想植物被光照到或被碰到時，會不會出現變化。", misconception: "plant_not_living" }
 ];
 
 const resourceQuestion = {
   id: "aquarium_resources",
   concept_id: "survival_resources",
-  prompt: "水族館中的魚、水草要維持生命，可能需要哪些條件？",
-  options: ["水", "空氣或溶解在水中的氣體", "養分", "適合的光線", "玻璃顏色"],
+  prompt: "要讓水族箱裡的魚和水草活下去，需要哪些條件？",
+  options: ["水", "空氣或溶解在水中的氣體", "養分", "適合的光線", "魚缸玻璃的顏色"],
   answer: ["水", "空氣或溶解在水中的氣體", "養分", "適合的光線"],
-  hint: "想想生命現象需要哪些資源或環境條件；外觀裝飾不一定是生存需求。",
+  hint: "想想生物活下去需要什麼；外觀裝飾不一定是生存需要的條件。",
   misconception: "single_resource_survival"
 };
 
 const environmentQuestions = [
-  { id: "biosphere_meaning", concept_id: "biosphere", prompt: "下列哪個說法最接近「生物圈」的意思？", options: ["所有生物與其生存環境的總和", "只有所有動物", "只有森林裡的植物", "整個地球中心到外太空"], answer: "所有生物與其生存環境的總和", hint: "關鍵是生物和環境一起看，不只看生物名單。", misconception: "biosphere_is_only_living_things" },
-  { id: "warm_wet", concept_id: "biosphere", prompt: "熱帶雨林和珊瑚礁中都有許多生物，常和哪些環境條件有關？", options: ["溫暖且水分充足", "完全沒有光線", "沒有任何養分", "所有地方都一樣適合生物"], answer: "溫暖且水分充足", hint: "先想這些環境能提供哪些生命活動需要的條件。", misconception: "single_resource_survival" }
+  { id: "biosphere_meaning", concept_id: "biosphere", prompt: "「生物圈」指的是什麼？", options: ["所有生物與其生存環境的總和", "地球上所有的動物和植物", "只有森林和海洋裡的生物", "從地球中心一直到外太空"], answer: "所有生物與其生存環境的總和", hint: "生物圈不是只有生物，還要把環境一起算進去。", misconception: "biosphere_is_only_living_things" },
+  { id: "warm_wet", concept_id: "biosphere", prompt: "熱帶雨林和珊瑚礁的生物種類都很多，它們有什麼共同的環境條件？", options: ["溫暖且水分充足", "全年寒冷又乾燥", "完全照不到陽光", "缺少養分和水分"], answer: "溫暖且水分充足", hint: "想想這兩個地方的溫度和水分如何。", misconception: "single_resource_survival" }
 ];
 
 const adaptationPairs = [
-  { id: "cactus", label: "仙人掌肥厚莖", answer: "儲存水分" },
-  { id: "polar_bear", label: "北極熊濃密毛髮與皮下脂肪", answer: "保暖" },
-  { id: "leaf_butterfly", label: "枯葉蝶外形像枯葉", answer: "降低被發現機會" },
-  { id: "inch_worm", label: "尺蠖外形像樹枝", answer: "降低被發現機會" }
+  { id: "cactus", label: "仙人掌的莖很肥厚", answer: "儲存水分" },
+  { id: "polar_bear", label: "北極熊有濃密的毛和厚厚的脂肪", answer: "保暖" },
+  { id: "leaf_butterfly", label: "枯葉蝶的外形像枯葉", answer: "降低被發現機會" },
+  { id: "inch_worm", label: "尺蠖的外形像樹枝", answer: "降低被發現機會" }
 ];
 
 const adaptationOptions = ["儲存水分", "保暖", "降低被發現機會", "幫助在水中呼吸"];
 
 const misconceptionQuestions = [
-  { id: "cloud_growth", concept_id: "growth_development", prompt: "有同學說：「雲會變大，所以雲是生物。」哪個判斷較合理？", options: ["變大不一定是生長，還要看是否有其他生命現象", "雲會變大所以一定是生物", "只要會移動就一定是生物", "雲會下雨所以會生殖"], answer: "變大不一定是生長，還要看是否有其他生命現象", hint: "先分辨物質聚集造成變大，和生物體生長是否相同。", misconception: "growth_confusion" },
-  { id: "best_evidence", concept_id: "living_nonliving_evidence", prompt: "判斷一個物體是否為生物時，下列哪個策略最可靠？", options: ["綜合多個生命現象與生存條件證據", "只看它會不會動", "只看它有沒有綠色", "只看它是否在水裡"], answer: "綜合多個生命現象與生存條件證據", hint: "單一外觀線索容易誤判，試著同時看多種生命現象。", misconception: "movement_equals_life" }
+  { id: "cloud_growth", concept_id: "growth_development", prompt: "有同學說：「雲會變大，所以雲是生物。」哪個說法才正確？", options: ["變大不一定是生長，還要看是否有其他生命現象", "雲會越變越大，表示雲正在生長", "雲會在天空移動，所以雲是生物", "雲下雨後會變出小雲，這就是生殖"], answer: "變大不一定是生長，還要看是否有其他生命現象", hint: "雲變大是水氣聚集，和生物長大一樣嗎？", misconception: "growth_confusion" },
+  { id: "best_evidence", concept_id: "living_nonliving_evidence", prompt: "要判斷一樣東西是不是生物，哪一種方法最可靠？", options: ["綜合多個生命現象與生存條件證據", "看它能不能自己移動位置", "看它是不是綠色或會開花", "看它是不是生活在水裡面"], answer: "綜合多個生命現象與生存條件證據", hint: "只看一個特徵容易判斷錯，試著同時看好幾種生命現象。", misconception: "movement_equals_life" }
 ];
 
 const canonicalQuestionByLocalId = {
@@ -742,7 +742,7 @@ function renderCheckpoint1() {
   const rows = `
     <div class="story-panel">
       <strong>分類任務</strong>
-      <p>先點選一張觀察卡，再點選分類欄。提示只會提醒判斷線索，不會直接公布分類答案。</p>
+      <p>先點一個名稱，再點它屬於的那一欄。</p>
     </div>
     <div class="token-bank">
       ${orderedClassifyItems.map((item) => `
@@ -762,15 +762,15 @@ function renderCheckpoint1() {
       `).join("")}
     </div>
     <button class="ghost hint-button" data-hint="checkpoint1" data-id="classify">提示</button>
-    ${state.answers.checkpoint1Hints.classify ? `<div class="hint">先找能否生長、代謝、感應或生殖等證據，不要只看外表或會不會動。</div>` : ""}
+    ${state.answers.checkpoint1Hints.classify ? `<div class="hint">想一想它會不會生長、代謝、感應或生殖，不要只看外表或會不會動。</div>` : ""}
     ${orderedEvidenceQuestions.map((item) => renderChoiceQuestion("checkpoint1", item)).join("")}
   `;
-  return checkpointShell("關卡一：生命訊號分類", "用生命現象證據判斷生物與非生物。", rows, "checkpoint1Next");
+  return checkpointShell("關卡一：生物與非生物", "用生命現象判斷生物與非生物。", rows, "checkpoint1Next");
 }
 
 function renderCheckpoint2() {
   const rows = orderedById("phenomenonQuestions", phenomenonQuestions).map((item) => renderChoiceQuestion("checkpoint2", item)).join("");
-  return checkpointShell("關卡二：生命現象判讀", "分辨代謝、生長與發育、感應與運動、生殖等生命現象。", rows, "checkpoint2Next");
+  return checkpointShell("關卡二：生命現象", "分辨代謝、生長與發育、感應與運動、生殖。", rows, "checkpoint2Next");
 }
 
 function renderCheckpoint3() {
@@ -795,7 +795,7 @@ function renderCheckpoint3() {
     </div>
     ${orderedById("environmentQuestions", environmentQuestions).map((item) => renderChoiceQuestion("checkpoint3", item)).join("")}
   `;
-  return checkpointShell("關卡三：生存條件與生物圈", "整理生物生存需要的條件，並理解生物與環境共同構成生物圈。", rows, "checkpoint3Next");
+  return checkpointShell("關卡三：生存條件與生物圈", "生物需要哪些條件才能活下去？生物圈又包含什麼？", rows, "checkpoint3Next");
 }
 
 function renderCheckpoint4() {
@@ -803,8 +803,8 @@ function renderCheckpoint4() {
   const orderedMisconceptionQuestions = orderedById("misconceptionQuestions", misconceptionQuestions);
   const rows = `
     <div class="story-panel">
-      <strong>生存策略配對</strong>
-      <p>把生物特徵和可能的生存意義配對。提示會引導你觀察環境壓力，不會直接給答案。</p>
+      <strong>特徵配對</strong>
+      <p>這些生物的特徵，各自對生存有什麼幫助？</p>
     </div>
     ${orderedAdaptationPairs.map((item) => {
       const current = state.answers.checkpoint4[item.id] || "";
@@ -817,10 +817,10 @@ function renderCheckpoint4() {
           </div>
           <div class="match-field ${current ? "has-selection" : ""}">
             <select class="match-select" data-select-group="checkpoint4" data-id="${item.id}">
-            <option value="">選擇生存意義</option>
+            <option value="">選擇對生存的幫助</option>
             ${optionOrder("adaptationOptions", adaptationOptions).map((option) => `<option value="${option}" ${current === option ? "selected" : ""}>${option}</option>`).join("")}
             </select>
-            <span class="selected-answer">${current ? `已選：${current}` : "尚未選擇生存意義"}</span>
+            <span class="selected-answer">${current ? `已選：${current}` : "尚未選擇"}</span>
           </div>
           <button class="ghost hint-button" data-group="checkpoint4" data-id="${item.id}">提示</button>
         </div>
@@ -828,15 +828,15 @@ function renderCheckpoint4() {
     }).join("")}
     ${orderedMisconceptionQuestions.map((item) => renderChoiceQuestion("checkpoint4", item)).join("")}
   `;
-  return checkpointShell("關卡四：生存策略與迷思修正", "觀察特徵與環境的關係，並修正常見判斷迷思。", rows, "checkpoint4Next");
+  return checkpointShell("關卡四：特徵與生存、常見誤會", "看看生物的特徵和環境有什麼關係，再修正常見的誤會。", rows, "checkpoint4Next");
 }
 
 function adaptationHint(id) {
   const hints = {
-    cactus: "先想沙漠或乾燥環境中，水分可能是重要限制。",
-    polar_bear: "先想寒冷環境中，維持體溫可能很重要。",
-    leaf_butterfly: "先想外形像周圍環境時，可能比較不容易被發現。",
-    inch_worm: "先想外形像樹枝時，可能和躲避捕食者有關。"
+    cactus: "仙人掌生長在乾燥的沙漠，那裡最缺什麼？",
+    polar_bear: "北極非常寒冷，動物最需要維持什麼？",
+    leaf_butterfly: "外形和周圍環境很像時，敵人容易看到牠嗎？",
+    inch_worm: "停在樹上的尺蠖像一根小樹枝，鳥容易找到牠嗎？"
   };
   return hints[id];
 }
@@ -903,7 +903,7 @@ function attachCheckpointHandlers() {
       const selectedAnswer = field?.querySelector(".selected-answer");
       if (field && selectedAnswer) {
         field.classList.toggle("has-selection", Boolean(select.value));
-        selectedAnswer.textContent = select.value ? `已選：${select.value}` : "尚未選擇生存意義";
+        selectedAnswer.textContent = select.value ? `已選：${select.value}` : "尚未選擇";
       }
       if (item && select.value !== item.answer) render();
     });
@@ -1214,10 +1214,10 @@ function calculateResult() {
     previous_accuracy: prevAccuracy,
     accuracy_delta: accuracyDelta,
     section_stats: [
-      { title: "生命訊號分類", correct: s1.correct, total: s1.total, correct_without_hint: s1.correctWithoutHint, corrected_after_hint: s1.correctedAfterHint, exp: s1.concept + s1.revision },
-      { title: "生命現象判讀", correct: s2.correct, total: s2.total, correct_without_hint: s2.correctWithoutHint, corrected_after_hint: s2.correctedAfterHint, exp: s2.concept + s2.revision },
+      { title: "生物與非生物", correct: s1.correct, total: s1.total, correct_without_hint: s1.correctWithoutHint, corrected_after_hint: s1.correctedAfterHint, exp: s1.concept + s1.revision },
+      { title: "生命現象", correct: s2.correct, total: s2.total, correct_without_hint: s2.correctWithoutHint, corrected_after_hint: s2.correctedAfterHint, exp: s2.concept + s2.revision },
       { title: "生存條件與生物圈", correct: s3.correct, total: s3.total, correct_without_hint: s3.correctWithoutHint, corrected_after_hint: s3.correctedAfterHint, exp: s3.concept + s3.revision },
-      { title: "生存策略與迷思修正", correct: s4.correct, total: s4.total, correct_without_hint: s4.correctWithoutHint, corrected_after_hint: s4.correctedAfterHint, exp: s4.concept + s4.revision }
+      { title: "特徵與生存、常見誤會", correct: s4.correct, total: s4.total, correct_without_hint: s4.correctWithoutHint, corrected_after_hint: s4.correctedAfterHint, exp: s4.concept + s4.revision }
     ],
     misconceptions,
     badges,

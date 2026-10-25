@@ -81,6 +81,7 @@ appVersionOverrides.set("behavior_sensing", "20261024-behavior-sensing-reflectio
 appVersionOverrides.set("respiration_homeostasis", "20261025-respiration-homeostasis-reflection-spec-v1");
 appVersionOverrides.set("excretion_water_homeostasis", "20261025-excretion-water-homeostasis-reflection-spec-v1");
 appVersionOverrides.set("temperature_glucose_homeostasis", "20261025-temperature-glucose-homeostasis-reflection-spec-v1");
+appVersionOverrides.set("life_world", "20261026-life-world-wording-r3-v1");
 appVersionOverrides.set("cell_division", "20260813-cell-division-mapping-assets-v1");
 appVersionOverrides.set("asexual_reproduction", "20260813-asexual-reproduction-mapping-v1");
 appVersionOverrides.set("sexual_reproduction", "20260814-sexual-reproduction-mapping-v1");

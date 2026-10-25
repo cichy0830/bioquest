@@ -37,7 +37,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-life-world/app.js" });
 
 const api = context.window.__lifeWorldTest;
-assert.equal(api.VERSION, "20260730-life-world-submitted-retry-ia-v1");
+assert.equal(api.VERSION, "20261026-life-world-wording-r3-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-life-world-canonical-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert(source.includes("question_version: QUESTION_VERSION"), "backend payload must use QUESTION_VERSION");
