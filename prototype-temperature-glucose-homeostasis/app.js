@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261025-temperature-glucose-homeostasis-spec-sync-v1";
+const VERSION = "20261025-temperature-glucose-homeostasis-reflection-spec-v1";
 const QUESTION_VERSION = "20260718-temperature-glucose-homeostasis-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -112,6 +112,11 @@ const reflectionRules = {
   lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
   copiedDirections: ["恆定是相對穩定", "負回饋方向", "內溫與外溫動物", "熱時散熱", "冷時保溫或產熱", "流汗與水分", "血糖偏高偏低調節", "資料判讀"]
 };
+// 規格 active contract：reflection_question_id = temperature_glucose_homeostasis_q15（不列入直接計分題）。
+const REPORT_QUESTION_ID = "temperature_glucose_homeostasis_q15";
+// 規格 q15 任務回報的七個方向詞。copiedDirections 維持與後台 registry 相同（舊詞表）；
+// 其中「內溫/外溫」與舊詞「內溫與外溫動物」相似度不足、不會被判為複製（待老師決定是否前後台追加，見佇列 W14）。
+const REPORT_DIRECTIONS = ["恆定是相對穩定", "負回饋方向", "內溫/外溫", "熱時散熱", "冷時保溫或產熱", "流汗與水分", "血糖偏高/偏低調節"];
 
 const badges = [
   ["temperature_glucose_homeostasis_entry", "恆定警報入門", "完成恆定警報校正任務。"],
@@ -199,7 +204,7 @@ function createEmptyState() {
     submitted: false,
     submitLockedAt: "",
     completedScreens: ["login"],
-    reflection: { confident: "", question: "", confidence: "3" },
+    reflection: { confident: "", uncertain: "", direction: "", question: "", confidence: "3" },
     result: null,
     notice: ""
   };
@@ -847,6 +852,10 @@ function buildBackendPayload(result = scoreAttempt()) {
     })),
     student_question: state.reflection.question,
     confident_concept: state.reflection.confident,
+    uncertain_concept: state.reflection.uncertain || "",
+    report_question_id: REPORT_QUESTION_ID,
+    question_direction: state.reflection.direction || "",
+    confidence_score: state.reflection.confidence,
     confidence_level: state.reflection.confidence,
     client_summary: result
   };
@@ -1279,9 +1288,26 @@ function renderSetQuestion(question) {
 function conceptFeedback() {
   const missed = requiredQuestionIds.filter((id) => !isCorrect(id)).map((id) => questionMap[id].misconception);
   const unique = [...new Set(missed)];
-  const stable = requiredQuestionIds.filter((id) => isCorrect(id) && !state.hints[id]).map((id) => conceptLabel(questionMap[id].concept));
-  return { missed: unique, stable: [...new Set(stable)] };
+  const groupStable = (ids) => {
+    const correct = ids.filter((id) => isCorrect(id)).length;
+    const clean = ids.every((id) => isCorrect(id) && !state.hints[id]);
+    return clean || (ids.length >= 2 && correct / ids.length >= 0.8);
+  };
+  const stable = STABLE_CONCEPT_TEXT.filter((item) => groupStable(item.questions.map(Q_ID))).map((item) => item.text);
+  return { missed: unique, stable };
 }
+
+// 規格「目前較穩定概念」6 句。每句對應的題目：全部首次答對且未用提示，或兩題以上且答對率達 80%，才顯示。
+// 分組依規格各題 concept_id 與迷思出現位置；q14（單元邊界）規格未列穩定語句。
+const Q_ID = (n) => `temperature_glucose_homeostasis_q${String(n).padStart(2, "0")}`;
+const STABLE_CONCEPT_TEXT = [
+  { questions: [1, 9], text: "你能說明恆定是維持在適當範圍附近，不是完全不變。" },
+  { questions: [2, 8, 13], text: "你能用偏高降低、偏低升高理解負回饋基礎。" },
+  { questions: [3], text: "你能區分內溫動物與外溫動物。" },
+  { questions: [4, 5, 7], text: "你能判斷熱時與冷時的體溫調節方向。" },
+  { questions: [6], text: "你能理解流汗可散熱，也會造成水分流失。" },
+  { questions: [10, 11, 12], text: "你能用血糖資料判斷胰島素與升糖素的調節方向。" }
+];
 
 function renderReview() {
   const result = scoreAttempt();
@@ -1296,11 +1322,11 @@ function renderReview() {
         <div class="feedback-columns">
           <article>
             <h3>目前較穩定</h3>
-            <ul>${(feedback.stable.length ? feedback.stable.slice(0, 6) : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+            <ul>${(feedback.stable.length ? feedback.stable : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
           </article>
           <article>
             <h3>建議再確認</h3>
-            <ul>${(feedback.missed.length ? feedback.missed.map(misconceptionText) : ["目前沒有明顯需要補強的迷思標籤"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+            <ul>${(feedback.missed.length ? [...new Set(feedback.missed.map(misconceptionText))] : ["目前沒有明顯需要補強的迷思標籤"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
           </article>
         </div>
         <button class="primary" data-next="reflection">前往任務回報</button>
@@ -1309,40 +1335,52 @@ function renderReview() {
   `;
 }
 
+// 回饋語採規格「建議再閱讀理解概念」原文；前後台迷思標籤 id 維持現有（後台以 id 統計），註解標示對應的規格標籤。
 function misconceptionText(tag) { return {
-  homeostasis_fixed_value:"建議再確認：恆定是維持在適當範圍附近，不是完全固定不變。",
-  feedback_same_direction:"建議再用負回饋方向判斷：偏高通常啟動降低方向，偏低通常啟動升高方向。",
-  endotherm_ectotherm_confusion:"建議再比較內溫與外溫動物：看體溫較能由體內調節，或較容易受環境影響。",
-  hot_response_confusion:"建議再確認熱時反應：流汗與皮膚血管擴張有助於散熱。",
-  cold_response_confusion:"建議再確認冷時反應：發抖與皮膚血管收縮有助於保溫或產熱。",
-  sweating_only_water_or_only_heat:"建議再連結流汗、散熱與水分流失：流汗可幫助散熱，也會失去水分。",
-  temperature_data_misread:"建議再練習體溫資料判讀：先看偏高後是否往平常範圍回復。",
-  temperature_feedback_order_confusion:"建議再整理體溫偏高的回饋流程：偏高、啟動散熱反應、增加散熱、回到範圍。",
-  glucose_data_misread:"建議再練習血糖資料判讀：飯後偏高後是否往平常範圍回復。",
-  insulin_direction_confusion:"建議再確認胰島素方向：血糖偏高時有助於讓血糖降低。",
-  glucagon_direction_confusion:"建議再確認升糖素方向：血糖偏低時有助於讓血糖升高。",
-  glucose_curve_misread:"建議再用曲線判斷血糖變化方向，不要把有波動誤判成沒有恆定。",
-  feedback_direction_confusion:"建議再把體溫與血糖都用偏高/偏低判斷調節方向。",
-  temperature_glucose_unit_boundary_confusion:"建議再確認題目情境主要在檢查哪一種身體狀態，以及是否和本關的恆定調節有直接關係。"
+  homeostasis_fixed_value:"剛才有幾個概念還值得再確認：恆定是維持在適當範圍附近，不代表數值永遠一樣。", // homeostasis_fixed_number_confusion
+  feedback_same_direction:"建議再用反向調節理解負回饋：偏高時往下降方向調，偏低時往上升方向調。", // negative_feedback_direction_confusion
+  endotherm_ectotherm_confusion:"建議再比較內溫與外溫動物：內溫動物較能維持體溫，外溫動物較受環境影響。",
+  hot_response_confusion:"建議再整理體溫反應：熱時增加散熱，冷時保溫或增加產熱。", // hot_cold_response_reversed
+  cold_response_confusion:"建議再確認冷時反應：發抖增加產熱，皮膚血管收縮減少熱散失。",
+  sweating_only_water_or_only_heat:"建議再連結流汗與散熱：汗水蒸發可帶走熱，也會造成水分流失。", // sweating_only_water_loss
+  temperature_data_misread:"建議再讀體溫資料：短暫波動後回到適當範圍，仍可符合恆定。",
+  temperature_feedback_order_confusion:"建議再整理體溫偏高流程：偏高、啟動散熱、增加散熱、回到範圍。",
+  glucose_data_misread:"建議再確認血糖也會波動：飯後或空腹會改變，但身體會調節回適當範圍。", // blood_glucose_fixed_confusion（q09）
+  insulin_direction_confusion:"建議再比較血糖調節方向：胰島素幫助降低血糖，升糖素幫助升高血糖。", // insulin_glucagon_direction_confusion（q10）
+  glucagon_direction_confusion:"建議再比較血糖調節方向：胰島素幫助降低血糖，升糖素幫助升高血糖。", // insulin_glucagon_direction_confusion（q11）
+  glucose_curve_misread:"建議再練習曲線判讀：看血糖先升或先降，再看調節後是否回到範圍。", // blood_glucose_data_misread（q12）
+  feedback_direction_confusion:"建議再用「回到範圍」判斷：高要往下，低要往上。", // feedback_direction_classification_confusion
+  temperature_glucose_unit_boundary_confusion:"建議再確認單元邊界：肺泡交換屬 U24，腎臟尿液屬 U25，細胞分裂屬 U27。"
 }[tag] || tag; }
 
 function renderReflection() {
+  const selectedDirection = state.reflection.direction || "";
   return `
     <div class="stack reflection-layout">
       <section class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把想問老師的地方留下來</h2>
-        <p class="lead">空白可以提交但沒有回報 EXP；具體且與本單元概念相關的問題，會取得較高回報 EXP。</p>
-        <p class="muted">可以從恆定範圍、負回饋、內溫/外溫動物、熱時散熱、冷時保溫、流汗與水分、血糖偏高/偏低調節或資料判讀中選一個方向。</p>
-        <label>我最能掌握的一項概念
-          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="例如：負回饋會把偏高或偏低的狀態拉回適當範圍">
+        <p class="lead">空白可以提交但沒有回報 EXP；只複製方向詞、無關玩笑或敷衍句不會取得回報 EXP。具體且與本單元概念相關的疑問，才會取得較高回報 EXP。</p>
+        <label>這次任務中，我最能掌握的一項體溫與血糖恆定概念是什麼？
+          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="關鍵詞：狀態、反應、方向">
         </label>
-        <label>我想上課請老師說明的部分
-          <textarea id="studentQuestion" rows="5" placeholder="例如：我想確認體溫偏高和血糖偏低都算負回饋嗎？它們怎麼讓狀態回到範圍？">${escapeHtml(state.reflection.question)}</textarea>
+        <label>我還不確定恆定/負回饋、內溫/外溫、體溫調節或血糖調節中的哪一部分？
+          <input id="uncertainConcept" type="text" value="${escapeHtml(state.reflection.uncertain || "")}" placeholder="關鍵詞：哪個反應、哪個方向容易混淆">
         </label>
-        <label>信心程度
+        <fieldset class="direction-picker">
+          <legend>選一個你想帶到課堂討論、希望老師再解釋的方向</legend>
+          <div class="direction-grid" role="group" aria-label="課堂討論方向">
+            ${REPORT_DIRECTIONS.map((direction) => `<button type="button" class="option-card direction-chip ${selectedDirection === direction ? "selected" : ""}" data-direction="${escapeHtml(direction)}" aria-pressed="${selectedDirection === direction ? "true" : "false"}">${escapeHtml(direction)}</button>`).join("")}
+          </div>
+        </fieldset>
+        <label>用自己的話補充你想確認的地方
+          <span class="field-help">可以先想你最容易混淆的是體溫反應方向、血糖升降方向，還是負回饋概念。</span>
+          <textarea id="studentQuestion" rows="5" placeholder="關鍵詞：方向＋我不確定的地方＋為什麼">${escapeHtml(state.reflection.question)}</textarea>
+        </label>
+        <label>完成任務後，我對「體溫與血糖的恆定」的理解信心是幾分？
+          <span class="field-help">5 分代表我能自己說明本單元重點概念。</span>
           <select id="confidenceLevel">
-            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level}｜${level === 5 ? "能自己說明本單元重點概念" : "仍需要一些協助"}</option>`).join("")}
+            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level} 分</option>`).join("")}
           </select>
         </label>
         <div class="button-row">
@@ -1564,6 +1602,18 @@ function bindScreenEvents() {
   const confidence = screen.querySelector("#confidenceLevel");
   textarea?.addEventListener("input", () => { state.reflection.question = textarea.value; saveState(); });
   confident?.addEventListener("input", () => { state.reflection.confident = confident.value; saveState(); });
+  const uncertain = screen.querySelector("#uncertainConcept");
+  uncertain?.addEventListener("input", () => { state.reflection.uncertain = uncertain.value; saveState(); });
+  screen.querySelectorAll("[data-direction]").forEach((button) => button.addEventListener("click", () => {
+    const direction = button.dataset.direction;
+    state.reflection.direction = state.reflection.direction === direction ? "" : direction;
+    screen.querySelectorAll("[data-direction]").forEach((item) => {
+      const active = item.dataset.direction === state.reflection.direction;
+      item.classList.toggle("selected", active);
+      item.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    saveState();
+  }));
   confidence?.addEventListener("change", () => { state.reflection.confidence = confidence.value; saveState(); });
   screen.querySelector("#submitMission")?.addEventListener("click", (event) => {
     event.currentTarget?.blur?.();
@@ -1605,6 +1655,9 @@ if (typeof window !== "undefined") {
     shortQuestionId,
     backendBadgeIds,
     evaluateReflection,
+    REPORT_DIRECTIONS,
+    reflectionRules,
+    conceptFeedback,
     titleAvatarPath,
     resultMode,
     renderBrief,

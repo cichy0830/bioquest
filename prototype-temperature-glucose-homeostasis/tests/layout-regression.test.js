@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-temperature-glucose-homeostasis")
   : sourceRoot;
-const CACHE_VERSION = "20261025-temperature-glucose-homeostasis-spec-sync-v1";
+const CACHE_VERSION = "20261025-temperature-glucose-homeostasis-reflection-spec-v1";
 const Q = (n) => `temperature_glucose_homeostasis_q${String(n).padStart(2, "0")}`;
 const browser = await chromium.launch({ executablePath: process.env.BIOQUEST_CHROME_PATH || undefined });
 
@@ -240,6 +240,15 @@ try {
       assert.equal(await page.locator(".bq-feedback-mentor img").count(), 1, "shared mentor should be exactly one");
       await expectResetAfter(page, () => page.locator('[data-next="reflection"]').click(), "reflection");
       assert.equal(await page.locator(".bq-report-assistant").count(), 1, "report owl should be exactly one");
+      assert.equal(await page.locator("[data-direction]").count(), 7, "reflection should show 7 spec direction chips");
+      await page.locator('[data-direction="內溫/外溫"]').click();
+      assert.equal(await page.locator('[data-direction="內溫/外溫"]').getAttribute("aria-pressed"), "true", "direction chip should toggle on");
+      assert.equal(await page.evaluate(() => window.__temperature_glucose_homeostasisTest.state().reflection.direction), "內溫/外溫");
+      await page.locator('[data-direction="內溫/外溫"]').click();
+      assert.equal(await page.evaluate(() => window.__temperature_glucose_homeostasisTest.state().reflection.direction), "", "direction chip should toggle off");
+      await page.locator('[data-direction="負回饋方向"]').click();
+      await page.locator("#uncertainConcept").fill("升糖素");
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `${mode} horizontal overflow on reflection`);
       await expectResetAfter(page, () => page.locator("#submitMission").click(), "result");
       assert(await page.locator(".result-panel").textContent().then((text) => text.includes("460 / 500 EXP")), `${mode} blank reflection result should be 460/500`);
       assert.equal(await page.locator(".result-panel [data-relogin]").count(), 1, `${mode} result relogin missing`);
