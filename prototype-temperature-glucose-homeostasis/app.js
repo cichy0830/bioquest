@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261008-temperature-glucose-homeostasis-scroll-v1";
+const VERSION = "20261025-temperature-glucose-homeostasis-spec-sync-v1";
 const QUESTION_VERSION = "20260718-temperature-glucose-homeostasis-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -17,6 +17,34 @@ const navButtons = typeof document !== "undefined" ? [...document.querySelectorA
 const studentMini = typeof document !== "undefined" ? document.querySelector("#studentMini") : null;
 const LOCK_MESSAGE = "本次任務已提交，作答結果已鎖定；若要再挑戰，請重新登入並從頭完成。";
 const LOCKED_SCREENS_AFTER_SUBMIT = new Set(["brief", "scan", "checkpoint1", "checkpoint2", "checkpoint3", "review", "reflection"]);
+
+const RESULT_STATUS_COPY = {
+  guest: {
+    summaryLabel: "guest 測試預估",
+    creditLabel: "正式累積狀態",
+    creditValue: "不列入正式累積",
+    noticeClass: "warn",
+    lead: "guest 測試：本次預估 {exp}/500 EXP，不列入正式累積。",
+    detail: "這次結果只供老師或學生試看流程，不會寫入 Google Sheet，也不更新正式徽章或稱號進度。"
+  },
+  pending: {
+    summaryLabel: "本次預估",
+    creditLabel: "後台確認狀態",
+    creditValue: "待後台確認",
+    noticeClass: "warn",
+    lead: "本次預估 {exp}/500 EXP，待後台確認。",
+    detail: "確認完成前，這些數字只代表本次作答預覽；不作為已確認結果或累積進度。"
+  },
+  verified: {
+    summaryLabel: "本次取得",
+    creditLabel: "本單元正式認列",
+    creditValue: "{credit} EXP",
+    noticeClass: "good",
+    lead: "後台已回傳正式認列資料。",
+    detail: "本次取得是這次挑戰的原始表現；本單元正式認列會保留最高表現並受 500 EXP 上限限制。"
+  }
+};
+
 
 const mission = {
   unit_id: "temperature_glucose_homeostasis",
@@ -106,31 +134,32 @@ const badges = [
 ].map(([id, name, condition]) => ({ id, name, condition, badge_image_path: badgeAsset(id), image_status: "controlled_pending" }));
 
 const animalTemperatureChoices = [
-  { id: "endotherm", text: "內溫動物：體溫較能維持在一定範圍" },
-  { id: "ectotherm", text: "外溫動物：體溫較容易受外界環境影響" }
+  { id: "endotherm", text: "內溫動物" },
+  { id: "ectotherm", text: "外溫動物" }
 ];
 const feedbackDirectionChoices = [
-  { id: "increase_heat_loss", text: "增加散熱，讓體溫往適當範圍下降" },
-  { id: "conserve_or_make_heat", text: "減少散熱或增加產熱，讓體溫往適當範圍上升" },
-  { id: "lower_glucose", text: "降低血糖，讓血糖往適當範圍下降" },
-  { id: "raise_glucose", text: "升高血糖，讓血糖往適當範圍上升" }
+  { id: "increase_heat_loss", text: "增加散熱" },
+  { id: "conserve_or_make_heat", text: "保溫或增加產熱" },
+  { id: "lower_glucose", text: "降低血糖" },
+  { id: "raise_glucose", text: "升高血糖" }
 ];
 
+// 題幹、選項、提示依《體溫與血糖的恆定內容規格》v1.3；正解 id、answer_map、q08 sequence 與後台 canonical 相同（不可改）
 const questions = [
-  {id:"temperature_glucose_homeostasis_q01",section:"checkpoint1",concept:"homeostasis_range",type:"choice",answer:"homeostasis_is_range_not_fixed",prompt:"有同學說：「恆定就是數值完全不變。」哪個修正較合理？",hint:"先想身體狀態是否需要維持在適當範圍附近，而不是固定一個完全不變的數字。",misconception:"homeostasis_fixed_value",options:[{id:"homeostasis_is_range_not_fixed",text:"恆定是維持在適當範圍附近，可能有小幅波動"},{id:"always_exact_same",text:"恆定代表體溫與血糖每秒都完全相同"},{id:"only_excretion",text:"恆定只和腎臟形成尿液有關"},{id:"only_cell_division",text:"恆定是細胞分裂前染色體複製"}]},
-  {id:"temperature_glucose_homeostasis_q02",section:"checkpoint1",concept:"negative_feedback",type:"choice",answer:"negative_feedback_opposite_adjustment",prompt:"負回饋調節的共同方向，下列哪一項較合理？",hint:"注意身體偵測到偏高或偏低時，反應通常會把狀態往適當範圍拉回。",misconception:"feedback_same_direction",options:[{id:"negative_feedback_opposite_adjustment",text:"偏高時啟動降低方向；偏低時啟動升高方向，讓狀態回到範圍附近"},{id:"same_direction_more",text:"偏高時繼續升高，偏低時繼續降低"},{id:"random_response",text:"身體反應和偏高偏低沒有關係"},{id:"only_by_will",text:"體溫與血糖只能靠意志控制"}]},
-  {id:"temperature_glucose_homeostasis_q03",section:"checkpoint1",concept:"endotherm_ectotherm",type:"mapping",answer:{human:"endotherm",sparrow:"endotherm",lizard:"ectotherm",frog:"ectotherm"},prompt:"請把例子配對到較合適的體溫特性分類。",hint:"先判斷體溫主要能否靠體內調節維持在一定範圍，或較容易受環境溫度影響。",misconception:"endotherm_ectotherm_confusion",items:[{id:"human",label:"人類"},{id:"sparrow",label:"麻雀"},{id:"lizard",label:"蜥蜴"},{id:"frog",label:"青蛙"}],choices:animalTemperatureChoices},
-  {id:"temperature_glucose_homeostasis_q04",section:"checkpoint2",concept:"hot_response",type:"choice",answer:"hot_sweating_vasodilation",prompt:"天氣炎熱或運動後體溫偏高時，下列哪組反應最有助於散熱？",hint:"找出能讓熱比較容易散出去的反應。",misconception:"hot_response_confusion",options:[{id:"hot_sweating_vasodilation",text:"流汗增加、皮膚血管擴張，幫助散熱"},{id:"hot_shivering",text:"發抖增加產熱，讓體溫更高"},{id:"hot_vasoconstriction",text:"皮膚血管收縮，減少散熱"},{id:"hot_glucagon",text:"升糖素讓血糖上升就是散熱"}]},
-  {id:"temperature_glucose_homeostasis_q05",section:"checkpoint2",concept:"cold_response",type:"choice",answer:"cold_shivering_vasoconstriction",prompt:"環境寒冷、體溫偏低時，下列哪組反應較有助於維持體溫？",hint:"找出能減少散熱或增加產熱的反應。",misconception:"cold_response_confusion",options:[{id:"cold_shivering_vasoconstriction",text:"發抖增加產熱、皮膚血管收縮減少散熱"},{id:"cold_sweat_more",text:"大量流汗增加散熱"},{id:"cold_vasodilation",text:"皮膚血管擴張讓熱更快散出"},{id:"cold_insulin",text:"胰島素降低血糖就是保溫"}]},
-  {id:"temperature_glucose_homeostasis_q06",section:"checkpoint2",concept:"sweating_water_heat",type:"choice",answer:"sweating_cools_and_loses_water",prompt:"關於流汗，下列哪個說法最符合本單元範圍？",hint:"同時想一想流汗和散熱、水分流失之間的關係。",misconception:"sweating_only_water_or_only_heat",options:[{id:"sweating_cools_and_loses_water",text:"流汗蒸發可幫助散熱，但也會讓身體失去水分"},{id:"sweating_no_water_loss",text:"流汗只會降溫，不會造成水分流失"},{id:"sweating_heats_body",text:"流汗一定讓體溫上升"},{id:"sweating_makes_urine",text:"汗水在皮膚上直接變成尿液"}]},
-  {id:"temperature_glucose_homeostasis_q07",section:"checkpoint2",concept:"temperature_data",type:"choice",answer:"body_temp_returns_to_range_data",prompt:"請根據「運動後休息期間的體溫紀錄曲線圖」判斷，下列哪個解讀較合理？",hint:"先看橫軸時間、縱軸體溫，再比較資料點是否接近圖中的平常範圍帶。",misconception:"temperature_data_misread",options:[{id:"body_temp_returns_to_range_data",text:"身體可能啟動散熱反應，使體溫往適當範圍回復"},{id:"temperature_fixed_forever",text:"體溫完全不可能有任何波動"},{id:"kidney_forms_heat",text:"腎臟形成尿液就是體溫下降的唯一原因"},{id:"cell_division_heats",text:"這表示染色體正在平均分配"}]},
-  {id:"temperature_glucose_homeostasis_q08",section:"checkpoint2",concept:"temperature_feedback_sequence",type:"sequence",answer:["body_temperature_high","activate_heat_loss_response","sweating_or_vasodilation_increases_heat_loss","temperature_returns_toward_range"],prompt:"請拖曳排序：體溫偏高時，負回饋調節的大方向。",hint:"先找偏離狀態，再排出身體啟動反應、增加散熱，最後回到範圍附近。",misconception:"temperature_feedback_order_confusion",steps:[{id:"body_temperature_high",label:"體溫偏高，超出平常範圍"},{id:"activate_heat_loss_response",label:"身體啟動散熱方向的反應"},{id:"sweating_or_vasodilation_increases_heat_loss",label:"流汗或皮膚血管擴張讓散熱增加"},{id:"temperature_returns_toward_range",label:"體溫往適當範圍回復"}]},
-  {id:"temperature_glucose_homeostasis_q09",section:"checkpoint3",concept:"blood_glucose_range",type:"choice",answer:"blood_glucose_returns_to_range",prompt:"飯後血糖升高，過一段時間又回到平常範圍附近。哪個解讀較合理？",hint:"先看血糖是否從偏高往範圍附近回復。",misconception:"glucose_data_misread",options:[{id:"blood_glucose_returns_to_range",text:"身體可能啟動血糖調節，使血糖往適當範圍回復"},{id:"glucose_never_changes",text:"血糖完全不會受飲食影響"},{id:"sweating_controls_glucose_only",text:"流汗是降低血糖的唯一方法"},{id:"alveoli_store_glucose",text:"肺泡會暫時儲存葡萄糖"}]},
-  {id:"temperature_glucose_homeostasis_q10",section:"checkpoint3",concept:"high_glucose_insulin",type:"choice",answer:"high_glucose_insulin_lowers",prompt:"血糖偏高時，下列哪個方向較符合本單元的基礎概念？",hint:"用負回饋想：偏高時，調節方向應讓血糖往哪裡移動。",misconception:"insulin_direction_confusion",options:[{id:"high_glucose_insulin_lowers",text:"胰島素有助於讓血糖降低，往適當範圍回復"},{id:"high_glucose_glucagon",text:"升糖素讓血糖繼續升高"},{id:"high_glucose_no_response",text:"血糖偏高時身體完全不會調節"},{id:"high_glucose_cold_response",text:"發抖是降低血糖的主要反應"}]},
-  {id:"temperature_glucose_homeostasis_q11",section:"checkpoint3",concept:"low_glucose_glucagon",type:"choice",answer:"low_glucose_glucagon_raises",prompt:"長時間未進食、血糖偏低時，下列哪個方向較符合本單元的基礎概念？",hint:"用負回饋想：偏低時，調節方向應讓血糖往哪裡移動。",misconception:"glucagon_direction_confusion",options:[{id:"low_glucose_glucagon_raises",text:"升糖素有助於讓血糖升高，往適當範圍回復"},{id:"low_glucose_insulin_more",text:"胰島素讓血糖繼續降低"},{id:"low_glucose_sweating",text:"流汗就是升高血糖的主要反應"},{id:"low_glucose_cell_wall",text:"細胞壁會直接提高血糖"}]},
-  {id:"temperature_glucose_homeostasis_q12",section:"checkpoint3",concept:"glucose_curve",type:"choice",answer:"insulin_data_returns_glucose_range",prompt:"請根據「飯後血糖與胰島素相對量曲線圖」判斷，下列哪個解讀較合理？",hint:"先看橫軸時間，再比較兩條曲線在 0.5 到 3 小時之間的變化方向。",misconception:"glucose_curve_misread",options:[{id:"insulin_data_returns_glucose_range",text:"血糖偏高後可能受胰島素等調節影響，逐漸回到範圍附近"},{id:"curve_means_no_homeostasis",text:"只要曲線有變化，就代表沒有恆定"},{id:"curve_is_temperature",text:"這張血糖曲線只能用來判斷體溫"},{id:"curve_is_urine",text:"曲線一定代表尿液路徑"}]},
-  {id:"temperature_glucose_homeostasis_q13",section:"checkpoint3",concept:"feedback_direction_compare",type:"mapping",answer:{body_temperature_high:"increase_heat_loss",body_temperature_low:"conserve_or_make_heat",blood_glucose_high:"lower_glucose",blood_glucose_low:"raise_glucose"},prompt:"請把偏離狀態配對到較合適的負回饋調節方向。",hint:"先判斷每個狀態是偏高或偏低，再選會把它拉回適當範圍的方向。",misconception:"feedback_direction_confusion",items:[{id:"body_temperature_high",label:"體溫偏高"},{id:"body_temperature_low",label:"體溫偏低"},{id:"blood_glucose_high",label:"血糖偏高"},{id:"blood_glucose_low",label:"血糖偏低"}],choices:feedbackDirectionChoices},
-  {id:"temperature_glucose_homeostasis_q14",section:"checkpoint3",concept:"unit_boundary_control",type:"choice",answer:"glucose_temperature_belongs_homeostasis",prompt:"下列哪一個情境最適合放在「體溫與血糖的恆定」本單元核心檢核？",hint:"找出和體溫或血糖偏離後，透過反向調節回到範圍附近最直接相關的情境。",misconception:"temperature_glucose_unit_boundary_confusion",options:[{id:"glucose_temperature_belongs_homeostasis",text:"飯後血糖偏高後逐漸回到範圍，或體溫偏高後增加散熱"},{id:"kidney_urine_belongs_excretion_water",text:"腎臟形成尿液並協助排出代謝廢物與多餘水分"},{id:"chromosome_division",text:"分裂前染色體複製並平均分配到子細胞"},{id:"cell_wall_support",text:"細胞壁提供植物細胞支持與保護"}]}
+  {id:"temperature_glucose_homeostasis_q01",section:"checkpoint1",concept:"homeostasis_range",type:"choice",answer:"homeostasis_is_range_not_fixed",prompt:"有同學說：「恆定就是體內數值永遠一模一樣。」哪個修正較合理？",hint:"注意關鍵是「適當範圍」而不是「完全不變」。",misconception:"homeostasis_fixed_value",options:[{id:"homeostasis_is_range_not_fixed",text:"恆定是維持在適當範圍附近，數值可小幅變動"},{id:"only_urine_amount",text:"恆定只代表尿液一定很多"},{id:"only_cell_division",text:"恆定只會發生在染色體分裂"},{id:"no_regulation_needed",text:"恆定表示身體完全不需要調節"}]},
+  {id:"temperature_glucose_homeostasis_q02",section:"checkpoint1",concept:"negative_feedback",type:"choice",answer:"negative_feedback_opposite_adjustment",prompt:"當體溫偏高時，身體啟動反應讓體溫往下降；當血糖偏低時，身體啟動反應讓血糖往上升。這較接近哪個調節方向？",hint:"看反應方向是否把偏離的狀態拉回適當範圍。",misconception:"feedback_same_direction",options:[{id:"negative_feedback_opposite_adjustment",text:"偏離適當範圍時，反應讓狀態往相反方向調整"},{id:"same_direction_more",text:"狀態偏高時一定繼續升高"},{id:"all_values_to_zero",text:"身體只會讓所有數值歸零"},{id:"regulation_is_cell_division",text:"只要有調節就一定和細胞分裂有關"}]},
+  {id:"temperature_glucose_homeostasis_q03",section:"checkpoint1",concept:"endotherm_ectotherm",type:"mapping",answer:{human:"endotherm",sparrow:"endotherm",lizard:"ectotherm",frog:"ectotherm"},prompt:"請將動物例子分到較合適的體溫調節類型。",hint:"先想哪些動物較能自行維持體溫，哪些體溫較受環境影響。",misconception:"endotherm_ectotherm_confusion",items:[{id:"human",label:"人類"},{id:"sparrow",label:"麻雀"},{id:"lizard",label:"蜥蜴"},{id:"frog",label:"青蛙"}],choices:animalTemperatureChoices},
+  {id:"temperature_glucose_homeostasis_q04",section:"checkpoint2",concept:"hot_response",type:"choice",answer:"hot_sweating_vasodilation",prompt:"炎熱天氣運動後，體溫偏高。下列哪組反應較有助於增加散熱？",hint:"先想體溫偏高時，身體需要把熱帶走還是留住。",misconception:"hot_response_confusion",options:[{id:"hot_sweating_vasodilation",text:"流汗增加、皮膚血管擴張"},{id:"hot_shivering_vasoconstriction",text:"發抖增加、皮膚血管收縮"},{id:"kidney_makes_temperature",text:"腎臟直接製造體溫"},{id:"chromosome_division_cools",text:"染色體開始分裂降溫"}]},
+  {id:"temperature_glucose_homeostasis_q05",section:"checkpoint2",concept:"cold_response",type:"choice",answer:"cold_shivering_vasoconstriction",prompt:"寒冷環境中體溫偏低時，哪組反應較有助於保溫或增加產熱？",hint:"先想冷時要減少熱散失，還是增加散熱。",misconception:"cold_response_confusion",options:[{id:"cold_shivering_vasoconstriction",text:"發抖、皮膚血管收縮"},{id:"cold_sweat_vasodilation",text:"大量流汗、皮膚血管擴張"},{id:"cold_insulin",text:"胰島素直接讓體溫下降"},{id:"urethra_releases_heat",text:"尿道把熱排出體外"}]},
+  {id:"temperature_glucose_homeostasis_q06",section:"checkpoint2",concept:"sweating_water_heat",type:"choice",answer:"sweating_cools_and_loses_water",prompt:"有同學說：「流汗只是在排水，和體溫沒有關係。」哪個修正較合理？",hint:"想想汗水在皮膚表面蒸發時，和熱量散失有什麼關係。",misconception:"sweating_only_water_or_only_heat",options:[{id:"sweating_cools_and_loses_water",text:"流汗蒸發可幫助散熱，但也會造成水分和少量鹽分流失"},{id:"sweating_makes_urine",text:"流汗只負責形成尿液"},{id:"sweating_raises_glucose",text:"流汗會讓血糖一定升高"},{id:"sweating_is_cell_division",text:"流汗就是細胞分裂"}]},
+  {id:"temperature_glucose_homeostasis_q07",section:"checkpoint2",concept:"temperature_data",type:"choice",answer:"body_temp_returns_to_range_data",prompt:"請根據「運動後休息期間的體溫紀錄曲線圖」判斷，下列哪個解讀較合理？",hint:"先看橫軸時間、縱軸體溫，再比較資料點是否接近圖中的平常範圍帶。",misconception:"temperature_data_misread",options:[{id:"body_temp_returns_to_range_data",text:"體溫可短暫波動，身體會透過調節讓它回到適當範圍附近"},{id:"temperature_change_means_no_homeostasis",text:"體溫只要變動就代表恆定完全消失"},{id:"sweating_unrelated_heat_loss",text:"流汗和散熱完全無關"},{id:"only_kidney_urine",text:"這只能證明腎臟形成尿液"}]},
+  {id:"temperature_glucose_homeostasis_q08",section:"checkpoint2",concept:"temperature_feedback_sequence",type:"sequence",answer:["body_temperature_high","activate_heat_loss_response","sweating_or_vasodilation_increases_heat_loss","temperature_returns_toward_range"],prompt:"請拖曳排序，排出「體溫偏高時」較合理的調節流程。",hint:"先找偏離狀態，再看身體反應如何把狀態往相反方向調整。",misconception:"temperature_feedback_order_confusion",steps:[{id:"body_temperature_high",label:"體溫偏高"},{id:"activate_heat_loss_response",label:"身體啟動散熱反應"},{id:"sweating_or_vasodilation_increases_heat_loss",label:"流汗或皮膚血管擴張使散熱增加"},{id:"temperature_returns_toward_range",label:"體溫往適當範圍回復"}]},
+  {id:"temperature_glucose_homeostasis_q09",section:"checkpoint3",concept:"blood_glucose_range",type:"choice",answer:"blood_glucose_returns_to_range",prompt:"飯後血糖上升，過一段時間又逐漸回到適當範圍。這最能說明哪個概念？",hint:"看血糖是短暫變動後回到範圍，還是完全固定不變。",misconception:"glucose_data_misread",options:[{id:"blood_glucose_returns_to_range",text:"血糖會變動，但身體會調節使它回到適當範圍附近"},{id:"glucose_never_changes",text:"血糖完全不會改變"},{id:"kidney_urine_controls_glucose",text:"血糖只由腎臟形成尿液控制"},{id:"glucose_change_cell_division",text:"血糖變化代表染色體正在分裂"}]},
+  {id:"temperature_glucose_homeostasis_q10",section:"checkpoint3",concept:"high_glucose_insulin",type:"choice",answer:"high_glucose_insulin_lowers",prompt:"飯後血糖偏高時，哪個調節方向較合理？",hint:"題目關鍵是血糖偏高，需要往哪個方向調整。",misconception:"insulin_direction_confusion",options:[{id:"high_glucose_insulin_lowers",text:"胰島素幫助血糖降低"},{id:"high_glucose_glucagon",text:"升糖素幫助血糖繼續升高"},{id:"urethra_glucose_main",text:"尿道排出葡萄糖作為主要調節"},{id:"alveoli_consume_glucose",text:"肺泡直接消耗所有血糖"}]},
+  {id:"temperature_glucose_homeostasis_q11",section:"checkpoint3",concept:"low_glucose_glucagon",type:"choice",answer:"low_glucose_glucagon_raises",prompt:"空腹較久、血糖偏低時，哪個調節方向較合理？",hint:"題目關鍵是血糖偏低，需要往哪個方向調整。",misconception:"glucagon_direction_confusion",options:[{id:"low_glucose_glucagon_raises",text:"升糖素幫助血糖升高"},{id:"low_glucose_insulin_more",text:"胰島素讓血糖更低"},{id:"vasodilation_raises_glucose",text:"皮膚血管擴張直接升高血糖"},{id:"cell_division_makes_glucose",text:"細胞分裂直接產生血糖"}]},
+  {id:"temperature_glucose_homeostasis_q12",section:"checkpoint3",concept:"glucose_curve",type:"choice",answer:"insulin_data_returns_glucose_range",prompt:"請根據「飯後血糖與胰島素相對量曲線圖」判斷，下列哪個解讀較合理？",hint:"先看橫軸時間，再比較兩條曲線：胰島素相對量上升後，血糖曲線接下來往哪個方向變化。",misconception:"glucose_curve_misread",options:[{id:"insulin_data_returns_glucose_range",text:"資料支持胰島素和血糖降低方向有關"},{id:"insulin_keeps_raising_glucose",text:"胰島素一定讓血糖繼續升高"},{id:"glucose_unrelated_to_regulation",text:"血糖變化和任何調節都無關"},{id:"curve_is_urine",text:"這表示膀胱正在儲存尿液"}]},
+  {id:"temperature_glucose_homeostasis_q13",section:"checkpoint3",concept:"feedback_direction_compare",type:"mapping",answer:{body_temperature_high:"increase_heat_loss",body_temperature_low:"conserve_or_make_heat",blood_glucose_high:"lower_glucose",blood_glucose_low:"raise_glucose"},prompt:"請將情境配到較合理的調節方向。",hint:"每一項都先判斷偏高或偏低，再選讓它回到範圍的相反方向。",misconception:"feedback_direction_confusion",items:[{id:"body_temperature_high",label:"體溫偏高"},{id:"body_temperature_low",label:"體溫偏低"},{id:"blood_glucose_high",label:"血糖偏高"},{id:"blood_glucose_low",label:"血糖偏低"}],choices:feedbackDirectionChoices},
+  {id:"temperature_glucose_homeostasis_q14",section:"checkpoint3",concept:"unit_boundary_control",type:"choice",answer:"glucose_temperature_belongs_homeostasis",prompt:"下列哪一個情境最適合放在「體溫與血糖的恆定」本單元核心檢核？",hint:"找出和體溫、血糖或狀態回到適當範圍最直接相關的情境。",misconception:"temperature_glucose_unit_boundary_confusion",options:[{id:"glucose_temperature_belongs_homeostasis",text:"血糖偏高後透過調節逐漸回到適當範圍"},{id:"kidney_urine_belongs_excretion_water",text:"腎臟形成尿液並經輸尿管送到膀胱"},{id:"alveoli_gas_exchange",text:"肺泡和微血管交換氧氣與二氧化碳"},{id:"chromosome_division",text:"染色體複製後細胞分裂"}]}
 ];
 
 const questionMap = Object.fromEntries(questions.map((question) => [question.id, question]));
@@ -312,12 +341,43 @@ function orderedOptions(question) {
   return state.optionOrders[question.id].map((id) => source[id]).filter(Boolean);
 }
 
+function mappingItemsLookGrouped(question, ids) {
+  const choiceIndex = Object.fromEntries((question.choices || []).map((choice, index) => [choice.id, index]));
+  const groups = ids.map((id) => question.answer?.[id]);
+  const indexes = groups.map((group) => choiceIndex[group] ?? 0);
+  // 與選項順序一一對齊（例如 q13 第 1 項配第 1 個方向…）或答案群組只在一處切換（例如 q03 內溫×2、外溫×2），都會讓排列透露答案
+  if (indexes.every((value, index) => index === 0 || value >= indexes[index - 1])) return true;
+  let changes = 0;
+  for (let index = 1; index < groups.length; index += 1) if (groups[index] !== groups[index - 1]) changes += 1;
+  return new Set(groups).size < groups.length && changes <= new Set(groups).size - 1;
+}
+
+function orderedMappingItems(question) {
+  const key = `${question.id}_items`;
+  const ids = (question.items || []).map((item) => item.id);
+  if (!state.optionOrders[key] || state.optionOrders[key].length !== ids.length) {
+    let order = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}-items`);
+    for (let tries = 1; tries < 24 && mappingItemsLookGrouped(question, order); tries += 1) {
+      order = stableShuffle(ids, `${state.attempt_id || VERSION}-${question.id}-items-${tries}`);
+    }
+    if (mappingItemsLookGrouped(question, order)) {
+      // 備援：依選項倒序輪流從各答案群組取項目，保證不對齊、不成群
+      const buckets = [...(question.choices || [])].reverse().map((choice) => ids.filter((id) => question.answer?.[id] === choice.id));
+      order = [];
+      while (order.length < ids.length && buckets.some((bucket) => bucket.length)) buckets.forEach((bucket) => { if (bucket.length) order.push(bucket.shift()); });
+    }
+    state.optionOrders[key] = order;
+  }
+  const source = Object.fromEntries((question.items || []).map((item) => [item.id, item]));
+  return state.optionOrders[key].map((id) => source[id]).filter(Boolean);
+}
+
 function formatSelected(question) {
   const value = answerValue(question.id);
   if (question.type === "choice") return question.options.find((option) => option.id === value)?.text || "尚未選擇";
   if (question.type === "mapping") {
     const choices = Object.fromEntries(question.choices.map((item) => [item.id, item.text]));
-    return question.items.map((item) => `${item.label}：${choices[value?.[item.id]] || "尚未選擇"}`).join("；");
+    return orderedMappingItems(question).map((item) => `${item.label}：${choices[value?.[item.id]] || "尚未選擇"}`).join("；");
   }
   if (question.type === "sequence") {
     const labels = Object.fromEntries(question.steps.map((item) => [item.id, item.label]));
@@ -616,11 +676,23 @@ function nextAfterSection(section) {
 function scoreAttempt() {
   const logs = requiredQuestionIds.map((id) => {
     const correct = isCorrect(id);
+    const hintUsed = Boolean(state.hints[id]);
+    const expAwarded = correct
+      ? Math.round((hintUsed ? REVISION_EXP_POOL : DIRECT_EXP_POOL) / requiredQuestionIds.length)
+      : 0;
     return {
       question_id: id,
       answer: answerValue(id),
+      question_type: questionMap[id].type,
       is_correct: correct,
-      hint_used: Boolean(state.hints[id]),
+      hint_used: hintUsed,
+      corrected_after_hint: correct && hintUsed,
+      exp_type: correct ? (hintUsed ? "revision" : "concept") : "none",
+      exp_awarded: expAwarded,
+      concept_id: questionMap[id].concept,
+      checkpoint_id: checkpointIdForQuestion(id),
+      teacher_group_id: teacherGroupForQuestion(id),
+      verification_status: state.student?.is_guest ? "local_guest" : "client_candidate",
       skill_tag: questionMap[id].concept,
       misconception_tag: correct ? "" : questionMap[id].misconception
     };
@@ -791,6 +863,25 @@ function analysisGroupForQuestion(questionId) {
   if (["temperature_glucose_homeostasis_q09", "temperature_glucose_homeostasis_q10", "temperature_glucose_homeostasis_q11", "temperature_glucose_homeostasis_q12", "temperature_glucose_homeostasis_q13"].includes(questionId)) return "blood_glucose_feedback";
   if (questionId === "temperature_glucose_homeostasis_q14") return "unit_boundary_control";
   return "homeostasis_temperature_basics";
+}
+
+// 規格 checkpoint IDs 與 canonical handoff 的 teacher_group_id（q13 歸恆定與負回饋基礎、q14 歸單元邊界）
+function checkpointIdForQuestion(questionId) {
+  const n = Number(shortQuestionId(questionId).slice(1));
+  if (n >= 1 && n <= 3) return "temperature_glucose_homeostasis_cp1_homeostasis_and_temperature";
+  if (n >= 4 && n <= 8) return "temperature_glucose_homeostasis_cp2_body_temperature_responses";
+  if (n >= 9 && n <= 13) return "temperature_glucose_homeostasis_cp3_blood_glucose_feedback";
+  if (n === 14) return "temperature_glucose_homeostasis_cp4_boundary";
+  return "";
+}
+
+function teacherGroupForQuestion(questionId) {
+  return {
+    q01: "homeostasis_feedback_basics", q02: "homeostasis_feedback_basics", q03: "endotherm_ectotherm",
+    q04: "temperature_hot_cold", q05: "temperature_hot_cold", q06: "sweating_water_connection", q07: "temperature_hot_cold",
+    q08: "homeostasis_feedback_basics", q09: "glucose_feedback", q10: "glucose_feedback", q11: "glucose_feedback",
+    q12: "glucose_feedback", q13: "homeostasis_feedback_basics", q14: "unit_boundary_control"
+  }[shortQuestionId(questionId)] || "";
 }
 
 async function submitAttemptToBackend(payload) {
@@ -996,7 +1087,7 @@ function renderBrief() {
           <p class="eyebrow">${mission.mission_area}</p>
           <h2>${mission.mission_title}</h2>
           <p class="lead">${identityLine}</p>
-          <p>恆定調節站收到體溫與血糖警報。請協助判讀身體如何用負回饋，把偏高或偏低的狀態往適當範圍拉回。</p>
+          <p>恆定調節站的監測面板顯示兩條曲線：體溫會因環境或運動而波動，血糖也會因進食或空腹而改變。阿澤老師請你協助判讀這些變動是不是失控，並找出身體如何透過散熱、保溫、產熱或激素調節，讓狀態回到適當範圍。貓頭鷹助理準備了溫度情境卡、皮膚血管與流汗示意、血糖曲線卡與負回饋流程卡，協助你一步步判讀，完成後會整理概念回饋給你。</p>
           <p class="muted">目前稱號：${escapeHtml(titleInfo.current.title)}｜${titleInfo.totalExp} EXP</p>
         </div>
        <div class="button-row">
@@ -1009,7 +1100,8 @@ function renderBrief() {
 }
 
 function renderScan() {
-  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入恆定調節站前，先抓住四個調節線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚「適當範圍、負回饋、體溫反應、血糖調節」。</h3><p>本任務會用分類、排序與資料判讀，幫你判斷身體如何把偏高或偏低的狀態拉回範圍附近。</p></div></div><div class="concept-grid"><article><strong>恆定不是完全不變</strong><p>體溫與血糖可能小幅波動，重點是維持在適當範圍附近。</p></article><article><strong>負回饋方向</strong><p>偏高時啟動降低方向；偏低時啟動升高方向。</p></article><article><strong>體溫調節</strong><p>熱時增加散熱；冷時減少散熱或增加產熱。</p></article><article><strong>血糖調節</strong><p>血糖偏高可往下降低；偏低可往上升高，回到適當範圍。</p></article></div><button class="primary" data-next="checkpoint1">開始校正恆定警報</button></section></div>`;
+  // 規格頁面分工的三句先備概念（恆定是相對穩定／熱時增加散熱、冷時減少散熱或增加產熱／血糖偏高與偏低啟動不同調節方向）分別接近 q01、q04–q05、q13 正解，改為三個中性判讀方向（見等待事項 W13）
+  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入恆定調節站前，先記得三個判讀方向</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>上一站追蹤水分與廢物，這一站要判讀體溫與血糖的起伏。</h3><p>關卡中會用到下面三個判讀方向；身體實際用哪些反應、往哪個方向調整，要在關卡中自己判斷。</p></div></div><div class="concept-grid"><article><strong>先找適當範圍</strong><p>看到體溫或血糖的數值變動，先找出適當範圍在哪裡，再看狀態是離開了範圍，還是回到範圍附近。</p></article><article><strong>體溫：熱量的去向</strong><p>先判斷體溫偏高或偏低，再想每個反應會讓身體的熱散失得更多、更少，或產生更多熱。</p></article><article><strong>血糖：升降的方向</strong><p>先判斷血糖偏高或偏低，再看每個選項會讓血糖往哪個方向變化；資料題要先讀清楚橫軸和縱軸。</p></article></div><button class="primary" data-next="checkpoint1">開始校正恆定警報</button></section></div>`;
 }
 
 function renderCheckpoint(section) {
@@ -1112,9 +1204,9 @@ function renderChartEvidence(qid) {
 }
 
 function renderQuestionEvidence(qid) {
-  if (["temperature_glucose_homeostasis_q01", "temperature_glucose_homeostasis_q02"].includes(qid)) return `<div class="evidence-card"><strong>恆定概念卡</strong><p>身體狀態可有小幅波動；負回饋會把偏高或偏低的狀態往適當範圍拉回。</p></div>`;
+  if (["temperature_glucose_homeostasis_q01", "temperature_glucose_homeostasis_q02"].includes(qid)) return `<div class="evidence-card"><strong>恆定範圍觀察卡</strong><p>先找出題目描述的是哪一種身體狀態，再看它和「適當範圍」的關係，以及身體反應讓狀態往哪個方向變化。</p></div>`;
   if (qid === "temperature_glucose_homeostasis_q03") return `<div class="evidence-card"><strong>動物體溫特性卡</strong><p>比較例子是否較能靠體內調節維持體溫，或較容易受外界環境影響。</p></div>`;
-  if (["temperature_glucose_homeostasis_q04", "temperature_glucose_homeostasis_q05", "temperature_glucose_homeostasis_q06"].includes(qid)) return `<div class="evidence-card"><strong>體溫反應卡</strong><p>熱時看散熱，冷時看保溫或產熱；流汗同時和散熱、水分流失相關。</p></div>`;
+  if (["temperature_glucose_homeostasis_q04", "temperature_glucose_homeostasis_q05", "temperature_glucose_homeostasis_q06"].includes(qid)) return `<div class="evidence-card"><strong>體溫反應觀察卡</strong><p>先判斷情境中的體溫偏高或偏低，再比較每個選項中的反應，會讓身體的熱散失增加、減少，或產生更多熱。</p></div>`;
   if (qid === "temperature_glucose_homeostasis_q07") return renderChartEvidence(qid);
   if (qid === "temperature_glucose_homeostasis_q08") return `<div class="evidence-card"><strong>流程排序卡</strong><p>先找偏離狀態，再追蹤身體啟動調節反應與回到範圍的大方向。</p></div>`;
   if (qid === "temperature_glucose_homeostasis_q09") return `<div class="evidence-card"><strong>血糖資料觀察卡</strong><p>先確認資料比較的是哪一段時間與哪一種身體狀態，再看數值或描述是否支持偏離後往適當範圍附近調整；不要只靠飯後兩字作答。</p></div>`;
@@ -1143,7 +1235,7 @@ function renderChoiceQuestion(question) {
 
 function renderMappingQuestion(question) {
   const current = state.answers[question.id] || {};
-  return `<div class="mapping-list">${question.items.map((item) => `
+  return `<div class="mapping-list">${orderedMappingItems(question).map((item) => `
     <label class="mapping-row">
       <span>${escapeHtml(item.label)}</span>
       <select data-map-question="${question.id}" data-map-item="${item.id}">
@@ -1264,18 +1356,22 @@ function renderReflection() {
 
 function renderResult() {
   const result = state.result || scoreAttempt();
-  const credit = creditStatusText(result);
+  const statusCopy = resultStatusCopy(result);
+  const mode = resultMode(result);
+  const estimatedTotal = Number(result.attempt_exp ?? result.unit_credited_exp ?? 0) || 0;
+  const officialTotal = mode === "verified" ? Number(result.unit_credited_exp ?? estimatedTotal) || 0 : 0;
+  const officialDelta = mode === "verified" ? Number(result.exp_delta ?? result.credited_delta ?? officialTotal) || 0 : 0;
   return `
     <div class="stack result-stack">
       <section class="panel result-panel">
         <p class="eyebrow">任務結算</p>
         <h2>恆定警報校正任務結算</h2>
         <p class="lock-note">提交後本次作答已鎖定；若要再挑戰，請重新登入並從頭完成。</p>
+        <div class="feedback ${statusCopy.noticeClass}">${statusCopy.lead}</div>
         <div class="exp-summary">
-          <strong>${result.unit_credited_exp} / ${UNIT_EXP_CAP} EXP</strong>
-          <span>${escapeHtml(credit.resultLine)}</span>
+          <strong>${statusCopy.summaryValue}</strong>
+          <span>${statusCopy.summaryLabel}：${estimatedTotal}｜${statusCopy.creditLabel}：${statusCopy.creditValue}</span>
         </div>
-        <p class="muted">${escapeHtml(credit.note)}</p>
         <div class="ledger-grid">
           ${ledgerRow("完成任務", result.completion_exp)}
           ${ledgerRow("直接答對", result.direct_exp)}
@@ -1283,15 +1379,17 @@ function renderResult() {
           ${ledgerRow("回報 EXP", result.reflection_exp)}
           ${ledgerRow("精熟 EXP", result.mastery_exp)}
           ${ledgerRow("再挑戰補分", result.retry_exp)}
-          ${ledgerRow("總計", result.unit_credited_exp)}
+          ${ledgerRow(mode === "verified" ? "正式認列總計" : "本次預估明細總計", mode === "verified" ? officialTotal : estimatedTotal)}
+          ${ledgerRow("正式認列／累積增量", officialDelta)}
         </div>
+        <p class="muted">${statusCopy.detail}</p>
         <div class="button-row">
           <button class="primary" data-next="achievements">查看成就</button>
           <button class="secondary" data-next="rules">查看規則</button>
           <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
         </div>
       </section>
-      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode: resultMode(result) })}
+      ${renderBadgeWall(result.earned_badges, { onlyEarned: true, mode })}
     </div>
   `;
 }
@@ -1300,26 +1398,23 @@ function ledgerRow(label, value) {
   return `<article><span>${label}</span><strong>${Number(value || 0)}</strong></article>`;
 }
 
-function creditStatusText(result) {
+function resultMode(result = state.result || {}) {
   const status = result?.verification_status || (state.student?.is_guest ? "local_guest" : "pending_backend");
-  if (state.student?.is_guest || status === "local_guest") {
-    return {
-      status: "guest",
-      resultLine: `guest 測試：本次預估 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，不列入正式累積`,
-      note: "正式累積、完成單元與全冊徽章需使用學生帳號登入並經後台確認。"
-    };
-  }
-  if (status === "server_verified" || status === "server_verified_credited") {
-    return {
-      status: "verified",
-      resultLine: `本單元後台認列 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP`,
-      note: "已依後台回傳資料更新正式累積與稱號。"
-    };
-  }
+  if (state.student?.is_guest || status === "local_guest") return "guest";
+  if (String(status).includes("server_verified") || status === "verified") return "verified";
+  return "pending";
+}
+
+function resultStatusCopy(result = state.result || scoreAttempt()) {
+  const mode = resultMode(result);
+  const copy = RESULT_STATUS_COPY[mode] || RESULT_STATUS_COPY.pending;
+  const attemptExp = Number(result.attempt_exp ?? result.unit_credited_exp ?? 0) || 0;
+  const creditExp = Number(result.unit_credited_exp ?? attemptExp) || 0;
   return {
-    status: "pending",
-    resultLine: `本次預估 ${result.unit_credited_exp}/${UNIT_EXP_CAP} EXP，待後台確認`,
-    note: "本次資料已保留為待確認狀態，完成後台同步後才會更新正式累積。"
+    ...copy,
+    summaryValue: mode === "verified" ? `${creditExp} / ${UNIT_EXP_CAP} EXP` : `${attemptExp} / ${UNIT_EXP_CAP} EXP`,
+    lead: copy.lead.replace("{exp}", String(attemptExp)).replace("{credit}", String(creditExp)),
+    creditValue: copy.creditValue.replace("{exp}", String(attemptExp)).replace("{credit}", String(creditExp))
   };
 }
 
@@ -1334,13 +1429,6 @@ function renderAchievements() {
       </section>
     </div>
   `;
-}
-
-function resultMode(result = state.result || scoreAttempt()) {
-  const status = result?.verification_status || (state.student?.is_guest ? "local_guest" : "pending_backend");
-  if (state.student?.is_guest || status === "local_guest") return "guest";
-  if (status === "server_verified" || status === "server_verified_credited") return "verified";
-  return "pending";
 }
 
 function renderBadgeWall(earned = [], options = {}) {
@@ -1518,7 +1606,11 @@ if (typeof window !== "undefined") {
     backendBadgeIds,
     evaluateReflection,
     titleAvatarPath,
+    resultMode,
     renderBrief,
+    renderScan,
+    orderedMappingItems,
+    mappingItemsLookGrouped,
     renderQuestionEvidence,
     renderCheckpoint,
     renderReview,

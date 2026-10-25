@@ -404,6 +404,39 @@ const DRIVERS = {
     await page.locator('[data-next="reflection"]').click();
     await page.locator("#submitMission").click();
   },
+  async temperature_glucose_homeostasis(page) {
+    const Q = (n) => `temperature_glucose_homeostasis_q${String(n).padStart(2, "0")}`;
+    const choice = { 1: "homeostasis_is_range_not_fixed", 2: "negative_feedback_opposite_adjustment", 4: "hot_sweating_vasodilation", 5: "cold_shivering_vasoconstriction", 6: "sweating_cools_and_loses_water", 7: "body_temp_returns_to_range_data", 9: "blood_glucose_returns_to_range", 10: "high_glucose_insulin_lowers", 11: "low_glucose_glucagon_raises", 12: "insulin_data_returns_glucose_range", 14: "glucose_temperature_belongs_homeostasis" };
+    const click = (n) => page.locator(`[data-answer="${Q(n)}"][data-value="${choice[n]}"]`).click();
+    const map = async (n, answers) => {
+      for (const [item, value] of Object.entries(answers)) await page.locator(`select[data-map-question="${Q(n)}"][data-map-item="${item}"]`).selectOption(value);
+    };
+    const sequence = async (qid, order) => {
+      for (let i = 0; i < order.length; i += 1) {
+        for (;;) {
+          const now = await page.locator(`[data-sequence="${qid}"] [data-sequence-item]`).evaluateAll((els) => els.map((el) => el.dataset.sequenceItem));
+          if (now.indexOf(order[i]) <= i) break;
+          await page.locator(`[data-move="${qid}"][data-item="${order[i]}"][data-dir="-1"]`).click();
+        }
+      }
+    };
+    await page.locator('[data-next="scan"]').click();
+    await page.locator('[data-next="checkpoint1"]').click();
+    for (const n of [1, 2]) await click(n);
+    await map(3, { human: "endotherm", sparrow: "endotherm", lizard: "ectotherm", frog: "ectotherm" });
+    await page.locator('[data-section-next="checkpoint1"]').click();
+    await page.waitForSelector("#screen[data-bioquest-screen='checkpoint2']");
+    for (const n of [4, 5, 6, 7]) await click(n);
+    await sequence(Q(8), ["body_temperature_high", "activate_heat_loss_response", "sweating_or_vasodilation_increases_heat_loss", "temperature_returns_toward_range"]);
+    await page.locator('[data-section-next="checkpoint2"]').click();
+    await page.waitForSelector("#screen[data-bioquest-screen='checkpoint3']");
+    for (const n of [9, 10, 11, 12]) await click(n);
+    await map(13, { body_temperature_high: "increase_heat_loss", body_temperature_low: "conserve_or_make_heat", blood_glucose_high: "lower_glucose", blood_glucose_low: "raise_glucose" });
+    await click(14);
+    await page.locator('[data-section-next="checkpoint3"]').click();
+    await page.locator('[data-next="reflection"]').click();
+    await page.locator("#submitMission").click();
+  },
 };
 
 // ---------- 各站結算頁讀值：統一成 { attemptExp, creditedExp, ledger, correct, total } ----------
@@ -641,6 +674,26 @@ const READERS = {
     const num = (re) => { const m = text.match(re); return m ? Number(m[1]) : null; };
     const rows = Object.fromEntries([...document.querySelectorAll("#screen .ledger-grid article")].map((a) => [a.querySelector("span").textContent.trim(), Number(a.querySelector("strong").textContent)]));
     const byName = Object.fromEntries((window.__excretion_water_homeostasisTest?.badges || []).map((b) => [b.name, b.id]));
+    const cards = [...document.querySelectorAll("#screen .badge-wall .badge.earned")];
+    return {
+      attemptExp: num(/本次取得：(\d+)/),
+      creditedExp: num(/本單元正式認列：(\d+) EXP/),
+      ledger: { completion: rows["完成任務"], direct: rows["直接答對"], revision: rows["提示後修正"], reflection: rows["回報 EXP"], mastery: rows["精熟 EXP"], retry: rows["再挑戰補分"] },
+      ledgerTotal: null,
+      officialTotal: rows["正式認列總計"] ?? null,
+      correct: null,
+      total: null,
+      verifiedNotice: /後台已回傳正式認列資料/.test(text),
+      badges: cards.map((el) => byName[el.querySelector("strong")?.textContent.trim()] || `?${el.querySelector("strong")?.textContent.trim()}`),
+      badgeImagesBroken: cards.filter((el) => { const img = el.querySelector("img"); return img && !(img.complete && img.naturalWidth > 0); }).map((el) => byName[el.querySelector("strong")?.textContent.trim()] || "?"),
+    };
+  },
+  temperature_glucose_homeostasis: () => {
+    // 版面同第 16–25 站
+    const text = document.querySelector("#screen").textContent.replace(/\s+/g, " ");
+    const num = (re) => { const m = text.match(re); return m ? Number(m[1]) : null; };
+    const rows = Object.fromEntries([...document.querySelectorAll("#screen .ledger-grid article")].map((a) => [a.querySelector("span").textContent.trim(), Number(a.querySelector("strong").textContent)]));
+    const byName = Object.fromEntries((window.__temperature_glucose_homeostasisTest?.badges || []).map((b) => [b.name, b.id]));
     const cards = [...document.querySelectorAll("#screen .badge-wall .badge.earned")];
     return {
       attemptExp: num(/本次取得：(\d+)/),

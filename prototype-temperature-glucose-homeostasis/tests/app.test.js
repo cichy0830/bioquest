@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-temperature-glucose-homeostasis/app.js" });
 const api = context.window.__temperature_glucose_homeostasisTest;
 
-assert.equal(api.VERSION, "20261008-temperature-glucose-homeostasis-scroll-v1");
+assert.equal(api.VERSION, "20261025-temperature-glucose-homeostasis-spec-sync-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-temperature-glucose-homeostasis-v1");
 assert.equal(api.mission.unit_id, "temperature_glucose_homeostasis");
 assert.equal(api.questions.length, 14);
@@ -272,4 +272,109 @@ merged = api.applyBackendSubmitResponse({
   verified_attempt: { verification_status: "pending_backend" }
 }, localCandidate);
 assert.deepEqual(Array.from(merged.earned_badges), localCandidate.earned_badges);
+
+// 2026-10-25 規格對齊（第一批）
+{
+  const qs = Object.fromEntries(api.questions.map((question) => [question.id, question]));
+  // 題幹、選項、提示依規格 v1.3；正解 id 不變
+  const specPrompts = {
+    1: "有同學說：「恆定就是體內數值永遠一模一樣。」哪個修正較合理？",
+    2: "當體溫偏高時，身體啟動反應讓體溫往下降；當血糖偏低時，身體啟動反應讓血糖往上升。這較接近哪個調節方向？",
+    3: "請將動物例子分到較合適的體溫調節類型。",
+    4: "炎熱天氣運動後，體溫偏高。下列哪組反應較有助於增加散熱？",
+    5: "寒冷環境中體溫偏低時，哪組反應較有助於保溫或增加產熱？",
+    6: "有同學說：「流汗只是在排水，和體溫沒有關係。」哪個修正較合理？",
+    8: "請拖曳排序，排出「體溫偏高時」較合理的調節流程。",
+    9: "飯後血糖上升，過一段時間又逐漸回到適當範圍。這最能說明哪個概念？",
+    10: "飯後血糖偏高時，哪個調節方向較合理？",
+    11: "空腹較久、血糖偏低時，哪個調節方向較合理？",
+    13: "請將情境配到較合理的調節方向。"
+  };
+  for (const [n, prompt] of Object.entries(specPrompts)) assert.equal(qs[Q(Number(n))].prompt, prompt, `q${n} prompt`);
+  const specCorrectText = {
+    1: "恆定是維持在適當範圍附近，數值可小幅變動", 2: "偏離適當範圍時，反應讓狀態往相反方向調整", 4: "流汗增加、皮膚血管擴張",
+    5: "發抖、皮膚血管收縮", 6: "流汗蒸發可幫助散熱，但也會造成水分和少量鹽分流失", 7: "體溫可短暫波動，身體會透過調節讓它回到適當範圍附近",
+    9: "血糖會變動，但身體會調節使它回到適當範圍附近", 10: "胰島素幫助血糖降低", 11: "升糖素幫助血糖升高", 12: "資料支持胰島素和血糖降低方向有關",
+    14: "血糖偏高後透過調節逐漸回到適當範圍"
+  };
+  for (const [n, text] of Object.entries(specCorrectText)) {
+    const question = qs[Q(Number(n))];
+    assert.equal(question.options.find((option) => option.id === question.answer).text, text, `q${n} correct option text`);
+    assert.equal(question.options.length, 4);
+    assert.equal(new Set(question.options.map((option) => option.id)).size, 4);
+  }
+  assert.equal(qs[Q(8)].hint, "先找偏離狀態，再看身體反應如何把狀態往相反方向調整。");
+  assert.equal(qs[Q(12)].hint, "先看橫軸時間，再比較兩條曲線：胰島素相對量上升後，血糖曲線接下來往哪個方向變化。");
+  assert.deepEqual(Array.from(qs[Q(8)].steps, (step) => step.label), ["體溫偏高", "身體啟動散熱反應", "流汗或皮膚血管擴張使散熱增加", "體溫往適當範圍回復"]);
+  assert.deepEqual(Array.from(qs[Q(13)].choices, (choice) => choice.text), ["增加散熱", "保溫或增加產熱", "降低血糖", "升高血糖"]);
+  // 簡報頁：規格故事引入阿澤老師與貓頭鷹助理，不直接列調節反應或血糖激素方向
+  const brief = api.renderBrief();
+  assert(brief.includes("阿澤老師") && brief.includes("貓頭鷹助理"), "brief introduces both roles");
+  for (const banned of ["負回饋，把", "胰島素", "升糖素", "發抖", "血管擴張", "血管收縮"]) assert(!brief.includes(banned), `brief leaks ${banned}`);
+  // 準備頁：三個中性判讀方向，不直接給 q01／q02／q04–q06／q10–q11／q13 答案
+  const scan = api.renderScan();
+  assert(scan.includes("三個判讀方向"));
+  for (const banned of ["相對穩定", "不是完全不變", "小幅波動", "負回饋", "相反方向", "熱時", "冷時", "增加散熱", "流汗", "發抖", "血管", "胰島素", "升糖素", "往下降低", "往上升高"]) assert(!scan.includes(banned), `scan leaks ${banned}`);
+  // 題前卡：q01／q02、q04–q06 不直接寫出答案；q09／q14 維持規格 07-28 文案
+  for (const n of [1, 2]) {
+    const card = api.renderQuestionEvidence(Q(n));
+    assert(card.includes("恆定範圍觀察卡"));
+    for (const banned of ["小幅波動", "負回饋", "拉回"]) assert(!card.includes(banned), `q${n} card leaks ${banned}`);
+  }
+  for (const n of [4, 5, 6]) {
+    const card = api.renderQuestionEvidence(Q(n));
+    assert(card.includes("體溫反應觀察卡"));
+    for (const banned of ["流汗", "水分流失", "熱時看散熱", "冷時看保溫"]) assert(!card.includes(banned), `q${n} card leaks ${banned}`);
+  }
+  // q03／q13 配對項目初始順序：不與選項對齊、不按答案成群，依 attempt 穩定且會變化
+  for (const n of [3, 13]) {
+    const question = qs[Q(n)];
+    const seen = new Set();
+    for (let seed = 0; seed < 200; seed += 1) {
+      api.setState({ attempt_id: `mapping_seed_${seed}` });
+      const order = api.orderedMappingItems(question).map((item) => item.id);
+      assert.equal(order.length, question.items.length);
+      assert.equal(new Set(order).size, question.items.length);
+      assert.equal(api.mappingItemsLookGrouped(question, order), false, `q${n} seed ${seed} grouped: ${order}`);
+      assert.deepEqual(Array.from(api.orderedMappingItems(question), (item) => item.id), Array.from(order), "stable within attempt");
+      seen.add(order.join(","));
+    }
+    assert(seen.size > 2, `q${n} order should vary across attempts`);
+  }
+  assert.equal(api.mappingItemsLookGrouped(qs[Q(3)], ["human", "sparrow", "lizard", "frog"]), true);
+  assert.equal(api.mappingItemsLookGrouped(qs[Q(3)], ["lizard", "frog", "human", "sparrow"]), true);
+  assert.equal(api.mappingItemsLookGrouped(qs[Q(13)], ["body_temperature_high", "body_temperature_low", "blood_glucose_high", "blood_glucose_low"]), true);
+  // q08 排序初始順序不等於正解
+  for (let seed = 0; seed < 200; seed += 1) {
+    api.setState({ attempt_id: `sequence_seed_${seed}` });
+    assert.notDeepEqual(Array.from(api.orderedOptions(qs[Q(8)]), (step) => step.id), Array.from(qs[Q(8)].answer));
+  }
+  // checkpoint_id 為規格 IDs、teacher_group_id 依 canonical handoff
+  api.setState({ student: { student_id: "guest", is_guest: true }, attempt_id: "cp_ids", answers, reflection: { question: "" } });
+  const cpLogs = Object.fromEntries(api.scoreAttempt().logs.map((log) => [log.question_id, log]));
+  assert.equal(cpLogs[Q(3)].checkpoint_id, "temperature_glucose_homeostasis_cp1_homeostasis_and_temperature");
+  assert.equal(cpLogs[Q(8)].checkpoint_id, "temperature_glucose_homeostasis_cp2_body_temperature_responses");
+  assert.equal(cpLogs[Q(13)].checkpoint_id, "temperature_glucose_homeostasis_cp3_blood_glucose_feedback");
+  assert.equal(cpLogs[Q(14)].checkpoint_id, "temperature_glucose_homeostasis_cp4_boundary");
+  assert.equal(cpLogs[Q(13)].teacher_group_id, "homeostasis_feedback_basics");
+  assert.equal(cpLogs[Q(6)].teacher_group_id, "sweating_water_connection");
+  assert.equal(cpLogs[Q(14)].teacher_group_id, "unit_boundary_control");
+  assert.equal(cpLogs[Q(1)].exp_type, "concept");
+  // 結算頁新版版面：guest／pending／verified
+  const guestResult = api.renderResult();
+  assert(guestResult.includes("guest 測試：本次預估") && guestResult.includes("不列入正式累積") && guestResult.includes("本次預估明細總計"));
+  assert(!guestResult.includes("正式認列總計"));
+  api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "pending_result", answers, reflection: { question: "" }, result: { ...api.scoreAttempt(), verification_status: "pending_backend" } });
+  const pendingResult = api.renderResult();
+  assert(pendingResult.includes("待後台確認") && pendingResult.includes("本次預估明細總計"));
+  api.setState({ student: { student_id: "S99999", class_name: "701", seat_no: "99", student_name: "測試學生" }, attempt_id: "verified_result", answers, reflection: { question: "" }, result: { ...api.scoreAttempt(), verification_status: "server_verified", attempt_exp: 420, unit_credited_exp: 480, exp_delta: 0, earned_badges: [] } });
+  assert.equal(api.resultMode(), "verified");
+  const verifiedResult = api.renderResult();
+  assert(verifiedResult.includes("後台已回傳正式認列資料"));
+  assert(verifiedResult.includes("本次取得：420") && verifiedResult.includes("本單元正式認列：480 EXP"));
+  assert(verifiedResult.includes("正式認列總計") && verifiedResult.includes("480 / 500 EXP"));
+  // 提交後捲回頁首
+  const submitBody = source.slice(source.indexOf("async function submitMission"), source.indexOf("function renderLogin"));
+  assert(submitBody.includes("renderApp();\n  resetScreenScroll();"), "submitMission should reset scroll");
+}
 console.log("prototype-temperature-glucose-homeostasis app regression passed");
