@@ -37,7 +37,7 @@ try {
     });
     page.on("dialog", (dialog) => dialog.accept());
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261025-excretion-water-homeostasis-spec-sync-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261025-excretion-water-homeostasis-reflection-spec-v1`);
     await page.locator("#guestBtn").click();
     await page.locator('[data-next="scan"]').click();
     assert.equal(await page.locator(".prep-owl-hero").count(), 1, "prep owl hero missing");
@@ -71,6 +71,15 @@ try {
     await page.locator('[data-next="reflection"]').click();
     assert.equal(await page.evaluate(() => window.scrollY), 0, "reflection should reset scroll");
     assert.equal(await page.locator(".bq-report-assistant").count(), 1, "report owl should be exactly one");
+    assert.equal(await page.locator("[data-direction]").count(), 8, "reflection should show 8 spec direction chips");
+    await page.locator('[data-direction="尿液成分"]').click();
+    assert.equal(await page.locator('[data-direction="尿液成分"]').getAttribute("aria-pressed"), "true", "direction chip should toggle on");
+    assert.equal(await page.evaluate(() => window.__excretion_water_homeostasisTest.state().reflection.direction), "尿液成分");
+    await page.locator('[data-direction="尿液成分"]').click();
+    assert.equal(await page.evaluate(() => window.__excretion_water_homeostasisTest.state().reflection.direction), "", "direction chip should toggle off");
+    await page.locator('[data-direction="水分收支"]').click();
+    await page.locator("#uncertainConcept").fill("腎臟和膀胱");
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "horizontal overflow on reflection");
     await page.locator("#submitMission").click();
     await page.locator(".result-panel").waitFor();
     assert.equal(await page.evaluate(() => window.scrollY), 0, "result should reset scroll");

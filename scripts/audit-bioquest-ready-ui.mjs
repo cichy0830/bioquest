@@ -79,7 +79,7 @@ appVersionOverrides.set("nervous_system", "20261024-nervous-system-reflection-sp
 appVersionOverrides.set("endocrine_system", "20261024-endocrine-system-reflection-spec-v1");
 appVersionOverrides.set("behavior_sensing", "20261024-behavior-sensing-reflection-spec-v1");
 appVersionOverrides.set("respiration_homeostasis", "20261025-respiration-homeostasis-reflection-spec-v1");
-appVersionOverrides.set("excretion_water_homeostasis", "20261025-excretion-water-homeostasis-spec-sync-v1");
+appVersionOverrides.set("excretion_water_homeostasis", "20261025-excretion-water-homeostasis-reflection-spec-v1");
 appVersionOverrides.set("temperature_glucose_homeostasis", "20261008-temperature-glucose-homeostasis-scroll-v1");
 appVersionOverrides.set("cell_division", "20260813-cell-division-mapping-assets-v1");
 appVersionOverrides.set("asexual_reproduction", "20260813-asexual-reproduction-mapping-v1");

@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261025-excretion-water-homeostasis-spec-sync-v1";
+const VERSION = "20261025-excretion-water-homeostasis-reflection-spec-v1";
 const QUESTION_VERSION = "20260718-excretion-water-homeostasis-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -71,6 +71,10 @@ const reflectionRules = {
   lowEffortTerms: ["不知道", "沒有", "不會", "好難", "看不懂", "都不懂", "我會了", "沒問題", "不知道怎麼問"],
   copiedDirections: ["排泄與排遺", "代謝廢物", "含氮廢物", "泌尿系統構造", "尿液排出路徑", "尿液成分", "水分收支", "資料判讀"]
 };
+// 規格 active contract：reflection_report_question_id = excretion_water_homeostasis_q15（不列入直接計分題）。
+const REPORT_QUESTION_ID = "excretion_water_homeostasis_q15";
+// 規格 q15 任務回報的八個方向詞，與前後台 copiedDirections 相同（只複製方向詞判為複製、不給回報 EXP）。
+const REPORT_DIRECTIONS = [...reflectionRules.copiedDirections];
 
 const badges = [
   ["excretion_water_homeostasis_entry", "水分廢物入門", "完成水分與廢物調節任務。"],
@@ -157,7 +161,7 @@ function createEmptyState() {
     submitted: false,
     submitLockedAt: "",
     completedScreens: ["login"],
-    reflection: { confident: "", question: "", confidence: "3" },
+    reflection: { confident: "", uncertain: "", direction: "", question: "", confidence: "3" },
     result: null,
     notice: ""
   };
@@ -817,6 +821,10 @@ function buildBackendPayload(result = scoreAttempt()) {
     })),
     student_question: state.reflection.question,
     confident_concept: state.reflection.confident,
+    uncertain_concept: state.reflection.uncertain || "",
+    report_question_id: REPORT_QUESTION_ID,
+    question_direction: state.reflection.direction || "",
+    confidence_score: state.reflection.confidence,
     confidence_level: state.reflection.confidence,
     client_summary: result
   };
@@ -1204,9 +1212,27 @@ function renderSetQuestion(question) {
 function conceptFeedback() {
   const missed = requiredQuestionIds.filter((id) => !isCorrect(id)).map((id) => questionMap[id].misconception);
   const unique = [...new Set(missed)];
-  const stable = requiredQuestionIds.filter((id) => isCorrect(id) && !state.hints[id]).map((id) => conceptLabel(questionMap[id].concept));
-  return { missed: unique, stable: [...new Set(stable)] };
+  const groupStable = (ids) => {
+    const correct = ids.filter((id) => isCorrect(id)).length;
+    const clean = ids.every((id) => isCorrect(id) && !state.hints[id]);
+    return clean || (ids.length >= 2 && correct / ids.length >= 0.8);
+  };
+  const stable = STABLE_CONCEPT_TEXT.filter((item) => groupStable(item.questions.map(Q_ID))).map((item) => item.text);
+  return { missed: unique, stable };
 }
+
+// 規格「目前較穩定概念」7 句。每句對應的題目：全部首次答對且未用提示，或兩題以上且答對率達 80%，才顯示。
+// 分組依規格各題 concept_id 與迷思出現位置；q14（單元邊界）規格未列穩定語句。
+const Q_ID = (n) => `excretion_water_homeostasis_q${String(n).padStart(2, "0")}`;
+const STABLE_CONCEPT_TEXT = [
+  { questions: [1], text: "你能區分排泄與排遺。" },
+  { questions: [2], text: "你能舉出代謝廢物或多餘物質的例子。" },
+  { questions: [3, 12], text: "你能說明含氮廢物與尿素的基本概念。" },
+  { questions: [4, 6, 13], text: "你能分辨腎臟、輸尿管、膀胱與尿道的功能。" },
+  { questions: [5], text: "你能整理尿液從形成到排出的大方向。" },
+  { questions: [7], text: "你能理解尿液不只是水，也含尿素與鹽分等物質。" },
+  { questions: [8, 9, 10, 11], text: "你能用飲水、流汗與尿量資料判斷水分收支方向。" }
+];
 
 function renderReview() {
   const result = scoreAttempt();
@@ -1221,7 +1247,7 @@ function renderReview() {
         <div class="feedback-columns">
           <article>
             <h3>目前較穩定</h3>
-            <ul>${(feedback.stable.length ? feedback.stable.slice(0, 6) : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+            <ul>${(feedback.stable.length ? feedback.stable : ["完成作答後會列出穩定概念"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
           </article>
           <article>
             <h3>建議再確認</h3>
@@ -1235,7 +1261,7 @@ function renderReview() {
 }
 
 function misconceptionText(tag) { return {
-  excretion_egestion_confusion:"建議再確認：排泄排出代謝廢物，排遺排出消化道中未消化或未吸收的殘渣。",
+  excretion_egestion_confusion:"剛才有幾個概念還值得再確認：排泄排出代謝廢物，排遺排出消化道中未消化或未吸收的殘渣。",
   metabolic_waste_confusion:"建議再確認代謝廢物：細胞活動後可能產生二氧化碳、尿素等需要排出的物質。",
   nitrogenous_waste_confusion:"建議再閱讀含氮廢物：尿素是常見例子之一，不是未消化的食物殘渣。",
   urinary_organ_function_confusion:"建議再用功能整理泌尿系統：腎臟形成、輸尿管運送、膀胱儲存、尿道排出。",
@@ -1260,22 +1286,33 @@ function feedbackTitle(stateName) {
 }
 
 function renderReflection() {
+  const selectedDirection = state.reflection.direction || "";
   return `
     <div class="stack reflection-layout">
       <section class="panel">
         <p class="eyebrow">任務回報</p>
         <h2>把想問老師的地方留下來</h2>
-        <p class="lead">空白可以提交但沒有回報 EXP；具體且與本單元概念相關的問題，會取得較高回報 EXP。</p>
-        <p class="muted">可以從排泄與排遺、代謝廢物、含氮廢物、泌尿系統構造、尿液排出路徑、尿液成分、水分收支與資料判讀中選一個方向。</p>
-        <label>我最能掌握的一項概念
-          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="例如：腎臟形成尿液，膀胱暫時儲存尿液">
+        <p class="lead">空白可以提交但沒有回報 EXP；只複製方向詞、無關玩笑或敷衍句不會取得回報 EXP。具體且與本單元概念相關的疑問，才會取得較高回報 EXP。</p>
+        <label>這次任務中，我最能掌握的一項排泄與水分恆定概念是什麼？
+          <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="關鍵詞：構造、功能、物質">
         </label>
-        <label>我想上課請老師說明的部分
-          <textarea id="studentQuestion" rows="5" placeholder="例如：我想確認排泄和排遺怎麼分辨，為什麼糞便不算排泄？">${escapeHtml(state.reflection.question)}</textarea>
+        <label>我還不確定排泄/排遺、代謝廢物、泌尿系統、尿液路徑、尿液成分或水分收支中的哪一部分？
+          <input id="uncertainConcept" type="text" value="${escapeHtml(state.reflection.uncertain || "")}" placeholder="關鍵詞：哪個名詞、哪個器官容易混淆">
         </label>
-        <label>信心程度
+        <fieldset class="direction-picker">
+          <legend>選一個你想帶到課堂討論、希望老師再解釋的方向</legend>
+          <div class="direction-grid" role="group" aria-label="課堂討論方向">
+            ${REPORT_DIRECTIONS.map((direction) => `<button type="button" class="option-card direction-chip ${selectedDirection === direction ? "selected" : ""}" data-direction="${escapeHtml(direction)}" aria-pressed="${selectedDirection === direction ? "true" : "false"}">${escapeHtml(direction)}</button>`).join("")}
+          </div>
+        </fieldset>
+        <label>用自己的話補充你想確認的地方
+          <span class="field-help">可以先想你最容易混淆的是排泄/排遺、器官功能、尿液路徑，還是水分收支。</span>
+          <textarea id="studentQuestion" rows="5" placeholder="關鍵詞：方向＋我不確定的地方＋為什麼">${escapeHtml(state.reflection.question)}</textarea>
+        </label>
+        <label>完成任務後，我對「排泄與水分的恆定」的理解信心是幾分？
+          <span class="field-help">5 分代表我能自己說明本單元重點概念。</span>
           <select id="confidenceLevel">
-            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level}｜${level === 5 ? "能自己說明本單元重點概念" : "仍需要一些協助"}</option>`).join("")}
+            ${[1,2,3,4,5].map((level) => `<option value="${level}" ${String(state.reflection.confidence) === String(level) ? "selected" : ""}>${level} 分</option>`).join("")}
           </select>
         </label>
         <div class="button-row">
@@ -1498,6 +1535,18 @@ function bindScreenEvents() {
   const confidence = screen.querySelector("#confidenceLevel");
   textarea?.addEventListener("input", () => { state.reflection.question = textarea.value; saveState(); });
   confident?.addEventListener("input", () => { state.reflection.confident = confident.value; saveState(); });
+  const uncertain = screen.querySelector("#uncertainConcept");
+  uncertain?.addEventListener("input", () => { state.reflection.uncertain = uncertain.value; saveState(); });
+  screen.querySelectorAll("[data-direction]").forEach((button) => button.addEventListener("click", () => {
+    const direction = button.dataset.direction;
+    state.reflection.direction = state.reflection.direction === direction ? "" : direction;
+    screen.querySelectorAll("[data-direction]").forEach((item) => {
+      const active = item.dataset.direction === state.reflection.direction;
+      item.classList.toggle("selected", active);
+      item.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    saveState();
+  }));
   confidence?.addEventListener("change", () => { state.reflection.confidence = confidence.value; saveState(); });
   screen.querySelector("#submitMission")?.addEventListener("click", submitMission);
 }
@@ -1535,6 +1584,9 @@ if (typeof window !== "undefined") {
     orderedOptions,
     backendBadgeIds,
     evaluateReflection,
+    REPORT_DIRECTIONS,
+    reflectionRules,
+    conceptFeedback,
     titleAvatarPath,
     resultMode,
     renderBrief,
