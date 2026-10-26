@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260730-lab-intro-submitted-retry-ia-v1";
+const VERSION = "20261026-lab-intro-wording-r3-v1";
 const QUESTION_VERSION = "20260720-lab-intro-canonical-v1";
 
 const mission = {
@@ -171,10 +171,10 @@ const apparatusOptions = ["量取液體體積", "盛裝、混合或加熱液體"
 const slideToolsQuestion = {
   id: "slide_tools",
   concept_id: "apparatus_selection",
-  prompt: "要製作洋蔥表皮臨時玻片，下列哪些器材較可能用到？",
+  prompt: "製作洋蔥表皮玻片標本時，會用到下列哪些器材？",
   options: ["載玻片", "蓋玻片", "滴管", "鑷子", "量筒", "燒杯"],
   answer: ["載玻片", "蓋玻片", "滴管", "鑷子"],
-  hint: "先想製片需要承載、覆蓋、滴加與夾取；不必選所有桌上的器材。",
+  hint: "想想放標本、蓋住標本、加一滴水、夾起表皮各要用什麼；不是每樣器材都要選。",
   misconception: "memorize_names_only"
 };
 
@@ -182,28 +182,28 @@ const checkpoint1Choices = [
   {
     id: "measure_20ml",
     concept_id: "volume_containers",
-    prompt: "想比較準確地量取 20 mL 水，較適合先選哪一種器材？",
+    prompt: "想比較準確地量取 20 mL 的水，應該選哪一種器材？",
     options: ["量筒", "燒杯", "試管", "鑷子"],
     answer: "量筒",
-    hint: "留意題目要的是量取體積，而不是只把水裝起來。",
+    hint: "題目要的是「量體積」，不只是把水裝起來。",
     misconception: "beaker_as_precise_measure"
   },
   {
     id: "small_reaction",
     concept_id: "volume_containers",
-    prompt: "要讓少量液體在容器中反應並方便觀察變化，較適合使用哪一種器材？",
+    prompt: "要讓少量液體反應，並方便觀察變化，應該選哪一種器材？",
     options: ["試管", "載玻片", "鑷子", "量筒"],
     answer: "試管",
-    hint: "想想哪種器材適合少量液體反應，也方便手持或放在架上觀察。",
+    hint: "哪一種器材適合裝少量液體，又方便拿在手上或放在架上觀察？",
     misconception: "tube_beaker_confusion"
   },
   {
     id: "water_drop",
     concept_id: "small_tools",
-    prompt: "做顯微鏡觀察前，要把一小滴水加在載玻片上，較適合使用哪一種器材？",
+    prompt: "製作玻片標本時，要在載玻片上加一小滴水，應該用哪一種器材？",
     options: ["滴管", "量筒", "燒杯", "試管夾"],
     answer: "滴管",
-    hint: "看動作是否需要少量、逐滴加入液體。",
+    hint: "這個動作需要一滴一滴地加入液體。",
     misconception: "memorize_names_only"
   }
 ];
@@ -219,37 +219,37 @@ const checkpoint2Choices = [
   {
     id: "unknown_bottle",
     concept_id: "lab_safety_rules",
-    prompt: "進入實驗室後，看到桌上有未標示的藥品瓶，最合適的做法是什麼？",
-    options: ["不擅自打開，先依教師指示確認", "聞一聞確認味道", "倒一點出來看看", "和同學猜內容物"],
+    prompt: "實驗桌上有一瓶沒有標籤的藥品，應該怎麼做？",
+    options: ["不擅自打開，先依教師指示確認", "打開聞一聞味道，確認是什麼藥品", "倒一點出來看顏色，再決定怎麼用", "和同學一起猜，猜到了再拿來用"],
     answer: "不擅自打開，先依教師指示確認",
-    hint: "未知物質的風險在於不知道成分與處理方式，先降低接觸風險。",
+    hint: "不知道成分的藥品，可能會傷害身體。",
     misconception: "chemical_casual_handling"
   },
   {
     id: "heat_direction",
     concept_id: "heating_glass_safety",
-    prompt: "加熱試管中的液體時，下列哪個方向較安全？",
-    options: ["試管口不要朝向自己或他人", "試管口對著同學方便觀察", "試管口朝自己才看得清楚", "試管口方向不重要"],
+    prompt: "用試管加熱液體時，試管口應該朝向哪裡？",
+    options: ["試管口不要朝向自己或他人", "試管口對著同學，方便一起觀察", "試管口朝向自己，才看得清楚", "只要小心，試管口朝哪裡都可以"],
     answer: "試管口不要朝向自己或他人",
-    hint: "想想液體受熱時可能噴濺，開口方向會影響誰暴露在風險中。",
+    hint: "液體加熱時可能突然噴出來。",
     misconception: "heating_low_risk"
   },
   {
     id: "waste_liquid",
     concept_id: "chemicals_waste",
-    prompt: "實驗後剩下的液體不知道能不能倒入水槽，最合適的做法是什麼？",
-    options: ["依教師指示倒入指定廢液容器或處理位置", "直接倒掉再沖水", "倒回原藥品瓶", "混進其他組的廢液杯"],
+    prompt: "實驗後剩下的液體，不確定能不能倒進水槽，應該怎麼做？",
+    options: ["依教師指示倒入指定廢液容器或處理位置", "直接倒進水槽，再開水龍頭多沖一會兒", "倒回原本的藥品瓶，下次還可以再用", "倒進別組的廢液杯，大家一起處理就好"],
     answer: "依教師指示倒入指定廢液容器或處理位置",
-    hint: "廢液處理要考慮污染、反應與回收方式；先找指定處理規則。",
+    hint: "有些廢液會污染環境，或和別的藥品起反應。",
     misconception: "waste_sink_default"
   },
   {
     id: "running_lab",
     concept_id: "lab_safety_rules",
-    prompt: "有同學說：「只要我很小心，實驗室裡跑一下也沒關係。」哪個修正較合理？",
-    options: ["實驗室可能有火源、玻璃與藥品，跑動會增加碰撞與翻倒風險", "只要速度不快就可以", "靠牆跑比較安全", "老師沒看到就沒關係"],
+    prompt: "同學說：「只要我很小心，在實驗室跑一下也沒關係。」哪個說法才正確？",
+    options: ["實驗室可能有火源、玻璃與藥品，跑動會增加碰撞與翻倒風險", "只要跑的速度不快、不碰到桌子，在實驗室跑一下也沒關係", "靠著牆邊跑就不會撞到人，所以在實驗室跑步是安全的", "實驗還沒開始、桌上沒有東西的時候，在實驗室跑一下沒關係"],
     answer: "實驗室可能有火源、玻璃與藥品，跑動會增加碰撞與翻倒風險",
-    hint: "安全判斷要看環境中有哪些可能被碰撞、灑出或打翻的風險。",
+    hint: "實驗室裡有哪些東西，被撞到或打翻會有危險？",
     misconception: "heating_low_risk"
   }
 ];
@@ -257,10 +257,10 @@ const checkpoint2Choices = [
 const chemicalRulesQuestion = {
   id: "chemical_rules",
   concept_id: "chemicals_waste",
-  prompt: "使用藥品時，下列哪些注意事項較合適？",
+  prompt: "使用藥品時，下列哪些做法是正確的？",
   options: ["不任意聞或嘗藥品", "用完依指示處理", "標籤不清楚時先詢問", "剩餘藥品一定倒回原瓶", "不同藥品可隨意混合"],
   answer: ["不任意聞或嘗藥品", "用完依指示處理", "標籤不清楚時先詢問"],
-  hint: "先排除會讓未知物質接觸身體、污染原瓶或發生未知反應的做法。",
+  hint: "想想哪些做法會讓藥品碰到身體、弄髒原本的藥品瓶，或混出危險的反應。",
   misconception: "chemical_casual_handling"
 };
 
@@ -268,19 +268,19 @@ const checkpoint3Choices = [
   {
     id: "beaker_precision",
     concept_id: "apparatus_selection",
-    prompt: "有同學說：「燒杯有刻度，所以一定適合精準量體積。」哪個修正較合理？",
-    options: ["燒杯刻度多用於粗略估計，較準確量體積應選合適的量測器材", "燒杯刻度比量筒更準", "燒杯只能裝固體", "有刻度的器材都一樣準"],
+    prompt: "同學說：「燒杯有刻度，所以可以用來精準量體積。」哪個說法才正確？",
+    options: ["燒杯刻度多用於粗略估計，較準確量體積應選合適的量測器材", "燒杯的刻度比量筒更精準，量體積時應該優先使用燒杯", "燒杯只能用來裝固體，不能拿來裝液體或量液體的體積", "只要器材上有刻度，量出來的體積就都一樣精準可靠"],
     answer: "燒杯刻度多用於粗略估計，較準確量體積應選合適的量測器材",
-    hint: "注意題目比較的是精準量取和大致盛裝或混合兩種目的。",
+    hint: "想想燒杯和量筒原本的用途有什麼不同。",
     misconception: "beaker_as_precise_measure"
   },
   {
     id: "honest_record",
     concept_id: "records_attitude",
-    prompt: "如果觀察結果和預期不同，實驗紀錄最合適的做法是什麼？",
-    options: ["如實記錄結果與可能異常，再和老師討論", "把資料改成預期結果", "只寫成功的部分", "不交紀錄"],
+    prompt: "實驗結果和預期不一樣時，紀錄應該怎麼寫？",
+    options: ["如實記錄結果與可能異常，再和老師討論", "把數字改成預期的結果，紀錄比較好看", "只寫成功的部分，不一樣的地方不寫", "結果不對就先不交紀錄，重做再交"],
     answer: "如實記錄結果與可能異常，再和老師討論",
-    hint: "實驗紀錄的價值在於呈現真實過程，異常資料也能幫助找原因。",
+    hint: "和預期不同的結果，也能幫助找出原因。",
     misconception: "record_success_only"
   }
 ];
@@ -623,7 +623,7 @@ function renderBrief() {
         <p class="eyebrow">任務檔案開啟</p>
         <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
         <div class="brief-visual-row">
-          ${renderBriefBackground(labVisualAssets.briefingSceneImage, "阿澤老師在實驗室安全訓練站的任務簡報主視覺", "安全訓練站已開啟，請用器材用途與風險線索完成判斷。")}
+          ${renderBriefBackground(labVisualAssets.briefingSceneImage, "阿澤老師在實驗室的任務簡報主視覺", "今天要認識實驗器材，並學會實驗室的安全規則。")}
           <aside class="brief-title-avatar-card" data-student-gender="${studentGenderKey()}" data-current-title-id="${title.id}" data-title-avatar-path="${titleCharacter}">
             <div class="brief-title-avatar">
               <img src="${titleCharacter}" alt="${state.student.student_name}的${title.current}稱號角色">
@@ -631,7 +631,7 @@ function renderBrief() {
             <div>
               <span>你的任務稱號</span>
               <strong>${title.current}</strong>
-              <p>${studentTitleVariantLabel()}角色形象已接入簡報頁；稱號文字與 EXP 進度由網頁顯示。</p>
+              <p>完成任務可以累積 EXP，升級稱號。</p>
             </div>
           </aside>
         </div>
@@ -641,7 +641,7 @@ function renderBrief() {
         </div>
         <div class="story-panel">
           <strong>任務核心</strong>
-          <p>辨識器材用途，選擇合適器材，判斷加熱、玻璃、藥品與廢液風險，並理解安全處理順序與實驗紀錄態度。</p>
+          <p>認識器材的用途、依目的選器材，知道加熱、玻璃、藥品和廢液要注意什麼，以及實驗紀錄要怎麼寫。</p>
         </div>
         <div class="status-line">
           <span class="pill">${state.student.class_name} 班 ${state.student.seat_no} 號</span>
@@ -657,24 +657,24 @@ function renderBrief() {
 }
 
 function renderScan() {
-  const tools = ["先看目的：量、盛、反應、滴加、夾取、觀察", "遇到未知藥品先停下並詢問", "加熱要注意開口方向與防燙", "破裂玻璃不可徒手處理", "紀錄要保留真實結果與異常"];
+  const tools = ["先想目的：量、裝、反應、滴、夾、放標本", "不認識的藥品先問老師", "加熱時注意試管口方向與防燙", "玻璃破了不要用手撿", "紀錄要寫下真實結果"];
   return `
     <div class="stack">
       <div class="panel hero-panel">
         <p class="eyebrow">任務準備</p>
-        <h2 class="hero-title">進關卡前先整理安全線索</h2>
+        <h2 class="hero-title">進關卡前先複習重點</h2>
         <div class="prep-owl-hero">
-          <div class="prep-owl-visual"><img src="${owlImages.scan}" alt="實驗室安全掃描貓頭鷹助理"></div>
+          <div class="prep-owl-visual"><img src="${owlImages.scan}" alt="實驗室安全準備貓頭鷹助理"></div>
           <div class="story-panel">
-            <strong>安全訓練提醒</strong>
-            <p>提示會給用途或風險線索，不會直接公布器材或安全答案。請先判斷任務目的，再檢查火源、高溫、玻璃、藥品、未知物質與廢液風險。</p>
+            <strong>貓頭鷹助理提醒</strong>
+            <p>每一題先想清楚這一步要做什麼，再看看周圍有沒有火源、高溫、玻璃、藥品或廢液要小心。</p>
           </div>
         </div>
         <div class="card-grid">
           ${tools.map((tool) => `<div class="method-card"><span class="method-icon"></span><strong>${tool}</strong></div>`).join("")}
         </div>
         <div class="actions">
-          <button class="primary" id="scanNext">進入器材準備台</button>
+          <button class="primary" id="scanNext">進入關卡一</button>
         </div>
       </div>
     </div>
@@ -780,8 +780,8 @@ function renderApparatusMatch() {
       <div>
         <span class="multi-badge">可配對</span>
         <strong>請將器材和主要用途配對。</strong>
-        <p class="multi-instruction">每個器材選一個主要用途。提示只會引導量、盛、反應、滴加、夾取、觀察等線索。</p>
-        ${state.answers.checkpoint1Hints.apparatus ? `<div class="hint">先想每個動作是量、盛、反應、滴加、夾取，還是顯微鏡觀察前準備。</div>` : ""}
+        <p class="multi-instruction">每個器材選一個主要用途。</p>
+        ${state.answers.checkpoint1Hints.apparatus ? `<div class="hint">想想每個器材是用來量、裝、反應、滴、夾，還是放標本。</div>` : ""}
       </div>
       <div class="sequence-list">
         ${orderedItems.map((item) => `
@@ -829,7 +829,7 @@ function renderCheckpoint1() {
     ${orderedById("checkpoint1Choices", checkpoint1Choices).map((item) => renderChoiceQuestion("checkpoint1", item)).join("")}
     ${renderMultiQuestion("checkpoint1", slideToolsQuestion)}
   `;
-  return checkpointShell("關卡一：器材準備台", "依實驗目的判斷器材用途，並選擇合適的觀察與製片工具。", rows, "checkpoint1Next");
+  return checkpointShell("關卡一：認識實驗器材", "認識器材的用途，依實驗目的選擇合適的器材。", rows, "checkpoint1Next");
 }
 
 function renderSequenceQuestion() {
@@ -838,9 +838,9 @@ function renderSequenceQuestion() {
     <div class="question-row multi-question">
       <div>
         <span class="multi-badge">拖曳排序</span>
-        <strong>玻璃器材不小心破裂時，請排出較安全的處理順序。</strong>
-        <p class="multi-instruction">請拖曳步驟卡排出完整順序；手機可用上移 / 下移按鈕。提示只提供風險處理方向，不直接排好答案。</p>
-        ${state.answers.checkpoint2Hints.sequence ? `<div class="hint">先處理眼前風險，再通知可協助處理的人；避免直接徒手接觸。</div>` : ""}
+        <strong>玻璃器材不小心打破時，請排出正確的處理順序。</strong>
+        <p class="multi-instruction">拖曳步驟排出順序；手機可用「上移／下移」按鈕。</p>
+        ${state.answers.checkpoint2Hints.sequence ? `<div class="hint">先讓自己和旁邊的人遠離危險，再請老師來；不要用手直接碰碎片。</div>` : ""}
       </div>
       <div class="sequence-list sortable-list" data-sequence-list="checkpoint2">
         ${orderedSteps.map((step, index) => `
@@ -861,23 +861,23 @@ function renderSequenceQuestion() {
 
 function renderCheckpoint2() {
   const rows = `${renderSequenceQuestion()}${orderedById("checkpoint2Choices", checkpoint2Choices).map((item) => renderChoiceQuestion("checkpoint2", item)).join("")}`;
-  return checkpointShell("關卡二：安全風險掃描", "判斷未知藥品、加熱、玻璃器材、廢液與走動碰撞等風險。", rows, "checkpoint2Next");
+  return checkpointShell("關卡二：實驗室安全", "遇到不認識的藥品、加熱、玻璃破裂、廢液和在實驗室跑動時，該怎麼做？", rows, "checkpoint2Next");
 }
 
 function renderCheckpoint3() {
   const rows = `${renderMultiQuestion("checkpoint3", chemicalRulesQuestion)}${orderedById("checkpoint3Choices", checkpoint3Choices).map((item) => renderChoiceQuestion("checkpoint3", item)).join("")}`;
-  return checkpointShell("關卡三：收拾與紀錄檢查", "整理藥品與廢液處理原則，並理解實驗紀錄需要誠實保留結果與異常。", rows, "checkpoint3Next");
+  return checkpointShell("關卡三：使用藥品與實驗紀錄", "使用藥品要注意什麼？實驗紀錄要怎麼寫？", rows, "checkpoint3Next");
 }
 
 function renderCheckpoint4() {
-  return checkpointShell("關卡四：安全態度確認", "選一個進入實驗室前最需要提醒自己的方向，並在下一頁用自己的話補充原因。", `
+  return checkpointShell("關卡四：給自己的安全提醒", "想一想進實驗室前最需要提醒自己的事，下一頁用自己的話寫下原因。", `
     <div class="story-panel highlight">
       <strong>最後檢查</strong>
       <p>等一下的任務回報會請你選一個方向，例如器材用途、加熱安全、藥品與廢液、玻璃器材或實驗紀錄，再寫下自己的提醒理由。</p>
     </div>
     <div class="question-row">
-      <strong>完成安全態度確認後，請進入任務回報。</strong>
-      <p>這一關不另外計入答題，重點是讓你先整理自己的安全提醒。</p>
+      <strong>想好要提醒自己的事後，請進入任務回報。</strong>
+      <p>這一關不計分，先想一想自己最需要注意什麼。</p>
     </div>
   `, "checkpoint4Next");
 }
