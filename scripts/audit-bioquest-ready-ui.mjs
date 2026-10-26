@@ -85,6 +85,7 @@ appVersionOverrides.set("life_world", "20261026-life-world-wording-r3-v1");
 appVersionOverrides.set("scientific_method", "20261026-scientific-method-wording-r3-v1");
 appVersionOverrides.set("lab_intro", "20261026-lab-intro-wording-r3-v1");
 appVersionOverrides.set("microscope_use", "20261026-microscope-use-wording-r3-v1");
+appVersionOverrides.set("cell_basic_unit", "20261026-cell-basic-unit-wording-r3-v1");
 appVersionOverrides.set("cell_division", "20260813-cell-division-mapping-assets-v1");
 appVersionOverrides.set("asexual_reproduction", "20260813-asexual-reproduction-mapping-v1");
 appVersionOverrides.set("sexual_reproduction", "20260814-sexual-reproduction-mapping-v1");
@@ -208,7 +209,7 @@ const audit = units.map(([unitId, folder]) => {
     assert(index.includes("styles.css?v=20261026-microscope-use-wording-r3-v1"), "microscope_use style cache bust missing");
   }
   if (unitId === "cell_basic_unit") {
-    assert(index.includes("styles.css?v=20260731-cell-basic-unit-submitted-retry-ia-v1"), "cell_basic_unit style cache bust missing");
+    assert(index.includes("styles.css?v=20261026-cell-basic-unit-wording-r3-v1"), "cell_basic_unit style cache bust missing");
   }
   if (unitId === "cell_structure") {
     assert(index.includes("styles.css?v=20260731-cell-structure-submitted-retry-ia-v1"), "cell_structure style cache bust missing");

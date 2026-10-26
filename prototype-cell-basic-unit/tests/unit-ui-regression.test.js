@@ -199,8 +199,8 @@ assert.ok(source.includes("請先完成關卡檢核並查看概念回饋，再�
 assert.ok(source.includes('addEventListener("click", enterReflectionFromReview)'));
 assert.ok(index.includes("bioquest-title-progress.js"));
 assert.ok(index.includes("20260713-backend-endpoint-v1"));
-assert.ok(index.includes("styles.css?v=20260731-cell-basic-unit-submitted-retry-ia-v1"));
-assert.ok(index.includes("app.js?v=20260831-student-id-example-115001-v1"));
+assert.ok(index.includes("styles.css?v=20261026-cell-basic-unit-wording-r3-v1"));
+assert.ok(index.includes("app.js?v=20261026-cell-basic-unit-wording-r3-v1"));
 assert.ok(index.includes('data-result-owl-src="assets/owl-basic-unit-result.webp"'));
 assert.ok(source.includes('prep: `assets/owl-basic-unit-prep-reminder-v2.webp?v=${VERSION}`'));
 

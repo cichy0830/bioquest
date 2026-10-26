@@ -4,7 +4,7 @@ const { pathToFileURL } = require("node:url");
 const { chromium } = require("playwright");
 
 const root = process.env.BQ_TEST_ROOT ? path.resolve(process.env.BQ_TEST_ROOT) : path.resolve(__dirname, "..");
-const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=20260731-cell-basic-unit-submitted-retry-ia-v1`;
+const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=20261026-cell-basic-unit-wording-r3-v1`;
 
 async function advanceToReview(page) {
   await page.locator("#guestButton").click();

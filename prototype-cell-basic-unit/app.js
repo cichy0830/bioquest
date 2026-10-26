@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260731-cell-basic-unit-submitted-retry-ia-v1";
+const VERSION = "20261026-cell-basic-unit-wording-r3-v1";
 const BASIC_UNIT_VERSION = "20260712-basic-unit-sheet-login-v4";
 const mission = {
   unit_id: "cell_basic_unit",
@@ -97,54 +97,54 @@ let state = loadState();
 let draggedSequenceId = null;
 
 const unitQuestions = [
-  { id: "q01", section: "checkpoint1", answer: "basic", prompt: "哪個說法最符合「細胞是生物體的基本單位」？", options: [
+  { id: "q01", section: "checkpoint1", answer: "basic", prompt: "「細胞是生物體的基本單位」是什麼意思？", options: [
     { id: "basic", text: "細胞是生物體構造與功能的基本單位。" },
-    { id: "particle", text: "細胞只是沒有功能的小點。" },
-    { id: "large_only", text: "只有大型動物才有細胞。" },
-    { id: "photo_only", text: "細胞只會出現在顯微鏡照片中。" }
-  ], hint: "想想最小且仍和生命活動有關的基本單位。" },
-  { id: "q02", section: "checkpoint1", answer: "plant_cells", prompt: "顯微鏡下看到洋蔥表皮由一格一格的小單位排列，這最能支持哪個想法？", options: [
+    { id: "particle", text: "細胞只是組成身體的小顆粒，本身沒有功能。" },
+    { id: "large_only", text: "只有體型較大的動物和植物才由細胞組成。" },
+    { id: "photo_only", text: "細胞是顯微鏡放大後的影像，不是身體的構造。" }
+  ], hint: "想想生物體最小、又能進行生命活動的單位。" },
+  { id: "q02", section: "checkpoint1", answer: "plant_cells", prompt: "顯微鏡下，洋蔥表皮由一格一格的小單位排成。這說明什麼？", options: [
     { id: "plant_cells", text: "這些小格可能是洋蔥表皮細胞，支持植物體由細胞組成。" },
-    { id: "pattern_only", text: "這些小格只是放大後的規則花紋，不能當作細胞的證據。" },
+    { id: "pattern_only", text: "這些小格只是放大後看到的規則花紋，不是細胞。" },
     { id: "movement_required", text: "只有會自行移動的小單位才算細胞，所以這些小格不是細胞。" },
     { id: "surface_not_body", text: "只有整株洋蔥才和生命有關，表皮的小單位不屬於生物體。" }
-  ], hint: "把樣本來源和看到的小單位連起來想。" },
-  { id: "q06", section: "checkpoint2", answer: "single_life", prompt: "草履蟲是一個細胞構成的生物，仍能攝食、移動與繁殖。這最能說明什麼？", options: [
+  ], hint: "這些小格是從洋蔥身上取下來的。" },
+  { id: "q06", section: "checkpoint2", answer: "single_life", prompt: "草履蟲只有一個細胞，卻能攝食、移動和繁殖。這說明什麼？", options: [
     { id: "single_life", text: "單一細胞也可能完成生命活動。" },
-    { id: "no_function", text: "細胞都沒有功能。" },
-    { id: "multi_one", text: "多細胞生物只需要一個細胞。" },
-    { id: "micro_not_life", text: "顯微鏡下的生物都不是生物。" }
-  ], hint: "題目強調一個細胞就能生活。" },
-  { id: "q07", section: "checkpoint2", answer: "some_single", prompt: "「只要是生物，一定由很多細胞組成。」哪個修正較合理？", options: [
+    { id: "no_function", text: "細胞本身沒有功能，要很多個一起才能活動。" },
+    { id: "multi_one", text: "人和草履蟲一樣，只要一個細胞就能生活。" },
+    { id: "micro_not_life", text: "要用顯微鏡才看得到的草履蟲不算是生物。" }
+  ], hint: "全身只有一個細胞，它能不能自己生活？" },
+  { id: "q07", section: "checkpoint2", answer: "some_single", prompt: "同學說：「生物一定由很多細胞組成。」哪個說法才正確？", options: [
     { id: "some_single", text: "有些生物只由一個細胞構成，有些由許多細胞構成。" },
-    { id: "no_cells", text: "所有生物都沒有細胞。" },
-    { id: "plants_only", text: "只有植物有很多細胞。" },
-    { id: "single_dead", text: "單細胞生物不能進行生命活動。" }
-  ], hint: "想想草履蟲、酵母菌這類例子。" },
-  { id: "q09", section: "checkpoint3", answer: "message", prompt: "神經細胞常有很長的突起，這種形狀較可能和哪個功能有關？", options: [
+    { id: "no_cells", text: "說得對，草履蟲和酵母菌其實也有很多細胞。" },
+    { id: "plants_only", text: "只有植物由很多細胞組成，動物只有一個細胞。" },
+    { id: "single_dead", text: "只有一個細胞的生物無法攝食和繁殖，不算生物。" }
+  ], hint: "想想草履蟲和酵母菌各有幾個細胞。" },
+  { id: "q09", section: "checkpoint3", answer: "message", prompt: "神經細胞有很長的突起，這和什麼功能有關？", options: [
     { id: "message", text: "傳遞訊息到較遠的位置。" },
-    { id: "water", text: "儲存大量水分。" },
-    { id: "square", text: "讓細胞變成正方形。" },
-    { id: "wall", text: "支撐植物細胞外形。" }
-  ], hint: "長突起能幫助細胞和遠處位置建立連接。" },
-  { id: "q10", section: "checkpoint3", answer: "gas", prompt: "紅血球呈雙凹圓盤狀，這種形狀較有利於哪一類功能？", options: [
+    { id: "water", text: "把大量水分儲存在突起裡。" },
+    { id: "square", text: "緊密排列，覆蓋身體表面。" },
+    { id: "wall", text: "收縮變短，讓身體運動。" }
+  ], hint: "長長的突起能連到比較遠的地方。" },
+  { id: "q10", section: "checkpoint3", answer: "gas", prompt: "紅血球是雙凹圓盤狀，這種形狀有利於什麼功能？", options: [
     { id: "gas", text: "運輸氣體並通過血管。" },
-    { id: "plant", text: "固定植物葉片形狀。" },
-    { id: "cover", text: "覆蓋洋蔥表面。" },
-    { id: "swim", text: "用來拍打游動。" }
-  ], hint: "先看血液中移動、交換物質的任務。" },
-  { id: "q12", section: "checkpoint4", answer: "cheek_cells", prompt: "觀察口腔皮膜玻片時，看到許多分散的小片狀單位。最合理的判斷方向是什麼？", options: [
-    { id: "cheek_cells", text: "這些小片狀單位可能是口腔皮膜細胞，能作為人體由細胞組成的觀察證據。" },
-    { id: "ordered_only", text: "細胞一定要整齊排列，分散的小片狀單位不可能是細胞。" },
-    { id: "movement_required", text: "只有會自行移動的小單位才算細胞，靜止的小片只能是雜質。" },
-    { id: "magnification_only", text: "顯微鏡只把樣本放大，看到小片狀單位不能支持人體由細胞組成。" }
-  ], hint: "顯微觀察要連結樣本來源與看到的基本單位。" },
-  { id: "q14", section: "checkpoint4", answer: "cell_function", prompt: "「細胞只是身體裡的小顆粒，真正的生命活動只發生在整個身體。」哪個修正較合理？", options: [
-    { id: "cell_function", text: "細胞本身也能進行基本生命活動，是構造與功能基本單位。" },
-    { id: "no_use", text: "細胞沒有任何功能。" },
-    { id: "organ_only", text: "只有器官才和生命活動有關。" },
-    { id: "not_alive", text: "顯微鏡看到的東西都不是活的。" }
-  ], hint: "從構造和功能兩方面理解細胞，不只看大小。" }
+    { id: "plant", text: "傳遞訊息到身體各處。" },
+    { id: "cover", text: "覆蓋在血管內壁，保護血管。" },
+    { id: "swim", text: "收縮變短，推動血液流動。" }
+  ], hint: "紅血球在血液裡負責運送什麼？" },
+  { id: "q12", section: "checkpoint4", answer: "cheek_cells", prompt: "觀察口腔皮膜玻片，看到許多分散的小片。這說明什麼？", options: [
+    { id: "cheek_cells", text: "這些小片可能是口腔皮膜細胞，說明人體也由細胞組成。" },
+    { id: "ordered_only", text: "細胞一定整齊排列，分散的小片不可能是細胞。" },
+    { id: "movement_required", text: "這些小片不會自己移動，只是雜質，不是細胞。" },
+    { id: "magnification_only", text: "顯微鏡只是把東西放大，看不出人體由細胞組成。" }
+  ], hint: "這些小片是從哪裡刮下來的？" },
+  { id: "q14", section: "checkpoint4", answer: "cell_function", prompt: "同學說：「細胞只是小顆粒，生命活動要整個身體才做得到。」哪個說法才正確？", options: [
+    { id: "cell_function", text: "細胞本身也能進行生命活動，是構造與功能的基本單位。" },
+    { id: "no_use", text: "細胞只是堆成身體的材料，本身沒有任何功能。" },
+    { id: "organ_only", text: "只有心臟、胃這些器官，才能真正進行生命活動。" },
+    { id: "not_alive", text: "顯微鏡下看到的細胞都已經死了，不是活的。" }
+  ], hint: "回想草履蟲：一個細胞能不能生活？" }
 ];
 
 const multiCellItems = [
@@ -510,7 +510,7 @@ function renderBrief() {
         <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
         ${briefBackground()}
         <div class="story-panel highlight"><strong>進入微觀生命站</strong><p>上一個任務學會使用顯微鏡後，這次要把看到的小單位連回核心概念：生物體由細胞組成，細胞是構造與功能的基本單位。</p></div>
-        <div class="story-panel"><strong>任務核心</strong><p>辨認細胞基本單位、單細胞與多細胞、細胞形狀和功能，以及顯微觀察提供的證據。</p></div>
+        <div class="story-panel"><strong>任務核心</strong><p>認識細胞是基本單位、分辨單細胞與多細胞生物、連結細胞形狀和功能，並說明顯微鏡下看到的細胞。</p></div>
         <div class="status-line"><span class="pill">${state.student.class_name} 班 ${state.student.seat_no} 號</span><span class="pill ${state.attempt_type === "retry" ? "warn" : ""}">${state.attempt_type === "retry" ? "再挑戰" : "首次挑戰"}</span></div>
         <div class="actions"><button class="primary" id="briefNext">開始任務準備</button></div>
       </div>
@@ -518,20 +518,20 @@ function renderBrief() {
   `;
 }
 function renderScan() {
-  const concepts = ["細胞是構造與功能基本單位", "生物體由細胞組成", "有些生物只由一個細胞構成", "不同細胞形狀常和功能有關", "顯微鏡影像可作為細胞證據"];
+  const concepts = ["細胞是構造與功能基本單位", "生物體由細胞組成", "有些生物只由一個細胞構成", "不同細胞形狀常和功能有關", "顯微鏡下可以看到細胞"];
   return `
     <div class="wide-layout prep-layout">
       <section class="panel hero-panel prep-panel">
         <p class="eyebrow">任務準備</p>
-        <h2 class="hero-title">進關卡前先整理概念</h2>
+        <h2 class="hero-title">作答前先複習</h2>
         <div class="prep-hero" data-prep-hero>
           <figure class="prep-owl-visual">
-            <img src="${owlImages.prep}" alt="貓頭鷹助理拿著細胞觀察片，提醒進入微觀掃描前的重要概念">
+            <img src="${owlImages.prep}" alt="貓頭鷹助理拿著細胞觀察片，提醒作答前的重要概念">
           </figure>
-          <div class="prep-reminder"><strong>微觀掃描提醒</strong><p>本單元不考完整胞器功能。請先掌握細胞作為基本單位、單多細胞差異、形狀功能關聯與觀察證據。</p></div>
+          <div class="prep-reminder"><strong>複習重點</strong><p>這一站不考細胞內各構造的功能。請掌握：細胞是基本單位、單細胞和多細胞生物、細胞形狀和功能，以及顯微鏡下看到的細胞。</p></div>
         </div>
         <div class="card-grid prep-concept-grid">${concepts.map((text) => `<div class="concept-card"><strong>${text}</strong></div>`).join("")}</div>
-        <div class="actions"><button class="primary" id="scanNext">進入生命積木掃描</button></div>
+        <div class="actions"><button class="primary" id="scanNext">開始第一關</button></div>
       </section>
     </div>
   `;
@@ -562,7 +562,7 @@ function renderMultiSelect() {
   const selected = state.answers.checkpoint1.multi || [];
   const confirmed = Boolean(state.answers.checkpoint1.multiConfirmed);
   const showHint = Boolean(state.answers.checkpoint1Hints.multi);
-  return `<article class="question-card"><p class="eyebrow">可複選</p><h3>下列哪些生物體由細胞組成？請選出所有符合的選項。</h3><div class="choice-grid">${orderedById("multiCellItems", multiCellItems).map((item) => `<button class="choice-button ${selected.includes(item.id) ? "selected" : ""}" data-multi="${item.id}">${item.label}</button>`).join("")}</div><div class="multi-confirm-row"><button class="secondary" id="confirmMulti" type="button">確認這組答案</button><span class="selected-answer">${confirmed ? "已確認這組答案" : selected.length ? `已選 ${selected.length} 項，尚未確認` : "尚未選擇"}</span></div>${showHint ? `<div class="feedback warn">提示：先判斷哪些是生物，再想生物體是否由細胞構成。</div>` : ""}</article>`;
+  return `<article class="question-card"><p class="eyebrow">可複選</p><h3>下列哪些是由細胞組成的？請選出所有正確的選項。</h3><div class="choice-grid">${orderedById("multiCellItems", multiCellItems).map((item) => `<button class="choice-button ${selected.includes(item.id) ? "selected" : ""}" data-multi="${item.id}">${item.label}</button>`).join("")}</div><div class="multi-confirm-row"><button class="secondary" id="confirmMulti" type="button">確認這組答案</button><span class="selected-answer">${confirmed ? "已確認這組答案" : selected.length ? `已選 ${selected.length} 項，尚未確認` : "尚未選擇"}</span></div>${showHint ? `<div class="feedback warn">提示：先判斷哪些是生物，再想生物體是否由細胞構成。</div>` : ""}</article>`;
 }
 function toggleMulti(id) {
   const selected = new Set(state.answers.checkpoint1.multi || []);
@@ -595,7 +595,7 @@ function checkpointMissingItems(checkpointId) {
     return [
       !hasChoiceAnswer("q01") ? "q01 基本單位判斷" : "",
       !selected.length || !state.answers.checkpoint1.multiConfirmed ? "複選題選取並確認" : "",
-      !hasChoiceAnswer("q02") ? "q02 顯微觀察證據判斷" : ""
+      !hasChoiceAnswer("q02") ? "q02 洋蔥表皮的小格" : ""
     ].filter(Boolean);
   }
   if (checkpointId === "checkpoint2") {
@@ -616,7 +616,7 @@ function checkpointMissingItems(checkpointId) {
   }
   if (checkpointId === "checkpoint4") {
     return [
-      !hasChoiceAnswer("q12") ? "q12 口腔皮膜觀察判斷" : "",
+      !hasChoiceAnswer("q12") ? "q12 口腔皮膜的小片" : "",
       !state.answers.checkpoint4.sequenceConfirmed ? "層級排序確認" : "",
       !hasChoiceAnswer("q14") ? "q14 細胞功能迷思修正" : ""
     ].filter(Boolean);
@@ -655,11 +655,11 @@ function advanceCheckpoint(checkpointId, nextScreen, onAdvance) {
   return true;
 }
 function renderCheckpoint1() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡一</p><h2>生命積木掃描</h2><p class="lead">用顯微鏡觀察證據與基本單位概念判斷。</p><div class="question-grid">${renderChoiceQuestion("q01")}${renderMultiSelect()}${renderChoiceQuestion("q02")}</div>${renderCheckpointNotice("checkpoint1")}<div class="actions"><button class="primary" id="checkpoint1Next">進入單細胞與多細胞分類</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡一</p><h2>細胞是基本單位</h2><p class="lead">生物體是由什麼組成的？</p><div class="question-grid">${renderChoiceQuestion("q01")}${renderMultiSelect()}${renderChoiceQuestion("q02")}</div>${renderCheckpointNotice("checkpoint1")}<div class="actions"><button class="primary" id="checkpoint1Next">下一關：單細胞與多細胞生物</button></div></div></div>`;
 }
 function renderClassification() {
   const categories = [{ id: "single", title: "單細胞生物" }, { id: "multi", title: "多細胞生物" }];
-  return `<article class="question-card"><p class="eyebrow">可分類</p><h3>請把例子分到單細胞或多細胞。先點選項，再點分類欄。</h3><div class="token-grid">${orderedById("classifyItems", classifyItems).map((item) => `<button class="token-card ${state.activeToken === item.id ? "selected" : ""}" data-token="${item.id}">${item.label}<br><span class="muted">目前：${categoryName(state.answers.checkpoint2[item.id])}</span></button>`).join("")}</div><div class="category-grid">${categories.map((cat) => `<button class="category-box" data-category="${cat.id}"><div class="category-title">${cat.title}</div>${classifyItems.filter((item) => state.answers.checkpoint2[item.id] === cat.id).map((item) => `<span class="pill">${item.label}</span>`).join(" ")}</button>`).join("")}</div>${state.answers.checkpoint2Hints.classify ? `<div class="feedback warn">提示：先判斷這個生物是否只靠一個細胞就能生活。</div>` : ""}</article>`;
+  return `<article class="question-card"><p class="eyebrow">可分類</p><h3>把下列生物分成單細胞生物或多細胞生物（先點生物，再點分類欄）。</h3><div class="token-grid">${orderedById("classifyItems", classifyItems).map((item) => `<button class="token-card ${state.activeToken === item.id ? "selected" : ""}" data-token="${item.id}">${item.label}<br><span class="muted">目前：${categoryName(state.answers.checkpoint2[item.id])}</span></button>`).join("")}</div><div class="category-grid">${categories.map((cat) => `<button class="category-box" data-category="${cat.id}"><div class="category-title">${cat.title}</div>${classifyItems.filter((item) => state.answers.checkpoint2[item.id] === cat.id).map((item) => `<span class="pill">${item.label}</span>`).join(" ")}</button>`).join("")}</div>${state.answers.checkpoint2Hints.classify ? `<div class="feedback warn">提示：先判斷這個生物是否只靠一個細胞就能生活。</div>` : ""}</article>`;
 }
 function categoryName(id) { return id === "single" ? "單細胞" : id === "multi" ? "多細胞" : "未分類"; }
 function setCategory(category) {
@@ -675,14 +675,14 @@ function setCategory(category) {
   render();
 }
 function renderCheckpoint2() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡二</p><h2>單細胞與多細胞分類</h2><div class="question-grid">${renderClassification()}${renderChoiceQuestion("q06")}${renderChoiceQuestion("q07")}</div>${renderCheckpointNotice("checkpoint2")}<div class="actions"><button class="primary" id="checkpoint2Next">進入形狀與功能配對</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡二</p><h2>單細胞與多細胞生物</h2><div class="question-grid">${renderClassification()}${renderChoiceQuestion("q06")}${renderChoiceQuestion("q07")}</div>${renderCheckpointNotice("checkpoint2")}<div class="actions"><button class="primary" id="checkpoint2Next">下一關：細胞的形狀與功能</button></div></div></div>`;
 }
 function renderMatchQuestion() {
-  return `<article class="question-card"><p class="eyebrow">配對題</p><h3>請將細胞外形線索和可能功能配對。選完後會直接顯示已選答案。</h3><div class="stack">${matchItems.map((item) => {
+  return `<article class="question-card"><p class="eyebrow">配對題</p><h3>細胞的形狀和功能有關。請為每種形狀選出最可能的功能。</h3><div class="stack">${matchItems.map((item) => {
     const value = state.answers.checkpoint3[item.id] || "";
     const label = matchOptions.find((option) => option.id === value)?.label || "尚未選擇";
     return `<label class="match-field"><strong>${item.label}</strong><select class="match-select" data-match="${item.id}">${matchOptions.map((option) => `<option value="${option.id}" ${value === option.id ? "selected" : ""}>${option.label}</option>`).join("")}</select><span class="selected-answer">已選：${label}</span></label>`;
-  }).join("")}</div>${state.answers.checkpoint3Hints.match ? `<div class="feedback warn">提示：不要先背名稱，先看形狀如何幫助它完成任務。</div>` : ""}</article>`;
+  }).join("")}</div>${state.answers.checkpoint3Hints.match ? `<div class="feedback warn">提示：想一想，這種形狀適合做什麼事？</div>` : ""}</article>`;
 }
 function setMatch(id, value) {
   state.answers.checkpoint3[id] = value;
@@ -695,7 +695,7 @@ function setMatch(id, value) {
   render();
 }
 function renderCheckpoint3() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡三</p><h2>形狀與功能配對</h2><div class="question-grid">${renderMatchQuestion()}${renderChoiceQuestion("q09")}${renderChoiceQuestion("q10")}</div>${renderCheckpointNotice("checkpoint3")}<div class="actions"><button class="primary" id="checkpoint3Next">進入顯微證據判讀</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡三</p><h2>細胞的形狀與功能</h2><div class="question-grid">${renderMatchQuestion()}${renderChoiceQuestion("q09")}${renderChoiceQuestion("q10")}</div>${renderCheckpointNotice("checkpoint3")}<div class="actions"><button class="primary" id="checkpoint3Next">下一關：顯微鏡下的細胞</button></div></div></div>`;
 }
 function getSequenceOrder() { return state.answers.checkpoint4.sequence || ["organism", "tissue", "cell"]; }
 function moveSequence(id, dir) {
@@ -733,13 +733,13 @@ function renderSequenceQuestion() {
   const order = getSequenceOrder();
   const isWrong = order.join("|") !== "organism|tissue|cell";
   const confirmed = Boolean(state.answers.checkpoint4.sequenceConfirmed);
-  return `<article class="question-card"><p class="eyebrow">拖曳排序</p><h3>請由大到小排出生物層級。手機拖曳不穩時可用上移 / 下移。</h3><div class="sortable-list">${order.map((id, index) => {
+  return `<article class="question-card"><p class="eyebrow">拖曳排序</p><h3>請由大到小排列下面三項（可拖曳，或按上移／下移）。</h3><div class="sortable-list">${order.map((id, index) => {
     const step = sequenceSteps.find((item) => item.id === id);
     return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><strong>${step.label}</strong><div class="sequence-move-buttons"><button class="icon-action" data-sequence-move="${id}" data-direction="up" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-sequence-move="${id}" data-direction="down" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`;
   }).join("")}</div><div class="multi-confirm-row"><button class="secondary" id="confirmSequence" type="button">確認這組排序</button><span class="selected-answer">${confirmed ? "已確認這組排序" : "尚未確認排序"}</span></div>${isWrong && state.answers.checkpoint4Hints.sequence ? `<div class="feedback warn">提示：先找完整生物，再找身體的一部分，最後找顯微鏡下的小單位。</div>` : ""}</article>`;
 }
 function renderCheckpoint4() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡四</p><h2>顯微證據與層級判斷</h2><div class="question-grid">${renderChoiceQuestion("q12")}${renderSequenceQuestion()}${renderChoiceQuestion("q14")}</div>${renderCheckpointNotice("checkpoint4")}<div class="actions"><button class="primary" id="checkpoint4Next">查看概念回饋</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡四</p><h2>顯微鏡下的細胞與層級</h2><div class="question-grid">${renderChoiceQuestion("q12")}${renderSequenceQuestion()}${renderChoiceQuestion("q14")}</div>${renderCheckpointNotice("checkpoint4")}<div class="actions"><button class="primary" id="checkpoint4Next">查看概念回饋</button></div></div></div>`;
 }
 
 function scoreChoice(questionId) {
@@ -1051,9 +1051,9 @@ function misconceptionText(tag) {
   const map = {
     q01: "建議再理解細胞不只是小顆粒，而是構造與功能基本單位。",
     only_animals_plants_have_cells: "建議再擴展細胞概念：動物、植物、真菌與許多微生物都由細胞構成。",
-    q02: "建議再連結顯微鏡觀察證據與細胞概念。",
+    q02: "建議再想想：顯微鏡下看到的一格一格小單位，就是細胞。",
     all_living_things_multicellular: "建議再比較單細胞與多細胞生物。",
-    all_cells_same_shape: "建議再閱讀細胞形狀與功能。",
+    all_cells_same_shape: "建議再複習細胞的形狀與功能。",
     level_confusion: "建議再整理個體、組織與細胞層級。"
   };
   return map[tag] || "建議再把顯微觀察、細胞層級與生命活動連在一起思考。";
@@ -1061,7 +1061,7 @@ function misconceptionText(tag) {
 function renderReview() {
   const result = calculateResult();
   const stable = result.section_stats.filter((item) => item.correct / item.total >= 0.85);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>任務掃描結果</h2><div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理主要概念。</p>"}</div><div class="story-panel"><strong>建議再閱讀</strong>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div><div class="story-panel"><strong>提問方向</strong><p>細胞為什麼被稱為基本單位、顯微鏡觀察如何支持細胞概念、單細胞生物如何完成生命活動。</p></div></div><div id="reviewNavigationNotice" class="feedback warn" role="status" aria-live="polite"></div><div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>作答結果</h2><div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理主要概念。</p>"}</div><div class="story-panel"><strong>建議再閱讀</strong>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div><div class="story-panel"><strong>提問方向</strong><p>細胞為什麼被稱為基本單位、顯微鏡觀察如何支持細胞概念、單細胞生物如何完成生命活動。</p></div></div><div id="reviewNavigationNotice" class="feedback warn" role="status" aria-live="polite"></div><div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
 }
 function renderReflection() {
   const reflection = state.answers.reflection || {};
