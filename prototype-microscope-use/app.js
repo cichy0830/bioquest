@@ -1,6 +1,6 @@
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
 
-const VERSION = "20260730-microscope-use-submitted-retry-ia-v1";
+const VERSION = "20261026-microscope-use-wording-r3-v1";
 const QUESTION_VERSION = "20260720-microscope-use-canonical-v1";
 
 const roster = {
@@ -163,19 +163,19 @@ const checkpoint1Choices = [
   {
     id: "fine_focus",
     concept_id: "focus_adjustment",
-    prompt: "視野已經接近清楚，但還有一點模糊，最適合先調整哪個部位？",
-    options: ["細調節輪", "目鏡", "鏡座", "載物臺夾"],
+    prompt: "影像快要清楚，但還有一點模糊，應該調整哪個部位？",
+    options: ["細調節輪", "粗調節輪", "目鏡", "載物臺"],
     answer: "細調節輪",
-    hint: "題目說已經接近清楚，代表需要小幅度微調，而不是大幅改變位置。",
+    hint: "已經快清楚了，只需要小小調整。",
     misconception: "coarse_on_high_power"
   },
   {
     id: "too_dark",
     concept_id: "brightness_adjustment",
-    prompt: "視野太暗，但標本大致已在焦點附近，下列哪個處理方向較合理？",
-    options: ["調整光源、反光鏡或光圈", "用力轉粗調節輪", "把玻片拿掉", "直接換最高倍物鏡"],
+    prompt: "影像大致清楚，但視野太暗，應該先怎麼做？",
+    options: ["調整光源、反光鏡或光圈", "轉動粗調節輪重新對焦", "換一片比較薄的玻片", "直接換成高倍物鏡觀察"],
     answer: "調整光源、反光鏡或光圈",
-    hint: "先判斷問題是看不清焦點，還是進入視野的光線不足。",
+    hint: "太暗是光線的問題，不是焦距的問題。",
     misconception: "focus_vs_light_confusion"
   }
 ];
@@ -192,10 +192,10 @@ const sequenceSteps = [
 const storageQuestion = {
   id: "storage_steps",
   concept_id: "carrying_storage",
-  prompt: "收納顯微鏡前，下列哪些做法較合適？",
+  prompt: "收納顯微鏡前，要做哪些事？",
   options: ["轉回低倍物鏡", "取下玻片", "下降載物臺或鏡筒至安全位置", "整理電源線或防塵", "讓高倍物鏡停在工作位置", "把玻片留在載物臺上"],
   answer: ["轉回低倍物鏡", "取下玻片", "下降載物臺或鏡筒至安全位置", "整理電源線或防塵"],
-  hint: "收納時要避免鏡頭、玻片和載物臺互相碰撞，也要讓下一次使用者能安全開始。",
+  hint: "想一想：怎麼放才不會讓鏡頭撞到東西，下一個人也能直接使用？",
   misconception: "unsafe_carrying"
 };
 
@@ -203,28 +203,28 @@ const checkpoint2Choices = [
   {
     id: "high_power_first",
     concept_id: "low_to_high_power",
-    prompt: "有同學說：「高倍放大比較多，所以一開始就用高倍找標本最快。」哪個修正較合理？",
-    options: ["低倍視野較大、較亮，通常較容易先找到標本", "高倍視野較大所以更容易找", "高倍一定比低倍亮", "倍率和找標本沒有關係"],
+    prompt: "同學說：「一開始就用高倍找標本最快。」哪個說法才正確？",
+    options: ["低倍視野較大、較亮，通常較容易先找到標本", "高倍視野較大，標本比較容易出現在視野中", "高倍進光比較多，視野比低倍更亮、更好找", "倍率只影響影像大小，和找不找得到標本無關"],
     answer: "低倍視野較大、較亮，通常較容易先找到標本",
-    hint: "找標本時，視野範圍和亮度很重要，不只看放大倍率。",
+    hint: "比一比低倍和高倍，哪一個一次看得到的範圍比較大？",
     misconception: "high_power_first"
   },
   {
     id: "high_power_focus",
     concept_id: "focus_adjustment",
-    prompt: "已轉到高倍物鏡後，影像稍微模糊，較安全的做法是什麼？",
-    options: ["輕微轉動細調節輪", "快速轉粗調節輪", "把物鏡壓近玻片", "用手推鏡筒往下"],
+    prompt: "換到高倍物鏡後影像有點模糊，應該怎麼做？",
+    options: ["輕微轉動細調節輪", "快速轉動粗調節輪", "讓物鏡往下貼近玻片", "用手把鏡筒往下推"],
     answer: "輕微轉動細調節輪",
-    hint: "高倍時物鏡與玻片距離較近，調整幅度太大可能造成碰撞。",
+    hint: "高倍時物鏡離玻片很近，轉太多會撞到玻片。",
     misconception: "coarse_on_high_power"
   },
   {
     id: "carry_scope",
     concept_id: "carrying_storage",
-    prompt: "搬運顯微鏡時，下列哪個動作較安全？",
-    options: ["一手握鏡臂，一手托鏡座", "單手抓目鏡提起", "拖著鏡座在桌上滑動", "拿著電線移動"],
+    prompt: "搬運顯微鏡時，哪個拿法正確？",
+    options: ["一手握鏡臂，一手托鏡座", "單手握住鏡臂直接提起", "抓住目鏡和鏡筒往上提", "推著鏡座在桌面上滑動"],
     answer: "一手握鏡臂，一手托鏡座",
-    hint: "顯微鏡重且精密，搬運時要同時控制上方支撐與下方重量。",
+    hint: "顯微鏡很重，上面和下面都要扶好。",
     misconception: "unsafe_carrying"
   }
 ];
@@ -233,55 +233,55 @@ const checkpoint3Choices = [
   {
     id: "magnification_400",
     concept_id: "magnification",
-    prompt: "目鏡 10x、物鏡 40x 時，總倍率是多少？",
+    prompt: "目鏡 10x、物鏡 40x，總倍率是多少？",
     options: ["400x", "50x", "30x", "40x"],
     answer: "400x",
-    hint: "總倍率要把兩個放大倍率相乘，不是相加。",
+    hint: "物鏡和目鏡各放大一次，兩個倍率要相加還是相乘？",
     misconception: "magnification_addition"
   },
   {
     id: "magnification_add",
     concept_id: "magnification",
-    prompt: "有同學把目鏡 10x 和物鏡 40x 算成 50x。哪個修正較合理？",
-    options: ["總倍率應為目鏡倍率乘以物鏡倍率", "總倍率只看目鏡", "總倍率只看物鏡", "倍率越高越不用計算"],
+    prompt: "同學把目鏡 10x、物鏡 40x 算成 50x。哪個說法才正確？",
+    options: ["總倍率應為目鏡倍率乘以物鏡倍率", "50x 沒錯，兩個倍率相加就是總倍率", "總倍率只看物鏡倍率，目鏡不用算", "總倍率只看目鏡倍率，物鏡不用算"],
     answer: "總倍率應為目鏡倍率乘以物鏡倍率",
-    hint: "兩個鏡頭會連續放大影像，想想放大效果是疊加相乘還是把數字相加。",
+    hint: "物鏡先放大一次，目鏡再把它放大一次。",
     misconception: "magnification_addition"
   },
   {
     id: "slide_right",
     concept_id: "image_movement",
-    prompt: "如果把玻片向右移動，視野中的影像通常會往哪個方向移動？",
-    options: ["向左", "向右", "不動", "一定向上"],
+    prompt: "把玻片向右移，視野中的影像會往哪裡移？",
+    options: ["向左", "向右", "不動", "向上"],
     answer: "向左",
-    hint: "先想玻片和視野影像通常呈相反移動關係，再判斷影像方向。",
+    hint: "回想上面滑桿：玻片和影像的移動方向一樣嗎？",
     misconception: "image_same_direction"
   },
   {
     id: "center_right",
     concept_id: "image_movement",
-    prompt: "視野中的標本影像偏在右邊，想把影像移到中央，玻片通常要往哪個方向移動？",
+    prompt: "影像偏在視野右邊，要移到中央，玻片要往哪裡移？",
     options: ["向右", "向左", "向下", "不需要移動"],
     answer: "向右",
-    hint: "先想影像要往哪裡移才會到中央，再利用玻片和影像相反移動的關係判斷。",
+    hint: "先想影像要往哪邊移，再想玻片要怎麼移。",
     misconception: "image_same_direction"
   },
   {
     id: "high_power_change",
     concept_id: "field_power_difference",
-    prompt: "從低倍轉到高倍後，視野通常會有什麼變化？",
-    options: ["視野範圍變小、亮度常變暗", "視野範圍變大、亮度一定更亮", "看到的標本數量一定變多", "完全沒有變化"],
+    prompt: "從低倍換到高倍，視野會有什麼變化？",
+    options: ["視野範圍變小、亮度常變暗", "視野範圍變大、亮度變亮", "看到的細胞數量變多", "視野範圍和亮度都不變"],
     answer: "視野範圍變小、亮度常變暗",
-    hint: "倍率提高時，每個細節被放大，但一次能看到的範圍通常會減少。",
+    hint: "比較上面兩張洋蔥表皮，看範圍和亮度。",
     misconception: "high_power_always_better"
   },
   {
     id: "high_power_better",
     concept_id: "field_power_difference",
-    prompt: "有同學說：「倍率越高，一定越容易觀察所有東西。」哪個修正較合理？",
-    options: ["高倍能看細節，但視野較小且較暗，找標本時不一定方便", "高倍視野最大", "倍率高就不需要調光", "低倍完全不能觀察"],
+    prompt: "同學說：「倍率越高，一定越好觀察。」哪個說法才正確？",
+    options: ["高倍能看細節，但視野較小且較暗，找標本時不一定方便", "倍率越高視野越大，只是要把光線調暗一點才看得清楚", "倍率只會改變影像大小，視野範圍和亮度都不會改變", "低倍看不到任何細節，所以觀察時不需要先用低倍找"],
     answer: "高倍能看細節，但視野較小且較暗，找標本時不一定方便",
-    hint: "觀察需要找到標本、看清楚細節，也需要足夠亮度，不是只比放大倍數。",
+    hint: "高倍有好處，也有缺點。",
     misconception: "high_power_always_better"
   }
 ];
@@ -483,11 +483,11 @@ function layout(content, owlStage = owlStageFor(), imageAlt = "貓頭鷹助理")
 function briefLayout(content) {
   return `
     <div class="wide-layout microscope-briefing-layout">
-      <div class="microscope-brief-scene" data-brief-scene aria-label="阿澤老師帶領學生進入顯微觀察訓練站">
+      <div class="microscope-brief-scene" data-brief-scene aria-label="阿澤老師帶領學生練習使用顯微鏡">
         <div class="microscope-bg-fallback">${renderMicroscopeScene()}</div>
         <picture class="microscope-brief-picture">
           <source media="(max-width: 680px)" srcset="${microscopeVisualAssets.briefingSceneMobile}">
-          <img id="microscopeBriefScene" src="${microscopeVisualAssets.briefingSceneWide}" alt="阿澤老師在顯微觀察訓練站引導微觀視野校準任務">
+          <img id="microscopeBriefScene" src="${microscopeVisualAssets.briefingSceneWide}" alt="阿澤老師在教室引導學生使用顯微鏡">
         </picture>
       </div>
       <div class="panel brief-copy-panel">
@@ -530,7 +530,7 @@ function attachBriefSceneFallback() {
 
 function renderMicroscopeScene() {
   return `
-    <div class="microscope-scene" aria-label="顯微觀察訓練站場景">
+    <div class="microscope-scene" aria-label="顯微鏡教室場景">
       <span class="scope-body"></span>
       <span class="scope-eyepiece"></span>
       <span class="scope-stage"></span>
@@ -693,10 +693,10 @@ function renderBrief() {
   return briefLayout(`
     <p class="eyebrow">任務檔案開啟</p>
     <h2 class="hero-title">歡迎，${state.student.student_name}</h2>
-    <p class="lead">阿澤老師已開啟微觀操作室。今天你要先認得顯微鏡部位如何合作，再練習從低倍到高倍、安全調焦，最後校準視野移動方向。</p>
+    <p class="lead">阿澤老師已開啟微觀操作室。今天你要認識顯微鏡的構造，練習從低倍到高倍的操作，最後判斷倍率和視野的變化。</p>
     <div class="story-panel highlight">
       <strong>任務核心</strong>
-      <p>顯微鏡不是只把東西放大；你需要先找得到標本、調得清楚、判斷亮度與倍率，還要知道玻片移動時視野影像會往相反方向移動。</p>
+      <p>顯微鏡不只是把東西放大：要先找到標本、調清楚影像，還要知道倍率、亮度和視野會怎麼變。</p>
     </div>
     <div class="status-line">
       <span class="pill">${state.student.class_name} 班 ${state.student.seat_no} 號</span>
@@ -713,16 +713,16 @@ function renderScan() {
   const tools = ["先低倍找得到，再高倍看細節", "粗調找焦，細調微調", "太暗時先想光源、反光鏡或光圈", "總倍率是目鏡乘以物鏡", "玻片和視野影像通常反向移動"];
   return layout(`
     <p class="eyebrow">貓頭鷹助理任務準備</p>
-    <h2 class="hero-title">校準微觀視野</h2>
+    <h2 class="hero-title">觀察前先複習</h2>
     <div class="story-panel">
-      <strong>顯微掃描提醒</strong>
-      <p>進關卡前，先帶著這幾個概念：部位要用功能判斷，操作要先低倍再高倍，亮度與焦距不是同一件事，玻片移動與視野影像方向通常相反。</p>
+      <strong>複習重點</strong>
+      <p>下面是課本上使用顯微鏡的重點，進關卡前先看一遍。</p>
     </div>
     <div class="card-grid">
       ${tools.map((tool) => `<div class="method-card"><span class="method-icon"></span><strong>${tool}</strong></div>`).join("")}
     </div>
     <div class="actions">
-      <button class="primary" id="scanNext">進入部位掃描</button>
+      <button class="primary" id="scanNext">開始第一關</button>
     </div>
   `, "scan", "顯微鏡準備貓頭鷹助理");
 }
@@ -755,7 +755,7 @@ function renderMatchQuestion(group, field, items, options, title, hint, hintId, 
       <div>
         <span class="multi-badge">${badge}</span>
         <strong>${title}</strong>
-        <p class="multi-instruction">每個項目選一個對應。提示只會引導功能、位置或用途線索。</p>
+        <p class="multi-instruction">每個項目選一個答案。</p>
       </div>
       <div class="sequence-list">
         ${orderedItems.map((item) => `
@@ -837,7 +837,7 @@ function renderMicroscopePartsExplorer() {
     <div class="question-row microscope-parts-question">
       <div>
         <span class="multi-badge">可點選</span>
-        <strong>依序找出指定部位，正確後才會切換下一個目標。</strong>
+        <strong>依照說明，在圖上點出對應的部位。</strong>
         <p class="multi-instruction">${target ? `目前目標：${target.function}` : "所有部位已完成。"}${remaining ? ` 尚有 ${remaining} 個部位未辨識。` : " 已完成全部部位辨識。"}</p>
         ${target && matchHintUsed("checkpoint1", "parts", target.id) ? `<div class="hint">${target.hint || `找出「${target.answer}」對應的部位。`}</div>` : ""}
       </div>
@@ -923,8 +923,8 @@ function renderSequenceQuestion() {
       <div>
         <span class="multi-badge">拖曳排序</span>
         <strong>第一次觀察玻片時，請排出較合理的操作順序。</strong>
-        <p class="multi-instruction">請拖曳步驟卡排出完整順序；手機可用上移 / 下移按鈕。提示只提供操作邏輯，不直接排好答案。</p>
-        ${state.answers.checkpoint2Hints.sequence ? `<div class="hint">先用容易找到標本的設定開始，再逐步讓影像清楚，最後才放大觀察細節。</div>` : ""}
+        <p class="multi-instruction">拖曳步驟卡排出順序；手機可用上移 / 下移按鈕。</p>
+        ${state.answers.checkpoint2Hints.sequence ? `<div class="hint">先讓標本容易找到，再把影像調清楚，最後才放大看細節。</div>` : ""}
       </div>
       <div class="sequence-list sortable-list" data-sequence-list="checkpoint2">
         ${orderedSteps.map((step, index) => `
@@ -1018,8 +1018,8 @@ function renderFieldDemo() {
   return `
     <div class="data-grid">
       <div class="data-panel">
-        <h3>視野移動滑桿</h3>
-        <p class="muted">拖動滑桿觀察：玻片標本往左移，視野中的影像會往右；玻片往右移，影像會往左。</p>
+        <h3>移動玻片看看</h3>
+        <p class="muted">拖動滑桿移動玻片，看看視野中的草履蟲往哪裡移。</p>
         <div class="field-slider-demo">
           <div class="slide-track">
             <span class="slide-sample" style="transform: translateX(${slideShift}px);"></span>
@@ -1038,17 +1038,17 @@ function renderFieldDemo() {
         </div>
       </div>
       <div class="data-panel">
-        <h3>低倍 / 高倍比較</h3>
+        <h3>低倍和高倍</h3><p class="muted">同一片洋蔥表皮，比較視野範圍、亮度和細胞大小。</p>
         <div class="power-compare">
           <figure class="power-card">
-            <img class="power-image" src="${microscopeVisualAssets.onionLowPower}" alt="低倍複式顯微鏡下的洋蔥表皮，視野較亮、範圍較廣、細胞較多且較小" onerror="this.hidden=true;this.parentElement.classList.add('image-failed');">
+            <img class="power-image" src="${microscopeVisualAssets.onionLowPower}" alt="低倍複式顯微鏡下的洋蔥表皮" onerror="this.hidden=true;this.parentElement.classList.add('image-failed');">
             <span class="wide-field power-fallback" aria-hidden="true"></span>
-            <figcaption>低倍洋蔥表皮：視野較亮、範圍較廣，可看到較多較小的細胞。</figcaption>
+            <figcaption>低倍洋蔥表皮</figcaption>
           </figure>
           <figure class="power-card">
-            <img class="power-image" src="${microscopeVisualAssets.onionHighPower}" alt="高倍複式顯微鏡下的洋蔥表皮，視野較暗、範圍較窄、細胞較少但較大" onerror="this.hidden=true;this.parentElement.classList.add('image-failed');">
+            <img class="power-image" src="${microscopeVisualAssets.onionHighPower}" alt="高倍複式顯微鏡下的洋蔥表皮" onerror="this.hidden=true;this.parentElement.classList.add('image-failed');">
             <span class="narrow-field power-fallback" aria-hidden="true"></span>
-            <figcaption>高倍洋蔥表皮：視野較暗、範圍較窄，可看到較少但較大的細胞。</figcaption>
+            <figcaption>高倍洋蔥表皮</figcaption>
           </figure>
         </div>
       </div>
@@ -1062,7 +1062,7 @@ function renderCheckpoint1() {
     ${renderMatchQuestion("checkpoint1", "functions", functionItems, functionOptions, "請依使用情境選出最合適的顯微鏡部位。", "問自己這個情境主要是在觀察、放大、承載、調焦，還是控制光線。", "functions")}
     ${orderedById("checkpoint1Choices", checkpoint1Choices).map((item) => renderChoiceQuestion("checkpoint1", item)).join("")}
   `;
-  return checkpointShell("關卡一：部位與功能掃描", "用功能、位置與調整目的辨識顯微鏡主要部位。", rows, "checkpoint1Next", "checkpoint1");
+  return checkpointShell("關卡一：顯微鏡的構造與功能", "認識顯微鏡各部位的位置和用途。", rows, "checkpoint1Next", "checkpoint1");
 }
 
 function renderCheckpoint2() {
@@ -1071,22 +1071,22 @@ function renderCheckpoint2() {
     ${orderedById("checkpoint2Choices", checkpoint2Choices).map((item) => renderChoiceQuestion("checkpoint2", item)).join("")}
     ${renderMultiQuestion("checkpoint2", storageQuestion)}
   `;
-  return checkpointShell("關卡二：低倍到高倍操作", "整理從低倍找到標本到高倍觀察細節的安全流程。", rows, "checkpoint2Next", "checkpoint2");
+  return checkpointShell("關卡二：操作步驟與收納", "從低倍找標本到高倍看細節，以及搬運和收納。", rows, "checkpoint2Next", "checkpoint2");
 }
 
 function renderCheckpoint3() {
   const rows = `${renderFieldDemo()}${orderedById("checkpoint3Choices", checkpoint3Choices).map((item) => renderChoiceQuestion("checkpoint3", item)).join("")}`;
-  return checkpointShell("關卡三：倍率與視野校準", "判斷總倍率、視野移動方向，以及高低倍下範圍與亮度的變化。", rows, "checkpoint3Next", "checkpoint3");
+  return checkpointShell("關卡三：倍率與視野", "計算總倍率，判斷影像移動方向和高低倍的差別。", rows, "checkpoint3Next", "checkpoint3");
 }
 
 function renderCheckpoint4() {
-  return checkpointShell("關卡四：觀察安全確認", "最後整理顯微鏡搬運、收納與視野判讀中自己最需要確認的一點。", `
+  return checkpointShell("關卡四：給自己的提醒", "想一想，使用顯微鏡時自己最需要再確認的是哪一點。", `
     <div class="story-panel highlight">
       <strong>最後檢查</strong>
       <p>下一頁會請你選一個方向，例如粗細調節輪、低倍高倍、視野移動、倍率計算或收納安全，再用自己的話補充。</p>
     </div>
     <div class="question-row">
-      <strong>完成觀察安全確認後，請進入任務回報。</strong>
+      <strong>想好之後，請進入任務回報。</strong>
       <p>這一關不另外計入答題，重點是整理自己的顯微鏡操作疑問。</p>
     </div>
   `, "checkpoint4Next", "review");
@@ -1528,7 +1528,7 @@ function calculateResult() {
     section_stats: [
       { title: "顯微鏡部位與功能", correct: s1.correct, total: s1.total, correct_without_hint: s1.correctWithoutHint, corrected_after_hint: s1.correctedAfterHint, exp: s1.concept + s1.revision },
       { title: "低倍到高倍與收納", correct: s2.correct, total: s2.total, correct_without_hint: s2.correctWithoutHint, corrected_after_hint: s2.correctedAfterHint, exp: s2.concept + s2.revision },
-      { title: "倍率與視野校準", correct: s3.correct, total: s3.total, correct_without_hint: s3.correctWithoutHint, corrected_after_hint: s3.correctedAfterHint, exp: s3.concept + s3.revision }
+      { title: "倍率與視野", correct: s3.correct, total: s3.total, correct_without_hint: s3.correctWithoutHint, corrected_after_hint: s3.correctedAfterHint, exp: s3.concept + s3.revision }
     ],
     microscope_parts_score: s1.correct / s1.total,
     low_high_sequence_score: s2.correct / s2.total,
@@ -1791,7 +1791,7 @@ function renderReview() {
     <div class="mission-layout" data-feedback-state="${visualState}">
       <div class="panel">
         <p class="eyebrow">貓頭鷹助理概念回饋</p>
-        <h2>先校準概念，再回報</h2>
+        <h2>先確認觀念，再回報</h2>
         ${mentorCard("課堂前提醒", "請不要只寫「不知道」或直接複製系統方向詞。試著用自己的話說明：哪個顯微鏡操作或視野概念還想確認？")}
         <h3>目前較穩定的概念</h3>
         <div class="status-line">${review.stable.map((item) => `<span class="pill">${item}</span>`).join("")}</div>

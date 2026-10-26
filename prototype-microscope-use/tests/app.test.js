@@ -89,7 +89,7 @@ assert.ok(source.includes("mobileSource.remove();"));
 assert.ok(source.includes('window.addEventListener("resize", verifyScene'));
 assert.ok(source.includes("if (didRevealHint) render();"));
 assert.ok(source.includes('<span class="sequence-prompt">${item.label}</span>'));
-assert.ok(source.includes('const VERSION = "20260730-microscope-use-submitted-retry-ia-v1"'));
+assert.ok(source.includes('const VERSION = "20261026-microscope-use-wording-r3-v1"'));
 assert.ok(source.includes('const QUESTION_VERSION = "20260720-microscope-use-canonical-v1"'));
 assert.ok(!source.includes("MICROSCOPE_VERSION"));
 assert.ok(source.includes("function renderEarnedBadgeCatalog("));
@@ -123,7 +123,7 @@ assert.ok(source.includes("尚未選擇構造"));
 assert.ok(source.includes("function getSequenceOrder()"));
 assert.ok(source.includes("function moveSequenceStep(stepId, direction)"));
 assert.ok(source.includes('document.querySelectorAll("[data-sequence-move]")'));
-assert.ok(index.includes("20260730-microscope-use-submitted-retry-ia-v1"));
+assert.ok(index.includes("20261026-microscope-use-wording-r3-v1"));
 assert.ok(!index.includes("20260714-microscope-paramecium-v3"));
 assert.ok(fs.existsSync(path.join(root, "assets", "microscope-parts-interactive.webp")));
 assert.ok(fs.existsSync(path.join(root, "assets", "img-microscope-onion-low-power.webp")));
@@ -363,9 +363,9 @@ canonicalContext.submitAttemptToBackend({ student: { is_guest: true } }).then((r
 
 const earnedContext = {
   unitBadgeCatalog: [
-    { id: "microscope_use_entry", name: "微觀校準入門徽章", condition: "完成任務", badge_image_path: "../shared-assets/badges/microscope_use/badge-microscope_use-microscope_use_entry.webp?v=20260730-microscope-use-submitted-retry-ia-v1" },
-    { id: "microscope_parts_identifier", name: "顯微鏡部位功能徽章", condition: "辨識部位", badge_image_path: "../shared-assets/badges/microscope_use/badge-microscope_use-microscope_parts_identifier.webp?v=20260730-microscope-use-submitted-retry-ia-v1" },
-    { id: "microscope_use_flawless", name: "顯微鏡零提示全對徽章", condition: "零提示全對", badge_image_path: "../shared-assets/badges/microscope_use/badge-microscope_use-microscope_use_flawless.webp?v=20260730-microscope-use-submitted-retry-ia-v1" }
+    { id: "microscope_use_entry", name: "微觀校準入門徽章", condition: "完成任務", badge_image_path: "../shared-assets/badges/microscope_use/badge-microscope_use-microscope_use_entry.webp?v=20261026-microscope-use-wording-r3-v1" },
+    { id: "microscope_parts_identifier", name: "顯微鏡部位功能徽章", condition: "辨識部位", badge_image_path: "../shared-assets/badges/microscope_use/badge-microscope_use-microscope_parts_identifier.webp?v=20261026-microscope-use-wording-r3-v1" },
+    { id: "microscope_use_flawless", name: "顯微鏡零提示全對徽章", condition: "零提示全對", badge_image_path: "../shared-assets/badges/microscope_use/badge-microscope_use-microscope_use_flawless.webp?v=20261026-microscope-use-wording-r3-v1" }
   ],
   state: { student: { is_guest: false }, verification_mode: "server_verified", result: { verification_status: "server_verified" } }
 };
