@@ -7,7 +7,7 @@ const sharp = require("sharp");
 
 const root = process.env.BQ_TEST_ROOT ? path.resolve(process.env.BQ_TEST_ROOT) : path.resolve(__dirname, "..");
 const artifactDir = path.join(__dirname, "artifacts", "cell-structure-submitted-retry-ia-v1");
-const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=20260731-cell-structure-submitted-retry-ia-v1`;
+const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=20261027-cell-structure-wording-r3-v1`;
 const checkpoint1ForbiddenTerms = ["控制中心", "代謝", "能量", "光合作用", "控制物質進出", "支撐保護"];
 const targets = [
   { id: "nucleus", diagram: "animal", revealShapes: 1, label: "細胞核" },
@@ -296,7 +296,7 @@ async function checkViewport(browser, viewport) {
   assert.ok(targetLogs.every((row) => row.exp_type === "evidence_only" && row.exp_awarded === 0));
   assert.equal(targetLogs[0].attempt_count, 3, "two wrong nucleus choices and one correct choice must be recorded");
   await page.locator("#checkpoint1Next").click();
-  await page.waitForSelector("text=功能配對");
+  await page.waitForSelector("text=關卡二：構造與功能");
   const checkpoint2Text = await page.locator("#screen").innerText();
   for (const term of ["細胞膜", "細胞壁", "細胞質", "代謝", "能量", "光合作用", "控制物質進出"]) {
     assert.ok(checkpoint2Text.includes(term), `later function check must retain removed scan concept: ${term}`);

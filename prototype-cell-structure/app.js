@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260731-cell-structure-submitted-retry-ia-v1";
+const VERSION = "20261027-cell-structure-wording-r3-v1";
 const QUESTION_VERSION = "20260720-cell-structure-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -328,8 +328,8 @@ function renderTitleAvatarCard(context = "brief") {
 function renderBriefSceneFigure() {
   return `
     <figure class="brief-background-figure brief-scene-figure cell-structure-brief-scene" data-briefing-scene-hook="${cellStructureSceneImages.briefing}">
-      <img src="${cellStructureSceneImages.briefing}" alt="阿澤老師在細胞工廠掃描站引導細胞構造任務" loading="eager">
-      <figcaption>細胞工廠掃描站：依位置、形狀與功能，修復構造標記。</figcaption>
+      <img src="${cellStructureSceneImages.briefing}" alt="阿澤老師在細胞工廠引導細胞構造任務" loading="eager">
+      <figcaption>細胞工廠：依位置、形狀與功能，認出細胞裡的構造。</figcaption>
     </figure>
   `;
 }
@@ -495,7 +495,7 @@ function renderBrief() {
     ${renderBriefSceneFigure()}
     <div class="story-panel highlight">
       <strong>研究站的求救訊號</strong>
-      <p>微觀研究站收到一份細胞掃描資料，但標籤系統發生錯亂。別急著背答案，我們先像真正的研究員一樣，從位置、形狀和功能慢慢判斷：每個構造為什麼在那裡？它又替細胞完成什麼工作？</p>
+      <p>微觀研究站收到一組細胞圖，但構造的名稱標籤全弄亂了。別急著背答案，我們先像真正的研究員一樣，從位置、形狀和功能慢慢判斷：每個構造為什麼在那裡？它又替細胞完成什麼工作？</p>
     </div>
     <div class="story-panel">
       <strong>任務核心</strong>
@@ -504,8 +504,8 @@ function renderBrief() {
     <div class="scan-card">
       <div class="scan-orbit" aria-hidden="true"></div>
       <div>
-        <strong>掃描資料：動物細胞 / 植物細胞</strong>
-        <p>待修復標籤：細胞核、細胞質、粒線體、液胞、細胞膜、細胞壁、葉綠體</p>
+        <strong>細胞圖：動物細胞／植物細胞</strong>
+        <p>要認識的構造：細胞核、細胞質、粒線體、液胞、細胞膜、細胞壁、葉綠體</p>
       </div>
     </div>
     <div class="status-line">
@@ -523,25 +523,25 @@ function renderBrief() {
 
 function renderScan() {
   return layout(`
-    <p class="eyebrow">貓頭鷹助理預習掃描</p>
+    <p class="eyebrow">貓頭鷹助理的預習提醒</p>
     <h2 class="hero-title">任務前知識盤點</h2>
     <div class="prep-owl-hero">
-      <div class="prep-owl-visual"><img src="${cellStructureOwlAssets.prep}" alt="胞器掃描準備貓頭鷹助理"></div>
+      <div class="prep-owl-visual"><img src="${cellStructureOwlAssets.prep}" alt="準備出發的貓頭鷹助理"></div>
       <div class="story-panel">
         <strong>貓頭鷹助理的出發提醒</strong>
-        <p>等等進入細胞工廠時，你會看到許多看起來很像、功能卻不同的構造。先別急著衝關，請先確認自己帶好了五個觀察工具：看得出主要構造、說得出功能、分得出動植物細胞差異，也願意在想錯時停下來修正。提示不是扣分陷阱，而是幫你把想法調整回正確方向的工具。</p>
+        <p>等等進入細胞工廠時，你會看到許多看起來很像、功能卻不同的構造。先別急著衝關，請確認自己準備好了：認得主要構造、說得出功能、分得出動物細胞和植物細胞的差異，也願意在想錯時停下來修正。提示不會扣分，是幫你把想法調回正確方向的工具。</p>
       </div>
     </div>
     <div class="progress-steps" aria-label="任務進度">
       <span class="active">登入</span>
       <span class="active">簡報</span>
-      <span class="active">掃描</span>
+      <span class="active">準備</span>
       <span>關卡</span>
       <span>回饋</span>
       <span>結算</span>
     </div>
     <div class="checkpoint-grid">
-      ${["辨識細胞主要構造", "說明構造功能", "分辨動物細胞與植物細胞差異", "修正細胞膜與細胞壁混淆", "判斷葉綠體與液胞的差異"].map((item) => `<div class="pill">${item}</div>`).join("")}
+      ${["辨識細胞主要構造", "說明構造功能", "分辨動物細胞與植物細胞差異", "分清細胞膜與細胞壁", "分清葉綠體與液胞"].map((item) => `<div class="pill">${item}</div>`).join("")}
     </div>
     <div class="actions">
       <button class="primary" id="scanNext">進入關卡一</button>
@@ -550,10 +550,10 @@ function renderScan() {
 }
 
 const checkpoint1Items = [
-  { id: "nucleus", answer: "細胞核", hint: "先找細胞內較明顯、接近圓形且保留原色的區域。" },
-  { id: "mitochondria", answer: "粒線體", hint: "尋找同時保留原色的多個小橢圓形，內部常有彎曲紋理。" },
-  { id: "chloroplast", answer: "葉綠體", hint: "在植物細胞圖中尋找同時保留原色的綠色橢圓形。" },
-  { id: "vacuole", answer: "液胞", hint: "留意植物細胞中央占較大範圍、像空腔且保留原色的區域。" }
+  { id: "nucleus", answer: "細胞核", hint: "細胞裡較明顯、接近圓形的構造。" },
+  { id: "mitochondria", answer: "粒線體", hint: "好幾個小橢圓形，裡面有彎彎曲曲的皺褶。" },
+  { id: "chloroplast", answer: "葉綠體", hint: "植物細胞裡綠色的小橢圓形。" },
+  { id: "vacuole", answer: "液胞", hint: "植物細胞中央占很大範圍、像大水袋的構造。" }
 ];
 
 const CHECKPOINT1_CONCEPT_EXP = 140;
@@ -740,7 +740,7 @@ function renderStructureExplorer() {
       <div>
         <div class="cell-phase-status" aria-label="細胞辨識階段">
           <span class="${type === "animal" ? "active" : "complete"}">1. 動物細胞共同構造</span>
-          <span class="${type === "plant" ? "active" : ""}">2. 植物細胞圖構造</span>
+          <span class="${type === "plant" ? "active" : ""}">2. 植物細胞構造</span>
         </div>
         ${state.structureTransitionNotice ? `<div class="diagram-transition" role="status" aria-live="polite">${state.structureTransitionNotice}</div>` : ""}
         <div class="cell-board ${type}" data-cell-diagram-type="${type}" data-current-target="${targetId}">
@@ -750,13 +750,13 @@ function renderStructureExplorer() {
         <p class="cell-note"><strong>${diagram.title}</strong>｜${diagram.note}</p>
       </div>
       <div class="structure-card part-info">
-        <span>目前 target</span>
-        <strong>${target ? "請辨識圖中唯一保留原色的構造" : "所有構造已完成"}</strong>
-        <p>${target ? `${type === "animal" ? "動物細胞共同構造" : "植物細胞圖構造"} ${phaseProgress}。請點選下方名稱標籤；尚有 ${remaining} 個構造未辨識。` : "已完成全部 4 個構造辨識。"}</p>
+        <span>現在要認的構造</span>
+        <strong>${target ? "圖中有顏色的是哪一個構造？" : "所有構造都認出來了"}</strong>
+        <p>${target ? `${type === "animal" ? "動物細胞共同構造" : "植物細胞構造"} ${phaseProgress}。請點選下方的名稱；尚有 ${remaining} 個構造未辨識。` : "已完成全部 4 個構造辨識。"}</p>
         ${target && state.answers.checkpoint1Hints[target.id] ? `<div class="hint">${target.hint}</div>` : ""}
-        <span>目前選取</span>
+        <span>你選的是</span>
         <strong>${selected ? selected.label : "尚未選取構造"}</strong>
-        <p>${selected ? "已收到你的選擇，系統會依目前保留原色的構造判定。" : "請從下方標籤選擇目前唯一保留原色的構造名稱。"}</p>
+        <p>${selected ? "不是這個喔，看看提示再選一次。" : "從下方選出圖中有顏色的構造名稱。"}</p>
         <div class="part-labels structure-chips" aria-label="細胞構造標籤">
           ${checkpoint1Items.map((item) => `<button class="part-chip structure-chip ${selectedId === item.id ? "active" : ""} ${state.answers.checkpoint1[item.id] === item.answer ? "locked" : ""}" data-structure-chip="${item.id}">${item.answer}</button>`).join("")}
         </div>
@@ -823,11 +823,11 @@ function renderCheckpoint1() {
   const rows = `
     ${renderStructureExplorer()}
     <div class="section-divider">
-      <strong>檢核任務</strong>
-      <span>只辨識目前正在發光的構造名稱；功能判斷會在關卡二檢核。</span>
+      <strong>作答方式</strong>
+      <span>這一關只要認出名稱；構造的功能在關卡二作答。</span>
     </div>
   `;
-  return checkpointShell("關卡一：細胞掃描標記", "觀察灰階細胞圖中唯一保留原色的構造，點選下方名稱標籤完成辨識。", rows, "checkpoint1Next");
+  return checkpointShell("關卡一：認出細胞構造", "細胞圖中只有一個構造有顏色，點選下方它的名稱。", rows, "checkpoint1Next");
 }
 
 function scheduleStructureTransitionClear() {
@@ -953,27 +953,27 @@ function renderCheckpoint2() {
       </div>
     `;
   }).join("");
-  return checkpointShell("關卡二：功能配對", "把每個構造與正確功能配對。", rows, "checkpoint2Next");
+  return checkpointShell("關卡二：構造與功能", "替每個構造選出它的功能。", rows, "checkpoint2Next");
 }
 
 function functionHint(id) {
   const hints = {
-    nucleus: "控制中心，和遺傳物質有關。",
-    cytoplasm: "不是空白區，許多代謝作用在這裡進行。",
-    mitochondria: "和能量供應有關。",
-    vacuole: "和儲存水分、養分或廢物有關。",
-    membrane: "關鍵是控制物質進出。",
-    wall: "像植物細胞外側的支架。",
-    chloroplast: "和光合作用有關。"
+    nucleus: "細胞裡最明顯的圓形構造，像細胞的指揮中心。",
+    cytoplasm: "細胞膜以內、細胞核以外的部分，不是空白的。",
+    mitochondria: "細胞活動需要能量，能量要從養分中取出。",
+    vacuole: "植物細胞裡常常很大，像一個水袋。",
+    membrane: "它包住整個細胞，是細胞內外的交界。",
+    wall: "只在植物細胞最外層，又厚又硬。",
+    chloroplast: "綠色的構造，綠色植物靠它利用光。"
   };
   return hints[id];
 }
 
 const compareTokens = ["細胞核", "細胞質", "粒線體", "細胞膜", "液胞", "細胞壁", "葉綠體"];
 const compareCategories = [
-  { id: "both", title: "動物細胞與植物細胞都有", answers: ["細胞核", "細胞質", "粒線體", "細胞膜", "液胞"] },
-  { id: "plantTypical", title: "植物細胞較典型或特有", answers: ["細胞壁"] },
-  { id: "depends", title: "需要看細胞種類", answers: ["葉綠體"] }
+  { id: "both", title: "動物細胞和植物細胞都有", answers: ["細胞核", "細胞質", "粒線體", "細胞膜", "液胞"] },
+  { id: "plantTypical", title: "植物細胞有，動物細胞沒有", answers: ["細胞壁"] },
+  { id: "depends", title: "只有部分植物細胞有", answers: ["葉綠體"] }
 ];
 
 function renderCheckpoint3() {
@@ -982,8 +982,8 @@ function renderCheckpoint3() {
     <div class="wide-layout">
       <div class="panel">
         <p class="eyebrow">關卡三</p>
-        <h2>動植物比較</h2>
-        <p class="lead">先點選一張構造卡，再點選要放入的分類欄。遇到不確定的構造時，先回想它的功能、位置與圖像特徵，再判斷分類。</p>
+        <h2>動物細胞與植物細胞</h2>
+        <p class="lead">先點一張構造卡，再點要放入的欄位。不確定時，回想課本的動物細胞圖和植物細胞圖。</p>
       </div>
       <div class="panel">
         <h3>構造卡</h3>
@@ -1033,38 +1033,38 @@ function attachCompareHandlers() {
 const misconceptionQuestions = [
   {
     id: "vacuole",
-    question: "一位同學說：「液胞只存在植物細胞，動物細胞沒有液胞。」哪個修正較合理？",
-    options: ["動植物細胞都有液胞，但植物細胞常有較明顯的大型液胞", "液胞只存在植物細胞", "液胞只存在動物細胞", "液胞是控制物質進出的構造"],
+    question: "同學說：「動物細胞沒有液胞。」這句話該怎麼改正？",
+    options: ["動植物細胞都有液胞，但植物細胞常有較明顯的大型液胞", "液胞只存在植物細胞，動物細胞靠細胞質儲存水分和養分", "動物細胞的液胞比植物細胞大，所以植物細胞常看不到液胞", "液胞是控制物質進出的構造，動植物細胞都靠它包住細胞"],
     answer: "動植物細胞都有液胞，但植物細胞常有較明顯的大型液胞",
-    hint: "回想液胞像細胞內的儲存囊泡，可儲存水分、養分或廢物；典型植物細胞圖常把它畫得較大型、較明顯。"
+    hint: "比較課本的動物細胞圖和植物細胞圖，液胞的大小有什麼不同？"
   },
   {
     id: "wall",
-    question: "這個構造位在細胞膜外側，可以保護並支撐細胞形狀。它最可能是什麼？",
+    question: "這個構造在細胞膜外側，可以保護並支撐細胞形狀。它是什麼？",
     options: ["細胞膜", "細胞壁", "細胞質", "粒線體"],
     answer: "細胞壁",
-    hint: "關鍵線索是「細胞膜外側」和「支撐形狀」。"
+    hint: "哪一個構造又厚又硬，只在植物細胞的最外層？"
   },
   {
     id: "chloroplast",
-    question: "一位同學說：「只要是植物細胞，就一定有葉綠體。」你認為這句話需要修正嗎？",
-    options: ["所有植物細胞一定都有葉綠體", "葉綠體和光合作用有關，不是每一種植物細胞都一定有", "葉綠體負責控制細胞代謝", "葉綠體只存在動物細胞"],
+    question: "同學說：「植物細胞一定都有葉綠體。」這句話該怎麼改正？",
+    options: ["這句話正確，所有植物細胞都有葉綠體才能製造養分", "葉綠體和光合作用有關，不是每一種植物細胞都一定有", "葉綠體負責控制細胞代謝，所以每個植物細胞都需要它", "葉綠體只存在動物細胞，植物細胞靠細胞壁製造養分"],
     answer: "葉綠體和光合作用有關，不是每一種植物細胞都一定有",
-    hint: "想想看，植物根部通常不進行光合作用，是否需要葉綠體？"
+    hint: "植物的根埋在土裡照不到光，根的細胞需要葉綠體嗎？"
   },
   {
     id: "membrane",
-    question: "貓頭鷹助理掃描到一層薄膜，提示它能控制物質進出細胞。這層構造最可能是什麼？",
+    question: "有一層薄膜包住細胞，能控制物質進出。它是什麼？",
     options: ["細胞膜", "細胞壁", "細胞質", "粒線體"],
     answer: "細胞膜",
-    hint: "關鍵線索是「薄膜」與「控制物質進出」。"
+    hint: "比較細胞膜和細胞壁：哪一個薄、哪一個厚？"
   },
   {
     id: "energy",
-    question: "下列哪一組功能配對較合理？",
-    options: ["粒線體：呼吸作用產生能量；葉綠體：光合作用製造葡萄糖", "粒線體：控制物質進出；葉綠體：支撐細胞", "粒線體：儲存廢物；葉綠體：控制代謝", "粒線體：保護細胞外側；葉綠體：儲存水分"],
+    question: "下列哪一組功能配對正確？",
+    options: ["粒線體：呼吸作用產生能量；葉綠體：光合作用製造葡萄糖", "粒線體：光合作用製造葡萄糖；葉綠體：呼吸作用產生能量", "粒線體：控制物質進出細胞；葉綠體：保護並支撐細胞形狀", "粒線體：儲存水分和廢物；葉綠體：控制細胞的代謝作用"],
     answer: "粒線體：呼吸作用產生能量；葉綠體：光合作用製造葡萄糖",
-    hint: "先分辨「能量供應」與「光合作用製造養分」兩個任務。"
+    hint: "先分清楚：哪一個負責從養分取出能量？哪一個負責製造養分？"
   }
 ];
 
@@ -1073,8 +1073,8 @@ function renderCheckpoint4() {
     <div class="wide-layout">
       <div class="panel">
         <p class="eyebrow">關卡四</p>
-        <h2>迷思修正任務</h2>
-        <p class="lead">選出最合理的判斷。使用提示後修正成功，也會獲得修正 EXP。</p>
+        <h2>改正常見的錯誤想法</h2>
+        <p class="lead">選出正確的答案。用了提示後改對，也能得到修正 EXP。</p>
       </div>
       ${misconceptionQuestions.map((item) => renderChoiceQuestion(item)).join("")}
       <div class="panel">
@@ -1211,7 +1211,7 @@ function getConceptReview() {
     const category = compareCategories.find((item) => item.answers.includes(token));
     if (state.answers.checkpoint3[token] === category.id) addStable(`compare_${token}`, `${token}在動植物細胞中的比較`);
     else {
-      addRevisit(`compare_${token}`, `${token}在動植物細胞中的比較`, `建議再確認「${token}」是共有、植物較典型，還是要看細胞種類。`, `從「${token}」是否出現在不同細胞中，寫出你想比較的地方。`);
+      addRevisit(`compare_${token}`, `${token}在動植物細胞中的比較`, `建議再確認「${token}」是動植物細胞都有、只有植物細胞有，還是只有部分植物細胞有。`, `從「${token}」是否出現在不同細胞中，寫出你想比較的地方。`);
     }
   });
 
@@ -2177,7 +2177,7 @@ function nextWithValidation(group, items, nextScreen) {
   const remaining = group === "checkpoint1" ? remainingStructureTargets() : 0;
   if (missing.length || remaining) {
     document.querySelector("#checkpointFeedback").textContent = remaining
-      ? `尚有 ${remaining} 個構造未辨識，完成所有 target 後才能進下一關。`
+      ? `尚有 ${remaining} 個構造未辨識，全部認出後才能進下一關。`
       : "還有題目尚未完成。";
     return;
   }

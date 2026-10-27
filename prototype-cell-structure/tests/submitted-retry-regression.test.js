@@ -4,7 +4,7 @@ const { pathToFileURL } = require("node:url");
 const { chromium } = require("playwright");
 
 const root = process.env.BQ_TEST_ROOT ? path.resolve(process.env.BQ_TEST_ROOT) : path.resolve(__dirname, "..");
-const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=20260731-cell-structure-submitted-retry-ia-v1`;
+const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=20261027-cell-structure-wording-r3-v1`;
 const QUESTION_VERSION = "20260720-cell-structure-canonical-v1";
 
 function progressFor(mode) {
