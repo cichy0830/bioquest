@@ -5,7 +5,7 @@ const { pathToFileURL } = require("node:url");
 const { chromium } = require("playwright");
 
 const root = path.resolve(__dirname, "..");
-const cache = "20260731-cell-observation-submitted-retry-ia-v1";
+const cache = "20261028-cell-observation-wording-r3-v1";
 const artifactDir = path.join(__dirname, "artifacts", "20260731-u7-submitted-retry-ia-v1");
 const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=${cache}`;
 
@@ -469,20 +469,21 @@ async function assertUnlabeledImageChoices(browser) {
   imageMeta.forEach((meta) => {
     assert.ok(meta.naturalWidth > 0, `question image should load: ${meta.alt}`);
     assert.doesNotMatch(meta.alt, /圖 [A-F]|A-D/, `image alt must not use letter markers: ${meta.alt}`);
-    assert.match(meta.alt, /未標註/, `image alt should describe an unlabeled observation: ${meta.alt}`);
+    assert.match(meta.alt, /^顯微鏡下/, `image alt should describe the microscope view: ${meta.alt}`);
+    assert.doesNotMatch(meta.alt, /氣泡/, `image alt must not reveal the answer: ${meta.alt}`);
   });
 
   await page.locator("[data-question-id='q06'] [data-choice='q06'][data-value='nucleus']").click();
   await page.waitForSelector("[data-question-id='q06'] .feedback.warn");
-  assert.match(await page.locator("[data-question-id='q06']").innerText(), /先找讓細胞呈現整齊邊界的線索/);
+  assert.match(await page.locator("[data-question-id='q06']").innerText(), /細胞壁位在植物細胞的哪個位置/);
   await page.locator("[data-question-id='q06'] [data-choice='q06'][data-value='wall']").click();
-  assert.match(await page.locator("[data-question-id='q06'] .selected-answer").innerText(), /已選：細胞間清楚的格狀外框/);
+  assert.match(await page.locator("[data-question-id='q06'] .selected-answer").innerText(), /已選：細胞和細胞之間清楚的格狀外框/);
 
   await page.locator("[data-question-id='q09'] [data-choice='q09'][data-value='grid']").click();
   await page.waitForSelector("[data-question-id='q09'] .feedback.warn");
-  assert.match(await page.locator("[data-question-id='q09']").innerText(), /先比較一般表皮細胞與成對特殊細胞/);
+  assert.match(await page.locator("[data-question-id='q09']").innerText(), /找找看哪裡有兩個成對、形狀特別的細胞/);
   await page.locator("[data-question-id='q09'] [data-choice='q09'][data-value='stoma']").click();
-  assert.match(await page.locator("[data-question-id='q09'] .selected-answer").innerText(), /已選：兩個保衛細胞之間的開口/);
+  assert.match(await page.locator("[data-question-id='q09'] .selected-answer").innerText(), /已選：兩個保衛細胞中間的開口/);
 
   await page.locator("#checkSection").click();
   assert.match(await page.locator("#sectionMessage").innerText(), /請先完成本區/);
@@ -495,7 +496,7 @@ async function assertCellClassificationCopy(browser) {
   const { page, context, errors } = await openPage(browser, { width: 1440, height: 900 }, stateFor("checkpoint3"));
   const question = page.locator(".question-card").last();
   const text = await question.innerText();
-  assert.match(text, /哪些較支持植物細胞？哪些較支持動物細胞？/);
+  assert.match(text, /是植物細胞還是動物細胞的特徵？/);
   assert.doesNotMatch(text, /植物細胞視野|動物細胞視野/);
   const values = await question.locator("select option").evaluateAll((options) => options.map((option) => option.value));
   assert.deepEqual(values, ["", "plant", "animal", "", "plant", "animal", "", "plant", "animal", "", "plant", "animal"]);
@@ -897,7 +898,7 @@ function assertReferencedAssetsExist() {
   const appSource = fs.readFileSync(path.join(root, "app.js"), "utf8");
   const indexSource = fs.readFileSync(path.join(root, "index.html"), "utf8");
   const files = [appSource, fs.readFileSync(path.join(root, "styles.css"), "utf8"), indexSource].join("\n");
-  assert.ok(indexSource.includes("app.js?v=20260922-student-id-example-115001-v1"));
+  assert.ok(indexSource.includes("app.js?v=20261028-cell-observation-wording-r3-v1"));
   assert.ok(appSource.includes('placeholder="例如 115001"'));
   assert.ok(!appSource.includes("S70101"), "student-facing login example must use the current six-digit student ID format");
   const refs = [...files.matchAll(/["'`](\.\.\/[^"'`]+\.(?:webp|png)|assets\/[^"'`]+\.(?:webp|png))/g)]

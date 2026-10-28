@@ -11,7 +11,7 @@ const legacyPublishRoot = path.join(workspaceRoot, "_publish", "bioquest");
 // Codex 時期的 _publish 目錄已不存在時，直接測 repo 本身。
 const publishRoot = runningInsidePublish || !fs.existsSync(legacyPublishRoot) ? defaultRoot : legacyPublishRoot;
 const artifactDir = path.join(__dirname, "artifacts", "20260731-u7-submitted-retry-ia-v1");
-const cache = "20260731-cell-observation-submitted-retry-ia-v1";
+const cache = "20261028-cell-observation-wording-r3-v1";
 
 const baseStudent = {
   student_id: "guest",

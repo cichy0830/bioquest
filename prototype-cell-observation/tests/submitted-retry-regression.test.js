@@ -4,7 +4,7 @@ const { pathToFileURL } = require("node:url");
 const { chromium } = require("playwright");
 
 const root = process.env.BQ_TEST_ROOT ? path.resolve(process.env.BQ_TEST_ROOT) : path.resolve(__dirname, "..");
-const CACHE = "20260731-cell-observation-submitted-retry-ia-v1";
+const CACHE = "20261028-cell-observation-wording-r3-v1";
 const QUESTION_VERSION = "20260716-cell-observation-canonical-v1";
 const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=${CACHE}`;
 

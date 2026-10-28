@@ -13,7 +13,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260731-cell-observation-submitted-retry-ia-v1";
+const VERSION = "20261028-cell-observation-wording-r3-v1";
 const QUESTION_VERSION = "20260716-cell-observation-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -70,10 +70,10 @@ const badges = [
 ].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id) }));
 
 const sequenceSteps = [
-  { id: "water", label: "滴水" },
-  { id: "sample", label: "將薄表皮展平於水滴中" },
-  { id: "cover", label: "斜放蓋玻片" },
-  { id: "paper", label: "用濾紙吸去多餘水分" }
+  { id: "water", label: "在載玻片中央滴一滴水" },
+  { id: "sample", label: "把洋蔥表皮平鋪在水滴中" },
+  { id: "cover", label: "蓋上蓋玻片" },
+  { id: "paper", label: "用濾紙吸去多餘的水" }
 ];
 const correctSequence = ["water", "sample", "cover", "paper"];
 
@@ -83,14 +83,14 @@ const questions = [
     section: "checkpoint1",
     concept: "slide_preparation",
     answer: "angle",
-    prompt: "蓋上蓋玻片時，哪一種操作最能減少氣泡干擾？",
-    hint: "想想空氣若被突然壓在蓋玻片下，視野中可能會出現什麼干擾。",
+    prompt: "蓋上蓋玻片時，怎麼做可以減少氣泡？",
+    hint: "空氣如果一下子被壓在蓋玻片下面，會變成什麼？",
     misconception: "bubble_as_cell",
     options: [
-      { id: "angle", text: "讓蓋玻片斜放後慢慢蓋下。" },
-      { id: "press", text: "直接從正上方快速壓下。" },
-      { id: "dry", text: "先把標本吹乾再蓋。" },
-      { id: "no_touch", text: "蓋玻片不用接觸水滴。" }
+      { id: "angle", text: "蓋玻片一邊先接觸水滴，再慢慢放下。" },
+      { id: "press", text: "蓋玻片放平後，從正上方快速壓下。" },
+      { id: "dry", text: "先把材料吹乾，再把蓋玻片放上去。" },
+      { id: "no_touch", text: "蓋玻片架在水滴上方，不碰到水。" }
     ]
   },
   {
@@ -98,14 +98,14 @@ const questions = [
     section: "checkpoint1",
     concept: "low_high_power_observation",
     answer: "wide_view",
-    prompt: "顯微鏡觀察細胞時，為什麼通常先用低倍率物鏡？",
-    hint: "先想低倍率的視野範圍較大還是較小。",
+    prompt: "用顯微鏡觀察細胞時，為什麼要先用低倍率物鏡？",
+    hint: "低倍率看到的範圍，比高倍率大還是小？",
     misconception: "high_power_first",
     options: [
-      { id: "wide_view", text: "較容易找到標本與細胞位置。" },
-      { id: "detail_first", text: "可以直接看到最細的構造。" },
-      { id: "make_big", text: "可以讓細胞真正變大。" },
-      { id: "skip_focus", text: "可以省略調焦。" }
+      { id: "wide_view", text: "看到的範圍較大，容易找到要看的細胞。" },
+      { id: "detail_first", text: "放大倍率較高，能看清最細的構造。" },
+      { id: "make_big", text: "可以讓細胞真的變大，比較好觀察。" },
+      { id: "skip_focus", text: "低倍率不用調焦，一放上去就清楚。" }
     ]
   },
   {
@@ -113,14 +113,14 @@ const questions = [
     section: "checkpoint1",
     concept: "low_high_power_observation",
     answer: "fine_focus",
-    prompt: "已在低倍率下將要觀察的洋蔥表皮細胞移到視野中央，想看更清楚的細胞核，下一步較合理的是什麼？",
-    hint: "切換倍率前，先確認想看的細胞是否留在視野中央。",
+    prompt: "低倍率下已把洋蔥表皮細胞移到視野中央，想看清楚細胞核，接下來要怎麼做？",
+    hint: "換成高倍率後，物鏡離玻片很近，大幅轉動調節輪可能會怎樣？",
     misconception: "high_power_first",
     options: [
-      { id: "fine_focus", text: "換高倍率並細調焦。" },
-      { id: "lift_slide", text: "把載玻片拿起來靠近眼睛。" },
-      { id: "rough_focus", text: "大幅轉動粗調節輪。" },
-      { id: "turn_off", text: "把光源關掉。" }
+      { id: "fine_focus", text: "換成高倍率物鏡，再用細調節輪對焦。" },
+      { id: "lift_slide", text: "把載玻片拿起來，靠近眼睛直接看。" },
+      { id: "rough_focus", text: "換成高倍率物鏡，再大幅轉動粗調節輪。" },
+      { id: "turn_off", text: "先把光源關掉，讓細胞核顏色更明顯。" }
     ]
   },
   {
@@ -128,11 +128,11 @@ const questions = [
     section: "checkpoint2",
     concept: "onion_epidermis",
     answer: "onion",
-    prompt: "某視野中可見許多排列整齊、像格子般的細胞外框，染色後有較明顯的深色圓形構造。這較符合哪種觀察材料？",
-    hint: "觀察線索是排列規則、外框明顯，以及染色後可見較清楚的內部構造。",
+    prompt: "細胞排列整齊、外框像格子，染色後可見深色圓點。這是哪一種材料？",
+    hint: "哪一種細胞有細胞壁，外框會特別明顯？",
     misconception: "observation_without_evidence",
     image: assets.scopeViews.onion,
-    imageAlt: "未標註的洋蔥表皮細胞顯微視野",
+    imageAlt: "顯微鏡下的細胞視野",
     options: [
       { id: "onion", text: "洋蔥表皮細胞" },
       { id: "mouth", text: "口腔皮膜細胞" },
@@ -145,16 +145,16 @@ const questions = [
     section: "checkpoint2",
     concept: "onion_epidermis",
     answer: "wall",
-    prompt: "在洋蔥表皮細胞視野圖中，最適合標記為細胞壁的線索是什麼？",
-    hint: "先找讓細胞呈現整齊邊界的線索，不要只看顏色深淺。",
+    prompt: "在洋蔥表皮細胞的視野中，哪一個是細胞壁？",
+    hint: "細胞壁位在植物細胞的哪個位置？",
     misconception: "plant_cell_wall_identification",
     image: assets.scopeViews.onion,
-    imageAlt: "未標註的洋蔥表皮細胞顯微視野，需依格狀外框等線索判讀",
+    imageAlt: "顯微鏡下的洋蔥表皮細胞",
     options: [
-      { id: "wall", text: "細胞間清楚的格狀外框" },
-      { id: "nucleus", text: "細胞中央深色圓點" },
-      { id: "edge", text: "視野邊緣的黑圈" },
-      { id: "dust", text: "不規則漂浮顆粒" }
+      { id: "wall", text: "細胞和細胞之間清楚的格狀外框" },
+      { id: "nucleus", text: "每個細胞裡面深色的小圓點" },
+      { id: "edge", text: "整個視野邊緣的一圈黑色圓框" },
+      { id: "dust", text: "在細胞上方漂浮的不規則顆粒" }
     ]
   },
   {
@@ -162,16 +162,16 @@ const questions = [
     section: "checkpoint2",
     concept: "mouth_epithelial_cell",
     answer: "mouth",
-    prompt: "某視野中細胞形狀較不規則，沒有明顯格狀外框，染色後可見細胞核。這較符合哪種觀察材料？",
-    hint: "觀察線索是沒有整齊格狀外框，且形狀較柔和、不規則。",
+    prompt: "細胞形狀不規則、沒有格子狀外框，染色後可見細胞核。這是哪一種材料？",
+    hint: "動物細胞和植物細胞，哪一種沒有細胞壁？",
     misconception: "animal_cell_has_cell_wall",
     image: assets.scopeViews.mouth,
-    imageAlt: "未標註的口腔皮膜細胞顯微視野",
+    imageAlt: "顯微鏡下形狀不規則的細胞",
     options: [
       { id: "mouth", text: "口腔皮膜細胞" },
       { id: "onion", text: "洋蔥表皮細胞" },
-      { id: "leaf", text: "葉片下表皮保衛細胞" },
-      { id: "wall_space", text: "細胞壁空腔" }
+      { id: "leaf", text: "葉片下表皮的保衛細胞" },
+      { id: "wall_space", text: "細胞壁之間的空隙" }
     ]
   },
   {
@@ -179,16 +179,16 @@ const questions = [
     section: "checkpoint2",
     concept: "mouth_epithelial_cell",
     answer: "animal_nucleus",
-    prompt: "觀察口腔皮膜細胞時，哪一個說法較合理？",
-    hint: "想想口腔皮膜來自身體哪一類生物組織，以及染色常讓哪個構造更容易看見。",
+    prompt: "關於口腔皮膜細胞，哪一個說法正確？",
+    hint: "口腔皮膜細胞是動物細胞還是植物細胞？",
     misconception: "animal_cell_has_cell_wall",
     image: assets.scopeViews.mouth,
-    imageAlt: "未標註的口腔皮膜細胞染色顯微視野",
+    imageAlt: "顯微鏡下染色後的口腔皮膜細胞",
     options: [
-      { id: "animal_nucleus", text: "可觀察動物細胞，染色後細胞核較明顯。" },
-      { id: "cell_wall", text: "可觀察細胞壁形成的規則格子。" },
-      { id: "chloroplast", text: "可直接看到葉綠體進行光合作用。" },
-      { id: "naked_eye", text: "不需要顯微鏡即可看清細胞。" }
+      { id: "animal_nucleus", text: "是動物細胞，染色後細胞核比較明顯。" },
+      { id: "cell_wall", text: "有細胞壁，可看到排列整齊的格子。" },
+      { id: "chloroplast", text: "細胞內有葉綠體，可以進行光合作用。" },
+      { id: "naked_eye", text: "細胞夠大，不用顯微鏡就能看清楚。" }
     ]
   },
   {
@@ -196,16 +196,16 @@ const questions = [
     section: "checkpoint2",
     concept: "leaf_lower_epidermis",
     answer: "stoma",
-    prompt: "葉片下表皮視野中，哪一個線索最適合判斷為氣孔？",
-    hint: "先比較一般表皮細胞與成對特殊細胞周圍的形狀差異。",
+    prompt: "在葉片下表皮的視野中，哪裡是氣孔？",
+    hint: "找找看哪裡有兩個成對、形狀特別的細胞。",
     misconception: "all_plant_cells_have_chloroplast_in_view",
     image: assets.scopeViews.leaf,
-    imageAlt: "未標註的葉片下表皮顯微視野，需依保衛細胞與開口線索判讀",
+    imageAlt: "顯微鏡下的葉片下表皮",
     options: [
-      { id: "stoma", text: "兩個保衛細胞之間的開口" },
-      { id: "grid", text: "整片規則格狀外框" },
-      { id: "vacuole", text: "單一大型空泡" },
-      { id: "scope_edge", text: "視野邊緣的黑色圓圈" }
+      { id: "stoma", text: "兩個保衛細胞中間的開口" },
+      { id: "grid", text: "表皮細胞之間的格狀外框" },
+      { id: "vacuole", text: "細胞中一個大大的空泡" },
+      { id: "scope_edge", text: "視野邊緣的一圈黑色圓框" }
     ]
   },
   {
@@ -213,16 +213,16 @@ const questions = [
     section: "checkpoint2",
     concept: "leaf_lower_epidermis",
     answer: "guard",
-    prompt: "在葉片下表皮觀察中，哪種細胞最可能含有葉綠體？",
-    hint: "想想哪一種細胞和氣孔開閉有關，視野中常可見綠色小顆粒。",
+    prompt: "下列哪一種細胞，在顯微鏡下常可看到葉綠體？",
+    hint: "哪一種細胞來自植物綠色的部位？",
     misconception: "all_plant_cells_have_chloroplast_in_view",
     image: assets.scopeViews.leaf,
-    imageAlt: "未標註的葉片下表皮顯微視野",
+    imageAlt: "顯微鏡下的葉片下表皮",
     options: [
-      { id: "guard", text: "保衛細胞" },
-      { id: "onion_skin", text: "洋蔥鱗葉表皮細胞" },
-      { id: "mouth_cell", text: "口腔皮膜細胞" },
-      { id: "bubble", text: "氣泡" }
+      { id: "guard", text: "葉片下表皮的保衛細胞" },
+      { id: "onion_skin", text: "洋蔥鱗葉的表皮細胞" },
+      { id: "mouth_cell", text: "口腔內側的皮膜細胞" },
+      { id: "bubble", text: "玻片上的小氣泡" }
     ]
   },
   {
@@ -230,16 +230,16 @@ const questions = [
     section: "checkpoint3",
     concept: "staining_purpose",
     answer: "contrast",
-    prompt: "在本次洋蔥表皮或口腔皮膜的觀察中，使用適當染劑的主要目的較可能是什麼？",
-    hint: "染色前有些構造透明不明顯，染色後哪類構造更容易被看見？",
+    prompt: "觀察洋蔥表皮或口腔皮膜細胞時，為什麼要染色？",
+    hint: "比較染色前後，哪些構造變得比較清楚？",
     misconception: "stain_is_decoration",
     image: assets.stainingComparison,
-    imageAlt: "染色前後的未標註對照圖",
+    imageAlt: "細胞染色前後的對照圖",
     options: [
-      { id: "contrast", text: "增加對比，使細胞核等構造較容易觀察。" },
-      { id: "plant", text: "讓細胞變成植物細胞。" },
-      { id: "alive", text: "讓細胞活得更久。" },
-      { id: "erase_wall", text: "讓細胞壁消失。" }
+      { id: "contrast", text: "讓細胞核等構造顏色變深，比較容易看清楚。" },
+      { id: "plant", text: "讓口腔皮膜細胞變成有細胞壁的植物細胞。" },
+      { id: "alive", text: "染劑是養分，可以讓細胞活得更久一些。" },
+      { id: "erase_wall", text: "讓細胞壁溶解消失，比較容易看到裡面。" }
     ]
   },
   {
@@ -247,16 +247,16 @@ const questions = [
     section: "checkpoint3",
     concept: "staining_purpose",
     answer: "contrast_fix",
-    prompt: "有同學說：「染色只是讓標本比較漂亮，和觀察沒有關係。」哪個修正較合理？",
-    hint: "回想染色前後，視野中哪類構造的清楚程度可能改變。",
+    prompt: "同學說：「染色只是讓標本比較漂亮，和觀察沒有關係。」正確的說法是什麼？",
+    hint: "回想染色前後，哪些構造的清楚程度不一樣。",
     misconception: "stain_is_decoration",
     image: assets.stainingComparison,
-    imageAlt: "染色前後的未標註對照圖",
+    imageAlt: "細胞染色前後的對照圖",
     options: [
-      { id: "contrast_fix", text: "染色可提高構造對比，讓某些構造更容易觀察。" },
-      { id: "chloroplasts", text: "染色會讓所有細胞都長出葉綠體。" },
-      { id: "no_scope", text: "染色後不用顯微鏡也能看見細胞。" },
-      { id: "change_type", text: "染色會把動物細胞變成植物細胞。" }
+      { id: "contrast_fix", text: "染色讓某些構造顏色加深，比較容易觀察。" },
+      { id: "chloroplasts", text: "染色會讓所有細胞都長出葉綠體來。" },
+      { id: "no_scope", text: "染色後細胞變大，不用顯微鏡也能看見。" },
+      { id: "change_type", text: "染色可以把動物細胞變成植物細胞。" }
     ]
   },
   {
@@ -264,11 +264,11 @@ const questions = [
     section: "checkpoint3",
     concept: "field_interpretation",
     answer: "bubble",
-    prompt: "顯微視野中出現一個近圓形、邊緣明亮、沒有細胞排列脈絡的圓環狀影像。它最可能需要先被懷疑是什麼？",
-    hint: "先不要只看「圓形」，要觀察是否有細胞內部構造或排列脈絡。",
+    prompt: "視野中有一個圓圈，邊緣又黑又亮、裡面空空的。它是什麼？",
+    hint: "不要只看是不是圓形，看看裡面有沒有細胞的構造。",
     misconception: "bubble_as_cell",
     image: assets.scopeViews.bubble,
-    imageAlt: "未標註的顯微視野干擾圖",
+    imageAlt: "顯微鏡下有圓圈的視野",
     options: [
       { id: "bubble", text: "氣泡" },
       { id: "nucleus", text: "細胞核" },
@@ -279,10 +279,10 @@ const questions = [
 ];
 
 const classifyItems = [
-  { id: "grid_wall", label: "規則格狀外框", answer: "plant", misconception: "observation_without_evidence" },
-  { id: "irregular_no_wall", label: "形狀較不規則且無明顯細胞壁", answer: "animal", misconception: "animal_cell_has_cell_wall" },
-  { id: "guard_stoma", label: "保衛細胞與氣孔", answer: "plant", misconception: "all_plant_cells_have_chloroplast_in_view" },
-  { id: "mouth_sample", label: "口腔刮取樣本", answer: "animal", misconception: "animal_cell_has_cell_wall" }
+  { id: "grid_wall", label: "排列整齊、外框像格子", answer: "plant", misconception: "observation_without_evidence" },
+  { id: "irregular_no_wall", label: "形狀不規則，沒有明顯的細胞壁", answer: "animal", misconception: "animal_cell_has_cell_wall" },
+  { id: "guard_stoma", label: "有保衛細胞和氣孔", answer: "plant", misconception: "all_plant_cells_have_chloroplast_in_view" },
+  { id: "mouth_sample", label: "從口腔內側刮下的細胞", answer: "animal", misconception: "animal_cell_has_cell_wall" }
 ];
 
 const sectionMap = {
@@ -733,26 +733,26 @@ function renderBrief() {
         </div>
         <div class="scene-copy">
           <h3>微觀研究站收到三組視野</h3>
-          <p>洋蔥表皮、口腔皮膜與葉片下表皮影像混在一起。請用觀察線索整理製片流程、判讀視野，並修正常見迷思。</p>
+          <p>洋蔥表皮、口腔皮膜和葉片下表皮的顯微影像混在一起。請先複習怎麼製作玻片、怎麼使用倍率，再分辨每張影像看到的是什麼。</p>
         </div>
       </figure>
-      <div class="mission-hud"><div><span>任務區</span><strong>微觀研究站</strong></div><div><span>重點</span><strong>視野判讀</strong></div><div><span>排序題</span><strong>拖曳 + 上下移</strong></div></div>
+      <div class="mission-hud"><div><span>任務區</span><strong>微觀研究站</strong></div><div><span>重點</span><strong>看懂顯微影像</strong></div><div><span>排序題</span><strong>拖曳 + 上下移</strong></div></div>
       <div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div>
     </div>
   </div>`;
 }
 function renderScan() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的觀察線索</h2>
-    <div class="prep-owl-reminder">${owlPanel(assets.owlPrep, "顯微觀察任務提醒貓頭鷹")}<div><span>貓頭鷹助理</span><strong>先聽完叮嚀再進入檢核</strong><p>先用線索判讀，不要只背材料名稱。觀察時會用到製片、倍率、染色與樣本特徵。</p></div></div>
+    <div class="prep-owl-reminder">${owlPanel(assets.owlPrep, "顯微觀察任務提醒貓頭鷹")}<div><span>貓頭鷹助理</span><strong>進入關卡前先複習</strong><p>不要只背材料名稱，要看細胞的外框、形狀和裡面的構造。會用到製作玻片、倍率、染色和細胞特徵。</p></div></div>
     <div class="card-grid">
       <div class="concept-card"><strong>製片</strong><p>材料要薄且平整，蓋玻片斜放可減少氣泡。</p></div>
       <div class="concept-card"><strong>倍率</strong><p>先低倍找位置，再高倍觀察細節。</p></div>
       <div class="concept-card"><strong>染色</strong><p>染色提高對比，常讓細胞核較容易觀察。</p></div>
-      <div class="concept-card"><strong>視野</strong><p>比較排列、邊界與染色後構造，不先用材料名稱猜答案。</p></div>
-      <div class="concept-card"><strong>圖像證據</strong><p>先看形狀差異與構造彼此的位置，再對照題目敘述。</p></div>
-      <div class="concept-card"><strong>干擾</strong><p>判讀影像時要同時檢查邊界、內部構造與排列脈絡。</p></div>
+      <div class="concept-card"><strong>看細胞</strong><p>比較細胞的排列、外框和染色後看到的構造。</p></div>
+      <div class="concept-card"><strong>看圖作答</strong><p>先看細胞形狀和構造的位置，再讀題目。</p></div>
+      <div class="concept-card"><strong>氣泡和灰塵</strong><p>圓圈不一定是細胞，要看裡面有沒有細胞的構造。</p></div>
     </div>
-    <div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div></div>`;
+    <div class="actions"><button class="primary" id="scanNext">開始關卡</button></div></div></div>`;
 }
 
 function selectedClass(question, option) {
@@ -765,8 +765,8 @@ function selectedClass(question, option) {
 function renderQuestionImage(question) {
   if (!question.image) return "";
   return `<figure class="question-visual">
-    <div class="question-image-wrap"><img src="${question.image}" alt="${question.imageAlt || "未標註觀察圖"}"></div>
-    <figcaption>請只依這張未標註影像的外框、排列與構造線索判讀。</figcaption>
+    <div class="question-image-wrap"><img src="${question.image}" alt="${question.imageAlt || "顯微鏡下的視野"}"></div>
+    <figcaption>請看圖中細胞的外框、排列和構造來作答。</figcaption>
   </figure>`;
 }
 function renderChoiceQuestion(qid) {
@@ -782,7 +782,7 @@ function renderChoiceQuestion(qid) {
 function renderSequenceQuestion() {
   const order = ensureSequence();
   const isWrong = state.checkedWrong.q01;
-  return `<div class="question-card"><h3>製作洋蔥表皮水封片時，請拖曳排序卡，排出較合理的操作順序。</h3>
+  return `<div class="question-card"><h3>製作洋蔥表皮玻片標本時，步驟的順序是什麼？請拖曳卡片排好。</h3>
     <p class="field-help">手機可使用每張卡片的上移 / 下移按鈕。</p>
     <div class="sortable-list">${order.map((id, index) => {
       const step = sequenceSteps.find((item) => item.id === id);
@@ -792,23 +792,23 @@ function renderSequenceQuestion() {
         <div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div>
       </div>`;
     }).join("")}</div>
-    ${state.hints.q01 ? `<div class="feedback warn">先比較每張卡對水分、材料平整與空氣的影響，再決定相鄰兩步誰應在前。</div>` : ""}
+    ${state.hints.q01 ? `<div class="feedback warn">先想：材料要放在哪裡？蓋玻片蓋上後，多出來的水怎麼處理？</div>` : ""}
     ${isWrong ? `<div class="feedback bad">流程還需要修正。請依提示調整順序。</div>` : ""}
   </div>`;
 }
 function renderCheckpoint1() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>玻片製作與低高倍策略</h2>
-    <div class="asset-strip"><figure><img src="${assets.slidePreparation}" alt="玻片製作流程圖卡" onerror="this.closest('figure').hidden=true"><figcaption>觀察圖卡：用流程線索安排步驟。</figcaption></figure><figure><img src="${assets.lowHighStrategy}" alt="低高倍率觀察策略對照圖" onerror="this.closest('figure').hidden=true"><figcaption>觀察圖卡：先低倍定位，再高倍看細節。</figcaption></figure></div>
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡一</p><h2>製作玻片與使用倍率</h2>
+    <div class="asset-strip"><figure><img src="${assets.slidePreparation}" alt="玻片製作流程圖卡" onerror="this.closest('figure').hidden=true"><figcaption>製作玻片標本</figcaption></figure><figure><img src="${assets.lowHighStrategy}" alt="低高倍率觀察策略對照圖" onerror="this.closest('figure').hidden=true"><figcaption>低倍率和高倍率看到的畫面</figcaption></figure></div>
     <div class="question-grid">${renderSequenceQuestion()}${["q02", "q03", "q04"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`;
 }
 function renderCheckpoint2() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>顯微視野判讀</h2>
-    <div class="story-panel"><strong>未標註影像</strong><p>每題只顯示該題需要判讀的影像，不提供材料分頁或預先命名的構造熱點。</p></div>
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡二</p><h2>看懂顯微鏡下的細胞</h2>
+    <div class="story-panel"><strong>看圖作答</strong><p>每題的圖都沒有標名稱，請從細胞的樣子判斷。</p></div>
     <div class="question-grid">${["q05", "q06", "q07", "q08", "q09", "q10"].map(renderChoiceQuestion).join("")}</div>
     <div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`;
 }
 function renderClassifyQuestion() {
-  return `<div class="question-card"><h3>請依觀察到的線索或取材來源分類：哪些較支持植物細胞？哪些較支持動物細胞？</h3>
+  return `<div class="question-card"><h3>下列觀察結果，是植物細胞還是動物細胞的特徵？</h3>
     <div class="classify-list">${classifyItems.map((item) => {
       const selected = state.answers.q14[item.id] || "";
       return `<div class="classify-row" data-classify-id="${item.id}">
@@ -816,18 +816,18 @@ function renderClassifyQuestion() {
         <label>分類
           <select data-classify="${item.id}">
             <option value="">請選擇</option>
-            <option value="plant" ${selected === "plant" ? "selected" : ""}>較支持植物細胞</option>
-            <option value="animal" ${selected === "animal" ? "selected" : ""}>較支持動物細胞</option>
+            <option value="plant" ${selected === "plant" ? "selected" : ""}>植物細胞</option>
+            <option value="animal" ${selected === "animal" ? "selected" : ""}>動物細胞</option>
           </select>
         </label>
-        <p class="selected-answer">${selected ? `已選：${selected === "plant" ? "較支持植物細胞" : "較支持動物細胞"}` : "尚未選擇"}</p>
+        <p class="selected-answer">${selected ? `已選：${selected === "plant" ? "植物細胞" : "動物細胞"}` : "尚未選擇"}</p>
       </div>`;
     }).join("")}</div>
-    ${state.hints.q14 ? `<div class="feedback warn">先用外框、排列方式、取材來源與特殊構造判斷，不要只看細胞大小。</div>` : ""}
+    ${state.hints.q14 ? `<div class="feedback warn">先看有沒有細胞壁，再想想材料是從哪裡取得的。</div>` : ""}
   </div>`;
 }
 function renderCheckpoint3() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>染色、干擾與動植物線索</h2><figure class="wide-asset"><img src="${assets.stainingComparison}" alt="染色前後觀察對照圖" onerror="this.closest('figure').hidden=true"><figcaption>觀察圖卡：染色會讓構造對比更清楚，不是裝飾。</figcaption></figure><div class="question-grid">${["q11", "q12", "q13"].map(renderChoiceQuestion).join("")}${renderClassifyQuestion()}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡三</p><h2>染色、氣泡與動植物細胞</h2><figure class="wide-asset"><img src="${assets.stainingComparison}" alt="染色前後觀察對照圖" onerror="this.closest('figure').hidden=true"><figcaption>細胞染色前和染色後</figcaption></figure><div class="question-grid">${["q11", "q12", "q13"].map(renderChoiceQuestion).join("")}${renderClassifyQuestion()}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`;
 }
 
 function isCorrect(qid) {
@@ -1047,18 +1047,18 @@ function misconceptionText(tag) {
     slide_preparation_sequence: "建議再把水滴、材料平整、蓋玻片與多餘液體各自的目的連起來，再用目的檢查前後關係。",
     stain_is_decoration: "建議再閱讀染色目的：染色能提高視野對比，使細胞核等構造更容易觀察。",
     high_power_first: "建議再整理顯微鏡觀察策略：先用低倍率找到細胞，再換高倍率看細節。",
-    bubble_as_cell: "建議再練習視野判讀：氣泡常有明顯圓形邊緣，但缺少細胞排列與內部構造線索。",
+    bubble_as_cell: "建議再複習怎麼分辨氣泡：氣泡有又黑又亮的圓形邊緣，但裡面沒有細胞的構造。",
     all_plant_cells_have_chloroplast_in_view: "建議再比較不同植物細胞觀察材料：洋蔥表皮和葉片下表皮能看到的重點不完全相同。",
     animal_cell_has_cell_wall: "建議再比較口腔皮膜與洋蔥表皮：口腔皮膜細胞沒有細胞壁，形狀較不規則。",
-    plant_cell_wall_identification: "植物表皮細胞的外框可提供細胞壁線索；判讀時要分開看外框與染色後較深色的構造。",
-    observation_without_evidence: "建議再用外框、排列、染色、取材來源、特殊構造等線索判斷顯微視野。"
+    plant_cell_wall_identification: "植物細胞外圍的格狀外框是細胞壁；染色後深色的小圓點是細胞核，兩者要分開看。",
+    observation_without_evidence: "建議再複習：從外框、排列、染色後的構造和材料來源，分辨植物細胞與動物細胞。"
   };
-  return map[tag] || "建議再把觀察線索和顯微視野判讀連在一起。";
+  return map[tag] || "建議再回到課本，對照顯微鏡下細胞的樣子複習。";
 }
 function renderReview() {
   const result = calculateResult();
   const stable = result.section_stats.filter((item) => item.correct / item.total >= 0.85);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>任務掃描結果</h2>
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>這次的學習回饋</h2>
     <div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div>
     <div class="card-grid">
       <div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理主要概念。</p>"}</div>

@@ -57,7 +57,7 @@ const appVersionOverrides = new Map();
 for (const unitId of ["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit"]) {
   appVersionOverrides.set(unitId, "20260831-student-id-example-115001-v1");
 }
-appVersionOverrides.set("cell_observation", "20260922-student-id-example-115001-v1");
+appVersionOverrides.set("cell_observation", "20261028-cell-observation-wording-r3-v1");
 appVersionOverrides.set("cell_structure", "20261027-cell-structure-wording-r3-v1");
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
