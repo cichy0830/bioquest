@@ -7,11 +7,11 @@ const { chromium } = require("playwright");
 const root = process.env.BIOQUEST_AUDIT_ROOT ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT) : path.resolve(__dirname, "..", "..");
 const prototypeRoot = path.resolve(__dirname, "..");
 const storageKey = "bioquest_cell_transport_state_v1";
-const version = "20260731-cell-transport-submitted-retry-ia-v1";
+const version = "20261029-cell-transport-wording-r3-v1";
 
 const appSource = fs.readFileSync(path.join(prototypeRoot, "app.js"), "utf8");
 const indexSource = fs.readFileSync(path.join(prototypeRoot, "index.html"), "utf8");
-assert.ok(indexSource.includes("app.js?v=20260922-student-id-example-115001-v1"));
+assert.ok(indexSource.includes("app.js?v=20261029-cell-transport-wording-r3-v1"));
 assert.ok(appSource.includes('placeholder="例如 115001"'));
 assert.ok(!appSource.includes("S70101"), "student-facing login example must use the current six-digit student ID format");
 

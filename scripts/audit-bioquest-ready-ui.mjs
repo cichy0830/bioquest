@@ -68,7 +68,7 @@ appVersionOverrides.set("scale", "20260929-student-id-example-115001-v1");
 appVersionOverrides.set("nutrients_energy", "20260929-student-id-example-115001-v1");
 appVersionOverrides.set("photosynthesis", "20261013-photosynthesis-result-fields-v1");
 appVersionOverrides.set("biological_organization", "20260929-student-id-example-115001-v1");
-appVersionOverrides.set("cell_transport", "20260922-student-id-example-115001-v1");
+appVersionOverrides.set("cell_transport", "20261029-cell-transport-wording-r3-v1");
 appVersionOverrides.set("plant_material_transport", "20261017-plant-material-transport-reflection-spec-v1");
 appVersionOverrides.set("human_nutrition", "20261013-human-nutrition-result-fields-v1");
 appVersionOverrides.set("plant_transport_structures", "20261015-plant-transport-structures-reflection-spec-v1");

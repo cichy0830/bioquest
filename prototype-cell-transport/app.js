@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260731-cell-transport-submitted-retry-ia-v1";
+const VERSION = "20261029-cell-transport-wording-r3-v1";
 const QUESTION_VERSION = "20260721-cell-transport-q07-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -60,120 +60,114 @@ const badges = [
 const questions = [
   {
     id: "q01", section: "checkpoint1", concept: "diffusion", misconception: "diffusion_osmosis_confusion",
-    prompt: "一群有顏色的粒子進入清水後，逐漸向四周散開，最後分布較均勻。這主要可用哪個概念解釋？",
-    answer: "diffusion", hint: "先看移動的是染料粒子，還是水分通過一層膜。",
-    image: assets.diffusionImage, imageAlt: "粒子逐漸分散的未標註示意圖", imageEvidence: "比較圖中粒子由密集區走向較均勻分布的變化。",
+    prompt: "把色素滴進清水，色素粒子慢慢向四周散開，最後分布均勻。這是什麼作用？",
+    answer: "diffusion", hint: "移動的是色素粒子還是水？中間有沒有隔著一層膜？",
+    image: assets.diffusionImage, imageAlt: "粒子在水中由密集處慢慢散開的示意圖", imageEvidence: "看看粒子從哪裡往哪裡移動。",
     options: [
       { id: "diffusion", text: "擴散作用" }, { id: "osmosis", text: "滲透作用" }, { id: "division", text: "細胞分裂" }, { id: "photosynthesis", text: "光合作用" }
     ]
   },
   {
     id: "q02", section: "checkpoint1", concept: "diffusion", misconception: "diffusion_requires_cell_membrane",
-    prompt: "有同學說：「擴散一定要有細胞膜才會發生。」哪個修正較合理？",
-    answer: "no_membrane_needed", hint: "想想香味在教室中散開，是否一定要先穿過細胞膜。",
-    image: assets.diffusionImage, imageAlt: "粒子逐漸分散的未標註示意圖",
+    prompt: "小明說：「擴散一定要有細胞膜才會發生。」這句話對嗎？",
+    answer: "no_membrane_needed", hint: "噴了香水，香味會在教室裡散開。香味散開時有經過細胞膜嗎？",
     options: [
-      { id: "no_membrane_needed", text: "擴散可發生在氣體或液體中，不一定需要細胞膜。" }, { id: "plant_only", text: "擴散只能發生在植物細胞裡。" }, { id: "water_only", text: "擴散就是水通過半透膜。" }, { id: "no_gradient", text: "擴散和濃度差無關。" }
+      { id: "no_membrane_needed", text: "不對，擴散在空氣或水中都會發生，不一定要有細胞膜。" }, { id: "plant_only", text: "不對，擴散只會發生在植物細胞裡，動物細胞沒有。" }, { id: "water_only", text: "對，擴散就是水分子通過半透膜進入細胞的過程。" }, { id: "no_gradient", text: "對，擴散只在細胞膜發生，和兩邊的濃度高低無關。" }
     ]
   },
   {
     id: "q03", section: "checkpoint1", concept: "osmosis", misconception: "direction_by_water_amount_only",
-    prompt: "半透膜兩側分別是清水與濃糖水，水可以通過，但糖較不容易通過。水分主要會往哪一側移動？",
-    answer: "to_sugar", hint: "注意這題追蹤的是水；把清水與濃糖水兩側的溶液濃度、水分多寡分開比較。",
-    image: assets.osmosisImage, imageAlt: "半透膜兩側粒子分布的未標註示意圖", imageEvidence: "辨認膜的位置，再比較膜兩側可通過的小粒子與受限制粒子的分布。",
+    prompt: "半透膜兩側是清水和濃糖水，水能通過、糖不易通過。水分主要往哪一側移動？",
+    answer: "to_sugar", hint: "這題追蹤的是水，不是糖。比較兩側溶液的濃度，不要只看水的多少。",
+    image: assets.osmosisImage, imageAlt: "半透膜隔開清水和濃糖水的示意圖", imageEvidence: "中間是半透膜，左邊是清水，右邊是濃糖水。",
     options: [
-      { id: "to_sugar", text: "往濃糖水一側" }, { id: "to_water", text: "往清水一側" }, { id: "no_move", text: "完全不會移動" }, { id: "container", text: "只看容器大小決定" }
+      { id: "to_sugar", text: "往濃糖水那一側移動" }, { id: "to_water", text: "往清水那一側移動" }, { id: "no_move", text: "兩側都不會有水分移動" }, { id: "container", text: "往容器比較大的那一側移動" }
     ]
   },
   {
     id: "q04", section: "checkpoint1", concept: "semipermeable_membrane", misconception: "semipermeable_as_wall",
-    prompt: "下列哪個說法最符合半透膜在滲透作用中的角色？",
-    answer: "selective", hint: "關鍵不是有沒有膜而已，還要看哪些物質能通過、哪些被限制。",
-    image: assets.osmosisImage, imageAlt: "半透膜兩側粒子分布的未標註示意圖",
+    prompt: "半透膜在滲透作用中有什麼特性？",
+    answer: "selective", hint: "「半透」的「半」是什麼意思？想想上一題的水和糖。",
     options: [
-      { id: "selective", text: "讓某些物質通過、限制另一些物質通過。" }, { id: "all_free", text: "讓所有物質都完全自由通過。" }, { id: "all_block", text: "讓所有物質都完全不能通過。" }, { id: "color", text: "只負責讓細胞變色。" }
+      { id: "selective", text: "讓某些物質通過，另一些物質不容易通過。" }, { id: "all_free", text: "讓所有物質都可以自由通過，沒有限制。" }, { id: "all_block", text: "讓所有物質都完全不能通過，像一道牆。" }, { id: "color", text: "只負責讓溶液變色，和物質進出無關。" }
     ]
   },
   {
     id: "q05", section: "checkpoint2", concept: "concentration_gradient", misconception: "diffusion_direction_by_solute_concentration",
-    prompt: "某物質在細胞外濃度較高、細胞內濃度較低，且此物質可通過細胞膜。若只考慮擴散趨勢，較可能的移動方向是什麼？",
-    answer: "outside_in", hint: "先只比較該物質在膜兩側的濃度高低，不要先想細胞大小。",
-    image: assets.diffusionImage, imageAlt: "膜兩側粒子密度不同的未標註示意圖",
+    prompt: "某物質在細胞外濃度高、細胞內濃度低，而且能通過細胞膜。它會往哪個方向擴散？",
+    answer: "outside_in", hint: "只比較這種物質在細胞內外的濃度，不用管細胞大小。",
     options: [
-      { id: "outside_in", text: "由細胞外往細胞內" }, { id: "inside_out", text: "由細胞內往細胞外" }, { id: "none", text: "完全不會移動" }, { id: "same", text: "一定同時大量雙向移動且無差異" }
+      { id: "outside_in", text: "由細胞外往細胞內移動" }, { id: "inside_out", text: "由細胞內往細胞外移動" }, { id: "none", text: "細胞內外都不會有移動" }, { id: "same", text: "細胞內外的移動量完全相同" }
     ]
   },
   {
     id: "q06", section: "checkpoint2", concept: "cell_membrane_selectivity", misconception: "cell_membrane_all_or_none",
-    prompt: "下列哪個說法較符合細胞膜與物質進出的關係？",
-    answer: "regulate", hint: "想想細胞需要取得某些物質，也需要維持內部環境，不會只是完全開放或完全封閉。",
+    prompt: "關於細胞膜和物質進出，哪一個說法正確？",
+    answer: "regulate", hint: "細胞需要從外界取得物質，也要維持內部的環境穩定。",
     options: [
-      { id: "regulate", text: "細胞膜可調控物質進出，具有選擇性通透概念。" }, { id: "all_pass", text: "細胞膜讓所有物質隨意通過。" }, { id: "none_pass", text: "細胞膜讓任何物質都完全不能通過。" }, { id: "support", text: "細胞膜只用來支撐植物細胞。" }
+      { id: "regulate", text: "細胞膜能控制物質進出，有些能通過、有些不能。" }, { id: "all_pass", text: "細胞膜讓所有物質隨意進出，沒有任何控制。" }, { id: "none_pass", text: "細胞膜讓任何物質都不能進出，把細胞封住。" }, { id: "support", text: "細胞膜主要用來支撐植物細胞，維持形狀。" }
     ]
   },
   {
     id: "q08", section: "checkpoint2", concept: "evidence_based_prediction", misconception: "data_not_evidence",
-    prompt: "根據下表的前後質量資料，哪個判斷較合理？",
-    answer: "water_direction", hint: "先把質量增加或減少和水分進出方向連起來，再判斷兩種溶液造成的差異。",
-    image: assets.potatoDataImage, imageAlt: "馬鈴薯樣本變化的未標註比較圖", imageEvidence: "圖片提供實驗情境；判斷依據是下方可讀的前後質量數據。",
+    prompt: "兩條馬鈴薯分別泡在甲、乙兩杯溶液中，質量變化如下表。哪一個推論正確？",
+    answer: "water_direction", hint: "馬鈴薯變重，是水分進入還是離開馬鈴薯？",
     dataTable: [
       { sample: "甲", before: "10.0 g", after: "10.6 g" },
       { sample: "乙", before: "10.0 g", after: "9.4 g" }
     ],
     options: [
-      { id: "water_direction", text: "甲中水分較可能進入細胞，乙中水分較可能離開細胞。" }, { id: "break", text: "甲乙都一定讓細胞完全破裂。" }, { id: "irrelevant", text: "質量變化和水分進出無關。" }, { id: "no_water", text: "乙中一定沒有任何水。" }
+      { id: "water_direction", text: "甲的馬鈴薯細胞吸收水分，乙的馬鈴薯細胞失去水分。" }, { id: "break", text: "甲、乙的馬鈴薯細胞都已經全部吸水破裂了。" }, { id: "irrelevant", text: "質量變化和水分進出無關，無法推論任何事。" }, { id: "no_water", text: "乙的溶液裡完全沒有水，所以質量才會減少。" }
     ]
   },
   {
     id: "q09", section: "checkpoint3", concept: "animal_cell_concentration_change", misconception: "animal_cell_wall_confusion",
-    prompt: "紅血球放入濃食鹽水中，外界溶液濃度較高。較可能出現哪種變化方向？",
-    answer: "shrink", hint: "先比較細胞外是濃食鹽水還是清水，再想水分通過細胞膜時的移動方向。",
-    image: assets.animalCellImage, imageAlt: "動物細胞在不同濃度環境的未標註比較圖", imageEvidence: "比較紅血球外形，並用題幹提供的外界濃度解釋水分淨移動。",
+    prompt: "把紅血球放進濃食鹽水中，紅血球會有什麼變化？",
+    answer: "shrink", hint: "濃食鹽水比紅血球內部濃還是稀？水分會往哪一側移動？",
+    image: assets.animalCellImage, imageAlt: "紅血球在三種不同溶液中的外形", imageEvidence: "這三個紅血球放在不同的溶液中，比較它們的外形。",
     options: [
-      { id: "shrink", text: "水分離開細胞，細胞可能皺縮。" }, { id: "swell", text: "水分大量進入細胞，細胞一定變大。" }, { id: "same", text: "外界濃度不會影響細胞。" }, { id: "wall", text: "細胞壁會阻止紅血球變形。" }
+      { id: "shrink", text: "水分離開紅血球，紅血球皺縮。" }, { id: "swell", text: "水分大量進入紅血球，紅血球脹大。" }, { id: "same", text: "食鹽水不會影響紅血球，外形不變。" }, { id: "wall", text: "細胞壁會撐住紅血球，所以不會變形。" }
     ]
   },
   {
     id: "q10", section: "checkpoint3", concept: "animal_cell_concentration_change", misconception: "animal_cell_wall_confusion",
-    prompt: "紅血球放入清水中，外界溶液濃度比細胞內低很多。較可能出現哪種變化方向？",
-    answer: "swell", hint: "先判斷外界是清水、溶解物質較少時，水分較可能往哪一側淨移動。",
-    image: assets.animalCellImage, imageAlt: "動物細胞在不同濃度環境的未標註比較圖", imageEvidence: "比較紅血球外形，並用題幹提供的外界濃度解釋水分淨移動。",
+    prompt: "把紅血球放進清水中，紅血球會有什麼變化？",
+    answer: "swell", hint: "清水比紅血球內部濃還是稀？紅血球有沒有細胞壁？",
     options: [
-      { id: "swell", text: "水分進入細胞，細胞可能膨脹甚至破裂。" }, { id: "shrink", text: "水分離開細胞，細胞皺縮。" }, { id: "wall", text: "紅血球因細胞壁保護完全不變。" }, { id: "no_water", text: "清水中沒有水分能移動。" }
+      { id: "swell", text: "水分進入紅血球，紅血球膨脹甚至破裂。" }, { id: "shrink", text: "水分離開紅血球，紅血球皺縮變小。" }, { id: "wall", text: "紅血球有細胞壁保護，外形完全不變。" }, { id: "no_water", text: "清水裡的水分子不會移動，所以不變。" }
     ]
   },
   {
     id: "q11", section: "checkpoint3", concept: "plant_cell_concentration_change", misconception: "plant_cell_burst_like_animal",
-    prompt: "植物細胞放入清水中，水分進入細胞後，哪個說法較合理？",
-    answer: "wall_support", hint: "比較植物細胞與紅血球在清水中維持外形的情況。",
-    image: assets.plantCellImage, imageAlt: "植物細胞在不同濃度環境的未標註比較圖", imageEvidence: "比較外框與內部體積的相對變化，不先替三種狀態命名。",
+    prompt: "把植物細胞放進清水中，水分進入細胞後會怎樣？",
+    answer: "wall_support", hint: "植物細胞有什麼構造是紅血球沒有的？",
+    image: assets.plantCellImage, imageAlt: "植物細胞在三種不同溶液中的樣子", imageEvidence: "比較三個細胞的細胞壁，和裡面部分的大小。",
     options: [
-      { id: "wall_support", text: "細胞會較膨脹，但細胞壁可提供支撐，不像動物細胞那樣容易破裂。" }, { id: "burst", text: "細胞一定立刻破裂。" }, { id: "no_water", text: "細胞膜完全不讓水通過。" }, { id: "wall_blocks", text: "細胞壁會讓水分完全不能進入。" }
+      { id: "wall_support", text: "細胞會膨脹，但有細胞壁支撐，不容易破裂。" }, { id: "burst", text: "細胞會像紅血球一樣膨脹，然後立刻破裂。" }, { id: "no_water", text: "細胞膜完全不讓水通過，所以細胞不變。" }, { id: "wall_blocks", text: "細胞壁擋住水分，水分完全不能進入。" }
     ]
   },
   {
     id: "q12", section: "checkpoint3", concept: "plant_cell_concentration_change", misconception: "plasmolysis_unknown",
-    prompt: "植物細胞放入濃食鹽水中，水分離開細胞。顯微觀察下較可能看到哪種變化方向？",
-    answer: "plasmolysis", hint: "比較細胞外框與細胞內部的相對位置有沒有改變。",
-    image: assets.plantCellImage, imageAlt: "植物細胞在不同濃度環境的未標註比較圖", imageEvidence: "比較外框與內部體積的相對變化，不先替三種狀態命名。",
+    prompt: "把植物細胞放進濃食鹽水中，在顯微鏡下會看到什麼？",
+    answer: "plasmolysis", hint: "水分離開後，細胞壁和細胞內部，哪一個比較容易縮小？",
     options: [
-      { id: "plasmolysis", text: "細胞內部縮小，細胞膜可能和細胞壁分離。" }, { id: "wall_gone", text: "細胞壁完全消失。" }, { id: "chloroplast_nucleus", text: "葉綠體全部變成細胞核。" }, { id: "only_in", text: "水分只會進入不會離開。" }
+      { id: "plasmolysis", text: "細胞內部縮小，細胞膜可能和細胞壁分開。" }, { id: "wall_gone", text: "細胞壁被食鹽溶解，整個細胞壁消失。" }, { id: "chloroplast_nucleus", text: "葉綠體吸收鹽分後，全部變成細胞核。" }, { id: "only_in", text: "水分只會進入細胞，細胞變得更飽滿。" }
     ]
   },
   {
     id: "q13", section: "checkpoint3", concept: "osmosis", misconception: "direction_by_water_amount_only",
-    prompt: "有同學說：「水一定往水比較多的地方移動，所以不需要看溶液濃度。」哪個修正較合理？",
-    answer: "solute", hint: "先不要只看液體多少，改比較兩側溶液濃度與半透膜條件。",
+    prompt: "小華說：「水一定往水比較多的地方移動，不用看溶液濃度。」哪一個說法才正確？",
+    answer: "solute", hint: "回想清水和濃糖水那一題，水分是往哪一側移動？",
     options: [
-      { id: "solute", text: "判斷滲透時要看半透膜兩側溶液濃度差；水分淨移動常往溶解物質較多、溶液較濃的一側。" }, { id: "no_pass", text: "水分完全不會通過半透膜。" }, { id: "always_stop", text: "只要有水就一定平均不動。" }, { id: "color_only", text: "溶液濃度只影響顏色不影響水分。" }
+      { id: "solute", text: "要比較半透膜兩側溶液的濃度，水分會往較濃的一側移動。" }, { id: "no_pass", text: "水分完全不能通過半透膜，所以兩側都不會改變。" }, { id: "always_stop", text: "只要兩側都有水，水分就會平均分布、停止移動。" }, { id: "color_only", text: "溶液濃度只會影響顏色，和水分移動方向無關。" }
     ]
   },
   {
     id: "q14", section: "checkpoint3", concept: "cell_membrane_selectivity", misconception: "cell_membrane_all_or_none",
-    prompt: "有同學說：「細胞膜控制物質進出，所以任何物質都完全不能通過。」哪個修正較合理？",
-    answer: "selective", hint: "想想細胞若完全不能和外界交換物質，是否能維持生命活動。",
+    prompt: "小美說：「細胞膜控制物質進出，所以任何物質都不能通過。」哪一個說法才正確？",
+    answer: "selective", hint: "如果細胞完全不能和外界交換物質，還能活下去嗎？",
     options: [
-      { id: "selective", text: "細胞膜具選擇性通透，會影響不同物質進出。" }, { id: "none", text: "細胞膜讓所有物質完全不能通過。" }, { id: "plant_only", text: "細胞膜只存在植物細胞。" }, { id: "color", text: "細胞膜只負責讓細胞有顏色。" }
+      { id: "selective", text: "細胞膜有選擇性，有些物質能通過、有些不能。" }, { id: "none", text: "細胞膜讓所有物質都完全不能通過，這句話對。" }, { id: "plant_only", text: "只有植物細胞有細胞膜，動物細胞沒有細胞膜。" }, { id: "color", text: "細胞膜的工作只是讓細胞有顏色，和進出無關。" }
     ]
   }
 ];
@@ -504,16 +498,16 @@ function renderBrief() {
       </picture>
       <img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'">
     </figure>
-    <div class="scene-copy bq-brief-scene-caption"><h3>微觀研究站偵測到濃度異常</h3><p>有些粒子慢慢散開，有些細胞在不同溶液中改變外形。請先判斷追蹤物質、膜的條件與濃度差，再用證據解釋變化。</p></div>
-    <div class="mission-hud"><div><span>任務區</span><strong>微觀研究站</strong></div><div><span>重點</span><strong>擴散與滲透</strong></div><div><span>資料判讀</span><strong>質量與濃度</strong></div></div>
+    <div class="scene-copy bq-brief-scene-caption"><h3>微觀研究站偵測到濃度異常</h3><p>有些粒子慢慢散開，有些細胞在不同溶液中改變外形。請用擴散和滲透的觀念，解釋這些變化是怎麼發生的。</p></div>
+    <div class="mission-hud"><div><span>任務區</span><strong>微觀研究站</strong></div><div><span>重點</span><strong>擴散與滲透</strong></div><div><span>實驗</span><strong>馬鈴薯與紅血球</strong></div></div>
     <div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
 }
 function renderScan() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的判斷線索</h2>
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的複習</h2>
     ${owlPanel(assets.owlPrep, "細胞通行任務提醒貓頭鷹")}
     <div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>每次先確認追蹤的是水還是其他物質，再看是否有半透膜，最後比較兩側濃度。</p></div>
-    <div class="card-grid"><div class="concept-card"><strong>擴散</strong><p>粒子常由濃度較高處往較低處移動。</p></div><div class="concept-card"><strong>滲透</strong><p>水分通過半透膜時，要比較兩側溶液濃度。</p></div><div class="concept-card"><strong>細胞膜</strong><p>細胞膜調控物質進出，不是完全開放或封閉。</p></div><div class="concept-card"><strong>動物細胞</strong><p>沒有細胞壁，水分進出時外形較容易改變。</p></div><div class="concept-card"><strong>植物細胞</strong><p>有細胞壁支撐，高濃度時內部仍可能縮小。</p></div><div class="concept-card"><strong>資料證據</strong><p>質量增加常表示水分進入，減少常表示水分離開。</p></div></div>
-    <div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div></div>`;
+    <div class="card-grid"><div class="concept-card"><strong>擴散</strong><p>粒子常由濃度較高處往較低處移動。</p></div><div class="concept-card"><strong>滲透</strong><p>水分通過半透膜時，要比較兩側溶液濃度。</p></div><div class="concept-card"><strong>細胞膜</strong><p>細胞膜調控物質進出，不是完全開放或封閉。</p></div><div class="concept-card"><strong>動物細胞</strong><p>沒有細胞壁，水分進出時外形較容易改變。</p></div><div class="concept-card"><strong>植物細胞</strong><p>有細胞壁支撐，高濃度時內部仍可能縮小。</p></div><div class="concept-card"><strong>實驗結果</strong><p>質量增加常表示水分進入，減少常表示水分離開。</p></div></div>
+    <div class="actions"><button class="primary" id="scanNext">開始關卡</button></div></div></div>`;
 }
 
 function selectedClass(question, option) {
@@ -524,11 +518,11 @@ function selectedClass(question, option) {
 }
 function renderQuestionImage(question) {
   if (!question.image) return "";
-  return `<figure class="question-visual"><div class="question-image-wrap"><img src="${question.image}" alt="${question.imageAlt || "未標註觀察圖"}"></div><figcaption>${question.imageEvidence || "請依圖中的粒子分布、膜、樣本或細胞外形判讀；圖內不預先標示答案。"}</figcaption></figure>`;
+  return `<figure class="question-visual"><div class="question-image-wrap"><img src="${question.image}" alt="${question.imageAlt || "題目附圖"}"></div><figcaption>${question.imageEvidence || "請仔細看圖再作答。"}</figcaption></figure>`;
 }
 function renderQuestionData(question) {
   if (!question.dataTable) return "";
-  return `<div class="data-table-wrap"><table class="evidence-table"><caption>馬鈴薯樣本前後質量</caption><thead><tr><th scope="col">樣本</th><th scope="col">放入前</th><th scope="col">30 分鐘後</th><th scope="col">質量變化</th></tr></thead><tbody>${question.dataTable.map((row) => {
+  return `<div class="data-table-wrap"><table class="evidence-table"><caption>馬鈴薯條泡在溶液前後的質量</caption><thead><tr><th scope="col">溶液</th><th scope="col">放入前</th><th scope="col">30 分鐘後</th><th scope="col">質量變化</th></tr></thead><tbody>${question.dataTable.map((row) => {
     const before = Number.parseFloat(row.before);
     const after = Number.parseFloat(row.after);
     const delta = after - before;
@@ -539,9 +533,9 @@ function renderChoiceQuestion(qid) {
   const question = questionById(qid);
   return `<div class="question-card" data-question-id="${qid}"><h3>${question.prompt}</h3>${renderQuestionImage(question)}${renderQuestionData(question)}<div class="choice-grid">${orderedOptions(question).map((option) => `<button class="choice-button${selectedClass(question, option)}" data-choice="${qid}" data-value="${option.id}">${option.text}</button>`).join("")}</div><p class="selected-answer">${state.answers[qid] ? `已選：${question.options.find((option) => option.id === state.answers[qid])?.text || ""}` : "尚未選擇"}</p>${state.hints[qid] ? `<div class="feedback warn">${question.hint}</div>` : ""}</div>`;
 }
-function renderCheckpoint1() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>擴散、滲透與半透膜</h2><div class="question-grid">${sectionMap.checkpoint1.map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`; }
-function renderCheckpoint2() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>濃度方向與資料判讀</h2><div class="question-grid">${sectionMap.checkpoint2.map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`; }
-function renderCheckpoint3() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>細胞環境模擬與迷思修正</h2><div class="cell-change-strip"><div class="change-card animal"><strong>紅血球</strong><span>沒有細胞壁</span></div><div class="change-card plant"><strong>植物細胞</strong><span>有細胞壁支撐</span></div><div class="change-card data"><strong>資料線索</strong><span>質量改變可作為水分進出的證據</span></div></div><div class="question-grid">${sectionMap.checkpoint3.map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`; }
+function renderCheckpoint1() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡一</p><h2>擴散、滲透與半透膜</h2><div class="question-grid">${sectionMap.checkpoint1.map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`; }
+function renderCheckpoint2() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡二</p><h2>物質移動的方向</h2><div class="question-grid">${sectionMap.checkpoint2.map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`; }
+function renderCheckpoint3() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡三</p><h2>細胞在不同溶液中的變化</h2><div class="cell-change-strip"><div class="change-card animal"><strong>紅血球</strong><span>沒有細胞壁</span></div><div class="change-card plant"><strong>植物細胞</strong><span>有細胞壁支撐</span></div><div class="change-card data"><strong>清水和濃食鹽水</strong><span>先比較細胞內外哪一邊比較濃</span></div></div><div class="question-grid">${sectionMap.checkpoint3.map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`; }
 
 function isCorrect(qid) {
   const question = questionById(qid);
@@ -695,18 +689,18 @@ function misconceptionText(tag) {
     diffusion_osmosis_confusion: "建議再比較擴散與滲透：滲透特別強調水分通過半透膜。",
     semipermeable_as_wall: "建議再確認半透膜：它不是完全封閉，而是讓某些物質通過、限制另一些物質通過。",
     direction_by_water_amount_only: "建議再練習方向判斷：比較兩側溶液濃度，不要只看水量或容器大小。",
-    diffusion_direction_by_solute_concentration: "建議先鎖定題目追蹤的物質本身，再比較它在膜兩側的濃度；若可通過，淨移動趨勢由該物質濃度較高處往較低處。",
+    diffusion_direction_by_solute_concentration: "建議再複習擴散方向：先看題目問的是哪一種物質，再比較它在細胞內外的濃度；擴散是由濃度高處往濃度低處移動。",
     cell_membrane_all_or_none: "建議再理解細胞膜選擇性通透：不是完全開放，也不是完全封閉。",
     animal_cell_wall_confusion: "建議再比較動物與植物細胞：紅血球沒有細胞壁，外形較容易受水分進出影響。",
     plant_cell_burst_like_animal: "建議再確認植物細胞壁的支撐作用：在清水中通常較膨脹，但不容易像動物細胞那樣破裂。",
     plasmolysis_unknown: "建議再閱讀植物細胞在高濃度環境的變化：細胞內部縮小，細胞壁仍在。",
-    data_not_evidence: "建議再練習資料判讀：質量增加常表示水分進入，減少常表示水分離開。"
+    data_not_evidence: "建議再看一次馬鈴薯實驗：質量增加常表示水分進入，減少常表示水分離開。"
   };
-  return map[tag] || "建議再把追蹤物質、膜的條件、濃度差與細胞變化連在一起。";
+  return map[tag] || "建議再把擴散、滲透、半透膜和細胞的變化連在一起複習。";
 }
 function renderReview() {
   const result = calculateResult(); const stable = result.section_stats.filter((item) => item.correct / item.total >= .85);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>任務掃描結果</h2><div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理主要概念。</p>"}</div><div class="story-panel"><strong>建議再閱讀理解</strong>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div><div class="story-panel"><strong>課堂提問方向</strong><p>擴散與滲透的差異、半透膜、水分方向、細胞膜選擇性通透、紅血球與植物細胞變化、質量資料判讀。</p></div></div><div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>這次的學習回饋</h2><div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理主要概念。</p>"}</div><div class="story-panel"><strong>建議再閱讀理解</strong>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div><div class="story-panel"><strong>課堂提問方向</strong><p>擴散與滲透的差異、半透膜、水分方向、細胞膜選擇性通透、紅血球與植物細胞變化、質量資料判讀。</p></div></div><div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
 }
 function renderReflection() {
   const reflection = state.answers.reflection || {};
