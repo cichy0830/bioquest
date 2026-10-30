@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260929-student-id-example-115001-v1";
+const VERSION = "20261030-biological-organization-wording-r3-v1";
 const QUESTION_VERSION = "20260716-biological-organization-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -71,15 +71,12 @@ const questions = [
     section: "checkpoint1",
     concept: "organization_hierarchy",
     answer: "individual",
-    prompt: "下列哪個最符合『個體』的概念？",
-    hint: "判斷它是否已是一個能獨立完成生命現象的完整生物。",
+    prompt: "下列哪一個屬於「個體」這個層次？",
+    hint: "個體是一個完整的生物，能自己完成生命現象。",
     misconception: "individual_as_system",
-    image: assets.hierarchyCards,
-    imageAlt: "動物由細胞到個體的組成層次圖卡",
-    imageEvidence: "用圖卡比較完整生物與體內局部構造的差異。",
     options: [
-      { id: "individual", text: "一株番茄植株" }, { id: "system", text: "一片葉" },
-      { id: "organ", text: "一群表皮細胞" }, { id: "tissue", text: "一個胃" }
+      { id: "individual", text: "一株番茄植株" }, { id: "system", text: "番茄的一片葉" },
+      { id: "organ", text: "葉上的一群表皮細胞" }, { id: "tissue", text: "人的一個胃" }
     ]
   },
   {
@@ -87,33 +84,31 @@ const questions = [
     section: "checkpoint1",
     concept: "organization_relation",
     answer: "composed",
-    prompt: "圖卡依序呈現細胞、組織、器官、器官系統與人體，這組圖卡主要表示什麼？",
-    hint: "看圖卡是否從細胞逐漸整理到完整生物，而不是描述生物彼此互動。",
+    prompt: "這組圖從左到右排列，主要在說明什麼？",
+    hint: "比較相鄰的兩張圖：右邊的構造和左邊的構造有什麼關係？",
     misconception: "levels_are_unrelated",
     image: assets.hierarchyCards,
-    imageAlt: "動物由細胞到個體的組成層次圖卡",
-    imageEvidence: "沿著圖卡觀察較小層次如何共同形成較高層次。",
+    imageAlt: "五張人體構造圖卡，由左到右排列",
+    imageEvidence: "從左到右，依序比較每一張圖。",
     options: [
       { id: "composed", text: "生物體由小到大的組成層次" },
-      { id: "unrelated", text: "生態系中的食物鏈" },
-      { id: "same", text: "物質進出細胞的方向" },
-      { id: "reverse", text: "植物的生殖過程" }
+      { id: "unrelated", text: "五種彼此無關、各自獨立的構造" },
+      { id: "same", text: "一個細胞長大後依序變成的樣子" },
+      { id: "reverse", text: "人體各部位依照體積大小排列" }
     ]
   },
   {
     id: "q05", section: "checkpoint2", concept: "tissue_definition", answer: "similar_cells",
-    prompt: "哪一個敘述最符合『組織』？", hint: "比較它是單一細胞、完整器官，還是一群共同工作的相似細胞。", misconception: "tissue_as_cell_group_any",
-    image: assets.relationExamples, imageAlt: "組織、器官與器官系統例子圖", imageEvidence: "比較圖中相似細胞群與完整器官的層次差異。",
+    prompt: "下列哪一個是「組織」的正確說法？", hint: "想一想：肌肉組織是由什麼組成的？", misconception: "tissue_as_cell_group_any",
     options: [
-      { id: "similar_cells", text: "形態與功能相近的細胞共同形成的層次。" },
-      { id: "one_cell", text: "任何一個單獨細胞。" }, { id: "whole_body", text: "完整的一個生物個體。" },
-      { id: "many_organs", text: "許多器官共同工作的層次。" }
+      { id: "similar_cells", text: "由形態、功能相近的細胞聚集而成" },
+      { id: "one_cell", text: "由一個體積特別大的細胞構成" }, { id: "whole_body", text: "能獨立完成生命現象的完整生物" },
+      { id: "many_organs", text: "由許多器官合作完成一種功能" }
     ]
   },
   {
     id: "q06", section: "checkpoint2", concept: "organ_identification", answer: "organ",
-    prompt: "心臟由多種組織共同構成並執行輸送血液的功能，心臟屬於哪一層？", hint: "判斷它是否由多種組織構成、具有特定功能。", misconception: "organ_as_tissue",
-    image: assets.relationExamples, imageAlt: "組織、器官與器官系統例子圖", imageEvidence: "圖中完整構造由多種組織共同完成特定功能。",
+    prompt: "心臟屬於生物體的哪一個組成層次？", hint: "心臟由多種組織構成，負責輸送血液。", misconception: "organ_as_tissue",
     options: [
       { id: "organ", text: "器官" }, { id: "tissue", text: "組織" },
       { id: "system", text: "器官系統" }, { id: "cell", text: "細胞" }
@@ -121,8 +116,7 @@ const questions = [
   },
   {
     id: "q07", section: "checkpoint2", concept: "organ_system", answer: "system",
-    prompt: "口腔、食道、胃與腸等器官共同完成消化與吸收，合稱哪一層？", hint: "多個器官彼此協調、共同完成一組功能時，層次會再提高。", misconception: "system_as_organ",
-    image: assets.relationExamples, imageAlt: "組織、器官與器官系統例子圖", imageEvidence: "追蹤多個器官如何共同執行一組功能。",
+    prompt: "口腔、食道、胃和腸一起完成消化與吸收，合起來屬於哪一個層次？", hint: "數一數題目提到了幾個器官。", misconception: "system_as_organ",
     options: [
       { id: "system", text: "器官系統" }, { id: "organ", text: "器官" },
       { id: "tissue", text: "組織" }, { id: "individual", text: "個體" }
@@ -130,41 +124,37 @@ const questions = [
   },
   {
     id: "q08", section: "checkpoint2", concept: "organ_system", answer: "stomach_organ",
-    prompt: "哪個比較正確？", hint: "分清楚單一構造與多個器官共同工作的集合。", misconception: "organ_system_confusion",
-    image: assets.relationExamples, imageAlt: "組織、器官與器官系統例子圖", imageEvidence: "比較單一胃與整套消化系統的組成範圍。",
+    prompt: "關於胃和消化系統，下列哪一個說法正確？", hint: "食物從口腔到腸，胃只是其中一站。", misconception: "organ_system_confusion",
     options: [
-      { id: "stomach_organ", text: "胃是器官；胃與其他消化器官共同構成消化系統。" },
-      { id: "stomach_system", text: "胃本身就是完整的器官系統。" },
-      { id: "same_level", text: "胃與消化系統屬於完全相同層次。" },
-      { id: "system_tissue", text: "消化系統只是一種組織。" }
+      { id: "stomach_organ", text: "胃是器官，和其他消化器官合起來是消化系統" },
+      { id: "stomach_system", text: "胃本身就是一個器官系統，能獨立完成消化" },
+      { id: "same_level", text: "胃和消化系統屬於同一個層次，只是名稱不同" },
+      { id: "system_tissue", text: "消化系統是一種組織，由許多相同的胃細胞組成" }
     ]
   },
   {
     id: "q09", section: "checkpoint3", concept: "unicellular_individual", answer: "complete_individual",
-    prompt: "草履蟲只有一個細胞，為什麼仍可稱為一個個體？", hint: "判斷這一個細胞是否能完成生物所需的生命現象。", misconception: "unicellular_not_individual",
-    image: assets.unicellularExamples, imageAlt: "單細胞與多細胞生物例子圖", imageEvidence: "比較一個細胞即為完整生物與多個細胞共同形成個體的情況。",
+    prompt: "草履蟲只有一個細胞，為什麼也算是一個個體？", hint: "草履蟲需要別的細胞幫忙才能活下去嗎？", misconception: "unicellular_not_individual",
     options: [
-      { id: "complete_individual", text: "單一細胞就能完成維持生命所需的活動。" },
-      { id: "has_tissues", text: "它有完整的組織與器官系統。" },
-      { id: "too_small", text: "只要體型小就一定是個體。" },
-      { id: "not_individual", text: "一個細胞不可能是個體。" }
+      { id: "complete_individual", text: "這一個細胞就能完成所有生命現象" },
+      { id: "has_tissues", text: "它的細胞裡有組織、器官和器官系統" },
+      { id: "too_small", text: "生物只要體型很小，就一定算是個體" },
+      { id: "not_individual", text: "它會游動，會動的東西就一定是個體" }
     ]
   },
   {
     id: "q11", section: "checkpoint3", concept: "unicellular_individual", answer: "one_cell_individual",
-    prompt: "同學說：『單細胞生物只有細胞層次，不算個體。』哪個修正合理？", hint: "層次名稱要看它在生物體中的角色，不只數細胞數量。", misconception: "unicellular_not_individual",
-    image: assets.unicellularExamples, imageAlt: "單細胞與多細胞生物例子圖", imageEvidence: "確認單細胞生物的一個細胞同時也是完整個體。",
+    prompt: "同學說：「單細胞生物只有細胞層次，不算個體。」這句話對嗎？", hint: "單細胞生物的那一個細胞，能不能自己活下去？", misconception: "unicellular_not_individual",
     options: [
-      { id: "one_cell_individual", text: "單細胞生物的一個細胞可同時代表細胞層次與完整個體。" },
-      { id: "needs_organs", text: "一定要有器官系統才算個體。" },
-      { id: "not_living", text: "單細胞生物不屬於生物。" },
-      { id: "many_cells", text: "單細胞生物其實由許多細胞構成。" }
+      { id: "one_cell_individual", text: "不對，單細胞生物的一個細胞就是一個個體" },
+      { id: "needs_organs", text: "對，一定要有器官系統才能算是一個個體" },
+      { id: "not_living", text: "對，單細胞生物太小，不能算是一種生物" },
+      { id: "many_cells", text: "不對，單細胞生物其實是由許多細胞構成" }
     ]
   },
   {
     id: "q13", section: "checkpoint3", concept: "plant_organ", answer: "organ",
-    prompt: "一片完整的葉由多種組織構成，並能執行光合作用等功能，因此葉屬於哪一層？", hint: "判斷它是否由多種組織共同構成並具有特定功能。", misconception: "plant_part_not_organ",
-    image: assets.plantOrgans, imageAlt: "植物營養器官與生殖器官圖", imageEvidence: "把葉看成由多種組織形成、具有特定功能的完整構造。",
+    prompt: "一片葉屬於植物體的哪一個組成層次？", hint: "葉由多種組織構成，能進行光合作用。", misconception: "plant_part_not_organ",
     options: [
       { id: "organ", text: "器官" }, { id: "tissue", text: "組織" },
       { id: "system", text: "器官系統" }, { id: "cell", text: "細胞" }
@@ -172,21 +162,20 @@ const questions = [
   },
   {
     id: "q14", section: "checkpoint3", concept: "animal_plant_organization", answer: "both_organs",
-    prompt: "有同學說：『只有動物有器官，植物只有細胞和葉綠體。』哪個修正較合理？", hint: "從植物體中能負責特定功能的構造找線索，不要只想到動物身體。", misconception: "plants_have_no_organs",
-    image: assets.animalPlantCompare, imageAlt: "動物與植物組成層次比較圖", imageEvidence: "比較動物與植物都可由細胞、組織與器官形成完整個體。",
+    prompt: "同學說：「只有動物有器官，植物只有細胞和葉綠體。」這句話對嗎？", hint: "想想前一題：一片葉屬於哪一個層次？", misconception: "plants_have_no_organs",
     options: [
-      { id: "both_organs", text: "植物也有器官，例如根、莖、葉、花、果實與種子。" },
-      { id: "plants_no_organs", text: "植物沒有細胞。" },
-      { id: "animals_no_tissue", text: "植物器官一定等於動物器官系統。" },
-      { id: "all_same", text: "葉綠體就是完整植物個體。" }
+      { id: "both_organs", text: "不對，植物也有器官，例如根、莖、葉和花" },
+      { id: "plants_no_organs", text: "對，植物沒有器官，只由細胞和葉綠體組成" },
+      { id: "animals_no_tissue", text: "不對，植物的一片葉就是一個器官系統" },
+      { id: "all_same", text: "不對，植物的葉綠體就是一個完整的個體" }
     ]
   }
 ];
 
 const classifyQuestions = {
   q02: {
-    prompt: "請把例子分類到正確的組成層次。每一列都要選擇。",
-    hint: "先判斷是單一細胞、相似細胞群、完整器官、多器官協作，或完整生物。",
+    prompt: "把下列例子分到正確的組成層次。",
+    hint: "先找出最小的細胞和最大的個體，再排中間的層次。",
     misconception: "hierarchy_example_confusion",
     options: [{ id: "cell", label: "細胞" }, { id: "tissue", label: "組織" }, { id: "organ", label: "器官" }, { id: "system", label: "器官系統" }, { id: "individual", label: "個體" }],
     items: [
@@ -195,8 +184,8 @@ const classifyQuestions = {
     ]
   },
   q10: {
-    prompt: "請將生物分類為單細胞或多細胞生物。每一列都要選擇。",
-    hint: "判斷完整個體由一個細胞或許多分工細胞組成。",
+    prompt: "下列生物是單細胞生物，還是多細胞生物？",
+    hint: "整個生物只有一個細胞，還是由許多細胞組成？",
     misconception: "unicellular_multicellular_confusion",
     options: [{ id: "single", label: "單細胞生物" }, { id: "multi", label: "多細胞生物" }],
     items: [
@@ -206,8 +195,8 @@ const classifyQuestions = {
     ]
   },
   q12: {
-    prompt: "請將植物器官分類為營養器官或生殖器官。每一列都要選擇。",
-    hint: "比較器官主要負責生長與養分取得，或與繁殖形成新個體有關。",
+    prompt: "下列植物器官是營養器官，還是生殖器官？",
+    hint: "這個器官主要幫助植物生長，還是用來繁殖下一代？",
     misconception: "plant_organ_classification",
     options: [{ id: "vegetative", label: "營養器官" }, { id: "reproductive", label: "生殖器官" }],
     items: [
@@ -618,7 +607,7 @@ function renderBrief() {
   </div>`;
 }
 function renderScan() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的階層線索</h2>
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前先複習</h2>
     ${owlPanel(assets.owlPrep, "生命階層任務提醒貓頭鷹")}
     <div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>先判斷例子是單一細胞、共同工作的細胞群、完整器官、多個器官協作，還是一個完整生物。</p></div>
     <div class="card-grid">
@@ -629,7 +618,7 @@ function renderScan() {
       <div class="concept-card"><strong>單細胞</strong><p>一個細胞同時也是一個完整個體。</p></div>
       <div class="concept-card"><strong>植物器官</strong><p>根、莖、葉偏向營養功能；花、果實、種子與生殖有關。</p></div>
     </div>
-    <div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div></div>`;
+    <div class="actions"><button class="primary" id="scanNext">開始闖關</button></div></div></div>`;
 }
 
 function selectedClass(question, option) {
@@ -643,10 +632,10 @@ function renderQuestionImage(question) {
   if (!question.image) return "";
   const targets = question.imageTargets || [];
   return `<figure class="question-visual">
-    <div class="question-image-wrap"><img src="${question.image}" alt="${question.imageAlt || "未標註觀察圖"}">
+    <div class="question-image-wrap"><img src="${question.image}" alt="${question.imageAlt || "題目附圖"}">
       ${targets.map((target) => `<button type="button" class="image-target ${state.answers[question.id] === target.id ? "selected" : ""}" style="left:${target.left}%;top:${target.top}%" data-choice="${question.id}" data-value="${target.id}" aria-label="圖中位置 ${target.label}">${target.label}</button>`).join("")}
     </div>
-    <figcaption>${question.imageEvidence || (targets.length ? "請比較圖中位置，再選擇最符合題意的答案。" : "請依圖像與題目提供的組成線索判讀。")}</figcaption>
+    <figcaption>${question.imageEvidence || (targets.length ? "請比較圖中位置再作答。" : "請看圖回答。")}</figcaption>
   </figure>`;
 }
 function renderChoiceQuestion(qid) {
@@ -662,7 +651,7 @@ function renderChoiceQuestion(qid) {
 function renderSequenceQuestion() {
   const order = ensureSequence();
   const isWrong = state.checkedWrong.q01;
-  return `<div class="question-card"><h3>請從較小到較大的組成層次拖曳排序。</h3>
+  return `<div class="question-card"><h3>請把組成層次由小到大排好。</h3>
     <p class="field-help">手機可使用每張卡片的上移 / 下移按鈕。</p>
     <div class="sortable-list">${order.map((id, index) => {
       const step = sequenceSteps.find((item) => item.id === id);
@@ -677,13 +666,12 @@ function renderSequenceQuestion() {
   </div>`;
 }
 function renderCheckpoint1() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>組成層次與階層關係</h2>
-    <figure class="wide-asset"><img src="${assets.hierarchyCards}" alt="動物組成層次圖卡"><figcaption>先理解層次的組成關係，再完成排序與分類。</figcaption></figure>
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡一</p><h2>組成層次與階層關係</h2>
     <div class="question-grid">${renderSequenceQuestion()}${renderClassifyQuestion("q02")}${["q03", "q04"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`;
 }
 function renderCheckpoint2() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>組織、器官與器官系統</h2>
-    <figure class="wide-asset"><img src="${assets.relationExamples}" alt="組織器官器官系統例子"><figcaption>比較單一構造與多個器官協作的範圍。</figcaption></figure>
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡二</p><h2>組織、器官與器官系統</h2>
+    <figure class="wide-asset"><img src="${assets.relationExamples}" alt="肌肉細胞、肌肉、心臟與消化器官的圖"><figcaption>比較每一張圖的構造大小與組成。</figcaption></figure>
     <div class="question-grid">${["q05", "q06", "q07", "q08"].map(renderChoiceQuestion).join("")}</div>
     <div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`;
 }
@@ -691,7 +679,7 @@ function renderClassifyQuestion(qid) {
   const config = classifyQuestions[qid];
   const orderedItems = optionOrder(`${qid}_classify_items`, config.items.map((item) => item.id)).map((id) => config.items.find((item) => item.id === id)).filter(Boolean);
   const orderedBuckets = optionOrder(`${qid}_classify_options`, config.options.map((option) => option.id)).map((id) => config.options.find((option) => option.id === id)).filter(Boolean);
-  return `<div class="question-card" data-question-id="${qid}"><h3>${config.prompt}</h3><p class="field-help">分類題：請完成每一列。</p>
+  return `<div class="question-card" data-question-id="${qid}"><h3>${config.prompt}</h3><p class="field-help">每一列都要選擇。</p>
     <div class="classify-list">${orderedItems.map((item) => {
       const selected = state.answers[qid]?.[item.id] || "";
       return `<div class="classify-row" data-classify-id="${item.id}">
@@ -709,7 +697,7 @@ function renderClassifyQuestion(qid) {
   </div>`;
 }
 function renderCheckpoint3() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>單多細胞與植物器官</h2><div class="asset-strip"><figure><img src="${assets.unicellularExamples}" alt="單細胞與多細胞例子"><figcaption>比較完整個體由一個或許多細胞構成。</figcaption></figure><figure><img src="${assets.plantOrgans}" alt="植物器官分類"><figcaption>比較植物器官的主要功能。</figcaption></figure></div><div class="question-grid">${renderChoiceQuestion("q09")}${renderClassifyQuestion("q10")}${renderChoiceQuestion("q11")}${renderClassifyQuestion("q12")}${["q13", "q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡三</p><h2>單多細胞與植物器官</h2><div class="asset-strip"><figure><img src="${assets.unicellularExamples}" alt="單細胞與多細胞例子"><figcaption>比較完整個體由一個或許多細胞構成。</figcaption></figure><figure><img src="${assets.plantOrgans}" alt="植物器官分類"><figcaption>比較植物器官的主要功能。</figcaption></figure></div><div class="question-grid">${renderChoiceQuestion("q09")}${renderClassifyQuestion("q10")}${renderChoiceQuestion("q11")}${renderClassifyQuestion("q12")}${["q13", "q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`;
 }
 
 function isCorrect(qid) {
@@ -984,7 +972,7 @@ function misconceptionText(tag) {
 function renderReview() {
   const result = calculateResult();
   const stable = result.section_stats.filter((item) => item.correct / item.total >= 0.85);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>任務掃描結果</h2>
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>任務結果</h2>
     <div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div>
     <div class="card-grid">
       <div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理主要概念。</p>"}</div>
