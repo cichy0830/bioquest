@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260929-student-id-example-115001-v1";
+const VERSION = "20261031-scale-wording-r3-v1";
 const QUESTION_VERSION = "20260711-scale-security-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -56,40 +56,40 @@ const badges = [
 
 const sequenceSteps = [
   { id: "backpack", label: "背包", reference: "約 45 cm" },
-  { id: "leaf", label: "指定葉片", reference: "約 8 cm" },
-  { id: "ant", label: "指定螞蟻", reference: "約 12 mm" },
-  { id: "rice", label: "指定米粒", reference: "約 6 mm" },
+  { id: "leaf", label: "一片葉子", reference: "約 8 cm" },
+  { id: "ant", label: "一隻螞蟻", reference: "約 12 mm" },
+  { id: "rice", label: "一粒米", reference: "約 6 mm" },
   { id: "cell", label: "洋蔥表皮細胞", reference: "約 300 μm" }
 ];
 const correctSequence = ["backpack", "leaf", "ant", "rice", "cell"];
 
 const questions = [
-  { id: "q03", section: "checkpoint1", concept: "length_units", answer: "mm_um", prompt: "下列哪個換算正確？", hint: "先想毫米比微米大很多，一毫米可以分成許多微米。", misconception: "unit_conversion_confusion", options: [{ id: "mm_um", text: "1 mm = 1000 μm" }, { id: "cm_m", text: "1 cm = 1000 m" }, { id: "um_mm", text: "1 μm = 1000 mm" }, { id: "m_cm", text: "1 m = 10 cm" }] },
-  { id: "q04", section: "checkpoint1", concept: "length_units", answer: "a_larger", prompt: "甲物體長 2 mm，乙物體長 200 μm。哪個較大？", hint: "先把兩個長度換成同一種單位，再比較。", misconception: "unit_conversion_confusion", options: [{ id: "a_larger", text: "甲物體較大" }, { id: "b_larger", text: "乙物體較大" }, { id: "same", text: "兩者一樣大" }, { id: "unknown", text: "無法比較，因為單位不同" }] },
-  { id: "q06", section: "checkpoint2", concept: "microscopic_scale", answer: "compound", prompt: "想觀察口腔皮膜細胞的外形，哪種工具最合適？", hint: "想想細胞是否屬於肉眼容易看清的大小層次。", misconception: "cell_measured_by_ruler", options: [{ id: "compound", text: "複式顯微鏡" }, { id: "ruler", text: "一般直尺" }, { id: "tape", text: "捲尺" }, { id: "telescope", text: "望遠鏡" }] },
-  { id: "q07", section: "checkpoint2", concept: "observation_tools", answer: "fit_purpose", prompt: "有同學說：『倍率越高的工具一定越適合觀察任何東西。』哪個修正較合理？", hint: "先想觀察整個教室、葉片表面和細胞時，是否需要同一種工具。", misconception: "tool_highest_magnification_best", options: [{ id: "fit_purpose", text: "要依物體大小與觀察目的選工具" }, { id: "high_classroom", text: "倍率越高越適合量教室長度" }, { id: "cell_tape", text: "細胞可以用捲尺量" }, { id: "magnifier_cell", text: "放大鏡一定比顯微鏡更能看細胞" }] },
-  { id: "q08", section: "checkpoint2", concept: "microscopic_scale", answer: "microscope_cells", prompt: "圖中有規則排列的小格狀構造，比例尺是 100 μm。這張圖最可能屬於哪種觀察情境？", hint: "把這個單位和教室或身高常用的單位相比，再判斷這是什麼尺度的觀察。", misconception: "cell_measured_by_ruler", visual: "micrograph-100", options: [{ id: "microscope_cells", text: "顯微鏡下的細胞視野" }, { id: "classroom", text: "教室平面圖" }, { id: "playground", text: "操場衛星圖" }, { id: "height", text: "身高測量圖" }] },
-  { id: "q09", section: "checkpoint3", concept: "scale_bar_reading", answer: "one_hundred_um", prompt: "顯微影像中，一段比例尺代表 50 μm。某細胞長度約等於 2 段比例尺，這個細胞實際長度約是多少？", hint: "先看一段比例尺代表多少，再看細胞大約跨過幾段。", misconception: "ignore_scale_bar", visual: "scale-bar-50", options: [{ id: "one_hundred_um", text: "約 100 μm" }, { id: "twenty_five_um", text: "約 25 μm" }, { id: "fifty_mm", text: "約 50 mm" }, { id: "two_cm", text: "約 2 cm" }] },
-  { id: "q10", section: "checkpoint3", concept: "image_actual_size", answer: "image_only", prompt: "同一個細胞影像在平板上放大顯示後，看起來比原本大很多。哪個判斷較合理？", hint: "想想放大的是影像，還是生物體中的實物本身。", misconception: "magnification_changes_object", options: [{ id: "image_only", text: "螢幕上的影像變大，但細胞實際大小沒有改變" }, { id: "cell_grew", text: "細胞實際長大了" }, { id: "unit_m", text: "比例尺單位一定變成公尺" }, { id: "naked_eye", text: "顯微鏡讓細胞變成肉眼大小" }] },
-  { id: "q11", section: "checkpoint3", concept: "scale_bar_reading", answer: "use_scale_bar", prompt: "兩張細胞照片在螢幕上看起來一樣大，但甲圖比例尺為 20 μm，乙圖比例尺為 100 μm。哪個判斷較合理？", hint: "先找兩張圖中能連回實際長度的線索，再判斷畫面顯示大小能不能直接比較。", misconception: "ignore_scale_bar", options: [{ id: "use_scale_bar", text: "不能只看螢幕大小，需依比例尺判斷實際大小" }, { id: "same", text: "兩張圖中的細胞一定一樣大" }, { id: "ignore", text: "比例尺可以忽略" }, { id: "smaller", text: "比例尺越小代表細胞一定越小" }] },
-  { id: "q12", section: "checkpoint3", concept: "magnification_reasoning", answer: "two_mm", prompt: "一個物體影像長 20 mm，放大倍率為 10 倍。若只做簡單估算，實物長度約是多少？", hint: "放大 10 倍表示影像長度約是實物的 10 倍。", misconception: "magnification_changes_object", options: [{ id: "two_mm", text: "2 mm" }, { id: "twenty_mm", text: "20 mm" }, { id: "two_hundred_mm", text: "200 mm" }, { id: "ten_mm", text: "10 mm" }] },
-  { id: "q13", section: "checkpoint3", concept: "image_actual_size", answer: "check_evidence", prompt: "有同學說：『照片裡的細胞看起來比米粒大，所以細胞實際上比米粒大。』哪個修正較合理？", hint: "這個說法用了哪一種證據？想想照片的顯示尺寸是否足以決定實物尺寸。", misconception: "image_size_equals_real_size", options: [{ id: "check_evidence", text: "圖像可能被放大，實際大小要看單位、比例尺或倍率" }, { id: "looks_big", text: "照片看起來大就一定實物大" }, { id: "microscope_changes", text: "顯微鏡會讓細胞真的變大" }, { id: "rice_um", text: "米粒一定用微米描述" }] },
-  { id: "q14", section: "checkpoint3", concept: "length_units", answer: "unit_relations", prompt: "有同學說：『毫米、公分、微米只是名字不同，大小其實差不多。』哪個修正較合理？", hint: "想想同一段長度若改用更小的單位表示，數字會如何變化。", misconception: "wrong_unit_choice", options: [{ id: "unit_relations", text: "這些單位代表不同大小層次，1 mm = 1000 μm，1 cm = 10 mm" }, { id: "same", text: "單位名字不同但完全一樣大" }, { id: "um_big", text: "微米比公尺還大" }, { id: "cm_only", text: "只要是生物都用公分描述" }] }
+  { id: "q03", section: "checkpoint1", concept: "length_units", answer: "mm_um", prompt: "下列哪個換算正確？", hint: "毫米和微米，哪一個比較大？", misconception: "unit_conversion_confusion", options: [{ id: "mm_um", text: "1 mm = 1000 μm" }, { id: "cm_m", text: "1 cm = 1000 m" }, { id: "um_mm", text: "1 μm = 1000 mm" }, { id: "m_cm", text: "1 m = 10 cm" }] },
+  { id: "q04", section: "checkpoint1", concept: "length_units", answer: "a_larger", prompt: "甲物體長 2 mm，乙物體長 200 μm。哪個較大？", hint: "先換成同一種單位，再比較。", misconception: "unit_conversion_confusion", options: [{ id: "a_larger", text: "甲物體較大" }, { id: "b_larger", text: "乙物體較大" }, { id: "same", text: "兩者一樣大" }, { id: "unknown", text: "無法比較，因為單位不同" }] },
+  { id: "q06", section: "checkpoint2", concept: "microscopic_scale", answer: "compound", prompt: "要看清楚口腔皮膜細胞的形狀，應該用哪一種工具？", hint: "細胞用肉眼看得清楚嗎？", misconception: "cell_measured_by_ruler", options: [{ id: "compound", text: "複式顯微鏡" }, { id: "ruler", text: "一般直尺" }, { id: "tape", text: "捲尺" }, { id: "telescope", text: "望遠鏡" }] },
+  { id: "q07", section: "checkpoint2", concept: "observation_tools", answer: "fit_purpose", prompt: "同學說：「倍率越高的工具，越適合觀察任何東西。」下列哪一個說法才正確？", hint: "觀察整間教室、葉片表面和細胞，會用同一種工具嗎？", misconception: "tool_highest_magnification_best", options: [{ id: "fit_purpose", text: "要依物體的大小和觀察目的來選工具" }, { id: "high_classroom", text: "量教室長度也該選倍率最高的工具" }, { id: "cell_tape", text: "倍率越高看得越清楚，都該用顯微鏡" }, { id: "magnifier_cell", text: "放大鏡的倍率就足以看清楚細胞" }] },
+  { id: "q08", section: "checkpoint2", concept: "microscopic_scale", answer: "microscope_cells", prompt: "一張圖裡有許多排列整齊的小格子，比例尺標示 100 μm。這張圖是在看什麼？", hint: "100 μm 大約多大？教室或身高會用這個單位嗎？", misconception: "cell_measured_by_ruler", visual: "micrograph-100", options: [{ id: "microscope_cells", text: "顯微鏡下看到的細胞" }, { id: "classroom", text: "教室的平面配置圖" }, { id: "playground", text: "學校操場的空拍圖" }, { id: "height", text: "量身高用的刻度圖" }] },
+  { id: "q09", section: "checkpoint3", concept: "scale_bar_reading", answer: "one_hundred_um", prompt: "比例尺一段代表 50 μm，一個細胞的長度約等於 2 段比例尺。這個細胞實際約多長？", hint: "一段代表多長？細胞跨過幾段？", misconception: "ignore_scale_bar", visual: "scale-bar-50", options: [{ id: "one_hundred_um", text: "約 100 μm" }, { id: "twenty_five_um", text: "約 25 μm" }, { id: "fifty_mm", text: "約 50 mm" }, { id: "two_cm", text: "約 2 cm" }] },
+  { id: "q10", section: "checkpoint3", concept: "image_actual_size", answer: "image_only", prompt: "同一個細胞的影像在平板上放大後，看起來大很多。下列哪一個說法正確？", hint: "放大的是螢幕上的影像，還是細胞本身？", misconception: "magnification_changes_object", options: [{ id: "image_only", text: "影像變大了，但細胞的實際大小沒有改變" }, { id: "cell_grew", text: "影像放大後，細胞本身也跟著變大了" }, { id: "unit_m", text: "影像放大後，比例尺代表的長度也變長" }, { id: "naked_eye", text: "細胞的實際大小變得和螢幕上一樣大" }] },
+  { id: "q11", section: "checkpoint3", concept: "scale_bar_reading", answer: "use_scale_bar", prompt: "兩張細胞照片在螢幕上一樣大，但甲圖比例尺是 20 μm，乙圖比例尺是 100 μm。下列哪一個說法正確？", hint: "兩張圖的比例尺代表的長度一樣嗎？", misconception: "ignore_scale_bar", options: [{ id: "use_scale_bar", text: "要看各圖的比例尺，才能判斷實際大小" }, { id: "same", text: "螢幕上一樣大，兩個細胞實際也一樣大" }, { id: "ignore", text: "比例尺只是裝飾，判斷大小時不用看" }, { id: "smaller", text: "兩張圖都放大過，所以無法比較大小" }] },
+  { id: "q12", section: "checkpoint3", concept: "magnification_reasoning", answer: "two_mm", prompt: "一個物體放大 10 倍後，影像長 20 mm。這個物體實際約多長？", hint: "放大 10 倍時，影像長度和實物長度是什麼關係？", misconception: "magnification_changes_object", options: [{ id: "two_mm", text: "2 mm" }, { id: "twenty_mm", text: "20 mm" }, { id: "two_hundred_mm", text: "200 mm" }, { id: "ten_mm", text: "10 mm" }] },
+  { id: "q13", section: "checkpoint3", concept: "image_actual_size", answer: "check_evidence", prompt: "同學說：「照片裡的細胞看起來比米粒大，所以細胞實際上比米粒大。」下列哪一個說法才正確？", hint: "照片裡看到的大小，能直接代表實物大小嗎？", misconception: "image_size_equals_real_size", options: [{ id: "check_evidence", text: "照片可能放大過，要看比例尺或倍率才知道" }, { id: "looks_big", text: "照片裡看起來較大的，實際上就比較大" }, { id: "microscope_changes", text: "顯微鏡讓細胞本身變大，照片才會變大" }, { id: "rice_um", text: "細胞和米粒差不多大，用肉眼比較就好" }] },
+  { id: "q14", section: "checkpoint3", concept: "length_units", answer: "unit_relations", prompt: "同學說：「毫米、公分、微米只是名字不同，大小差不多。」這句話對嗎？", hint: "同一段長度改用較小的單位，數字會變大還是變小？", misconception: "wrong_unit_choice", options: [{ id: "unit_relations", text: "不對，1 cm = 10 mm，1 mm = 1000 μm" }, { id: "same", text: "對，三種單位只是寫法不同，大小一樣" }, { id: "um_big", text: "不對，1 cm = 100 mm，1 mm = 10 μm" }, { id: "cm_only", text: "不對，微米最大，公分次之，毫米最小" }] }
 ];
 
 const classifyQuestions = {
   q02: {
-    prompt: "請將物體和較適合的長度單位配對。每一列都要選擇。",
-    hint: "選單位時，想想用哪個單位會讓數字比較容易閱讀。",
+    prompt: "下列長度，各用哪一個單位來描述最方便？",
+    hint: "選一個讓數字不會太大、也不會太小的單位。",
     misconception: "wrong_unit_choice",
     options: [{ id: "m", label: "m" }, { id: "cm", label: "cm" }, { id: "mm", label: "mm" }, { id: "um", label: "μm" }],
     items: [{ id: "door", label: "教室門高度", answer: "m" }, { id: "tree", label: "樹高", answer: "m" }, { id: "rice", label: "米粒長度", answer: "mm" }, { id: "cell", label: "細胞大小", answer: "um" }]
   },
   q05: {
-    prompt: "請將觀察對象配到較合適的工具。每一列都要選擇。",
-    hint: "先判斷目標是否肉眼可見，再決定是否需要放大工具或顯微鏡。",
+    prompt: "下列對象，各用哪一種工具來量或觀察？",
+    hint: "先想肉眼看不看得到，再決定要不要放大。",
     misconception: "tool_highest_magnification_best",
-    options: [{ id: "tape", label: "捲尺或皮尺" }, { id: "magnifier", label: "放大鏡" }, { id: "compound", label: "複式顯微鏡" }, { id: "height_rule", label: "身高尺或皮尺" }],
+    options: [{ id: "tape", label: "捲尺" }, { id: "magnifier", label: "放大鏡" }, { id: "compound", label: "複式顯微鏡" }, { id: "height_rule", label: "身高計" }],
     items: [{ id: "classroom", label: "教室長度", answer: "tape" }, { id: "leaf", label: "葉片表面細節", answer: "magnifier" }, { id: "onion", label: "洋蔥表皮細胞", answer: "compound" }, { id: "height", label: "人的身高", answer: "height_rule" }]
   }
 };
@@ -474,10 +474,9 @@ function selectedClass(question, option) {
 }
 function renderQuestionImage(question) {
   const evidence = {
-    q08: `<div class="scale-evidence-strip" role="group" aria-label="規則排列小格狀構造與一百微米比例尺資料"><span>資料卡</span><strong>規則排列的小格狀構造；比例尺為 100 μm</strong></div>`,
-    q09: `<div class="scale-evidence-strip q09-evidence" role="group" aria-label="兩段比例尺，每段五十微米，目標細胞約跨兩段"><div class="scale-segment-row"><span><b></b>50 μm</span><span><b></b>50 μm</span></div><p>目標細胞長度約跨 2 段等長比例尺</p></div>`
+    q09: `<div class="scale-evidence-strip q09-evidence" role="group" aria-label="兩段比例尺，每段五十微米，細胞長度約兩段"><div class="scale-segment-row"><span><b></b>50 μm</span><span><b></b>50 μm</span></div><p>細胞長度約 2 段比例尺</p></div>`
   }[question.id] || "";
-  return evidence ? `<section class="question-data-card" aria-label="尺度資料卡">${evidence}</section>` : "";
+  return evidence ? `<section class="question-data-card" aria-label="比例尺示意">${evidence}</section>` : "";
 }
 function renderChoiceQuestion(qid) {
   const question = questionById(qid);
@@ -487,17 +486,17 @@ function renderChoiceQuestion(qid) {
 }
 function renderSequenceQuestion() {
   const order = ensureSequence();
-  return `<div class="question-card"><h3>依題卡提供的實際大小，由大到小拖曳排序。</h3><p class="field-help">每張卡都有固定參考值；可拖曳卡片，手機可使用上移 / 下移按鈕。</p>
+  return `<div class="question-card"><h3>依卡片上的實際大小，由大到小排列。</h3><p class="field-help">可以拖曳卡片；手機可用上移／下移按鈕。</p>
     <div class="sortable-list">${order.map((id, index) => {
       const step = sequenceSteps.find((item) => item.id === id);
       return `<div class="sortable-item" draggable="true" data-sequence-id="${id}"><span class="drag-handle" aria-hidden="true"></span><div><strong>${step.label}</strong><small>${step.reference}</small></div><div class="sequence-move-buttons"><button class="icon-action" data-move="${id}" data-dir="-1" ${index === 0 ? "disabled" : ""}>上移</button><button class="icon-action" data-move="${id}" data-dir="1" ${index === order.length - 1 ? "disabled" : ""}>下移</button></div></div>`;
-    }).join("")}</div>${state.hints.q01 ? `<div class="feedback warn">先把不同單位換到同一條大小軸，再比較相鄰兩張卡；不要直接照圖片顯示尺寸排序。</div>` : ""}${state.checkedWrong.q01 ? `<div class="feedback bad">順序仍可調整。請使用每張卡的固定數值與單位逐段比較。</div>` : ""}</div>`;
+    }).join("")}</div>${state.hints.q01 ? `<div class="feedback warn">先把長度換成同一種單位，再兩兩比較。</div>` : ""}${state.checkedWrong.q01 ? `<div class="feedback bad">順序還可以調整，請看每張卡的數字和單位。</div>` : ""}</div>`;
 }
 function renderClassifyQuestion(qid) {
   const config = classifyQuestions[qid];
   const orderedItems = optionOrder(`${qid}_classify_items`, config.items.map((item) => item.id)).map((id) => config.items.find((item) => item.id === id)).filter(Boolean);
   const orderedBuckets = optionOrder(`${qid}_classify_options`, config.options.map((option) => option.id)).map((id) => config.options.find((option) => option.id === id)).filter(Boolean);
-  return `<div class="question-card" data-question-id="${qid}"><h3>${config.prompt}</h3><p class="field-help">分類題：請完成每一列，選後會直接顯示已選答案。</p><div class="classify-list">${orderedItems.map((item) => {
+  return `<div class="question-card" data-question-id="${qid}"><h3>${config.prompt}</h3><p class="field-help">每一列都要選。</p><div class="classify-list">${orderedItems.map((item) => {
     const selected = state.answers[qid]?.[item.id] || "";
     return `<div class="classify-row" data-classify-id="${item.id}"><strong>${item.label}</strong><label>選擇<select data-classify-question="${qid}" data-classify-item="${item.id}"><option value="">請選擇</option>${orderedBuckets.map((option) => `<option value="${option.id}" ${selected === option.id ? "selected" : ""}>${option.label}</option>`).join("")}</select></label><p class="selected-answer">${selected ? `已選：${config.options.find((option) => option.id === selected)?.label || ""}` : "尚未選擇"}</p></div>`;
   }).join("")}</div>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
@@ -505,23 +504,23 @@ function renderClassifyQuestion(qid) {
 function renderBrief() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務簡報</p><h2>微觀尺度校準任務</h2>
     <figure class="brief-scene scale-brief-scene bq-brief-scene-stage" data-briefing-scene-hook="${assets.briefingSceneHook}" data-ambient-background-hook="${assets.ambientBackgroundHook}" data-bq-brief-dual-role="true">
-      <picture class="bq-brief-scene-media"><img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="阿澤老師在微觀尺度校準研究站，引導學生判讀單位、比例尺與觀察工具"></picture>
+      <picture class="bq-brief-scene-media"><img class="bq-brief-scene-image" src="${assets.briefingSceneHook}" alt="阿澤老師在微觀研究站，帶學生認識長度單位、比例尺與觀察工具"></picture>
       <img class="bq-brief-student-avatar" src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}'">
     </figure>
-    <div class="scene-copy bq-brief-scene-caption"><h3>研究站的尺度資料需要校準</h3><p>影像資料把螢幕上的大小誤當成實物大小，也混淆了公尺、毫米與微米。請用單位、比例尺與觀察工具重新校準資料。</p></div>
+    <div class="scene-copy bq-brief-scene-caption"><h3>研究站的長度紀錄弄混了</h3><p>有人把螢幕上看到的大小當成實際大小，也把公尺、毫米和微米弄混了。請用長度單位、比例尺和觀察工具，把大小判斷正確。</p></div>
     <div class="mission-hud"><div><span>任務區</span><strong>微觀研究站</strong></div><div><span>重點</span><strong>尺度與比例尺</strong></div><div><span>排序題</span><strong>拖曳 + 上下移</strong></div></div><div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
 }
 function renderScan() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的尺度線索</h2><div class="owl-frame scale-prep-owl" data-owl-hook="${assets.owlPrep}"><img src="${assets.owlPrep}" alt="尺度任務提醒貓頭鷹" onload="this.nextElementSibling.hidden=true" onerror="this.remove()"><div class="owl-fallback" aria-label="貓頭鷹提醒">尺度<br>提醒</div></div><div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>先確認單位，再判斷實際大小與適合的觀察工具。顯微影像變大，不代表實物變大。</p></div><div class="card-grid"><div class="concept-card"><strong>先統一單位</strong><p>比較長度前，先把數字換成同一種單位。</p></div><div class="concept-card"><strong>微米尺度</strong><p>細胞常屬於微米等級，通常需要顯微鏡。</p></div><div class="concept-card"><strong>工具選擇</strong><p>依物體大小與觀察目的選直尺、放大鏡或顯微鏡。</p></div><div class="concept-card"><strong>看比例尺</strong><p>判斷圖中實際大小，要看比例尺或倍率資訊。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前先複習</h2><div class="owl-frame scale-prep-owl" data-owl-hook="${assets.owlPrep}"><img src="${assets.owlPrep}" alt="尺度任務提醒貓頭鷹" onload="this.nextElementSibling.hidden=true" onerror="this.remove()"><div class="owl-fallback" aria-label="貓頭鷹提醒">尺度<br>提醒</div></div><div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>先看清楚單位，再想想要用什麼工具觀察。</p></div><div class="card-grid"><div class="concept-card"><strong>長度單位</strong><p>公尺（m）、公分（cm）、毫米（mm）、微米（μm），由大到小。</p></div><div class="concept-card"><strong>先換成同一單位</strong><p>比較兩個長度前，先換成同一種單位。</p></div><div class="concept-card"><strong>觀察工具</strong><p>直尺、放大鏡、顯微鏡，適合看的大小不同。</p></div><div class="concept-card"><strong>比例尺</strong><p>圖上的一段線，代表實際多長。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始作答</button></div></div></div>`;
 }
 function renderCheckpoint1() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>尺度與單位校準</h2><p class="muted">以實際大小、適合單位與基本換算完成判讀。</p><div class="question-grid">${renderSequenceQuestion()}${renderClassifyQuestion("q02")}${["q03", "q04"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡一</p><h2>大小與長度單位</h2><p class="muted">比較實際大小、選擇單位、練習換算。</p><div class="question-grid">${renderSequenceQuestion()}${renderClassifyQuestion("q02")}${["q03", "q04"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`;
 }
 function renderCheckpoint2() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>觀察工具與微小尺度</h2><p class="muted">用物體大小與觀察目的選擇適合工具。</p><div class="question-grid">${renderClassifyQuestion("q05")}${["q06", "q07", "q08"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡二</p><h2>觀察工具與微小的東西</h2><p class="muted">依物體大小和觀察目的選工具。</p><div class="question-grid">${renderClassifyQuestion("q05")}${["q06", "q07", "q08"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`;
 }
 function renderCheckpoint3() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>比例尺、圖像與實際大小</h2><p class="muted">判讀顯微影像時，使用比例尺、單位與倍率資料，而非只看螢幕大小。</p><div class="question-grid">${["q09", "q10", "q11", "q12", "q13", "q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡三</p><h2>比例尺、影像與實際大小</h2><p class="muted">從圖片和倍率估計實際大小。</p><div class="question-grid">${["q09", "q10", "q11", "q12", "q13", "q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`;
 }
 
 function isCorrect(qid) {
@@ -726,12 +725,12 @@ function calculateResult() {
 }
 function misconceptionText(tag) {
   const map = {
-    scale_level_order_confusion: "建議再把各題卡的實際尺度與單位放在同一條大小軸比較，再確認由大到小的關係。",
+    scale_level_order_confusion: "建議再把各卡片的長度換成同一種單位，再比較由大到小的順序。",
     image_size_equals_real_size: "建議再確認圖像大小與實際大小的差異：照片或顯微影像可能被放大，不能只看螢幕大小。",
     unit_conversion_confusion: "建議再整理長度單位換算：1 m = 100 cm，1 cm = 10 mm，1 mm = 1000 μm。",
-    cell_measured_by_ruler: "建議再連結細胞與微米尺度：細胞通常需要顯微鏡與比例尺才能清楚判讀大小。",
+    cell_measured_by_ruler: "建議再複習細胞的大小：細胞多以微米描述，要用顯微鏡才看得清楚。",
     tool_highest_magnification_best: "建議再練習觀察工具選擇：不同大小與目的需要不同工具，不是倍率越高越好。",
-    ignore_scale_bar: "建議再練習比例尺判讀：先看比例尺代表的實際長度，再估算物體跨了幾段。",
+    ignore_scale_bar: "建議再練習使用比例尺：先看一段代表多長，再數物體約有幾段。",
     wrong_unit_choice: "建議再選擇合適單位：人體常用 m 或 cm，米粒可用 mm，細胞常用 μm。",
     magnification_changes_object: "建議再理解放大倍率：放大的是影像，不是讓實物本身長大。"
   };
@@ -740,11 +739,11 @@ function misconceptionText(tag) {
 function renderReview() {
   const result = calculateResult();
   const stable = result.section_stats.filter((item) => item.correct / item.total >= 0.85);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>尺度校準回饋</h2><div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理尺度判讀的主要線索。</p>"}</div><div class="story-panel"><strong>建議再閱讀理解</strong><p class="muted">這些方向依剛剛需要提示或調整的概念整理。</p>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div><div class="story-panel"><strong>課堂提問方向</strong><p>單位換算、細胞為何常用微米、如何選直尺／放大鏡／顯微鏡、顯微影像比例尺、圖像放大與實際大小的差異。</p></div></div><div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>任務結果</h2><div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再複習長度單位、觀察工具和比例尺。</p>"}</div><div class="story-panel"><strong>建議再閱讀理解</strong><p class="muted">這些方向依剛剛需要提示或調整的概念整理。</p>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div><div class="story-panel"><strong>課堂提問方向</strong><p>單位換算、細胞為何常用微米、如何選直尺／放大鏡／顯微鏡、顯微影像比例尺、圖像放大與實際大小的差異。</p></div></div><div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
 }
 function renderReflection() {
   const reflection = state.answers.reflection || {};
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2><div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；具體且與單位、觀察工具、比例尺或圖像實際大小相關的問題，才可能取得回報 EXP。只複製方向詞、無關玩笑或敷衍句不會取得高 EXP；正式分數由後台重算。</p></div><div class="form-grid"><label>我最能掌握的一項尺度判斷概念是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label><label>我還不確定單位換算、觀察工具、比例尺判讀或圖像大小的哪一部分？<textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea></label><label>選一個希望老師課堂解釋的方向，並用自己的話補充<span class="field-help">方向詞可以參考，但不要直接複製。</span><textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label><label>信心分數<span class="field-help">5 分代表我能自己說明本單元重點概念。</span><select id="confidenceScore">${[1,2,3,4,5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label></div><div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務回報</p><h2>留下你的課堂線索</h2><div class="story-panel highlight"><strong>回報 EXP 規則</strong><p>空白可提交但無 EXP；具體且與單位、觀察工具、比例尺或圖像實際大小相關的問題，才可能取得回報 EXP。只複製方向詞、無關玩笑或敷衍句不會取得高 EXP；正式分數由後台重算。</p></div><div class="form-grid"><label>我最能掌握的一項尺度判斷概念是什麼？<textarea id="confidentConcept">${reflection.confident_concept || ""}</textarea></label><label>我還不確定單位換算、觀察工具、比例尺或影像大小的哪一部分？<textarea id="uncertainConcept">${reflection.uncertain_concept || ""}</textarea></label><label>選一個希望老師課堂解釋的方向，並用自己的話補充<span class="field-help">方向詞可以參考，但不要直接複製。</span><textarea id="studentQuestion">${reflection.student_question || ""}</textarea></label><label>信心分數<span class="field-help">5 分代表我能自己說明本單元重點概念。</span><select id="confidenceScore">${[1,2,3,4,5].map((num) => `<option value="${num}" ${String(reflection.confidence_score || "3") === String(num) ? "selected" : ""}>${num} 分</option>`).join("")}</select></label></div><div class="actions"><button class="primary" id="submitMission">提交任務</button></div></div></div>`;
 }
 function buildBackendPayload(attempt) {
   const qids = [...sectionMap.checkpoint1, ...sectionMap.checkpoint2, ...sectionMap.checkpoint3];

@@ -9,7 +9,7 @@ import playwright from "playwright";
 const { chromium } = playwright;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = process.env.BIOQUEST_AUDIT_ROOT ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT) : path.resolve(root, "..");
-const CACHE_VERSION = "20260929-student-id-example-115001-v1";
+const CACHE_VERSION = "20261031-scale-wording-r3-v1";
 const QUESTION_VERSION = "20260711-scale-security-v1";
 const artifactDir = path.join(root, "tests", "artifacts", CACHE_VERSION);
 fs.mkdirSync(artifactDir, { recursive: true });
@@ -240,7 +240,7 @@ async function answerCheckpoint1(page) {
 }
 
 async function answerCheckpoint2(page) {
-  await assertQuestionEvidence(page, { q08: 1 });
+  await assertQuestionEvidence(page, {});
   await answerClassify(page, "q05", correctAnswers.q05);
   for (const qid of ["q06", "q07", "q08"]) await answerChoice(page, qid, correctAnswers[qid]);
 }
