@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20260929-student-id-example-115001-v1";
+const VERSION = "20261101-nutrients-energy-wording-r3-v1";
 const QUESTION_VERSION = "20260721-nutrients-energy-q11-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -62,52 +62,57 @@ const badges = [
 ].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id) }));
 
 const questions = [
-  { id: "q04", section: "checkpoint1", concept: "vitamins_minerals_regulation", answer: "regulation_not_energy", prompt: "有同學說：『維生素很重要，所以一定能提供大量能量。』哪個修正較合理？", hint: "重要不等於提供大量能量；先看它主要協助哪一類身體功能。", misconception: "vitamins_as_energy", visual: "function", options: [{ id: "regulation_not_energy", text: "維生素很重要，但主要協助身體功能，不提供主要能量" }, { id: "vitamin_lipid", text: "維生素就是脂質" }, { id: "more_heat", text: "維生素越多越能提供熱量" }, { id: "meat_only", text: "維生素只存在肉類" }] },
-  { id: "q06", section: "checkpoint2", concept: "food_nutrient_mix", answer: "mixed_nutrients", prompt: "牛奶可能同時含有水、蛋白質、脂質、醣類與礦物質。這最能提醒我們什麼？", hint: "先想真實食物通常是混合物，分類題多半是在問主要來源或特定判斷目的。", misconception: "one_food_one_nutrient", visual: "food", options: [{ id: "mixed_nutrients", text: "食物常含多種養分，不一定只能歸成單一成分" }, { id: "one_nutrient", text: "牛奶只含一種養分" }, { id: "water_only", text: "有水的食物就不含其他養分" }, { id: "mineral_energy", text: "礦物質會提供大量能量" }] },
-  { id: "q07", section: "checkpoint2", concept: "protein_body_material", answer: "build_repair", prompt: "成長中的學生需要足夠蛋白質，主要和哪一類功能較有關？", hint: "把蛋白質和生長、組織材料與修補連起來思考，而不只看能量。", misconception: "protein_only_muscle", visual: "food", options: [{ id: "build_repair", text: "身體組織建造與修補" }, { id: "all_vitamins", text: "直接提供所有維生素" }, { id: "no_energy", text: "讓食物完全沒有熱量" }, { id: "replace_water", text: "取代水分" }] },
-  { id: "q08", section: "checkpoint2", concept: "lipid_energy_storage", answer: "needed_in_moderation", prompt: "有同學說：『脂質都不好，完全不需要吃。』哪個修正較合理？", hint: "不要用好壞二分法判斷養分；先看它的功能，再思考適量與食物組合。", misconception: "lipid_all_bad", visual: "energy", options: [{ id: "needed_in_moderation", text: "脂質是身體需要的養分之一，重點是適量與食物組合" }, { id: "no_function", text: "脂質完全沒有功能" }, { id: "vegetable_only", text: "脂質只存在蔬菜" }, { id: "no_energy", text: "脂質一定不能提供能量" }] },
-  { id: "q09", section: "checkpoint3", concept: "energy_sources", answer: "provides_energy", prompt: "某食物資料顯示醣類與脂質含量較明顯。若只從養分功能判斷，它較可能和哪個概念有關？", hint: "先找資料中哪些養分能提供能量，不需要做複雜熱量計算。", misconception: "only_carbs_energy", visual: "label", options: [{ id: "provides_energy", text: "可提供能量" }, { id: "no_energy", text: "完全沒有能量" }, { id: "water_only", text: "只提供水分" }, { id: "mineral_only", text: "只提供礦物質" }] },
-  { id: "q10", section: "checkpoint3", concept: "balanced_diet", answer: "add_variety", prompt: "小志早餐只吃餅乾，午餐也只吃白飯。哪個調整方向較符合均衡飲食概念？", hint: "先看食物組合是否過度單一，再想還缺少哪些不同功能的養分來源。", misconception: "single_food_balance", visual: "balanced", options: [{ id: "add_variety", text: "增加不同類型食物，讓養分來源更完整" }, { id: "full_enough", text: "只要吃得飽就不用管種類" }, { id: "vitamin_only", text: "只補維生素就能取代所有食物" }, { id: "no_staple", text: "完全不吃主食" }] },
-  { id: "q12", section: "checkpoint3", concept: "water_body_function", answer: "transport_regulate", prompt: "水不提供能量，但仍是身體不可缺少的物質。哪個說法較合理？", hint: "不提供能量不代表不重要；想想身體內許多作用是否需要水。", misconception: "water_not_important", visual: "function", options: [{ id: "transport_regulate", text: "水參與運輸、調節體溫與許多身體功能" }, { id: "unimportant", text: "水沒有熱量所以完全不重要" }, { id: "athlete_only", text: "水只在運動員身上有用" }, { id: "replace_all", text: "水可以取代所有養分" }] },
-  { id: "q13", section: "checkpoint3", concept: "balanced_diet", answer: "variety_moderation", prompt: "有同學說：『只要某種食物含有一項重要養分，每天只吃那一種也很均衡。』哪個修正較合理？", hint: "先想單一食物是否能穩定提供所有身體需要的養分。", misconception: "single_food_balance", visual: "balanced", options: [{ id: "variety_moderation", text: "均衡飲食需要多樣食物取得不同養分" }, { id: "all_in_one", text: "一種食物一定包含所有養分" }, { id: "fruit_only", text: "只吃水果就能取代所有食物" }, { id: "protein_only", text: "只吃蛋白質就不用其他養分" }] },
-  { id: "q14", section: "checkpoint3", concept: "nutrient_types", answer: "food_contains_nutrients", prompt: "有同學把『飯、肉、蔬菜』直接說成養分種類。哪個修正較合理？", hint: "先分清楚『吃進去的食物』和『食物中含有的養分』。", misconception: "food_vs_nutrient_confusion", visual: "food", options: [{ id: "food_contains_nutrients", text: "飯、肉、蔬菜是食物；醣類、蛋白質、脂質、維生素、礦物質、水等才是養分" }, { id: "rice_vitamin", text: "飯就是維生素" }, { id: "meat_not_food", text: "肉不是食物" }, { id: "vegetable_water", text: "蔬菜只提供水" }] }
+  { id: "q04", section: "checkpoint1", concept: "vitamins_minerals_regulation", answer: "regulation_not_energy", prompt: "同學說：「維生素很重要，所以能提供大量能量。」哪一個說法才正確？", hint: "重要不等於能提供能量；想想維生素主要幫身體做什麼。", misconception: "vitamins_as_energy", visual: "", options: [{ id: "regulation_not_energy", text: "維生素能調節生理機能，不是主要能量來源" }, { id: "vitamin_lipid", text: "維生素屬於脂質，所以能提供大量能量" }, { id: "more_heat", text: "維生素吃得越多，身體得到的能量就越多" }, { id: "meat_only", text: "維生素只存在肉類中，所以要多吃肉才行" }] },
+  { id: "q06", section: "checkpoint2", concept: "food_nutrient_mix", answer: "mixed_nutrients", prompt: "一杯牛奶含有水、蛋白質、脂質、醣類和礦物質。這說明了什麼？", hint: "想想一種食物裡，是不是只會有一種養分。", misconception: "one_food_one_nutrient", visual: "", options: [{ id: "mixed_nutrients", text: "一種食物通常含有多種養分" }, { id: "one_nutrient", text: "牛奶其實只含有蛋白質一種養分" }, { id: "water_only", text: "含有水的食物，就不含其他養分" }, { id: "mineral_energy", text: "牛奶的能量主要來自其中的礦物質" }] },
+  { id: "q07", section: "checkpoint2", concept: "protein_body_material", answer: "build_repair", prompt: "成長中的青少年需要足夠的蛋白質，主要是因為蛋白質能做什麼？", hint: "想想身體長高、受傷後復原，需要什麼材料。", misconception: "protein_only_muscle", visual: "", options: [{ id: "build_repair", text: "構成及修補身體組織" }, { id: "all_vitamins", text: "提供身體所需的維生素" }, { id: "no_energy", text: "讓食物中的熱量變少" }, { id: "replace_water", text: "代替水分運送物質" }] },
+  { id: "q08", section: "checkpoint2", concept: "lipid_energy_storage", answer: "needed_in_moderation", prompt: "同學說：「脂質對身體不好，完全不需要吃。」哪一個說法才正確？", hint: "不要只分好壞；想想脂質在身體裡有什麼用途。", misconception: "lipid_all_bad", visual: "", options: [{ id: "needed_in_moderation", text: "脂質能提供能量，身體需要，但要適量攝取" }, { id: "no_function", text: "脂質在身體裡沒有任何用途，可以不吃" }, { id: "vegetable_only", text: "脂質只存在蔬菜中，吃蔬菜就夠了" }, { id: "no_energy", text: "脂質不能提供能量，所以不需要吃" }] },
+  { id: "q09", section: "checkpoint3", concept: "energy_sources", answer: "provides_energy", prompt: "下表是某食物一份所含的養分。這份食物能提供能量嗎？", hint: "想想表中哪些養分能提供能量。", misconception: "only_carbs_energy", visual: "label", options: [{ id: "provides_energy", text: "能，醣類、脂質和蛋白質都能提供能量" }, { id: "no_energy", text: "不能，因為表中沒有寫出熱量是多少" }, { id: "water_only", text: "不能，這份食物只能提供身體水分" }, { id: "mineral_only", text: "不能，只有礦物質才能提供能量" }] },
+  { id: "q10", section: "checkpoint3", concept: "balanced_diet", answer: "add_variety", prompt: "小志早餐只吃餅乾，午餐只吃白飯。他該怎麼調整才符合均衡飲食？", hint: "看看他吃的食物種類是不是太單一。", misconception: "single_food_balance", visual: "balanced", options: [{ id: "add_variety", text: "增加蔬菜、豆魚蛋肉等不同種類的食物" }, { id: "full_enough", text: "只要吃得飽，食物種類不用改變" }, { id: "vitamin_only", text: "多吃維生素錠，就能代替其他食物" }, { id: "no_staple", text: "不要吃飯和餅乾，改成只喝果汁" }] },
+  { id: "q12", section: "checkpoint3", concept: "water_body_function", answer: "transport_regulate", prompt: "水不能提供能量。關於水對身體的重要性，哪一個說法正確？", hint: "想想身體裡哪些作用需要水的參與。", misconception: "water_not_important", visual: "", options: [{ id: "transport_regulate", text: "水能運送物質，也能幫助調節體溫" }, { id: "unimportant", text: "水沒有熱量，所以對身體不重要" }, { id: "athlete_only", text: "只有運動員流汗時才需要補充水" }, { id: "replace_all", text: "多喝水就能代替所有其他養分" }] },
+  { id: "q13", section: "checkpoint3", concept: "balanced_diet", answer: "variety_moderation", prompt: "同學說：「某種食物很營養，每天只吃它也很均衡。」哪一個說法才正確？", hint: "一種食物能不能提供身體需要的全部養分？", misconception: "single_food_balance", visual: "", options: [{ id: "variety_moderation", text: "均衡飲食要吃多種食物，才能得到各種養分" }, { id: "all_in_one", text: "營養的食物一定含有身體需要的全部養分" }, { id: "fruit_only", text: "只要每天吃水果，就能代替其他食物" }, { id: "protein_only", text: "只吃含蛋白質的食物，就不需要其他養分" }] },
+  { id: "q14", section: "checkpoint3", concept: "nutrient_types", answer: "food_contains_nutrients", prompt: "同學說：「飯、肉、蔬菜都是養分的種類。」哪一個說法才正確？", hint: "分清楚「吃進去的食物」和「食物裡含有的養分」。", misconception: "food_vs_nutrient_confusion", visual: "", options: [{ id: "food_contains_nutrients", text: "它們是食物；醣類、蛋白質等才是養分" }, { id: "rice_vitamin", text: "它們都是養分，其中飯屬於維生素" }, { id: "meat_not_food", text: "肉是養分不是食物，飯和蔬菜才是食物" }, { id: "vegetable_water", text: "蔬菜不是養分，因為蔬菜只提供水分" }] }
 ];
 
 const multiSelectQuestions = {
   q01: {
-    prompt: "下列哪些屬於食物中常見的主要養分？",
-    hint: "先想這些物質是否是身體可利用、維持生命活動需要的成分。",
+    prompt: "下列哪些是食物中的養分？",
+    hint: "想想哪些物質能被身體吸收利用。",
     misconception: "food_vs_nutrient_confusion",
     options: [{ id: "carb", text: "醣類" }, { id: "protein", text: "蛋白質" }, { id: "lipid", text: "脂質" }, { id: "vitamin", text: "維生素" }, { id: "mineral", text: "礦物質" }, { id: "water", text: "水" }, { id: "plastic", text: "塑膠" }, { id: "glass", text: "玻璃" }],
-    answers: ["carb", "protein", "lipid", "vitamin", "mineral", "water"],
-    image: assets.nutrientFunctionCards
+    answers: ["carb", "protein", "lipid", "vitamin", "mineral", "water"]
   },
   q03: {
-    prompt: "哪些養分可以提供能量？",
-    hint: "想想哪些養分會被身體用來取得能量，哪些主要協助調節或維持功能。",
+    prompt: "下列哪些養分能提供能量？",
+    hint: "想想哪些養分主要用來提供能量，哪些主要用來調節生理機能。",
     misconception: "only_carbs_energy",
     options: [{ id: "carb", text: "醣類" }, { id: "lipid", text: "脂質" }, { id: "protein", text: "蛋白質" }, { id: "vitamin", text: "維生素" }, { id: "mineral", text: "礦物質" }, { id: "water", text: "水" }],
     answers: ["carb", "lipid", "protein"],
-    image: assets.energySourceCards
+    image: assets.energySourceCards,
+    imageAlt: "六種常見食物：米飯、魚肉、食用油、青菜、柳橙與一杯水",
+    caption: "米飯、魚肉、食用油、青菜、柳橙、水"
   }
 };
 
 const classifyQuestions = {
   q02: {
-    prompt: "請將養分和較主要的功能配對。每一列都要選擇。",
-    hint: "先把提供能量、建造材料、協助調節與不供能但必要等功能分開看。",
+    prompt: "請為每一種養分選出它的主要功能。",
+    hint: "先想哪些養分能提供能量，再想其他養分在身體裡的用途。",
     misconception: "food_vs_nutrient_confusion",
-    options: [{ id: "common_energy", label: "提供常用能量" }, { id: "build_repair", label: "建造與修補身體材料" }, { id: "store_energy", label: "提供並儲存能量" }, { id: "regulate", label: "協助維持身體功能" }, { id: "transport", label: "參與運輸與調節" }],
+    options: [{ id: "common_energy", label: "主要的能量來源" }, { id: "build_repair", label: "構成及修補身體組織" }, { id: "store_energy", label: "提供能量，也能儲存在體內" }, { id: "regulate", label: "少量就能調節生理機能" }, { id: "transport", label: "運送物質、維持體溫" }],
     items: [{ id: "carb", label: "醣類", answer: "common_energy" }, { id: "protein", label: "蛋白質", answer: "build_repair" }, { id: "lipid", label: "脂質", answer: "store_energy" }, { id: "vitamin_mineral", label: "維生素與礦物質", answer: "regulate" }, { id: "water", label: "水", answer: "transport" }],
-    image: assets.nutrientFunctionCards
+    image: assets.nutrientFunctionCards,
+    imageAlt: "常見食物：米飯、雞蛋與豆腐、食用油與堅果、蔬菜水果、一杯水",
+    caption: "米飯｜雞蛋、豆腐｜食用油、堅果｜蔬菜、水果｜水"
   },
   q05: {
-    prompt: "請將食物依較能代表的主要養分分類。每一列都要選擇。",
-    hint: "題目問主要來源，不代表食物只含一種養分；先看它最常代表哪一類。",
+    prompt: "下列食物分別是哪一種養分的主要來源？",
+    hint: "一種食物可能含多種養分，選它含量最多的那一種。",
     misconception: "one_food_one_nutrient",
-    options: [{ id: "carb", label: "醣類主要來源" }, { id: "protein", label: "蛋白質主要來源" }, { id: "lipid", label: "脂質主要來源" }],
+    options: [{ id: "carb", label: "醣類" }, { id: "protein", label: "蛋白質" }, { id: "lipid", label: "脂質" }],
     items: [{ id: "rice", label: "米飯", answer: "carb" }, { id: "bread", label: "麵包", answer: "carb" }, { id: "egg", label: "雞蛋", answer: "protein" }, { id: "tofu", label: "豆腐", answer: "protein" }, { id: "oil", label: "食用油", answer: "lipid" }, { id: "nuts", label: "堅果", answer: "lipid" }],
-    image: assets.foodSourceCards
+    image: assets.foodSourceCards,
+    imageAlt: "六種食物：米飯、吐司、雞蛋、豆腐、一瓶食用油、一碗堅果",
+    caption: "米飯、麵包、雞蛋、豆腐、食用油、堅果"
   }
 };
 
@@ -533,11 +538,10 @@ function assetFigure(src, alt, caption) {
 }
 function renderQuestionImage(question) {
   if (question.visual === "label") {
-    return `<figure class="question-visual nutrition-data-figure"><img src="${assets.nutritionLabelBoard}" alt="無文字的營養資料板背景"><div class="nutrition-data-table" role="table" aria-label="每份食物的簡化養分資料"><div role="row"><strong role="columnheader">養分</strong><strong role="columnheader">每份含量</strong></div><div role="row"><span role="cell">醣類</span><b role="cell">32 g</b></div><div role="row"><span role="cell">脂質</span><b role="cell">12 g</b></div><div role="row"><span role="cell">蛋白質</span><b role="cell">4 g</b></div></div><figcaption>數據由網頁 DOM 提供；只需辨認哪些養分可提供能量，不做複雜熱量計算。</figcaption></figure>`;
+    return `<figure class="question-visual nutrition-data-figure"><img src="${assets.nutritionLabelBoard}" alt=""><div class="nutrition-data-table" role="table" aria-label="某食物一份所含的養分"><div role="row"><strong role="columnheader">養分</strong><strong role="columnheader">每份含量</strong></div><div role="row"><span role="cell">醣類</span><b role="cell">32 g</b></div><div role="row"><span role="cell">脂質</span><b role="cell">12 g</b></div><div role="row"><span role="cell">蛋白質</span><b role="cell">4 g</b></div></div><figcaption>g 是公克。</figcaption></figure>`;
   }
-  const map = { function: [assets.nutrientFunctionCards, "養分功能圖卡", "用養分的主要角色判斷。"], food: [assets.foodSourceCards, "常見食物來源圖卡", "食物可含多種養分；題目問的是主要來源。"], energy: [assets.energySourceCards, "供能養分圖卡", "比較供能與維持功能的角色。"], balanced: [assets.balancedMealComparison, "多樣與單一餐點比較圖", "以食物多樣、適量與養分來源判斷。"] };
-  const row = map[question.visual];
-  return row ? assetFigure(row[0], row[1], row[2]) : "";
+  if (question.visual === "balanced") return assetFigure(assets.balancedMealComparison, "兩份餐點：左邊有飯、豆腐、青菜、堅果、水果和水；右邊只有白飯和餅乾", "左：多種食物的餐點；右：只有白飯和餅乾");
+  return "";
 }
 function renderChoiceQuestion(qid) {
   const question = questionById(qid);
@@ -547,23 +551,23 @@ function renderMultiSelect(qid) {
   const config = multiSelectQuestions[qid];
   const selected = state.answers[qid] || [];
   const order = optionOrder(`${qid}_multi`, config.options.map((option) => option.id)).map((id) => config.options.find((option) => option.id === id));
-  return `<div class="question-card multi-select-card" data-question-id="${qid}"><div class="question-mode-banner"><strong>可複選</strong><span>請選出所有符合的選項</span></div><h3>${config.prompt}</h3>${assetFigure(config.image, "養分辨識圖卡", "圖像只提供養分或食物線索；答案以選項文字為準。")}<div class="choice-grid">${order.map((option) => `<button class="choice-button ${selected.includes(option.id) ? "selected" : ""}" data-multi="${qid}" data-value="${option.id}" aria-pressed="${selected.includes(option.id)}">${option.text}</button>`).join("")}</div><p class="selected-answer">${selected.length ? `已選：${selected.map((id) => config.options.find((option) => option.id === id)?.text).filter(Boolean).join("、")}` : "尚未選擇"}</p>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
+  return `<div class="question-card multi-select-card" data-question-id="${qid}"><div class="question-mode-banner"><strong>可複選</strong><span>請選出所有符合的選項</span></div><h3>${config.prompt}</h3>${config.image ? assetFigure(config.image, config.imageAlt, config.caption) : ""}<div class="choice-grid">${order.map((option) => `<button class="choice-button ${selected.includes(option.id) ? "selected" : ""}" data-multi="${qid}" data-value="${option.id}" aria-pressed="${selected.includes(option.id)}">${option.text}</button>`).join("")}</div><p class="selected-answer">${selected.length ? `已選：${selected.map((id) => config.options.find((option) => option.id === id)?.text).filter(Boolean).join("、")}` : "尚未選擇"}</p>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
 }
 function renderClassifyQuestion(qid) {
   const config = classifyQuestions[qid];
   const items = optionOrder(`${qid}_items`, config.items.map((item) => item.id)).map((id) => config.items.find((item) => item.id === id));
   const options = optionOrder(`${qid}_options`, config.options.map((option) => option.id)).map((id) => config.options.find((option) => option.id === id));
-  return `<div class="question-card" data-question-id="${qid}"><h3>${config.prompt}</h3>${assetFigure(config.image, qid === "q02" ? "養分功能圖卡" : "常見食物來源圖卡", qid === "q05" ? "主要來源不代表食物只含一種養分。" : "用主要功能完成每一列配對。")}<p class="field-help">配對／分類題：請完成每一列，選後會直接顯示已選答案。</p><div class="classify-list">${items.map((item) => { const selected = state.answers[qid]?.[item.id] || ""; return `<div class="classify-row"><strong>${item.label}</strong><label>選擇<select data-classify-question="${qid}" data-classify-item="${item.id}"><option value="">請選擇</option>${options.map((option) => `<option value="${option.id}" ${selected === option.id ? "selected" : ""}>${option.label}</option>`).join("")}</select></label><p class="selected-answer">${selected ? `已選：${config.options.find((option) => option.id === selected)?.label || ""}` : "尚未選擇"}</p></div>`; }).join("")}</div>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
+  return `<div class="question-card" data-question-id="${qid}"><h3>${config.prompt}</h3>${assetFigure(config.image, config.imageAlt, config.caption)}<p class="field-help">每一列都要選一個答案。</p><div class="classify-list">${items.map((item) => { const selected = state.answers[qid]?.[item.id] || ""; return `<div class="classify-row"><strong>${item.label}</strong><label>選擇<select data-classify-question="${qid}" data-classify-item="${item.id}"><option value="">請選擇</option>${options.map((option) => `<option value="${option.id}" ${selected === option.id ? "selected" : ""}>${option.label}</option>`).join("")}</select></label><p class="selected-answer">${selected ? `已選：${config.options.find((option) => option.id === selected)?.label || ""}` : "尚未選擇"}</p></div>`; }).join("")}</div>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
 }
 function renderBrief() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務簡報</p><h2>生命補給辨識任務</h2><div class="brief-scene nutrients-brief-scene" data-briefing-scene-hook="${assets.briefingSceneHook}"><div class="scene-copy"><div class="student-avatar-slot"><img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}';"></div><h3>生命補給站需要整理食物資料</h3><p>請把食物例子連到主要養分與功能，判斷能量來源，並用多樣與適量的概念整理餐點線索。</p></div></div><div class="mission-hud"><div><span>任務區</span><strong>生命補給站</strong></div><div><span>重點</span><strong>養分與能量</strong></div><div><span>原則</span><strong>多樣與適量</strong></div></div><div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務簡報</p><h2>生命補給辨識任務</h2><div class="brief-scene nutrients-brief-scene" data-briefing-scene-hook="${assets.briefingSceneHook}"><div class="scene-copy"><div class="student-avatar-slot"><img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}';"></div><h3>生命補給站需要你的幫忙</h3><p>認識食物中的養分和它們的功能，找出哪些養分能提供能量，再想想怎樣吃才均衡。</p></div></div><div class="mission-hud"><div><span>任務區</span><strong>生命補給站</strong></div><div><span>重點</span><strong>養分與能量</strong></div><div><span>原則</span><strong>多樣與適量</strong></div></div><div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
 }
 function renderScan() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的養分線索</h2><div class="owl-frame nutrients-prep-owl"><img src="${assets.owlPrep}" alt="養分任務提醒貓頭鷹"></div><div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>食物是混合物；分類多半問主要來源。能量不是唯一功能，不供能的養分也可能很重要。</p></div><div class="card-grid"><div class="concept-card"><strong>主要養分</strong><p>醣類、蛋白質、脂質、維生素、礦物質與水各有角色。</p></div><div class="concept-card"><strong>能量來源</strong><p>醣類、脂質與蛋白質可提供能量。</p></div><div class="concept-card"><strong>不只一種</strong><p>多數食物同時含有多種養分。</p></div><div class="concept-card"><strong>均衡判斷</strong><p>以食物多樣與適量思考，不用好壞二分。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前先複習</h2><div class="owl-frame nutrients-prep-owl"><img src="${assets.owlPrep}" alt="養分任務提醒貓頭鷹"></div><div class="story-panel highlight"><strong>貓頭鷹提醒</strong><p>養分除了提供能量，還有構成身體、調節生理機能等功能。</p></div><div class="card-grid"><div class="concept-card"><strong>食物與養分</strong><p>想想「食物」和「養分」有什麼不同。</p></div><div class="concept-card"><strong>能量來源</strong><p>想想哪些養分能提供能量，哪些不能。</p></div><div class="concept-card"><strong>主要來源</strong><p>想想米飯、雞蛋、食用油各含哪一種養分最多。</p></div><div class="concept-card"><strong>均衡飲食</strong><p>想想怎樣搭配食物，才能得到各種養分。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始闖關</button></div></div></div>`;
 }
-function renderCheckpoint1() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>養分種類與主要功能</h2><div class="question-grid">${renderMultiSelect("q01")}${renderClassifyQuestion("q02")}${renderMultiSelect("q03")}${renderChoiceQuestion("q04")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`; }
-function renderCheckpoint2() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>食物來源與養分角色</h2><div class="question-grid">${renderClassifyQuestion("q05")}${["q06","q07","q08"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`; }
-function renderCheckpoint3() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>能量資料與均衡判斷</h2><div class="question-grid">${renderChoiceQuestion("q09")}${renderChoiceQuestion("q10")}${["q12","q13","q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`; }
+function renderCheckpoint1() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡一</p><h2>養分種類與主要功能</h2><div class="question-grid">${renderMultiSelect("q01")}${renderClassifyQuestion("q02")}${renderMultiSelect("q03")}${renderChoiceQuestion("q04")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`; }
+function renderCheckpoint2() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡二</p><h2>食物來源與養分角色</h2><div class="question-grid">${renderClassifyQuestion("q05")}${["q06","q07","q08"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`; }
+function renderCheckpoint3() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡三</p><h2>能量來源與均衡飲食</h2><div class="question-grid">${renderChoiceQuestion("q09")}${renderChoiceQuestion("q10")}${["q12","q13","q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`; }
 
 function isCorrect(qid) {
   if (multiSelectQuestions[qid]) {
@@ -718,14 +722,14 @@ function misconceptionText(tag) {
     protein_only_muscle: "建議再閱讀蛋白質功能：蛋白質與身體建造、修補及多種生命功能有關。",
     water_not_important: "建議再確認水的功能：水不提供能量，但參與運輸、調節與許多身體作用。",
     single_food_balance: "建議再理解均衡飲食：重點是多樣與適量，不依賴單一食物。",
-    one_food_one_nutrient: "建議再練習主要來源判斷：食物常含多種養分，分類要看題目目的。"
+    one_food_one_nutrient: "建議再練習主要來源：食物常含多種養分，要看哪一種含量最多。"
   };
-  return map[tag] || "建議再把食物例子、養分功能與能量來源連在一起檢查。";
+  return map[tag] || "建議再把食物、養分功能與能量來源連在一起複習。";
 }
 
 function renderReview() {
   const result = calculateResult(); const stable = result.section_stats.filter((item) => item.correct / item.total >= 0.85);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>生命補給辨識回饋</h2><div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理養分與能量線索。</p>"}</div><div class="story-panel"><strong>建議再閱讀理解</strong>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div><div class="story-panel"><strong>課堂提問方向</strong><p>食物與養分的差異、供能養分、維生素與礦物質、水的功能、主要食物來源、均衡飲食與食物多樣性。</p></div></div><div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>生命補給辨識回饋</h2><div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再複習養分與能量。</p>"}</div><div class="story-panel"><strong>建議再閱讀理解</strong>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div><div class="story-panel"><strong>課堂提問方向</strong><p>食物與養分的差異、供能養分、維生素與礦物質、水的功能、主要食物來源、均衡飲食與食物多樣性。</p></div></div><div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
 }
 
 function renderReflection() {
