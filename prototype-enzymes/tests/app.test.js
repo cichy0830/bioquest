@@ -68,7 +68,7 @@ assert.equal(api.evaluateReflectionQuality({ student_question: "酵素如何促�
 assert.equal(api.evaluateReflectionQuality({ student_question: "我不確定為什麼溫度太高時酵素作用會降低，能不能用資料再解釋？" }).reflection_quality, "discussion_question");
 
 state.answers.q01 = "promote_reaction";
-assert.match(api.renderChoiceQuestion("q01"), /已選：促進生物體內反應/);
+assert.match(api.renderChoiceQuestion("q01"), /已選：促進體內的化學反應進行/);
 assert.match(api.renderClassifyQuestion("q03"), /已選：澱粉/);
 assert.match(api.renderQuestionEvidence("q05"), /10 度[\s\S]*37 度[\s\S]*70 度/);
 assert.match(api.renderQuestionEvidence("q07"), /pH &lt; 7[\s\S]*酸性[\s\S]*<svg[\s\S]*activity-curve/);
@@ -103,7 +103,7 @@ assert.match(appSource, /startAttempt/);
 assert.match(appSource, /hintEvent/);
 assert.match(appSource, /attempt_session_token/);
 assert.match(appSource, /提交後會進行結算，本次作答不能再修改/);
-assert.equal(api.VERSION, "20261001-student-id-example-115001-v1");
+assert.equal(api.VERSION, "20261102-enzymes-wording-r3-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-enzymes-user-review-v2");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "runtime cache must stay separate from canonical question version");
 assert.match(appSource, /question_version: QUESTION_VERSION/);
@@ -127,7 +127,7 @@ assert.equal(api.submissionStatus(), "verified");
 state.result = api.calculateResult();
 state.screen = "result";
 assert.match(api.renderResult(), /data-result-earned-badges="true"/);
-assert.match(api.renderResult(), /badge-enzymes-enzymes_entry\.webp\?v=20261001-student-id-example-115001-v1/);
+assert.match(api.renderResult(), /badge-enzymes-enzymes_entry\.webp\?v=20261102-enzymes-wording-r3-v1/);
 assert.match(api.renderResult(), /data-relogin-action="true"/);
 state.screen = "achievements";
 assert.equal(api.renderAchievements().includes("data-bq-unit-achievements"), false);

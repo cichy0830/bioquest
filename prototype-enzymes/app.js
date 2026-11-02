@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261001-student-id-example-115001-v1";
+const VERSION = "20261102-enzymes-wording-r3-v1";
 const QUESTION_VERSION = "20260720-enzymes-user-review-v2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -71,26 +71,26 @@ const badges = [
 ].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id), image_status: readyBadgeIds.has(badge.id) ? "ready" : "pending" }));
 
 const questions = [
-  { id: "q01", section: "checkpoint1", concept: "enzyme_function", answer: "promote_reaction", prompt: "某生物體內反應在有某種物質參與時進行得更快，而這種物質反應後仍可繼續作用。這種物質最可能具有哪一類功能？", hint: "留意「反應變快」和「反應後仍可繼續作用」兩個線索。", misconception: "enzyme_as_energy", options: [{ id: "promote_reaction", text: "促進生物體內反應進行" }, { id: "all_energy", text: "直接提供所有能量" }, { id: "replace_nutrients", text: "取代所有養分" }, { id: "color_only", text: "只讓物質變色" }] },
-  { id: "q02", section: "checkpoint1", concept: "enzyme_reusable", answer: "not_consumed", prompt: "有同學說：「酵素幫忙反應一次後就會被消耗掉。」哪個修正較合理？", hint: "先分辨協助反應進行，和被當成反應材料用掉，是不是同一件事。", misconception: "enzyme_consumed", options: [{ id: "not_consumed", text: "酵素促進反應後通常不被消耗，可繼續作用" }, { id: "becomes_product", text: "酵素一定變成產物" }, { id: "one_use", text: "酵素只能使用一次" }, { id: "waste", text: "酵素就是反應後產生的廢物" }] },
-  { id: "q04", section: "checkpoint1", concept: "enzyme_specificity", answer: "not_match", prompt: "若某酵素主要能分解澱粉，卻被拿來處理蛋白質樣品，最合理的預測是什麼？", hint: "把酵素想成有適合對象的工具，先看工具和材料是否配對。", misconception: "no_specificity", options: [{ id: "not_match", text: "作用可能不明顯，因為作用對象不合適" }, { id: "fastest", text: "一定能把蛋白質分解最快" }, { id: "turns_lipase", text: "會變成脂肪酶" }, { id: "all_targets", text: "可以同時分解所有養分" }] },
-  { id: "q05", section: "checkpoint2", concept: "temperature_effect", answer: "optimal_temperature", prompt: "某酵素在不同溫度下的反應速率：10 度很慢、25 度中等、37 度最快、70 度幾乎沒有作用。哪個解讀較合理？", hint: "不只看溫度高低，要看資料中反應速率在哪裡最高、在哪裡下降。", misconception: "hotter_always_better", options: [{ id: "optimal_temperature", text: "酵素有適合溫度，太高可能使作用變差" }, { id: "hotter", text: "溫度越高一定越快" }, { id: "cold_permanent", text: "10 度一定使酵素永久失效" }, { id: "seventy_best", text: "70 度一定是所有酵素最佳溫度" }] },
-  { id: "q06", section: "checkpoint2", concept: "temperature_effect", answer: "not_always_hotter", prompt: "有同學說：「加熱一定能讓酵素越來越活躍，所以溫度越高越好。」哪個修正較合理？", hint: "想想資料曲線是否一直往上，還是可能在某個範圍後下降。", misconception: "hotter_always_better", options: [{ id: "not_always_hotter", text: "酵素通常有適合溫度，超過適合範圍可能使作用降低或失去作用" }, { id: "boiling", text: "所有酵素都適合沸水" }, { id: "cold_product", text: "低溫一定讓酵素變成產物" }, { id: "no_effect", text: "溫度不會影響酵素" }] },
-  { id: "q07", section: "checkpoint2", concept: "ph_effect", answer: "acidic", prompt: "觀察酸鹼值與酵素活性的關係圖。這種酵素較適合哪一種環境？", hint: "先看橫軸的酸鹼值，再找曲線最高點。pH 小於 7 是酸性、等於 7 是中性、大於 7 是鹼性。", misconception: "same_ph_for_all", options: [{ id: "acidic", text: "酸性環境" }, { id: "neutral", text: "中性環境" }, { id: "alkaline", text: "鹼性環境" }, { id: "all_environments", text: "所有環境都一樣" }] },
-  { id: "q08", section: "checkpoint2", concept: "ph_effect", answer: "activity_lower", prompt: "胃中的某些消化酵素較適合酸性環境。若把它放到不適合的酸鹼環境中，較可能發生什麼事？", hint: "先看這種酵素原本適合哪種環境，再判斷環境改變後的作用情形。", misconception: "same_ph_for_all", options: [{ id: "activity_lower", text: "作用可能變差" }, { id: "all_faster", text: "一定分解所有養分更快" }, { id: "auto_change", text: "會自動變成另一種酵素" }, { id: "ph_none", text: "酸鹼值完全沒有影響" }] },
-  { id: "q10", section: "checkpoint3", concept: "digestion_context", answer: "digest_specific", prompt: "唾液中的澱粉酶可以協助澱粉分解。這最能說明酵素和消化作用的哪個關係？", hint: "注意酵素與養分的配對，以及消化時物質變小的方向。", misconception: "enzyme_replaces_digestion", options: [{ id: "digest_specific", text: "消化酵素可協助特定養分分解成較小物質" }, { id: "replace_organs", text: "酵素會取代所有消化器官" }, { id: "starch_lipid", text: "澱粉酶主要分解脂質" }, { id: "none", text: "消化作用和酵素完全無關" }] },
-  { id: "q11", section: "checkpoint3", concept: "digestion_context", answer: "protease", prompt: "若食物中主要含蛋白質，較可能需要哪一類消化酵素協助分解？", hint: "先看食物中主要養分，再找名稱或功能較相配的酵素。", misconception: "no_specificity", options: [{ id: "protease", text: "蛋白酶" }, { id: "amylase", text: "澱粉酶" }, { id: "lipase", text: "脂肪酶" }, { id: "chloroplast", text: "葉綠體" }] },
-  { id: "q12", section: "checkpoint3", concept: "reaction_direction_boundary", answer: "not_only_breakdown", prompt: "有同學說：「酵素都只會做分解作用，沒有其他功能。」哪個修正較合理？", hint: "先分清楚消化分解是本單元的例子，不代表所有酵素功能都只限於分解。", misconception: "all_enzymes_only_breakdown", options: [{ id: "not_only_breakdown", text: "消化情境常見分解例子，但生物體內酵素也可促進其他類型反應" }, { id: "mouth_only", text: "酵素都只存在口腔" }, { id: "starch_only", text: "酵素一定只分解澱粉" }, { id: "color_only", text: "酵素只負責把食物變色" }] },
-  { id: "q13", section: "checkpoint3", concept: "enzyme_function", answer: "not_energy", prompt: "有同學說：「酵素就是身體的能量，吃越多酵素反應就一定越快。」哪個修正較合理？", hint: "先看酵素在反應中扮演的角色，再想反應是否還需要合適對象和條件。", misconception: "enzyme_as_energy", options: [{ id: "not_energy", text: "酵素是促進反應的物質，不是能量本身；反應快慢還和作用對象與環境條件有關" }, { id: "calories", text: "酵素等於熱量" }, { id: "no_nutrients", text: "酵素越多就不需要養分" }, { id: "any_condition", text: "所有酵素都能在任何條件下作用" }] },
-  { id: "q14", section: "checkpoint3", concept: "ph_effect", answer: "different_conditions", prompt: "有同學說：「只要是酵素，都喜歡同一個溫度和同一個酸鹼值。」哪個修正較合理？", hint: "比較不同酵素時，不要先假設條件都一樣；可從資料或作用位置找線索。", misconception: "same_ph_for_all", options: [{ id: "different_conditions", text: "不同酵素可能有不同適合條件，需要看資料或作用位置判斷" }, { id: "acid_only", text: "所有酵素都只適合酸性" }, { id: "hot_only", text: "所有酵素都只適合高溫" }, { id: "color_only", text: "酸鹼值只影響顏色不影響作用" }] }
+  { id: "q01", section: "checkpoint1", concept: "enzyme_function", answer: "promote_reaction", prompt: "某物質能讓生物體內的反應變快，反應後還能繼續使用。它的功能是什麼？", hint: "它讓反應變快，自己卻沒有被用掉。", misconception: "enzyme_as_energy", options: [{ id: "promote_reaction", text: "促進體內的化學反應進行" }, { id: "all_energy", text: "提供反應所需的全部能量" }, { id: "replace_nutrients", text: "可以取代食物中的養分" }, { id: "color_only", text: "讓物質變色以便觀察" }] },
+  { id: "q02", section: "checkpoint1", concept: "enzyme_reusable", answer: "not_consumed", prompt: "同學說：「酵素幫忙反應一次後就被用掉了。」這句話對嗎？", hint: "酵素是幫忙反應的，還是反應的原料？", misconception: "enzyme_consumed", options: [{ id: "not_consumed", text: "不對，酵素反應後通常不變，可以重複作用" }, { id: "becomes_product", text: "對，酵素反應後會變成產物的一部分" }, { id: "one_use", text: "對，所以每次反應都要用新的酵素" }, { id: "waste", text: "對，酵素用完後會變成廢物排出體外" }] },
+  { id: "q04", section: "checkpoint1", concept: "enzyme_specificity", answer: "not_match", prompt: "把澱粉酶加入只含蛋白質的樣品中，結果會如何？", hint: "一種酵素通常只能分解特定的物質。", misconception: "no_specificity", options: [{ id: "not_match", text: "蛋白質幾乎不會被分解" }, { id: "fastest", text: "蛋白質會很快被分解" }, { id: "turns_lipase", text: "澱粉酶會自己變成蛋白酶" }, { id: "all_targets", text: "澱粉酶能分解所有養分" }] },
+  { id: "q05", section: "checkpoint2", concept: "temperature_effect", answer: "optimal_temperature", prompt: "下表是某酵素在不同溫度下的反應速率，可以得到什麼結論？", hint: "反應速率在哪個溫度最快？溫度再升高後又如何？", misconception: "hotter_always_better", options: [{ id: "optimal_temperature", text: "酵素有適合的溫度，太高反而作用變差" }, { id: "hotter", text: "溫度越高，酵素的反應速率一定越快" }, { id: "cold_permanent", text: "10 度時酵素已經永久失去作用" }, { id: "seventy_best", text: "70 度是這種酵素作用最好的溫度" }] },
+  { id: "q06", section: "checkpoint2", concept: "temperature_effect", answer: "not_always_hotter", prompt: "同學說：「溫度越高，酵素一定越活躍。」這句話對嗎？", hint: "溫度太高時，酵素還能正常作用嗎？", misconception: "hotter_always_better", options: [{ id: "not_always_hotter", text: "不對，溫度太高時酵素作用會變差" }, { id: "boiling", text: "對，所以酵素在沸水中作用最好" }, { id: "cold_product", text: "不對，溫度越低酵素才越活躍" }, { id: "no_effect", text: "不對，溫度不會影響酵素的作用" }] },
+  { id: "q07", section: "checkpoint2", concept: "ph_effect", answer: "acidic", prompt: "依下圖，這種酵素在哪一種環境中作用最好？", hint: "先找曲線最高點，再看它對應的 pH 值。", misconception: "same_ph_for_all", options: [{ id: "acidic", text: "酸性環境" }, { id: "neutral", text: "中性環境" }, { id: "alkaline", text: "鹼性環境" }, { id: "all_environments", text: "任何環境都一樣" }] },
+  { id: "q08", section: "checkpoint2", concept: "ph_effect", answer: "activity_lower", prompt: "胃中的蛋白酶適合在酸性環境作用，移到鹼性環境後會如何？", hint: "環境不適合時，酵素的作用會受到什麼影響？", misconception: "same_ph_for_all", options: [{ id: "activity_lower", text: "作用變差，分解蛋白質變慢" }, { id: "all_faster", text: "作用變好，分解蛋白質更快" }, { id: "auto_change", text: "會自動變成適合鹼性的酵素" }, { id: "ph_none", text: "作用不變，酸鹼值沒有影響" }] },
+  { id: "q10", section: "checkpoint3", concept: "digestion_context", answer: "digest_specific", prompt: "唾液中的澱粉酶能分解澱粉。這說明消化酵素有什麼作用？", hint: "消化時，大分子的養分會變成什麼？", misconception: "enzyme_replaces_digestion", options: [{ id: "digest_specific", text: "把特定養分分解成較小的分子" }, { id: "replace_organs", text: "讓食物不用咀嚼也能被消化" }, { id: "starch_lipid", text: "把澱粉轉變成脂質儲存起來" }, { id: "none", text: "提供口腔消化食物所需的能量" }] },
+  { id: "q11", section: "checkpoint3", concept: "digestion_context", answer: "protease", prompt: "雞蛋含有豐富的蛋白質，主要靠哪一種消化酵素分解？", hint: "看看哪一種酵素的名稱和蛋白質有關。", misconception: "no_specificity", options: [{ id: "protease", text: "蛋白酶" }, { id: "amylase", text: "澱粉酶" }, { id: "lipase", text: "脂肪酶" }, { id: "chloroplast", text: "膽汁" }] },
+  { id: "q12", section: "checkpoint3", concept: "reaction_direction_boundary", answer: "not_only_breakdown", prompt: "同學說：「酵素只會分解物質，沒有其他功能。」這句話對嗎？", hint: "消化只是酵素作用的其中一個例子。", misconception: "all_enzymes_only_breakdown", options: [{ id: "not_only_breakdown", text: "不對，酵素也能促進合成等其他反應" }, { id: "mouth_only", text: "對，酵素只存在於消化道中分解食物" }, { id: "starch_only", text: "對，而且每種酵素都只能分解澱粉" }, { id: "color_only", text: "不對，酵素的功能是讓食物變色" }] },
+  { id: "q13", section: "checkpoint3", concept: "enzyme_function", answer: "not_energy", prompt: "同學說：「酵素就是能量，吃越多反應一定越快。」這句話對嗎？", hint: "酵素在反應中是幫手，還是燃料？", misconception: "enzyme_as_energy", options: [{ id: "not_energy", text: "不對，酵素不是能量，快慢還受溫度影響" }, { id: "calories", text: "對，酵素和醣類一樣能提供身體熱量" }, { id: "no_nutrients", text: "對，只要酵素夠多就不需要攝取養分" }, { id: "any_condition", text: "對，酵素在任何溫度下都能一樣作用" }] },
+  { id: "q14", section: "checkpoint3", concept: "ph_effect", answer: "different_conditions", prompt: "同學說：「所有酵素適合的溫度和酸鹼值都一樣。」這句話對嗎？", hint: "胃裡的酵素適合酸性環境，其他酵素也是嗎？", misconception: "same_ph_for_all", options: [{ id: "different_conditions", text: "不對，不同酵素適合的溫度與酸鹼值可能不同" }, { id: "acid_only", text: "對，所有酵素都只適合在酸性環境作用" }, { id: "hot_only", text: "對，所有酵素都只適合在高溫環境作用" }, { id: "color_only", text: "不對，酸鹼值只影響顏色，不影響酵素" }] }
 ];
 
 const multiSelectQuestions = {};
 
 const classifyQuestions = {
   q03: {
-    prompt: "請將消化酵素和較適合的作用對象配對。每一列都要選擇。",
-    hint: "先觀察酵素名稱中的線索，再想它較常對應哪一類養分。",
+    prompt: "請為每一種消化酵素選出它分解的養分。",
+    hint: "酵素的名稱常常透露它分解的對象。",
     misconception: "no_specificity",
     options: [{ id: "starch", label: "澱粉" }, { id: "protein", label: "蛋白質" }, { id: "lipid", label: "脂質" }],
     items: [{ id: "amylase", label: "澱粉酶", answer: "starch" }, { id: "protease", label: "蛋白酶", answer: "protein" }, { id: "lipase", label: "脂肪酶", answer: "lipid" }]
@@ -491,7 +491,7 @@ function evidenceTable(caption, headers, rows) {
 function phActivityGraph() {
   return `<figure class="question-evidence ph-activity-graph">
     <strong>酸鹼值與酵素活性的關係</strong>
-    <div class="ph-scaffold" aria-label="酸鹼值判讀提示"><span>pH &lt; 7｜酸性</span><span>pH = 7｜中性</span><span>pH &gt; 7｜鹼性</span></div>
+    <div class="ph-scaffold" aria-label="酸鹼值說明"><span>pH &lt; 7｜酸性</span><span>pH = 7｜中性</span><span>pH &gt; 7｜鹼性</span></div>
     <svg viewBox="0 0 500 230" role="img" aria-labelledby="phGraphTitle phGraphDesc">
       <title id="phGraphTitle">酸鹼值與酵素活性的關係曲線圖</title>
       <desc id="phGraphDesc">橫軸是酸鹼值零到十四，縱軸是相對酵素活性。曲線在 pH 二附近最高，在 pH 七與 pH 十附近較低。</desc>
@@ -500,13 +500,12 @@ function phActivityGraph() {
       <path class="activity-curve" d="M35 158 C58 132 73 62 95 30 C135 36 180 105 245 140 C285 151 330 155 455 158"/>
       <g class="activity-points"><circle cx="95" cy="30" r="6"/><circle cx="245" cy="140" r="6"/><circle cx="335" cy="155" r="6"/></g>
     </svg>
-    <figcaption>以圖中最高活性作為 100% 的相對值；請依座標軸與曲線最高點判讀。</figcaption>
+    <figcaption>縱軸以這種酵素作用最好時當作 100%。</figcaption>
   </figure>`;
 }
 function renderQuestionEvidence(qid) {
-  if (qid === "q05") return evidenceTable("溫度與反應速率資料", ["溫度", "反應速率"], [["10 度", "很慢"], ["25 度", "中等"], ["37 度", "最快"], ["70 度", "幾乎沒有作用"]]);
+  if (qid === "q05") return evidenceTable("某酵素在不同溫度下的反應速率", ["溫度", "反應速率"], [["10 度", "很慢"], ["25 度", "中等"], ["37 度", "最快"], ["70 度", "幾乎沒有作用"]]);
   if (qid === "q07") return phActivityGraph();
-  if (qid === "q13") return `<section class="question-evidence qualitative-note"><strong>概念邊界提醒</strong><p>酵素在反應中是促進者；判讀反應快慢仍需同時考慮作用對象與環境條件，不能把單一因素當成全部原因。</p></section>`;
   return "";
 }
 function renderChoiceQuestion(qid) {
@@ -517,17 +516,17 @@ function renderClassifyQuestion(qid) {
   const config = classifyQuestions[qid];
   const items = optionOrder(`${qid}_items`, config.items.map((item) => item.id)).map((id) => config.items.find((item) => item.id === id));
   const options = optionOrder(`${qid}_options`, config.options.map((option) => option.id)).map((id) => config.options.find((option) => option.id === id));
-  return `<div class="question-card" data-question-id="${qid}"><h3>${config.prompt}</h3><p class="field-help">配對題：請完成每一列；選後會直接顯示已選答案。先看酵素名稱與作用對象的關係。</p><div class="classify-list">${items.map((item) => { const selected = state.answers[qid]?.[item.id] || ""; return `<div class="classify-row"><strong>${item.label}</strong><label>選擇<select data-classify-question="${qid}" data-classify-item="${item.id}"><option value="">請選擇</option>${options.map((option) => `<option value="${option.id}" ${selected === option.id ? "selected" : ""}>${option.label}</option>`).join("")}</select></label><p class="selected-answer">${selected ? `已選：${config.options.find((option) => option.id === selected)?.label || ""}` : "尚未選擇"}</p></div>`; }).join("")}</div>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
+  return `<div class="question-card" data-question-id="${qid}"><h3>${config.prompt}</h3><p class="field-help">每一列都要選。</p><div class="classify-list">${items.map((item) => { const selected = state.answers[qid]?.[item.id] || ""; return `<div class="classify-row"><strong>${item.label}</strong><label>選擇<select data-classify-question="${qid}" data-classify-item="${item.id}"><option value="">請選擇</option>${options.map((option) => `<option value="${option.id}" ${selected === option.id ? "selected" : ""}>${option.label}</option>`).join("")}</select></label><p class="selected-answer">${selected ? `已選：${config.options.find((option) => option.id === selected)?.label || ""}` : "尚未選擇"}</p></div>`; }).join("")}</div>${state.hints[qid] ? `<div class="feedback warn">${config.hint}</div>` : ""}</div>`;
 }
 function renderBrief() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務簡報</p><h2>生命反應加速任務</h2><div class="brief-scene enzymes-brief-scene" data-briefing-scene-hook="${assets.briefingSceneHook}"><div class="scene-copy"><div class="student-avatar-slot"><img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}';"></div><h3>為什麼同一種反應有時快、有時慢？</h3><p>生命反應研究站的資料顯示，酵素、酵素作用的對象（稱為受質）與環境條件會一起影響反應。你要從配對、資料與生活情境中找出合理解釋。</p></div></div><div class="mission-hud"><div><span>任務區</span><strong>生命反應研究站</strong></div><div><span>重點</span><strong>專一性與條件</strong></div><div><span>原則</span><strong>用資料判讀</strong></div></div><div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務簡報</p><h2>生命反應加速任務</h2><div class="brief-scene enzymes-brief-scene" data-briefing-scene-hook="${assets.briefingSceneHook}"><div class="scene-copy"><div class="student-avatar-slot"><img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.onerror=null;this.src='${assets.titleAvatarFallback}';"></div><h3>為什麼同一種反應有時快、有時慢？</h3><p>阿澤老師在生命反應研究站發現，體內同一種反應有時快、有時慢。這和酵素、酵素作用的對象（稱為受質）以及環境條件都有關係，請運用課本學到的知識一起找出原因。</p></div></div><div class="mission-hud"><div><span>任務區</span><strong>生命反應研究站</strong></div><div><span>重點</span><strong>酵素的作用</strong></div><div><span>方法</span><strong>看表格與曲線圖</strong></div></div><div class="actions"><button class="primary" id="briefNext">前往任務準備</button></div></div></div>`;
 }
 function renderScan() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>進關卡前的判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="酵素任務提醒貓頭鷹"><div><h3>先看作用對象，再看環境條件。</h3><p>酵素能促進反應，但不是能量本身；判讀資料時要比較溫度、酸鹼值與反應活性的關係。</p></div></div><div class="card-grid"><div class="concept-card"><strong>反應角色</strong><p>酵素可促進生物體內反應，反應後通常不被消耗。</p></div><div class="concept-card"><strong>專一性</strong><p>不同酵素通常有較適合的作用對象。</p></div><div class="concept-card"><strong>條件影響</strong><p>溫度與酸鹼值要看適合範圍，不是越高或越極端越好。</p></div><div class="concept-card"><strong>圖表判讀</strong><p>先讀座標軸，再找曲線高低與變化趨勢。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始檢核</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務準備</p><h2>闖關前先複習</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="酵素任務提醒貓頭鷹"><div><h3>闖關前，先想想這幾個問題。</h3><p>想不起來也沒關係，可以先翻翻課本裡酵素的部分。</p></div></div><div class="card-grid"><div class="concept-card"><strong>酵素的角色</strong><p>酵素在反應中做什麼？反應結束後，酵素會怎樣？</p></div><div class="concept-card"><strong>作用對象</strong><p>澱粉酶、蛋白酶、脂肪酶，各自分解什麼？</p></div><div class="concept-card"><strong>環境條件</strong><p>溫度或酸鹼值改變時，酵素的作用會怎樣？</p></div><div class="concept-card"><strong>看曲線圖</strong><p>先看橫軸、縱軸各代表什麼，再找曲線的最高點。</p></div></div><div class="actions"><button class="primary" id="scanNext">開始闖關</button></div></div></div>`;
 }
-function renderCheckpoint1() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核一</p><h2>酵素功能與專一性</h2><div class="question-grid">${["q01","q02"].map(renderChoiceQuestion).join("")}${renderClassifyQuestion("q03")}${renderChoiceQuestion("q04")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`; }
-function renderCheckpoint2() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核二</p><h2>條件與資料判讀</h2><div class="question-grid">${["q05","q06","q07","q08"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`; }
-function renderCheckpoint3() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">檢核三</p><h2>消化情境與迷思修正</h2><div class="question-grid">${["q10","q11","q12","q13","q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`; }
+function renderCheckpoint1() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡一</p><h2>酵素功能與專一性</h2><div class="question-grid">${["q01","q02"].map(renderChoiceQuestion).join("")}${renderClassifyQuestion("q03")}${renderChoiceQuestion("q04")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint1">檢查並前進</button></div></div></div>`; }
+function renderCheckpoint2() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡二</p><h2>溫度與酸鹼值</h2><div class="question-grid">${["q05","q06","q07","q08"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint2">檢查並前進</button></div></div></div>`; }
+function renderCheckpoint3() { return `<div class="wide-layout"><div class="panel"><p class="eyebrow">關卡三</p><h2>消化酵素與常見說法</h2><div class="question-grid">${["q10","q11","q12","q13","q14"].map(renderChoiceQuestion).join("")}</div><div id="sectionMessage" class="status-line"></div><div class="actions"><button class="primary" id="checkSection" data-section="checkpoint3">檢查並前往回饋</button></div></div></div>`; }
 
 function isCorrect(qid) {
   if (multiSelectQuestions[qid]) {
@@ -674,18 +673,18 @@ function misconceptionText(tag) {
     enzyme_as_energy: "建議再確認酵素是促進反應的物質，不是能量本身。",
     enzyme_consumed: "建議再區分促進反應與被反應消耗；酵素通常可重複作用。",
     no_specificity: "建議再確認酵素通常只適合特定作用對象，不是對所有物質都有效。",
-    hotter_always_better: "建議再回到溫度資料的最高與下降趨勢，不把溫度越高當成固定規則。",
-    same_ph_for_all: "建議再用酸鹼值資料或作用位置判斷，不假設所有酵素適合相同條件。",
+    hotter_always_better: "建議再看一次溫度表：反應速率在哪個溫度最快、之後怎麼變化；溫度越高不一定越快。",
+    same_ph_for_all: "建議再複習：不同酵素適合的酸鹼值可能不同，例如胃中的蛋白酶適合酸性環境。",
     enzyme_replaces_digestion: "建議再確認酵素協助特定反應，不能取代整個消化與吸收過程。",
     all_enzymes_only_breakdown: "建議再區分消化分解例子與生物體內酵素可促進的其他反應。",
     data_single_point: "建議先確認研究對象與改變條件，再比較多筆資料的趨勢形成結論。"
   };
-  return map[tag] || "建議再把酵素角色、作用對象、環境條件與資料趨勢連在一起檢查。";
+  return map[tag] || "建議再複習酵素的作用、作用對象與環境條件。";
 }
 
 function renderReview() {
   const result = calculateResult(); const stable = result.section_stats.filter((item) => item.correct / item.total >= 0.85);
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>生命反應加速任務回饋</h2><div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再整理酵素判讀的主要線索。</p>"}</div><div class="story-panel"><strong>建議再閱讀理解</strong>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div><div class="story-panel"><strong>課堂提問方向</strong><p>酵素為什麼能重複作用、專一性如何判斷、溫度與酸鹼值資料怎麼讀，以及消化情境的配對關係。</p></div></div><div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
+  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">概念回饋</p><h2>生命反應加速任務回饋</h2><div class="score-grid"><div class="score-box"><span>答對</span><strong>${result.correct}/${result.total}</strong></div><div class="score-box"><span>提示使用</span><strong>${result.hint_used}</strong></div><div class="score-box"><span>提示後修正</span><strong>${result.corrected_after_hint}</strong></div></div><div class="card-grid"><div class="story-panel"><strong>目前較穩定</strong>${stable.length ? stable.map((item) => `<p>${item.title}</p>`).join("") : "<p>還需要再複習酵素的作用。</p>"}</div><div class="story-panel"><strong>建議再閱讀理解</strong>${result.misconceptions.length ? result.misconceptions.map((tag) => `<p>${misconceptionText(tag)}</p>`).join("") : "<p>目前沒有明顯迷思標籤。</p>"}</div><div class="story-panel"><strong>課堂提問方向</strong><p>酵素為什麼能重複作用、每種酵素分解什麼、溫度與酸鹼值的表格和曲線圖怎麼看，以及消化酵素分解哪些養分。</p></div></div><div class="actions"><button class="primary" id="reviewNext">填寫任務回報</button></div></div></div>`;
 }
 
 function renderReflection() {
