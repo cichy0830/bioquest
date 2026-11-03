@@ -1,5 +1,5 @@
-// ROADMAP R2 加到主畫面（第二批）：各站各自一個主畫面圖示（佇列 W16 選項 A）。
-// 靜態：每個 ready 站都有自己的 manifest（範圍＝該站資料夾、開啟該站），index.html 已載入 manifest 與 bioquest-pwa.js。
+// ROADMAP R2 加到主畫面：整個網站只有一個 BioQuest 圖示（佇列 W16 老師決定 B）。
+// 靜態：每個 ready 站都連到網站共用 manifest（開學生版入口頁 home/），不再有各站自己的 manifest；index.html 已載入 bioquest-pwa.js。
 // 瀏覽器：直接開站（不經入口頁）也會註冊 service worker；後台請求照常送出（Playwright 攔截有效）；離線可重開已開過的站。
 // 瀏覽器對外連線由 run-tests.mjs 阻擋；這裡的 Apps Script 請求也全部由 Playwright 攔截。
 import assert from "node:assert/strict";
@@ -9,7 +9,7 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import playwright from "playwright";
-import { manifestFor, pwaVersion, shortNameFor, stationTargets } from "../build-station-pwa.mjs";
+import { legacyManifestPath, pwaVersion, stationTargets } from "../build-station-pwa.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -23,23 +23,14 @@ for (const n of Array.from({ length: 26 }, (_, i) => i + 1)) assert.ok(sequences
 assert.equal(new Set(targets.map((unit) => unit.folder)).size, targets.length, "站資料夾不可重複");
 
 const version = pwaVersion();
+const siteManifest = JSON.parse(fs.readFileSync(path.join(root, "manifest.webmanifest"), "utf8"));
 for (const unit of targets) {
-  const manifest = JSON.parse(fs.readFileSync(path.join(root, unit.folder, "manifest.webmanifest"), "utf8"));
-  assert.deepEqual(manifest, manifestFor(unit));
-  assert.equal(manifest.start_url, "./", `${unit.folder} 主畫面圖示要開該站`);
-  assert.equal(manifest.scope, "./");
-  assert.ok(manifest.name.includes(`第 ${unit.sequence} 站`) && manifest.name.includes(unit.title));
-  assert.ok(manifest.short_name.length <= 12, `${unit.folder} short_name 太長`);
-  assert.equal(manifest.short_name, shortNameFor(unit));
-  for (const icon of manifest.icons) {
-    assert.ok(icon.src.startsWith("../shared-assets/pwa/"), icon.src);
-    assert.ok(fs.existsSync(path.join(root, unit.folder, icon.src)), `${unit.folder} 圖示不存在：${icon.src}`);
-  }
+  assert.ok(!fs.existsSync(legacyManifestPath(unit)), `${unit.folder} 不應再有自己的 manifest（W16 決定 B）`);
   const html = fs.readFileSync(path.join(root, unit.folder, "index.html"), "utf8");
   assert.equal((html.match(/<link rel="manifest"/g) || []).length, 1, `${unit.folder} 只能有一個 manifest`);
-  assert.ok(html.includes('<link rel="manifest" href="manifest.webmanifest">'));
+  assert.ok(html.includes('<link rel="manifest" href="../manifest.webmanifest">'), `${unit.folder} 應連到網站共用 manifest`);
   assert.ok(html.includes('<link rel="apple-touch-icon" href="../shared-assets/pwa/apple-touch-icon-180.png">'));
-  assert.ok(html.includes(`<meta name="apple-mobile-web-app-title" content="${manifest.short_name}">`));
+  assert.ok(html.includes(`<meta name="apple-mobile-web-app-title" content="${siteManifest.short_name}">`));
   assert.equal((html.match(/bioquest-pwa\.js/g) || []).length, 1, `${unit.folder} 應載入一次 bioquest-pwa.js`);
   assert.ok(html.includes(`../shared-assets/bioquest-pwa.js?v=${version}`), `${unit.folder} bioquest-pwa.js 版本不符`);
   // pwa 腳本放在 app.js 之後，不影響各站原本的載入順序
@@ -92,12 +83,13 @@ try {
       await page.reload({ waitUntil: "load" });
       assert.equal(await page.evaluate(() => Boolean(navigator.serviceWorker.controller)), true, `${unit.folder} 重新整理後應由 service worker 接管`);
 
-      // 瀏覽器讀到的是該站自己的 manifest，主畫面圖示開該站
+      // 瀏覽器讀到的是網站共用 manifest：從任一站加到主畫面，都是同一個 BioQuest 圖示、開學生版入口頁
       const manifestHref = await page.evaluate(() => document.querySelector('link[rel="manifest"]').href);
-      assert.equal(manifestHref, `${stationUrl}manifest.webmanifest`);
+      assert.equal(manifestHref, `${base}manifest.webmanifest`);
       const fetched = await page.evaluate(async (href) => (await fetch(href)).json(), manifestHref);
-      assert.equal(new URL(fetched.start_url, manifestHref).href, stationUrl);
-      assert.equal(new URL(fetched.scope, manifestHref).href, stationUrl);
+      assert.equal(fetched.short_name, "BioQuest");
+      assert.equal(new URL(fetched.start_url, manifestHref).href, `${base}home/`);
+      assert.equal(new URL(fetched.scope, manifestHref).href, base);
       for (const icon of fetched.icons) {
         const status = await page.evaluate(async (href) => (await fetch(href)).status, new URL(icon.src, manifestHref).href);
         assert.equal(status, 200, `${icon.src} 讀不到`);
@@ -114,7 +106,7 @@ try {
       const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);
       assert.ok(scrollWidth <= viewport.width, `${unit.folder} ${viewport.width} 寬出現橫向捲動（${scrollWidth}）`);
 
-      // 離線：開過的站可從主畫面（start_url，不帶 ?v=）重開
+      // 離線：開過的站可用不帶 ?v= 的網址重開
       offline = true;
       await page.goto(stationUrl, { waitUntil: "load" });
       assert.ok(await page.locator("[data-nav='login']").count(), `${unit.folder} 離線時應能重開`);

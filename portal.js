@@ -101,75 +101,88 @@ const statusText = {
   planned: "待製作"
 };
 
-const grid = document.querySelector("#unitGrid");
-const searchInput = document.querySelector("#unitSearch");
-const filters = [...document.querySelectorAll(".filter")];
-let activeFilter = "all";
+// 學生版入口頁（home/，主畫面圖示會開這一頁）只列這些站：已正式發布給學生的站。
+// 老師核准新一批站別發布時，把該站 unitId 加進來（順序依 units 的 sequence 顯示）。
+const studentOpenUnitIds = [
+  "life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit",
+  "cell_structure", "cell_observation", "cell_transport", "biological_organization", "scale",
+  "nutrients_energy", "nutrient_test", "enzymes", "photosynthesis", "human_nutrition"
+];
 
-function renderUnits() {
-  grid.innerHTML = units.map((unit) => {
-    const tagText = unit.tags.map((tag) => `<span>${tag}</span>`).join("");
-    const action = unit.url
-      ? `<a class="unit-link" href="${unit.url}">開啟網頁</a>`
-      : `<span class="disabled-link">尚未開放</span>`;
-    return `
-      <article class="unit-card ${unit.url ? "clickable" : ""}" data-status="${unit.status}" data-url="${unit.url || ""}" data-keywords="${unit.title} ${(unit.aliases || []).join(" ")} ${unit.unitId} ${unit.summary} ${unit.tags.join(" ")}" ${unit.url ? `role="link" tabindex="0" aria-label="開啟${unit.title}"` : ""}>
-        <div class="unit-top">
-          <div>
-            <p class="unit-meta">第 ${unit.sequence} 站｜${unit.title}${unit.note ? `｜${unit.note}` : ""}</p>
-            <h3>${unit.title}</h3>
+window.BioQuestUnits = { units, studentOpenUnitIds };
+
+// 教師入口頁（index.html）才有單元清單；學生版入口頁只讀上面的資料。
+if (document.querySelector("#unitGrid")) {
+  const grid = document.querySelector("#unitGrid");
+  const searchInput = document.querySelector("#unitSearch");
+  const filters = [...document.querySelectorAll(".filter")];
+  let activeFilter = "all";
+
+  function renderUnits() {
+    grid.innerHTML = units.map((unit) => {
+      const tagText = unit.tags.map((tag) => `<span>${tag}</span>`).join("");
+      const action = unit.url
+        ? `<a class="unit-link" href="${unit.url}">開啟網頁</a>`
+        : `<span class="disabled-link">尚未開放</span>`;
+      return `
+        <article class="unit-card ${unit.url ? "clickable" : ""}" data-status="${unit.status}" data-url="${unit.url || ""}" data-keywords="${unit.title} ${(unit.aliases || []).join(" ")} ${unit.unitId} ${unit.summary} ${unit.tags.join(" ")}" ${unit.url ? `role="link" tabindex="0" aria-label="開啟${unit.title}"` : ""}>
+          <div class="unit-top">
+            <div>
+              <p class="unit-meta">第 ${unit.sequence} 站｜${unit.title}${unit.note ? `｜${unit.note}` : ""}</p>
+              <h3>${unit.title}</h3>
+            </div>
+            <span class="status-pill ${unit.status}">${statusText[unit.status]}</span>
           </div>
-          <span class="status-pill ${unit.status}">${statusText[unit.status]}</span>
-        </div>
-        <p class="unit-meta">${unit.summary}</p>
-        <div class="unit-tags">${tagText}</div>
-        <div class="unit-actions">${action}</div>
-      </article>
-    `;
-  }).join("");
-  updateStats();
-  applyFilters();
-}
-
-function updateStats() {
-  document.querySelector("#readyCount").textContent = units.filter((unit) => unit.status === "ready").length;
-  const testingCount = document.querySelector("#testingCount");
-  if (testingCount) testingCount.textContent = units.filter((unit) => unit.status === "testing").length;
-  document.querySelector("#specCount").textContent = units.filter((unit) => unit.status === "spec").length;
-  document.querySelector("#plannedCount").textContent = units.filter((unit) => unit.status === "planned").length;
-}
-
-function applyFilters() {
-  const keyword = searchInput.value.trim().toLowerCase();
-  document.querySelectorAll(".unit-card").forEach((card) => {
-    const statusMatched = activeFilter === "all" || card.dataset.status === activeFilter;
-    const keywordMatched = !keyword || card.dataset.keywords.toLowerCase().includes(keyword);
-    card.classList.toggle("hidden", !(statusMatched && keywordMatched));
-  });
-}
-
-filters.forEach((button) => {
-  button.addEventListener("click", () => {
-    activeFilter = button.dataset.filter;
-    filters.forEach((item) => item.classList.toggle("active", item === button));
+          <p class="unit-meta">${unit.summary}</p>
+          <div class="unit-tags">${tagText}</div>
+          <div class="unit-actions">${action}</div>
+        </article>
+      `;
+    }).join("");
+    updateStats();
     applyFilters();
+  }
+
+  function updateStats() {
+    document.querySelector("#readyCount").textContent = units.filter((unit) => unit.status === "ready").length;
+    const testingCount = document.querySelector("#testingCount");
+    if (testingCount) testingCount.textContent = units.filter((unit) => unit.status === "testing").length;
+    document.querySelector("#specCount").textContent = units.filter((unit) => unit.status === "spec").length;
+    document.querySelector("#plannedCount").textContent = units.filter((unit) => unit.status === "planned").length;
+  }
+
+  function applyFilters() {
+    const keyword = searchInput.value.trim().toLowerCase();
+    document.querySelectorAll(".unit-card").forEach((card) => {
+      const statusMatched = activeFilter === "all" || card.dataset.status === activeFilter;
+      const keywordMatched = !keyword || card.dataset.keywords.toLowerCase().includes(keyword);
+      card.classList.toggle("hidden", !(statusMatched && keywordMatched));
+    });
+  }
+
+  filters.forEach((button) => {
+    button.addEventListener("click", () => {
+      activeFilter = button.dataset.filter;
+      filters.forEach((item) => item.classList.toggle("active", item === button));
+      applyFilters();
+    });
   });
-});
 
-searchInput.addEventListener("input", applyFilters);
+  searchInput.addEventListener("input", applyFilters);
 
-document.addEventListener("click", (event) => {
-  const card = event.target.closest(".unit-card.clickable");
-  if (!card || event.target.closest("a, button, input")) return;
-  window.location.href = card.dataset.url;
-});
+  document.addEventListener("click", (event) => {
+    const card = event.target.closest(".unit-card.clickable");
+    if (!card || event.target.closest("a, button, input")) return;
+    window.location.href = card.dataset.url;
+  });
 
-document.addEventListener("keydown", (event) => {
-  if (event.key !== "Enter" && event.key !== " ") return;
-  const card = event.target.closest(".unit-card.clickable");
-  if (!card) return;
-  event.preventDefault();
-  window.location.href = card.dataset.url;
-});
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const card = event.target.closest(".unit-card.clickable");
+    if (!card) return;
+    event.preventDefault();
+    window.location.href = card.dataset.url;
+  });
 
-renderUnits();
+  renderUnits();
+}

@@ -15,7 +15,7 @@ const manifest = JSON.parse(fs.readFileSync(path.join(root, "manifest.webmanifes
 assert.equal(manifest.name, "生命祕境 BioQuest");
 assert.ok(manifest.short_name && manifest.short_name.length <= 12, "short_name 要短，主畫面才不會被截斷");
 assert.equal(manifest.display, "standalone");
-assert.equal(manifest.start_url, "./");
+assert.equal(manifest.start_url, "./home/", "主畫面圖示開學生版入口頁（W16 決定 B）");
 assert.equal(manifest.scope, "./");
 assert.match(manifest.theme_color, /^#[0-9a-f]{6}$/i);
 assert.match(manifest.background_color, /^#[0-9a-f]{6}$/i);
@@ -38,8 +38,13 @@ assert.deepEqual(pngSize(path.join(root, "shared-assets/pwa/apple-touch-icon-180
 const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
 assert.match(indexHtml, /<link rel="manifest" href="manifest\.webmanifest">/);
 assert.match(indexHtml, /<link rel="apple-touch-icon" href="shared-assets\/pwa\/apple-touch-icon-180\.png">/);
+const homeHtml = fs.readFileSync(path.join(root, "home/index.html"), "utf8");
+assert.match(homeHtml, /<link rel="manifest" href="\.\.\/manifest\.webmanifest">/);
+assert.match(homeHtml, /<link rel="apple-touch-icon" href="\.\.\/shared-assets\/pwa\/apple-touch-icon-180\.png">/);
+assert.ok(!/teacher-dashboard|教師/.test(homeHtml), "學生版入口頁不可有教師後台連結");
 const pwaVersion = /const VERSION = "([^"]+)"/.exec(fs.readFileSync(path.join(root, "shared-assets/bioquest-pwa.js"), "utf8"))[1];
 assert.ok(indexHtml.includes(`shared-assets/bioquest-pwa.js?v=${pwaVersion}`), "入口頁載入 bioquest-pwa.js 的 ?v= 要與檔內 VERSION 相同");
+assert.ok(homeHtml.includes(`../shared-assets/bioquest-pwa.js?v=${pwaVersion}`), "學生版入口頁載入 bioquest-pwa.js 的 ?v= 要與檔內 VERSION 相同");
 
 // ---- 瀏覽器檢查 ----
 let offline = false;
@@ -106,6 +111,34 @@ try {
     await page.goto(`${base}prototype-enzymes/`, { waitUntil: "load" });
     assert.equal(await page.evaluate(() => Boolean(navigator.serviceWorker.controller)), true, "各站應同樣由 service worker 接管");
     assert.ok(await page.locator("[data-nav='login']").count(), "第 13 站登入頁應正常顯示");
+    await page.goto(base, { waitUntil: "load" });
+
+    // 學生版入口頁（主畫面圖示開這頁）：只列已發布的站、沒有教師連結與狀態、連結都開得到
+    await page.goto(new URL(manifest.start_url, `${base}manifest.webmanifest`).href, { waitUntil: "load" });
+    assert.equal(await page.locator("h1").first().innerText(), "七年級生物任務");
+    const openIds = await page.evaluate(() => window.BioQuestUnits.studentOpenUnitIds);
+    const cards = await page.locator(".station-card").evaluateAll((els) => els.map((el) => ({ id: el.dataset.unitId, href: el.href, text: el.innerText })));
+    assert.equal(cards.length, openIds.length, "學生版入口頁站數應等於 studentOpenUnitIds");
+    assert.ok(cards.length >= 15, "第 1–15 站已正式發布，應列出");
+    assert.deepEqual(cards.map((c) => c.id).sort(), [...openIds].sort());
+    assert.equal(await page.locator("a[href*='teacher-dashboard']").count(), 0, "學生版入口頁不可有教師後台連結");
+    assert.ok(!/測試中|待製作|已備料|可測試/.test(await page.locator("body").innerText()), "學生版入口頁不顯示製作狀態");
+    for (const card of cards) {
+      const status = await page.evaluate(async (href) => (await fetch(href)).status, card.href);
+      assert.equal(status, 200, `${card.text} 連結開不到：${card.href}`);
+      assert.ok(/^第 \d+ 站/.test(card.text), card.text);
+    }
+    assert.equal(await page.evaluate(() => Boolean(navigator.serviceWorker.controller)), true, "學生版入口頁應由 service worker 接管");
+    // 記住上次進入的站
+    assert.equal(await page.locator("#lastStation").isHidden(), true);
+    await page.locator(".station-card[data-unit-id='enzymes']").click();
+    await page.waitForLoadState("load");
+    assert.ok(await page.locator("[data-nav='login']").count(), "從學生版入口頁進第 13 站應正常顯示登入頁");
+    await page.goto(`${base}home/`, { waitUntil: "load" });
+    assert.equal(await page.locator("#lastStation").isVisible(), true);
+    assert.match(await page.locator("#lastStationLink").innerText(), /第 13 站/);
+    const homeScroll = await page.evaluate(() => document.documentElement.scrollWidth);
+    assert.ok(homeScroll <= viewport.width, `學生版入口頁 ${viewport.width} 寬出現橫向捲動（${homeScroll}）`);
     await page.goto(base, { waitUntil: "load" });
 
     // 快取名稱只有本版

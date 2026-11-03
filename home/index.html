@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>生命祕境 BioQuest</title>
+  <link rel="stylesheet" href="home.css?v=20261103-student-home-v1">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta name="theme-color" content="#0d5f73">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="BioQuest">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="icon" type="image/png" sizes="192x192" href="../shared-assets/pwa/icon-192.png">
+  <link rel="apple-touch-icon" href="../shared-assets/pwa/apple-touch-icon-180.png">
+</head>
+<body>
+  <main class="home-shell">
+    <header class="home-hero">
+      <img class="home-icon" src="../shared-assets/pwa/icon-192.png" alt="" width="72" height="72">
+      <div>
+        <p class="home-eyebrow">生命祕境 BioQuest</p>
+        <h1>七年級生物任務</h1>
+        <p class="home-lead">選一站開始任務。不知道要做哪一站，就看老師這次給的站名。</p>
+      </div>
+    </header>
+
+    <section class="home-last" id="lastStation" hidden aria-label="上次進入的站">
+      <p>上次進入</p>
+      <a id="lastStationLink" href="#"></a>
+    </section>
+
+    <section aria-labelledby="stationListTitle">
+      <h2 id="stationListTitle" class="home-section-title">任務站</h2>
+      <ol id="stationList" class="station-list"></ol>
+    </section>
+  </main>
+
+  <script src="../portal.js?v=20261103-student-home-v1"></script>
+  <script src="home.js?v=20261103-student-home-v1"></script>
+  <script src="../shared-assets/bioquest-pwa.js?v=20261025-pwa-v1"></script>
+</body>
+</html>
