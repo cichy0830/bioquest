@@ -22,6 +22,7 @@ button.lab-tube:hover { background: rgba(255,255,255,.6); }
 .lab-tube-svg.mini { width: 22px; height: 70px; }
 .lab-liquid { transition: fill .7s ease; }
 .lab-liquid.slow { transition: fill 2.4s ease-in; }
+.lab-liquid.rising { transition: fill .9s ease, transform .9s ease; }
 .lab-none { align-self: stretch; align-content: center; }
 .lab-q { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 2px dashed var(--line); font-weight: 900; color: var(--muted); }
 .lab-action { width: 100%; padding: 8px 4px; border: 0; border-radius: 8px; background: var(--teal); color: #fff; font-weight: 800; font-size: 13px; line-height: 1.2; }
@@ -31,6 +32,10 @@ button.lab-tube:hover { background: rgba(255,255,255,.6); }
 .lab-dropper::after { content: ""; position: absolute; left: 3px; top: 26px; width: 4px; height: 6px; border-radius: 50%; background: #8a6a3a; opacity: 0; }
 .lab-tube.dropping .lab-dropper { opacity: 1; transform: translateY(0); }
 .lab-tube.dropping .lab-dropper::after { animation: lab-drip .5s .2s ease-in forwards; }
+.lab-pour { position: absolute; top: -4px; left: 50%; width: 6px; height: 0; margin-left: -3px; border-radius: 3px; background: rgba(70,130,220,.85); opacity: 0; pointer-events: none; }
+.lab-tube.pouring .lab-pour { animation: lab-pour 1.1s ease-in-out forwards; }
+@keyframes lab-pour { 0% { opacity: 1; height: 0; } 35% { opacity: 1; height: 70px; } 85% { opacity: 1; height: 70px; } 100% { opacity: 0; height: 70px; } }
+@media (prefers-reduced-motion: reduce) { .lab-tube.pouring .lab-pour { animation: none; } .lab-liquid.rising { transition: none; } }
 @keyframes lab-drip { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(40px); } }
 
 .lab-heat-panel { margin-top: 12px; padding: 12px; border-radius: 10px; background: rgba(255,246,226,.9); border: 1px solid rgba(216,155,50,.35); display: grid; gap: 10px; }

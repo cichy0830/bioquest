@@ -65,7 +65,9 @@ function labTubeCell(sample, test) {
   if (test === "benedict") {
     done = Boolean(lab.benedict[sample.id]);
     if (done) { const r = labResult(sample.id, lab.heated ? "benedictHot" : "benedictCold"); color = r.color; caption = lab.heated ? `加熱後：${r.text}` : `剛加入：${r.text}`; }
-    action = done ? "" : `<button class="lab-action" data-lab-benedict="${sample.id}">加入本氏液</button>`;
+    action = done ? "" : `<button class="lab-action" data-lab-benedict="${sample.id}">加入 2～3 mL 本氏液</button>`;
+    // 本氏液要加 2～3 mL（約與樣品等量）：加入前液面較低，加入後液面升高
+    return `<div class="lab-tube${done ? " done" : ""}" data-lab-tube="${test}-${sample.id}"><div class="lab-pour" aria-hidden="true"></div>${tubeSvg(color, { oil: sample.id === "C" && !done, level: done ? BENEDICT_LEVEL_AFTER : BENEDICT_LEVEL_BEFORE })}<span class="lab-tube-label">${sample.label}${sample.control ? "<em>對照</em>" : ""}</span><small>${caption}</small>${action}</div>`;
   }
   return `<div class="lab-tube${done ? " done" : ""}" data-lab-tube="${test}-${sample.id}"><div class="lab-dropper" aria-hidden="true"></div>${tubeSvg(color, { oil: sample.id === "C" && !done })}<span class="lab-tube-label">${sample.label}${sample.control ? "<em>對照</em>" : ""}</span><small>${caption}</small>${action}</div>`;
 }
@@ -116,7 +118,7 @@ function renderLab() {
 
   const iodineBody = `<p>在每一支試管滴入碘液，觀察顏色變化。（碘液本身是黃褐色）</p><div class="lab-rack">${LAB_SAMPLES.map((sample) => labTubeCell(sample, "iodine")).join("")}</div>`;
 
-  const benedictBody = `<p>另取一份樣品，在每一支試管加入本氏液。</p><div class="lab-rack">${LAB_SAMPLES.map((sample) => labTubeCell(sample, "benedict")).join("")}</div>
+  const benedictBody = `<p>另取一份樣品（每支約 2～3 mL），再用量筒或滴管量取 <strong>2～3 mL 本氏液</strong>加入每一支試管，和樣品差不多等量。</p><p class="muted">只滴 1～2 滴的話，溶液不會整個變藍，加熱後也不容易看出顏色變化。</p><div class="lab-rack">${LAB_SAMPLES.map((sample) => labTubeCell(sample, "benedict")).join("")}</div>
     ${labBenedictAdded() && !lab.heated ? `<div class="lab-heat-panel"><p><strong>剛加入本氏液，四支都是藍色。</strong>接下來要把試管放進熱水中隔水加熱。</p>
       <div class="lab-safety"><button class="lab-goggles${lab.goggles ? " on" : ""}" data-lab-goggles aria-pressed="${Boolean(lab.goggles)}"><span aria-hidden="true">🥽</span>${lab.goggles ? "已戴上護目鏡" : "戴上護目鏡"}</button><span class="muted">加熱時試管口不要朝向自己或別人。</span></div>
       <button class="primary" data-lab-heat ${lab.goggles ? "" : "disabled"}>放入熱水中隔水加熱</button></div>` : ""}
@@ -136,6 +138,25 @@ function renderLab() {
     ${section(5, "根據紀錄判斷", tests, judgeBody, Boolean(lab.judgedOk))}
     <div class="actions"><button class="primary" id="labNext" ${labComplete() ? "" : "disabled"}>${labComplete() ? "開始作答" : "完成實驗與判斷後開始作答"}</button></div>
   </div></div>`;
+}
+
+const BENEDICT_LEVEL_BEFORE = 0.3;
+const BENEDICT_LEVEL_AFTER = 0.6;
+
+// 倒入 2～3 mL 本氏液：倒液動畫＋液面升高＋顏色變藍
+function pourTube(cellKey, color, then) {
+  const cell = document.querySelector(`[data-lab-tube="${cellKey}"]`);
+  if (!cell) return then();
+  cell.classList.add("pouring");
+  const liquid = cell.querySelector(".lab-liquid");
+  setTimeout(() => {
+    if (liquid) {
+      liquid.classList.add("rising");
+      liquid.style.transform = `translateY(-${(BENEDICT_LEVEL_AFTER - BENEDICT_LEVEL_BEFORE) * 96}px)`;
+      liquid.style.fill = color;
+    }
+    setTimeout(then, 900);
+  }, 350);
 }
 
 function animateTube(cellKey, color, then) {
@@ -160,7 +181,7 @@ function attachLab() {
   }));
   document.querySelectorAll("[data-lab-benedict]").forEach((button) => button.addEventListener("click", () => {
     const id = button.dataset.labBenedict; button.disabled = true;
-    animateTube(`benedict-${id}`, LAB_COLORS.benedictBlue.color, () => { lab.benedict[id] = true; saveState(); render(); });
+    pourTube(`benedict-${id}`, LAB_COLORS.benedictBlue.color, () => { lab.benedict[id] = true; saveState(); render(); });
   }));
   const goggles = document.querySelector("[data-lab-goggles]");
   if (goggles) goggles.addEventListener("click", () => { lab.goggles = !lab.goggles; saveState(); render(); });

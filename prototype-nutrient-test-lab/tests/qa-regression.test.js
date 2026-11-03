@@ -9,7 +9,7 @@ import playwright from "playwright";
 const { chromium } = playwright;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = process.env.BIOQUEST_AUDIT_ROOT ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT) : path.resolve(root, "..");
-const version = "20261025-nutrient-test-lab-preview-v1";
+const version = "20261103-nutrient-test-lab-benedict-volume-v1";
 const questionVersion = "20260720-nutrient-test-starch-glucose-only-v2";
 const artifactDir = process.env.BIOQUEST_ARTIFACT_DIR
   ? path.resolve(process.env.BIOQUEST_ARTIFACT_DIR)
