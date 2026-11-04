@@ -9,7 +9,7 @@ import playwright from "playwright";
 const { chromium } = playwright;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = process.env.BIOQUEST_AUDIT_ROOT ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT) : path.resolve(root, "..");
-const version = "20260929-student-id-example-115001-v1";
+const version = "20261104-nutrient-test-lab-official-v1";
 const questionVersion = "20260720-nutrient-test-starch-glucose-only-v2";
 const artifactDir = process.env.BIOQUEST_ARTIFACT_DIR
   ? path.resolve(process.env.BIOQUEST_ARTIFACT_DIR)
@@ -138,13 +138,63 @@ async function login(page, mode) {
   await page.locator("#loginButton").click();
 }
 
-async function completeMission(page) {
+async function noOverflow(page, where) {
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
+  assert.equal(overflow, false, `${where}: no horizontal overflow`);
+}
+
+async function doLab(page, label) {
+  await page.waitForSelector("#screen[data-bioquest-screen='lab']");
+  assert.equal(await page.locator("#labNext").isDisabled(), true, `${label}: lab next locked at start`);
+  assert.doesNotMatch(await page.locator("#screen").textContent(), /麵粉水|葡萄糖水|沙拉油/, `${label}: identities hidden`);
+  await page.locator('[data-lab-predict="none"]').click();
+  for (const id of ["A", "B", "C", "D"]) {
+    await page.locator(`[data-lab-iodine="${id}"]`).click();
+    await page.waitForSelector(`[data-lab-iodine="${id}"]`, { state: "detached" });
+  }
+  const iodineRow = await page.locator('[data-lab-tube="iodine-A"] small').textContent();
+  assert.equal(iodineRow, "藍黑色", `${label}: A iodine blue-black`);
+  for (const id of ["A", "B", "C", "D"]) {
+    await page.locator(`[data-lab-benedict="${id}"]`).click();
+    await page.waitForSelector(`[data-lab-benedict="${id}"]`, { state: "detached" });
+  }
+  assert.equal(await page.locator("[data-lab-heat]").isDisabled(), true, `${label}: heating needs goggles`);
+  await page.locator("[data-lab-goggles]").click();
+  await page.locator("[data-lab-heat]").click();
+  await page.waitForSelector("[data-lab-judge]", { timeout: 8000 });
+  assert.equal(await page.locator('[data-lab-tube="benedict-B"] small').textContent(), "加熱後：橙紅色", `${label}: B benedict orange-red`);
+  assert.equal(await page.locator('[data-lab-tube="benedict-A"] small').textContent(), "加熱後：藍色", `${label}: A benedict blue`);
+  const judge = { A: ["yes", "no"], B: ["no", "yes"], C: ["no", "no"] };
+  // 先故意判錯一格，確認不會放行
+  await page.locator('[data-lab-judge="A"][data-key="starch"][data-value="no"]').click();
+  for (const [id, [starch, glucose]] of Object.entries(judge)) {
+    if (id !== "A") await page.locator(`[data-lab-judge="${id}"][data-key="starch"][data-value="${starch}"]`).click();
+    await page.locator(`[data-lab-judge="${id}"][data-key="glucose"][data-value="${glucose}"]`).click();
+  }
+  await page.locator("[data-lab-check]").click();
+  assert.equal(await page.locator("#labNext").isDisabled(), true, `${label}: wrong judgement stays locked`);
+  assert.match(await page.locator(".lab-judge").textContent(), /再看一次紀錄表/);
+  await page.locator('[data-lab-judge="A"][data-key="starch"][data-value="yes"]').click();
+  await page.locator("[data-lab-check]").click();
+  await page.waitForSelector(".lab-reveal");
+  assert.match(await page.locator(".lab-reveal").textContent(), /麵粉水[\s\S]*葡萄糖水[\s\S]*沙拉油[\s\S]*清水/);
+  await noOverflow(page, `${label} lab`);
+  await page.screenshot({ path: path.join(artifactDir, `${label}-lab.png`), fullPage: true });
+  await page.locator("#labNext").click();
+  await page.waitForSelector("#screen[data-bioquest-screen='checkpoint1']");
+}
+
+async function completeMission(page, label) {
   await page.locator("#briefNext").click();
   await page.waitForSelector(".nutrient-test-prep-owl img");
   await page.locator("#scanNext").click();
+  await doLab(page, label);
   for (const [item, value] of Object.entries(q01Answers)) await page.locator(`select[data-classify-question="q01"][data-classify-item="${item}"]`).selectOption(value);
   for (const qid of ["q02", "q03"]) await page.locator(`[data-choice="${qid}"][data-value="${choiceAnswers[qid]}"]`).click();
   await page.locator("#checkSection").click();
+  await page.waitForSelector("#screen[data-bioquest-screen='checkpoint2']");
+  await noOverflow(page, `${label} checkpoint2`);
+  await page.screenshot({ path: path.join(artifactDir, `${label}-checkpoint2.png`), fullPage: true });
   for (const qid of ["q06", "q07", "q08", "q13"]) await page.locator(`[data-choice="${qid}"][data-value="${choiceAnswers[qid]}"]`).click();
   await page.locator("#checkSection").click();
   for (const id of q10Answers) await page.locator(`[data-multi="q10"][data-value="${id}"]`).click();
@@ -182,11 +232,6 @@ async function runCase(browser, baseUrl, viewport, mode) {
     throw new Error(`did not reach brief for ${mode} ${viewport.width}: ${JSON.stringify(debug)}`);
   }
 
-  // 場景圖載入需要時間（service worker 接管時稍慢）：等圖片載完再量，載不出來仍由下方斷言判失敗
-  await page.waitForFunction(() => {
-    const images = [...document.querySelectorAll(".bq-brief-scene-stage img, .bq-brief-scene-image")];
-    return images.length > 0 && images.every((img) => img.complete && img.naturalWidth > 0);
-  }, null, { timeout: 10000 }).catch(() => undefined);
   const brief = await page.locator(".bq-brief-scene-stage").evaluate((scene) => ({
     imageCount: scene.querySelectorAll(".bq-brief-scene-image").length,
     imageNaturalWidth: scene.querySelector(".bq-brief-scene-image")?.naturalWidth || 0,
@@ -197,7 +242,7 @@ async function runCase(browser, baseUrl, viewport, mode) {
   assert.deepEqual([brief.imageCount, brief.avatarCount, brief.owlCount], [1, 1, 0], `${mode} ${viewport.width}: brief role counts`);
   assert.ok(brief.imageNaturalWidth > 0 && brief.avatarNaturalWidth > 0, `${mode} ${viewport.width}: brief images load`);
 
-  await completeMission(page);
+  await completeMission(page, `${mode}-${viewport.width}`);
   await page.waitForSelector("#screen[data-bioquest-screen='result']");
   const resultText = await page.locator("#screen").textContent();
   if (mode === "guest") assert.match(resultText, /guest 測試：本次預估 \d+\/500 EXP，不列入正式累積/);
@@ -269,7 +314,7 @@ async function runCase(browser, baseUrl, viewport, mode) {
   const resetMetrics = await page.evaluate(() => ({
     screen: document.querySelector("#screen")?.dataset.bioquestScreen,
     actions: (window.__backendActions || []).length,
-    state: JSON.parse(localStorage.getItem("bioquest_nutrient_test_state_v1") || "{}"),
+    state: JSON.parse(localStorage.getItem("bioquest_nutrient_test_state_v2") || "{}"),
     attempts: JSON.parse(localStorage.getItem("bioquest_attempts_v1") || "[]")
   }));
   assert.equal(resetMetrics.screen, "login", `${mode} ${viewport.width}: relogin returns to login`);
@@ -304,7 +349,7 @@ async function runCase(browser, baseUrl, viewport, mode) {
 }
 
 const { server, port } = await startServer(workspaceRoot);
-const browser = await chromium.launch({ headless: true, channel: "chrome" });
+const browser = await chromium.launch({ headless: true, ...(process.env.BIOQUEST_CHROME_PATH ? { executablePath: process.env.BIOQUEST_CHROME_PATH } : {}) });
 const results = [];
 try {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {

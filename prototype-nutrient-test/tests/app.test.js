@@ -5,6 +5,7 @@ const vm = require("node:vm");
 
 const appPath = path.resolve(__dirname, "../app.js");
 const appSource = fs.readFileSync(appPath, "utf8");
+const labSource = fs.readFileSync(path.resolve(__dirname, "../lab.js"), "utf8");
 const styleSource = fs.readFileSync(path.resolve(__dirname, "../styles.css"), "utf8");
 const storage = new Map();
 
@@ -69,7 +70,7 @@ const context = {
 };
 
 vm.createContext(context);
-vm.runInContext(`${appSource}\n;globalThis.__nutrientTest = { getState: () => state, setState: (next) => { state = next; }, calculateResult, allRequiredAnswered, isLockedScreen, evaluateReflectionQuality, mission, assets, badges, questions, classifyQuestions, multiSelectQuestions, sectionMap, renderQuestionEvidence, renderQuestionImage, renderMultiSelect, renderCheckpoint3, renderResult, renderAchievements, renderRules, resetForRelogin, VERSION, QUESTION_VERSION };`, context);
+vm.runInContext(`${labSource}\n${appSource}\n;globalThis.__nutrientTest = { LAB_SAMPLES, labResult, labJudgeCorrect, labComplete, renderLab, renderLabEvidence, renderReflection, renderReview, renderScan, renderBrief, renderCheckpoint1, renderCheckpoint2, getState: () => state, setState: (next) => { state = next; }, calculateResult, allRequiredAnswered, isLockedScreen, evaluateReflectionQuality, mission, assets, badges, questions, classifyQuestions, multiSelectQuestions, sectionMap, renderQuestionEvidence, renderMultiSelect, renderCheckpoint3, renderResult, renderAchievements, renderRules, resetForRelogin, VERSION, QUESTION_VERSION };`, context);
 
 const api = context.__nutrientTest;
 const state = api.getState();
@@ -100,8 +101,7 @@ assert.equal(api.isLockedScreen("achievements"), false);
 [
   api.assets.briefingSceneHook,
   api.assets.ambientBackgroundHook,
-  api.assets.owlPrep,
-  api.assets.iodineStarchColorHook
+  api.assets.owlPrep
 ].forEach((relativePath) => assert.equal(fs.existsSync(path.resolve(__dirname, "..", relativePath)), true, relativePath));
 
 const canonicalAnswers = Object.fromEntries(api.questions.map((question) => [question.id, question.answer]));
@@ -112,24 +112,76 @@ assert.deepEqual(canonicalAnswers, {
 });
 assert.equal(JSON.stringify(api.multiSelectQuestions.q10.answers), JSON.stringify(["goggles", "away", "hot", "teacher_safe_method"]));
 assert.equal(appSource.includes("benedict-glucose-safety-water-bath.png"), false);
-for (const qid of ["q03", "q10", "q14"]) {
-  const rendered = qid === "q10" ? api.renderMultiSelect(qid) : api.renderQuestionEvidence(qid);
-  assert.equal(rendered.includes("<img"), false, `${qid} must use a non-operational text card`);
-  assert.match(rendered, /已完成觀察紀錄/);
+// 互動實驗台版（2026-11-04 正式取代原第 12 站）：題號、選項代號、正解與原第 12 站完全相同（後台不需重新部署）。
+// 下列快照取自取代前的 dev:prototype-nutrient-test/app.js（20260929-student-id-example-115001-v1）。
+const orig = {"shape": {"q": [["q02", "starch_iodine_test", "starch_possible", "iodine_benedict_confusion", ["starch_possible", "glucose_certain", "all_absent", "all_test"]], ["q03", "glucose_benedict_test", "glucose_possible", "benedict_no_heat", ["glucose_possible", "starch_certain", "no_nutrients", "all_nutrients"]], ["q06", "color_change_evidence", "starch_not_supported", "no_change_no_nutrients", ["starch_not_supported", "no_nutrients", "glucose_large", "all_test"]], ["q07", "evidence_limit", "starch_supported_glucose_not_supported", "color_all_nutrients", ["starch_supported_glucose_not_supported", "all_nutrients", "starch_means_glucose", "none"]], ["q08", "starch_iodine_test", "iodine_starch", "iodine_benedict_confusion", ["iodine_starch", "appearance", "benedict_without_context", "smell"]], ["q11", "control_group", "comparison_basis", "control_unnecessary", ["comparison_basis", "more_steps", "replace_unknown", "all_positive"]], ["q12", "control_group", "positive_negative", "control_unnecessary", ["positive_negative", "one_unknown", "mix_all", "no_record"]], ["q13", "evidence_limit", "target_limit", "color_all_nutrients", ["target_limit", "glucose_deeper", "no_control", "same_meaning"]], ["q14", "glucose_benedict_test", "heat_required", "benedict_no_heat", ["heat_required", "iodine_target", "all_positive", "all_test"]]], "m": [["q10", "benedict_safety", "unsafe_heating", ["goggles", "away", "hot", "teacher_safe_method"], ["goggles", "away", "hot", "teacher_safe_method", "toward_people", "smell"]]], "c": [["q01", "iodine_benedict_confusion", ["starch", "glucose"], [["iodine", "starch"], ["benedict", "glucose"]]]]}, "sectionMap": {"checkpoint1": ["q01", "q02", "q03"], "checkpoint2": ["q06", "q07", "q08", "q13"], "checkpoint3": ["q10", "q11", "q12", "q14"]}, "qv": "20260720-nutrient-test-starch-glucose-only-v2"};
+const shape = (qs, ms, cq) => JSON.stringify({
+  q: qs.map((q) => [q.id, q.concept, q.answer, q.misconception, q.options.map((o) => o.id)]),
+  m: Object.entries(ms).map(([id, c]) => [id, c.concept, c.misconception, c.answers, c.options.map((o) => o.id)]),
+  c: Object.entries(cq).map(([id, c]) => [id, c.misconception, c.options.map((o) => o.id), c.items.map((i) => [i.id, i.answer])])
+});
+assert.equal(shape(api.questions, api.multiSelectQuestions, api.classifyQuestions), JSON.stringify(orig.shape), "question ids / option ids / answers must match original station 12");
+assert.equal(JSON.stringify(api.sectionMap), JSON.stringify(orig.sectionMap));
+assert.equal(api.QUESTION_VERSION, orig.qv);
+
+// ROADMAP 題目用語原則：學生看得到的文字不出現內部用語
+const studentText = [
+  ...api.questions.flatMap((q) => [q.prompt, q.hint, ...q.options.map((o) => o.text)]),
+  ...Object.values(api.multiSelectQuestions).flatMap((c) => [c.prompt, c.hint, ...c.options.map((o) => o.text)]),
+  ...Object.values(api.classifyQuestions).flatMap((c) => [c.prompt, c.hint, ...c.items.map((i) => i.label), ...c.options.map((o) => o.label)]),
+  api.renderBrief(), api.renderScan(), api.renderCheckpoint1(), api.renderCheckpoint2(), api.renderCheckpoint3(), api.renderLab()
+].join("\n");
+for (const term of ["資料卡", "完成觀察", "完成安全加熱", "候選", "證據範圍", "判讀條件", "老師提供的"]) {
+  assert.equal(studentText.includes(term), false, `student-facing text must not contain ${term}`);
 }
-assert.match(api.renderQuestionEvidence("q06"), /未知樣品[\s\S]*未呈藍黑色[\s\S]*已知含澱粉樣品[\s\S]*清水比較/);
-assert.match(api.renderQuestionEvidence("q07"), /碘液紀錄[\s\S]*本氏液紀錄/);
-assert.doesNotMatch(api.renderQuestionEvidence("q07"), /蛋白質|脂質|雙縮脲|蘇丹|油斑/);
-assert.match(api.renderQuestionEvidence("q08"), /四張候選資料卡/);
-assert.equal(api.renderQuestionEvidence("q11"), "");
-assert.equal(api.renderQuestionEvidence("q12"), "");
+
+// 實驗台：結果與題目敘述一致
+const sampleOf = (id) => api.LAB_SAMPLES.find((s) => s.id === id);
+assert.equal(api.LAB_SAMPLES.map((s) => s.id).join(), "A,B,C,D");
+assert.equal(api.labResult("A", "iodine").text, "藍黑色");
+assert.notEqual(api.labResult("B", "iodine").text, "藍黑色");
+assert.notEqual(api.labResult("C", "iodine").text, "藍黑色");
+assert.notEqual(api.labResult("D", "iodine").text, "藍黑色");
+for (const id of ["A", "B", "C", "D"]) assert.equal(api.labResult(id, "benedictCold").text, "藍色", `${id} benedict before heating stays blue`);
+assert.equal(api.labResult("B", "benedictHot").text, "橙紅色");
+for (const id of ["A", "C", "D"]) assert.equal(api.labResult(id, "benedictHot").text, "藍色");
+assert.ok(sampleOf("D").control);
+// 題目引用的試管與實驗結果相符
+assert.match(api.questions.find((q) => q.id === "q02").prompt, /甲[\s\S]*藍黑色/);
+assert.match(api.questions.find((q) => q.id === "q03").prompt, /乙[\s\S]*橙紅色/);
+assert.match(api.questions.find((q) => q.id === "q06").prompt, /丙[\s\S]*沒有變成藍黑色/);
+assert.match(api.questions.find((q) => q.id === "q07").prompt, /甲[\s\S]*藍黑色[\s\S]*仍是藍色/);
+assert.match(api.questions.find((q) => q.id === "q11").prompt, /丁[\s\S]*清水/);
+for (const q of api.questions.filter((item) => item.lab)) {
+  const evidence = api.renderQuestionEvidence(q.id);
+  assert.match(evidence, /你的實驗紀錄/, `${q.id} shows lab record`);
+  q.lab.show.forEach((test) => assert.ok(evidence.includes(api.labResult(q.lab.sample, test).text.replace("（碘液原本的顏色）", "")), `${q.id} ${test}`));
+}
+for (const qid of ["q08", "q12", "q13"]) assert.equal(api.renderQuestionEvidence(qid), "", `${qid} needs no table`);
+assert.equal(api.renderMultiSelect("q10").includes("<img"), false);
+assert.doesNotMatch(api.renderQuestionEvidence("q07"), /蛋白質|雙縮脲|蘇丹|油斑/);
+
+// 實驗台判斷與完成條件
+const labState = { prediction: "B", iodine: { A: true, B: true, C: true, D: true }, benedict: { A: true, B: true, C: true, D: true }, heated: true, goggles: true, judge: { A: { starch: "yes", glucose: "no" }, B: { starch: "no", glucose: "yes" }, C: { starch: "no", glucose: "no" } } };
+state.lab = labState;
+assert.equal(api.labJudgeCorrect(), true);
+assert.equal(api.labComplete(), false, "must check judgement first");
+labState.judgedOk = true;
+assert.equal(api.labComplete(), true);
+assert.match(api.renderLab(), /揭曉[\s\S]*麵粉水[\s\S]*葡萄糖水[\s\S]*沙拉油[\s\S]*清水/);
+labState.judge.C.glucose = "yes";
+assert.equal(api.labJudgeCorrect(), false);
+labState.judge.C.glucose = "no";
+state.lab = { iodine: {}, benedict: {}, judge: {} };
+assert.doesNotMatch(api.renderLab(), /麵粉水|葡萄糖水|沙拉油/, "identities hidden before reveal");
+assert.match(api.renderLab(), /id="labNext" disabled/);
 assert.equal(api.classifyQuestions.q01.image, undefined);
-assert.match(styleSource, /\.evidence-table\s*\{[^}]*overflow-x:\s*auto/s);
 assert.match(styleSource, /@media \(max-width: 560px\)/);
 assert.equal(appSource.includes("renderSequenceQuestion"), false);
 assert.equal(appSource.includes("data-sequence-id"), false);
 assert.equal(appSource.includes("蛋白質檢測"), false);
 assert.equal(appSource.includes("脂質檢測"), false);
+assert.equal(api.isLockedScreen("lab"), true, "lab locked after submit");
 assert.equal(appSource.includes("雙縮脲"), false);
 assert.equal(appSource.includes("蘇丹"), false);
 
@@ -142,7 +194,7 @@ assert.match(appSource, /startAttempt/);
 assert.match(appSource, /hintEvent/);
 assert.match(appSource, /attempt_session_token/);
 assert.match(appSource, /提交後會進行結算，本次作答不能再修改/);
-assert.equal(api.VERSION, "20260929-student-id-example-115001-v1");
+assert.equal(api.VERSION, "20261104-nutrient-test-lab-official-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-nutrient-test-starch-glucose-only-v2");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "runtime cache must stay separate from canonical question version");
 assert.match(appSource, /question_version: QUESTION_VERSION/);
@@ -152,7 +204,7 @@ state.result = perfect;
 state.backend_status = "submitted_verified";
 state.screen = "result";
 assert.match(api.renderResult(), /data-result-earned-badges="true"/);
-assert.match(api.renderResult(), /badge-nutrient_test-nutrient_test_entry\.webp\?v=20260929-student-id-example-115001-v1/);
+assert.match(api.renderResult(), /badge-nutrient_test-nutrient_test_entry\.webp\?v=20261104-nutrient-test-lab-official-v1/);
 assert.match(api.renderResult(), /data-relogin-action="true"/);
 
 state.screen = "achievements";

@@ -63,7 +63,7 @@ appVersionOverrides.set("cell_structure", "20261027-cell-structure-wording-r3-v1
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
 appVersionOverrides.set("enzymes", "20261102-enzymes-wording-r3-v1");
-appVersionOverrides.set("nutrient_test", "20260929-student-id-example-115001-v1");
+appVersionOverrides.set("nutrient_test", "20261104-nutrient-test-lab-official-v1");
 appVersionOverrides.set("scale", "20261031-scale-wording-r3-v1");
 appVersionOverrides.set("nutrients_energy", "20261101-nutrients-energy-wording-r3-v1");
 appVersionOverrides.set("photosynthesis", "20261013-photosynthesis-result-fields-v1");
