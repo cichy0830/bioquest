@@ -66,7 +66,7 @@ appVersionOverrides.set("enzymes", "20261102-enzymes-wording-r3-v1");
 appVersionOverrides.set("nutrient_test", "20261104-nutrient-test-lab-official-v1");
 appVersionOverrides.set("scale", "20261031-scale-wording-r3-v1");
 appVersionOverrides.set("nutrients_energy", "20261101-nutrients-energy-wording-r3-v1");
-appVersionOverrides.set("photosynthesis", "20261013-photosynthesis-result-fields-v1");
+appVersionOverrides.set("photosynthesis", "20261105-photosynthesis-wording-r3-v1");
 appVersionOverrides.set("biological_organization", "20261030-biological-organization-wording-r3-v1");
 appVersionOverrides.set("cell_transport", "20261029-cell-transport-wording-r3-v1");
 appVersionOverrides.set("plant_material_transport", "20261017-plant-material-transport-reflection-spec-v1");

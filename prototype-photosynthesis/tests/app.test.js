@@ -43,7 +43,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-photosynthesis/app.js" });
 
 const api = context.window.__photosynthesisTest;
-assert.equal(api.VERSION, "20261013-photosynthesis-result-fields-v1");
+assert.equal(api.VERSION, "20261105-photosynthesis-wording-r3-v1");
 assert.equal(api.QUESTION_VERSION, "20260721-photosynthesis-q09-inactive-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -214,7 +214,7 @@ assert(!checkpoint.includes("思考流程"), "q09 thinking-flow prompt must not 
 assert(checkpoint.includes("確認這組答案"), "multi-select confirmation missing");
 assert(checkpoint.includes("每分鐘氣泡數"), "q11 data table missing");
 assert(checkpoint.includes(`img-photosynthesis-aquatic-bubbles-1280w.webp?v=${api.VERSION}`), "q11 image must use cache-busted 1280w runtime asset");
-assert(checkpoint.includes("遮光葉片紀錄"), "q10 evidence table missing");
+assert(checkpoint.includes("遮光葉片實驗結果"), "q10 evidence table missing");
 assert(checkpoint.includes(`img-photosynthesis-light-shade-1280w.webp?v=${api.VERSION}`), "q10 light/shade image must use cache-busted 1280w runtime asset");
 assert(checkpoint.includes(`img-photosynthesis-variable-control-1280w.webp?v=${api.VERSION}`), "q12 variable-control image must use cache-busted 1280w runtime asset");
 const checkpoint2 = api.renderCheckpoint("checkpoint2");

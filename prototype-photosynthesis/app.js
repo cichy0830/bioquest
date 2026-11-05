@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261013-photosynthesis-result-fields-v1";
+const VERSION = "20261105-photosynthesis-wording-r3-v1";
 const QUESTION_VERSION = "20260721-photosynthesis-q09-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -89,19 +89,19 @@ const badges = [
 ].map((badge) => ({ ...badge, badge_image_path: badgeAsset(badge.id), image_status: "ready" }));
 
 const questions = [
-  { id: "q01", section: "checkpoint1", concept: "photosynthesis_overview", type: "choice", answer: "photosynthesis", prompt: "綠色植物在有光時，能利用二氧化碳和水製造葡萄糖等養分，並釋放氧氣。這描述的是哪一種作用？", hint: "留意題目中同時出現光、二氧化碳、水、養分與氧氣。", misconception: "soil_as_food_source", options: [{ id: "photosynthesis", text: "光合作用" }, { id: "diffusion", text: "擴散作用" }, { id: "nutrient_test", text: "養分檢測" }, { id: "water_only", text: "單純吸水" }] },
-  { id: "q02", section: "checkpoint1", concept: "reactants_energy", type: "mapping", prompt: "請依完整光合作用反應，將相關項目分類。", hint: "水會參與反應，也會在反應過程中生成；簡化的淨反應式常把水列在原料端。", misconception: "light_as_reactant", items: [{ id: "carbon_dioxide", label: "二氧化碳" }, { id: "water", label: "水" }, { id: "light", label: "光" }, { id: "glucose", label: "葡萄糖" }, { id: "oxygen", label: "氧氣" }], choices: [{ id: "reactant", text: "原料" }, { id: "reactant_and_product", text: "原料，也是產物" }, { id: "energy", text: "能量來源" }, { id: "product", text: "產物" }], answer: { carbon_dioxide: "reactant", water: "reactant_and_product", light: "energy", glucose: "product", oxygen: "product" } },
-  { id: "q03", section: "checkpoint1", concept: "chloroplast_site", type: "choice", answer: "chloroplast", prompt: "葉片中哪一種構造最直接和光合作用進行有關？", hint: "想想哪個構造常出現在綠色植物細胞中，並和吸收光能製造養分有關。", misconception: "all_cells_photosynthesize", options: [{ id: "chloroplast", text: "葉綠體" }, { id: "cell_wall", text: "細胞壁" }, { id: "vacuole", text: "液胞" }, { id: "nuclear_membrane", text: "細胞核外膜" }] },
-  { id: "q04", section: "checkpoint1", concept: "reactants_energy", type: "choice", answer: "energy_not_reactant", prompt: "有同學說：「光是光合作用的原料之一。」哪個修正較合理？", hint: "先把「能量來源」和「參與反應的物質」分開看。", misconception: "light_as_reactant", options: [{ id: "energy_not_reactant", text: "光提供能量；二氧化碳是原料，水會參與反應也會在過程中生成" }, { id: "light_to_oxygen", text: "光會變成氧氣" }, { id: "light_food", text: "光是植物吸收的養分" }, { id: "no_light_needed", text: "沒有光也一定能大量製造養分" }] },
-  { id: "q05", section: "checkpoint2", concept: "leaf_structure_support", type: "mapping", prompt: "請將葉片構造與較主要的功能配對。", hint: "先想氣體從哪裡進出、物質怎麼運送、哪裡能利用光製造養分。", misconception: "leaf_structure_confusion", items: [{ id: "stomata", label: "氣孔" }, { id: "vein", label: "葉脈" }, { id: "chloroplast_in_leaf", label: "葉肉細胞中的葉綠體" }], choices: [{ id: "gas_exchange", text: "與二氧化碳、氧氣等氣體進出有關" }, { id: "transport", text: "協助運送水分與養分" }, { id: "site", text: "進行光合作用的重要場所" }], answer: { stomata: "gas_exchange", vein: "transport", chloroplast_in_leaf: "site" } },
-  { id: "q06", section: "checkpoint2", concept: "products", type: "choice", answer: "oxygen", prompt: "水生植物在強光下產生較多氣泡。若其他條件相近，這些氣泡常被用來作為哪一種產物的線索？", hint: "想想光合作用除了製造葡萄糖等養分，還會釋放哪一種氣體。", misconception: "oxygen_as_reactant", options: [{ id: "oxygen", text: "氧氣" }, { id: "starch", text: "澱粉" }, { id: "minerals", text: "土壤礦物質" }, { id: "protein", text: "蛋白質" }] },
-  { id: "q07", section: "checkpoint2", concept: "chloroplast_site", type: "choice", answer: "green_cells", prompt: "有同學說：「植物身上每一個細胞都一定能行光合作用。」哪個修正較合理？", hint: "回想葉綠體和綠色部位的線索，並想想根部或非綠色組織是否都一樣。", misconception: "all_cells_photosynthesize", options: [{ id: "green_cells", text: "光合作用主要在含葉綠體的綠色細胞中進行，不是每個植物細胞都一定能進行" }, { id: "all_roots", text: "所有根細胞都有大量葉綠體" }, { id: "animals_only", text: "只有動物細胞能行光合作用" }, { id: "cell_wall_site", text: "細胞壁就是光合作用場所" }] },
-  { id: "q08", section: "checkpoint2", concept: "photosynthesis_overview", type: "choice", answer: "soil_water_minerals_food_made", prompt: "有同學說：「植物的養分主要都是從土壤直接吸收來的。」哪個修正較合理？", hint: "不要把「吸收水和礦物質」和「製造有機養分」混成同一件事。", misconception: "soil_as_food_source", options: [{ id: "soil_water_minerals_food_made", text: "植物會從土壤吸收水和礦物質，也能用光合作用製造葡萄糖等養分" }, { id: "no_water", text: "植物完全不需要水" }, { id: "soil_glucose", text: "土壤直接提供所有葡萄糖" }, { id: "oxygen_food", text: "植物只靠氧氣製造養分" }] },
-  { id: "q10", section: "checkpoint3", concept: "starch_evidence", type: "choice", answer: "light_starch", prompt: "同一片葉子一半照光、一半遮光，之後用碘液檢測。照光處呈藍黑色，遮光處沒有明顯藍黑色。哪個解讀較合理？", hint: "先連結碘液和澱粉，再比較照光與遮光兩部分的差異。", misconception: "starch_test_overread", evidence: "starch", options: [{ id: "light_starch", text: "光照有助於葉片產生並累積澱粉證據" }, { id: "shade_oxygen", text: "遮光處產生最多氧氣" }, { id: "iodine_co2", text: "碘液可直接測出二氧化碳" }, { id: "same", text: "照光和遮光結果完全相同" }] },
-  { id: "q11", section: "checkpoint3", concept: "variable_evidence", type: "choice", answer: "strong_light_more_bubbles", prompt: "某水生植物在弱光下每分鐘約 2 個氣泡，在較強光下每分鐘約 10 個氣泡。若其他條件相近，較合理的推論是什麼？", hint: "比較兩個光照條件下的氣泡數，並想想氣泡常作為哪種產物的線索。", misconception: "no_control_variable", evidence: "bubbles", options: [{ id: "strong_light_more_bubbles", text: "光照增強時，光合作用產生氧氣的速率可能增加" }, { id: "weak_none", text: "弱光一定沒有任何生命活動" }, { id: "no_relation", text: "氣泡數和光合作用無關" }, { id: "water_glucose", text: "強光一定代表水變成葡萄糖" }] },
-  { id: "q12", section: "checkpoint3", concept: "variable_evidence", type: "set", answer: ["light_time", "plant_type_size", "water_amount", "temperature"], prompt: "若要檢查二氧化碳是否影響光合作用，哪些條件應盡量保持相同，才比較能判斷二氧化碳的影響？", hint: "題目想看二氧化碳的影響，因此除了二氧化碳以外，其他可能影響結果的條件要盡量相同。", misconception: "no_control_variable", options: [{ id: "light_time", text: "光照時間" }, { id: "plant_type_size", text: "植物種類與大小" }, { id: "water_amount", text: "水量" }, { id: "temperature", text: "溫度" }, { id: "co2_supply", text: "二氧化碳供應量" }, { id: "container_color", text: "容器顏色隨意改變" }] },
-  { id: "q13", section: "checkpoint3", concept: "photosynthesis_respiration_boundary", type: "choice", answer: "plants_respire_too", prompt: "有同學說：「植物白天行光合作用，所以植物不需要呼吸作用。」哪個修正較合理？", hint: "先分辨「製造養分」和「利用養分取得能量」是不是同一件事。", misconception: "plants_do_not_respire", options: [{ id: "plants_respire_too", text: "植物會行光合作用製造養分，也會進行呼吸作用利用養分釋放能量" }, { id: "night_only_alive", text: "植物只有夜晚才活著" }, { id: "no_energy", text: "植物完全不需要能量" }, { id: "chloroplast_respiration", text: "呼吸作用只會發生在葉綠體" }] },
-  { id: "q14", section: "checkpoint3", concept: "products", type: "choice", answer: "oxygen_product", prompt: "有同學說：「氧氣是光合作用的原料，植物會把氧氣變成葡萄糖。」哪個修正較合理？", hint: "回到原料和產物的分類，想想哪個氣體進入、哪個氣體常被釋放。", misconception: "oxygen_as_reactant", options: [{ id: "oxygen_product", text: "氧氣是產物之一；二氧化碳是原料，水會參與反應也會在過程中生成" }, { id: "oxygen_reactant", text: "氧氣是主要原料" }, { id: "glucose_sunlight", text: "葡萄糖會直接變成陽光" }, { id: "water_unrelated", text: "水不是光合作用相關物質" }] }
+  { id: "q01", section: "checkpoint1", concept: "photosynthesis_overview", type: "choice", answer: "photosynthesis", prompt: "綠色植物利用光，把二氧化碳和水製造成葡萄糖，並釋放氧氣。這是哪一種作用？", hint: "想想哪一種作用是「製造」養分，而不是分解或搬運物質。", misconception: "soil_as_food_source", options: [{ id: "photosynthesis", text: "光合作用" }, { id: "diffusion", text: "擴散作用" }, { id: "nutrient_test", text: "呼吸作用" }, { id: "water_only", text: "消化作用" }] },
+  { id: "q02", section: "checkpoint1", concept: "reactants_energy", type: "mapping", prompt: "依光合作用的完整反應，這些項目各扮演什麼角色？", hint: "先找出哪一項不是物質。水比較特別：反應中會用掉水，過程中也會產生水。", misconception: "light_as_reactant", items: [{ id: "carbon_dioxide", label: "二氧化碳" }, { id: "water", label: "水" }, { id: "light", label: "光" }, { id: "glucose", label: "葡萄糖" }, { id: "oxygen", label: "氧氣" }], choices: [{ id: "reactant", text: "原料" }, { id: "reactant_and_product", text: "原料，也是產物" }, { id: "energy", text: "提供能量" }, { id: "product", text: "產物" }], answer: { carbon_dioxide: "reactant", water: "reactant_and_product", light: "energy", glucose: "product", oxygen: "product" } },
+  { id: "q03", section: "checkpoint1", concept: "chloroplast_site", type: "choice", answer: "chloroplast", prompt: "葉片細胞中，光合作用在哪一種構造裡進行？", hint: "想想哪一種構造讓葉片看起來是綠色的。", misconception: "all_cells_photosynthesize", options: [{ id: "chloroplast", text: "葉綠體" }, { id: "cell_wall", text: "細胞壁" }, { id: "vacuole", text: "液胞" }, { id: "nuclear_membrane", text: "細胞核" }] },
+  { id: "q04", section: "checkpoint1", concept: "reactants_energy", type: "choice", answer: "energy_not_reactant", prompt: "同學說：「光是光合作用的原料之一。」這句話對嗎？", hint: "先把「提供能量」和「參與反應的物質」分開想。", misconception: "light_as_reactant", options: [{ id: "energy_not_reactant", text: "不對，光提供能量，不是參與反應的物質" }, { id: "light_to_oxygen", text: "對，光在反應後會變成氧氣釋放出來" }, { id: "light_food", text: "對，光是植物從外界吸收的一種養分" }, { id: "no_light_needed", text: "不對，沒有光植物也能大量製造養分" }] },
+  { id: "q05", section: "checkpoint2", concept: "leaf_structure_support", type: "mapping", prompt: "葉片的這些構造，各有什麼主要功能？", hint: "想想氣體從哪裡進出、水分靠什麼運送、養分在哪裡製造。", misconception: "leaf_structure_confusion", items: [{ id: "stomata", label: "氣孔" }, { id: "vein", label: "葉脈" }, { id: "chloroplast_in_leaf", label: "葉肉細胞中的葉綠體" }], choices: [{ id: "gas_exchange", text: "讓二氧化碳、氧氣等氣體進出" }, { id: "transport", text: "運送水分和養分" }, { id: "site", text: "進行光合作用的場所" }], answer: { stomata: "gas_exchange", vein: "transport", chloroplast_in_leaf: "site" } },
+  { id: "q06", section: "checkpoint2", concept: "products", type: "choice", answer: "oxygen", prompt: "水生植物照強光時會冒出許多氣泡，這些氣泡主要是什麼氣體？", hint: "想想光合作用的產物中，哪一個是氣體。", misconception: "oxygen_as_reactant", options: [{ id: "oxygen", text: "氧氣" }, { id: "starch", text: "二氧化碳" }, { id: "minerals", text: "氮氣" }, { id: "protein", text: "水蒸氣" }] },
+  { id: "q07", section: "checkpoint2", concept: "chloroplast_site", type: "choice", answer: "green_cells", prompt: "同學說：「植物身上每一個細胞都能進行光合作用。」這句話對嗎？", hint: "根的細胞是什麼顏色？想想它們有沒有葉綠體。", misconception: "all_cells_photosynthesize", options: [{ id: "green_cells", text: "不對，只有含葉綠體的細胞才能進行" }, { id: "all_roots", text: "對，根的細胞也含有很多葉綠體" }, { id: "animals_only", text: "對，只要照得到光的細胞都能進行" }, { id: "cell_wall_site", text: "對，光合作用是在細胞壁上進行的" }] },
+  { id: "q08", section: "checkpoint2", concept: "photosynthesis_overview", type: "choice", answer: "soil_water_minerals_food_made", prompt: "同學說：「植物的養分都是從土壤直接吸收來的。」這句話對嗎？", hint: "根從土壤吸收的是什麼？葡萄糖又是從哪裡來的？", misconception: "soil_as_food_source", options: [{ id: "soil_water_minerals_food_made", text: "不對，根吸收水和礦物質，葡萄糖是植物自己製造的" }, { id: "no_water", text: "不對，植物不需要水，只要有陽光就能長大" }, { id: "soil_glucose", text: "對，土壤裡的葡萄糖會被根直接吸收上來" }, { id: "oxygen_food", text: "不對，植物是吸收空氣中的氧氣來製造養分" }] },
+  { id: "q10", section: "checkpoint3", concept: "starch_evidence", type: "choice", answer: "light_starch", prompt: "葉子一半照光、一半遮光，再用碘液檢測，結果如下表。由結果可以知道什麼？", hint: "碘液遇到什麼會變藍黑色？比較 A、B 兩區的差別。", misconception: "starch_test_overread", evidence: "starch", options: [{ id: "light_starch", text: "葉片照光的部分才有製造澱粉" }, { id: "shade_oxygen", text: "遮光的部分製造了較多氧氣" }, { id: "iodine_co2", text: "碘液可以檢測葉片裡的二氧化碳" }, { id: "same", text: "照光和遮光兩部分的結果相同" }] },
+  { id: "q11", section: "checkpoint3", concept: "variable_evidence", type: "choice", answer: "strong_light_more_bubbles", prompt: "水生植物在不同光照下的氣泡數如下表（其他條件相同）。由結果可以知道什麼？", hint: "氣泡主要是什麼氣體？比較弱光和強光的氣泡數。", misconception: "no_control_variable", evidence: "bubbles", options: [{ id: "strong_light_more_bubbles", text: "光變強時，植物產生氧氣變快" }, { id: "weak_none", text: "弱光下植物沒有任何生命活動" }, { id: "no_relation", text: "氣泡多少和光的強弱沒有關係" }, { id: "water_glucose", text: "光變強時，水會直接變成葡萄糖" }] },
+  { id: "q12", section: "checkpoint3", concept: "variable_evidence", type: "set", answer: ["light_time", "plant_type_size", "water_amount", "temperature"], prompt: "想知道二氧化碳會不會影響光合作用，哪些條件要保持相同？", hint: "要研究的是二氧化碳，所以除了它以外，其他條件都要一樣。", misconception: "no_control_variable", options: [{ id: "light_time", text: "光照時間" }, { id: "plant_type_size", text: "植物種類與大小" }, { id: "water_amount", text: "水量" }, { id: "temperature", text: "溫度" }, { id: "co2_supply", text: "二氧化碳的量" }, { id: "container_color", text: "每組用不同顏色的容器" }] },
+  { id: "q13", section: "checkpoint3", concept: "photosynthesis_respiration_boundary", type: "choice", answer: "plants_respire_too", prompt: "同學說：「植物白天行光合作用，所以不需要呼吸作用。」這句話對嗎？", hint: "製造養分和利用養分取得能量，是同一件事嗎？", misconception: "plants_do_not_respire", options: [{ id: "plants_respire_too", text: "不對，植物也要進行呼吸作用來釋放能量" }, { id: "night_only_alive", text: "對，植物只有在夜晚才需要進行呼吸作用" }, { id: "no_energy", text: "對，植物自己會製造養分，所以不需要能量" }, { id: "chloroplast_respiration", text: "不對，植物的呼吸作用只在葉綠體裡進行" }] },
+  { id: "q14", section: "checkpoint3", concept: "products", type: "choice", answer: "oxygen_product", prompt: "同學說：「植物會把氧氣變成葡萄糖。」這句話對嗎？", hint: "想想光合作用時，哪一種氣體被葉片吸收、哪一種被放出來。", misconception: "oxygen_as_reactant", options: [{ id: "oxygen_product", text: "不對，氧氣是產物，原料是二氧化碳和水" }, { id: "oxygen_reactant", text: "對，氧氣是光合作用最主要的原料" }, { id: "glucose_sunlight", text: "不對，是葡萄糖會變成氧氣和陽光" }, { id: "water_unrelated", text: "對，只要有氧氣，不需要水也能製造" }] }
 ];
 
 const questionMap = Object.fromEntries(questions.map((question) => [question.id, question]));
@@ -817,7 +817,7 @@ function renderBrief() {
           <div class="scene-copy">
             <p class="eyebrow">${mission.mission_area}</p>
             <h2>${mission.mission_title}</h2>
-            <p>綠葉能量研究站正在比較葉片在光下累積養分的證據。請協助追蹤原料、能量、產物與資料線索。</p>
+            <p>綠葉能量研究站發現，葉片照光後會累積養分。一起找出植物製造養分需要什麼、會產生什麼。</p>
           </div>
           <div class="title-avatar-brief">
             <img src="${titleAvatarPath()}" alt="學生稱號角色" onerror="this.src='${assets.titleAvatarFallback}'">
@@ -842,19 +842,19 @@ function renderScan() {
     <div class="stack">
       <section class="panel prep-panel">
         <p class="eyebrow">任務準備</p>
-        <h2>進入綠葉能量研究站前，先抓住四個判斷線索</h2>
+        <h2>先複習前面學過的</h2>
         <div class="prep-owl-hero">
           <img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'">
           <div>
-            <h3>光合作用不是背公式，而是追蹤原料、能量、產物和證據。</h3>
-            <p>遇到資料題時，先確認改變條件，再比較澱粉或氣泡等結果。</p>
+            <h3>作答時先分清楚：哪些是物質，哪些是能量。</h3>
+            <p>實驗題先找出改變了什麼條件，再比較結果。</p>
           </div>
         </div>
         <div class="concept-grid">
-          <article><strong>反應物質</strong><p>二氧化碳是原料；完整反應中，水會參與反應，也會在過程中生成。</p></article>
-          <article><strong>能量</strong><p>光提供能量，但不是物質原料。</p></article>
-          <article><strong>場所</strong><p>主要在含葉綠體的綠色細胞中進行。</p></article>
-          <article><strong>證據</strong><p>澱粉檢測與氧氣氣泡都要搭配對照條件判讀。</p></article>
+          <article><strong>葉綠體（第 6 站）</strong><p>植物細胞裡綠色的構造，動物細胞沒有。</p></article>
+          <article><strong>葡萄糖與澱粉（第 11 站）</strong><p>都屬於醣類，是生物主要的能量來源。</p></article>
+          <article><strong>碘液（第 12 站）</strong><p>碘液遇到澱粉會變成藍黑色。</p></article>
+          <article><strong>變因（第 2 站）</strong><p>只改變要研究的條件，其他條件保持相同。</p></article>
         </div>
         <button class="primary" data-next="checkpoint1">開始光合作用基礎</button>
       </section>
@@ -864,9 +864,9 @@ function renderScan() {
 
 function renderCheckpoint(section) {
   const heading = {
-    checkpoint1: ["光合作用基礎", "先整理光、二氧化碳、水、養分、氧氣與葉綠體。"],
-    checkpoint2: ["葉片構造與產物", "把葉片功能、氣泡與植物養分來源迷思串起來。"],
-    checkpoint3: ["證據與變因判讀", "用資料表與控制變因判斷光合作用證據。"]
+    checkpoint1: ["光合作用基礎", "光合作用需要什麼、產生什麼、在哪裡進行。"],
+    checkpoint2: ["葉片構造與產物", "葉片的構造、冒出的氣泡，以及植物的養分從哪裡來。"],
+    checkpoint3: ["光合作用的實驗", "看實驗結果，想想可以知道什麼。"]
   }[section];
   return `
     <div class="stack checkpoint-stack">
@@ -877,7 +877,7 @@ function renderCheckpoint(section) {
       </section>
       ${sections[section].map((id) => renderQuestion(questionMap[id])).join("")}
       <section class="panel action-panel">
-        <p class="muted">本區每題都需留下作答紀錄；不確定可先選擇，任務後會給概念回饋。</p>
+        <p class="muted">每題都要作答；不確定也先選一個，完成後會有回饋。</p>
         <button class="primary" data-section-next="${section}">${section === "checkpoint3" ? "整理任務回饋" : "前往下一關"}</button>
       </section>
     </div>
@@ -903,27 +903,27 @@ function conceptLabel(concept) {
   return {
     photosynthesis_overview: "光合作用概念",
     reactants_energy: "原料、能量與產物",
-    chloroplast_site: "葉綠體場所",
+    chloroplast_site: "進行的位置",
     leaf_structure_support: "葉片構造",
-    products: "產物與證據",
-    variable_evidence: "變因與資料",
-    starch_evidence: "澱粉證據",
+    products: "產物",
+    variable_evidence: "實驗與變因",
+    starch_evidence: "澱粉檢測",
     photosynthesis_respiration_boundary: "光合作用與呼吸作用"
   }[concept] || concept;
 }
 
 function renderQuestionEvidence(qid) {
   if (qid === "q05") {
-    return `<figure class="question-asset"><img src="${cacheBustedAsset(assets.questionLeafStructure)}" alt="葉片構造示意圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>葉片構造觀察圖。請依構造功能配對，不只看位置。</figcaption></figure>`;
+    return `<figure class="question-asset"><img src="${cacheBustedAsset(assets.questionLeafStructure)}" alt="葉片構造示意圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>葉片的構造示意圖。</figcaption></figure>`;
   }
   if (qid === "q10") {
-    return `<figure class="question-asset"><img src="${cacheBustedAsset(assets.questionLightShade)}" alt="同一葉片不同光照區域示意圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>同一片葉子的兩個區域比較。</figcaption></figure><div class="evidence-card"><strong>遮光葉片紀錄</strong><table><thead><tr><th>區域</th><th>光照</th><th>碘液結果</th></tr></thead><tbody><tr><td>A</td><td>照光</td><td>呈藍黑色</td></tr><tr><td>B</td><td>遮光</td><td>沒有明顯藍黑色</td></tr></tbody></table></div>`;
+    return `<figure class="question-asset"><img src="${cacheBustedAsset(assets.questionLightShade)}" alt="同一葉片不同光照區域示意圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>同一片葉子：A 區照光，B 區遮光。</figcaption></figure><div class="evidence-card"><strong>遮光葉片實驗結果</strong><table><thead><tr><th>區域</th><th>光照</th><th>碘液結果</th></tr></thead><tbody><tr><td>A</td><td>照光</td><td>呈藍黑色</td></tr><tr><td>B</td><td>遮光</td><td>沒有明顯藍黑色</td></tr></tbody></table></div>`;
   }
   if (qid === "q11") {
-    return `<figure class="question-asset"><img src="${cacheBustedAsset(assets.questionBubbles)}" alt="水生植物氣泡觀察圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>水生植物氣泡觀察。請搭配數據比較。</figcaption></figure><div class="evidence-card"><strong>水生植物氣泡紀錄</strong><table><thead><tr><th>條件</th><th>每分鐘氣泡數</th></tr></thead><tbody><tr><td>弱光</td><td>約 2 個</td></tr><tr><td>較強光</td><td>約 10 個</td></tr></tbody></table></div>`;
+    return `<figure class="question-asset"><img src="${cacheBustedAsset(assets.questionBubbles)}" alt="水生植物氣泡觀察圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>照光的水生植物會冒出氣泡。</figcaption></figure><div class="evidence-card"><strong>水生植物氣泡數</strong><table><thead><tr><th>光照</th><th>每分鐘氣泡數</th></tr></thead><tbody><tr><td>弱光</td><td>約 2 個</td></tr><tr><td>強光</td><td>約 10 個</td></tr></tbody></table></div>`;
   }
   if (qid === "q12") {
-    return `<figure class="question-asset"><img src="${cacheBustedAsset(assets.questionVariableControl)}" alt="光合作用變因比較示意圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>變因比較示意圖。請判斷哪些條件應保持相同。</figcaption></figure><div class="multi-note">可複選。先選出所有應保持相同的條件，再按「確認這組答案」。</div>`;
+    return `<figure class="question-asset"><img src="${cacheBustedAsset(assets.questionVariableControl)}" alt="光合作用變因比較示意圖" onerror="this.closest('figure').classList.add('asset-fallback'); this.remove();"><figcaption>兩組實驗的比較示意圖。</figcaption></figure><div class="multi-note">可複選。選好所有要保持相同的條件，再按「確認這組答案」。</div>`;
   }
   return "";
 }
@@ -985,8 +985,8 @@ function renderReview() {
     <div class="stack" data-feedback-state="${stateName}">
       <section class="panel">
         <p class="eyebrow">概念回饋</p>
-        <h2>先整理你目前的光合作用線索</h2>
-        <p class="lead">這裡不只看分數，也會整理你可以再閱讀或帶到課堂討論的方向。</p>
+        <h2>看看你目前的掌握情形</h2>
+        <p class="lead">這裡不只看分數，也會列出可以再複習或帶到課堂討論的地方。</p>
         <div class="feedback-columns">
           <article>
             <h3>目前較穩定</h3>
@@ -1005,14 +1005,14 @@ function renderReview() {
 
 function misconceptionText(tag) {
   return {
-    soil_as_food_source: "植物會從土壤吸收水和礦物質，但葡萄糖等養分可由光合作用製造。",
-    light_as_reactant: "光提供能量；二氧化碳是原料，水會參與反應也會在過程中生成。",
-    oxygen_as_reactant: "二氧化碳是主要氣體原料，氧氣是光合作用產物之一。",
-    all_cells_photosynthesize: "光合作用主要在含葉綠體的綠色細胞中進行。",
-    leaf_structure_confusion: "氣孔與氣體進出有關，葉脈協助運送，葉綠體和製造養分有關。",
-    starch_test_overread: "碘液可支持澱粉存在，需搭配光照或對照條件判斷。",
-    no_control_variable: "判讀實驗要找改變條件、控制條件與結果差異。",
-    plants_do_not_respire: "植物能製造養分，也需要利用養分取得能量。"
+    soil_as_food_source: "根從土壤吸收水和礦物質；葡萄糖是植物用光合作用自己製造的。",
+    light_as_reactant: "光提供能量，不是原料；原料是二氧化碳和水。",
+    oxygen_as_reactant: "二氧化碳是原料，氧氣是光合作用的產物。",
+    all_cells_photosynthesize: "光合作用在含葉綠體的細胞中進行，根的細胞大多沒有葉綠體。",
+    leaf_structure_confusion: "氣孔讓氣體進出，葉脈運送水分和養分，葉綠體製造養分。",
+    starch_test_overread: "碘液變藍黑色表示有澱粉；要和遮光的部分比較，才知道光的影響。",
+    no_control_variable: "做實驗時，只改變要研究的條件，其他條件保持相同。",
+    plants_do_not_respire: "植物會製造養分，也要進行呼吸作用來釋放能量。"
   }[tag] || tag;
 }
 
@@ -1020,8 +1020,8 @@ function feedbackTitle(stateName) {
   return {
     excellent: "概念連線非常穩定",
     strong: "概念掌握良好",
-    stable: "可以再補幾個線索",
-    needs_review: "適合回到證據慢慢整理",
+    stable: "還有幾個地方可以再複習",
+    needs_review: "回到課本慢慢整理",
     retry_ready: "先整理關鍵概念再挑戰"
   }[stateName];
 }
@@ -1037,7 +1037,7 @@ function renderReflection() {
           <input id="confidentConcept" type="text" value="${escapeHtml(state.reflection.confident)}" placeholder="例如：光是能量來源">
         </label>
         <label>我想上課請老師說明的部分
-          <textarea id="studentQuestion" rows="5" placeholder="例如：我想確認碘液變藍黑色能支持哪些結論，不能過度推論哪些事。">${escapeHtml(state.reflection.question)}</textarea>
+          <textarea id="studentQuestion" rows="5" placeholder="例如：為什麼遮光的部分滴碘液後不會變藍黑色？">${escapeHtml(state.reflection.question)}</textarea>
         </label>
         <label>信心程度
           <select id="confidenceLevel">
