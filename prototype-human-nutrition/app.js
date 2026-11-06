@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-  const VERSION = "20261013-human-nutrition-result-fields-v1";
+  const VERSION = "20261106-human-nutrition-wording-r3-v1";
   const QUESTION_VERSION = "20260723-human-nutrition-digestive-classification-v2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -110,20 +110,20 @@ const sequenceSteps = [
 const correctSequence = ["mouth", "esophagus", "stomach", "small_intestine", "large_intestine", "anus"];
 
 const questions = [
-  { id: "q01", section: "checkpoint1", concept: "digestive_system_parts", type: "mapping", prompt: "請將下列構造分成「食物會通過的消化道器官」與「分泌消化液的消化腺構造」。", hint: "先看名稱是在說一整段食物會通過的器官，還是在說會分泌消化液的腺體；不要只因為某器官內有腺體，就把整個器官改成消化腺。", misconception: "tract_gland_confusion", items: [{ id: "mouth", label: "口腔" }, { id: "esophagus", label: "食道" }, { id: "stomach", label: "胃" }, { id: "small_intestine", label: "小腸" }, { id: "large_intestine", label: "大腸" }, { id: "salivary_gland", label: "唾液腺" }, { id: "gastric_gland", label: "胃腺" }, { id: "intestinal_gland", label: "腸腺" }, { id: "liver", label: "肝臟" }, { id: "pancreas", label: "胰臟" }], choices: [{ id: "tract", text: "食物會通過的消化道器官" }, { id: "gland", text: "分泌消化液的消化腺構造" }], answer: { mouth: "tract", esophagus: "tract", stomach: "tract", small_intestine: "tract", large_intestine: "tract", salivary_gland: "gland", gastric_gland: "gland", intestinal_gland: "gland", liver: "gland", pancreas: "gland" } },
-  { id: "q02", section: "checkpoint1", concept: "food_path", type: "sequence", prompt: "請拖曳排序卡，排出食物通過消化道的大致順序。", hint: "先從吃進食物的入口開始，再想推送、混合、主要吸收、吸收水分與排出的路線。", misconception: "gland_in_food_path", steps: sequenceSteps, answer: correctSequence },
-  { id: "q03", section: "checkpoint1", concept: "digestive_system_parts", type: "choice", answer: "glands", prompt: "下列哪一組較適合稱為「消化腺」？", hint: "題目問的是分泌消化液的構造，不是食物通過的整條路線。", misconception: "tract_gland_confusion", options: [{ id: "glands", text: "唾液腺、肝臟、胰臟" }, { id: "tract", text: "食道、小腸、大腸" }, { id: "ends", text: "口腔、胃、肛門" }, { id: "other", text: "心臟、肺、腎臟" }] },
-  { id: "q04", section: "checkpoint1", concept: "organ_functions", type: "mapping", prompt: "請將器官與較主要的功能配對。", hint: "先想食物到了哪一段，再判斷是咀嚼、推送、混合、吸收養分或吸收水分。", misconception: "all_organs_same_function", items: [{ id: "mouth", label: "口腔" }, { id: "esophagus", label: "食道" }, { id: "stomach", label: "胃" }, { id: "small_intestine", label: "小腸" }, { id: "large_intestine", label: "大腸" }], choices: [{ id: "chew", text: "咀嚼並開始部分消化" }, { id: "push", text: "推送食物" }, { id: "mix", text: "混合食物並進行部分消化" }, { id: "absorb_nutrients", text: "主要消化與吸收養分" }, { id: "absorb_water", text: "主要吸收水分並形成糞便" }], answer: { mouth: "chew", esophagus: "push", stomach: "mix", small_intestine: "absorb_nutrients", large_intestine: "absorb_water" } },
-  { id: "q05", section: "checkpoint2", concept: "digestion_process", type: "choice", answer: "digestion", prompt: "澱粉、蛋白質、脂質等較大的養分需要被分解成較小物質，身體才較容易吸收。這描述的是哪個概念？", hint: "留意「分解成較小物質」和「較容易吸收」。", misconception: "digestion_absorption_same", options: [{ id: "digestion", text: "消化作用" }, { id: "absorption", text: "吸收作用" }, { id: "photosynthesis", text: "光合作用" }, { id: "excretion", text: "排泄作用" }] },
-  { id: "q06", section: "checkpoint2", concept: "enzyme_digestive_link", type: "mapping", prompt: "請將常見消化酵素與較適合的作用對象配對。", hint: "回想酵素專一性，先看名稱與養分類型的線索。", misconception: "enzyme_target_confusion", items: [{ id: "amylase", label: "澱粉酶" }, { id: "protease", label: "蛋白酶" }, { id: "lipase", label: "脂肪酶" }], choices: [{ id: "starch", text: "澱粉" }, { id: "protein", text: "蛋白質" }, { id: "lipid", text: "脂質" }], answer: { amylase: "starch", protease: "protein", lipase: "lipid" } },
-  { id: "q07", section: "checkpoint2", concept: "bile_not_enzyme", type: "choice", answer: "bile", prompt: "有同學說：「膽汁是分解脂質的酵素。」哪個修正較合理？", hint: "先分清楚「幫助消化」不一定等於「本身就是酵素」。", misconception: "bile_is_enzyme", options: [{ id: "bile", text: "膽汁可幫助脂質分散，利於後續消化，但本身不是酵素" }, { id: "starch", text: "膽汁會直接把澱粉變成葡萄糖" }, { id: "push", text: "膽汁只負責推送食物" }, { id: "acid", text: "膽汁是胃分泌的酸" }] },
-  { id: "q08", section: "checkpoint2", concept: "enzyme_digestive_link", type: "choice", answer: "protein", prompt: "如果某消化液中含有可分解蛋白質的酵素，它較可能協助哪一類養分變成較小物質？", hint: "先看酵素的作用對象，再連到哪一類養分需要被分解。", misconception: "enzyme_target_confusion", options: [{ id: "protein", text: "蛋白質" }, { id: "starch", text: "澱粉" }, { id: "lipid", text: "脂質" }, { id: "water", text: "水" }] },
-  { id: "q09", section: "checkpoint3", concept: "small_intestine_absorption", type: "choice", answer: "small_intestine", prompt: "人體中主要吸收養分的地方是哪一段？", hint: "想想哪一段具有許多絨毛，能增加吸收面積。", misconception: "stomach_main_absorption", options: [{ id: "small_intestine", text: "小腸" }, { id: "stomach", text: "胃" }, { id: "esophagus", text: "食道" }, { id: "mouth", text: "口腔" }] },
-  { id: "q10", section: "checkpoint3", concept: "small_intestine_absorption", type: "choice", answer: "absorb", prompt: "某器官內壁有大量絨毛狀構造，可增加與養分接觸的面積。這個特徵最能支持哪個功能？", hint: "觀察「絨毛」和「增加面積」兩個線索，再連到養分進入體內。", misconception: "villi_as_digestion_only", options: [{ id: "absorb", text: "有利於吸收養分" }, { id: "grind", text: "只負責磨碎食物" }, { id: "breathe", text: "只負責呼吸" }, { id: "bile", text: "主要把血液變成膽汁" }] },
-  { id: "q11", section: "checkpoint3", concept: "absorption_transport", type: "choice", answer: "absorb_transport", prompt: "養分被消化成可吸收的小分子後，進入小腸壁並由血液運送到全身。這段描述包含哪兩個概念？", hint: "先看養分是否「進入體內」，再看是否「被帶到全身」。", misconception: "food_chunk_enters_blood", options: [{ id: "absorb_transport", text: "吸收與運送" }, { id: "chew_swallow", text: "咀嚼與吞嚥" }, { id: "photosynthesis", text: "光合作用與蒸散作用" }, { id: "sweat", text: "呼吸與排汗" }] },
-  { id: "q12", section: "checkpoint3", concept: "digestion_absorption_difference", type: "mapping", prompt: "請判斷下列敘述較接近「消化」還是「吸收」。", hint: "先看關鍵字是「分解」還是「進入體內／血液」。", misconception: "digestion_absorption_same", items: [{ id: "starch_break", label: "澱粉被分解成較小分子" }, { id: "enter_wall", label: "小分子養分進入小腸壁" }, { id: "protein_break", label: "蛋白質被酵素分解" }, { id: "enter_blood", label: "養分進入血液" }], choices: [{ id: "digestion", text: "消化" }, { id: "absorption", text: "吸收" }], answer: { starch_break: "digestion", enter_wall: "absorption", protein_break: "digestion", enter_blood: "absorption" } },
-  { id: "q13", section: "checkpoint3", concept: "small_intestine_absorption", type: "choice", answer: "small_intestine", prompt: "有同學說：「胃是人體吸收養分的主要地方。」哪個修正較合理？", hint: "想想哪個器官有大量絨毛、適合增加吸收面積。", misconception: "stomach_main_absorption", options: [{ id: "small_intestine", text: "胃可混合食物並進行部分消化，小腸才是主要吸收養分的地方" }, { id: "stomach", text: "胃只負責吸收所有養分" }, { id: "large_intestine", text: "小腸只負責排便" }, { id: "none", text: "養分不需要經過吸收就能被使用" }] },
-  { id: "q14", section: "checkpoint3", concept: "digestion_absorption_difference", type: "choice", answer: "different", prompt: "有同學說：「消化就是吸收，兩個詞意思一樣。」哪個修正較合理？", hint: "先看一件事是在「分解」，還是在「進入體內」。", misconception: "digestion_absorption_same", options: [{ id: "different", text: "消化是分解食物，吸收是小分子養分進入體內，兩者相關但不同" }, { id: "large", text: "消化只發生在大腸" }, { id: "chew", text: "吸收只代表咀嚼" }, { id: "waste", text: "兩者都只是在排出廢物" }] }
+  { id: "q01", section: "checkpoint1", concept: "digestive_system_parts", type: "mapping", prompt: "下列構造屬於消化道，還是消化腺？", hint: "想一想：食物會不會從這個構造的中間直接經過？", misconception: "tract_gland_confusion", items: [{ id: "mouth", label: "口腔" }, { id: "esophagus", label: "食道" }, { id: "stomach", label: "胃" }, { id: "small_intestine", label: "小腸" }, { id: "large_intestine", label: "大腸" }, { id: "salivary_gland", label: "唾液腺" }, { id: "gastric_gland", label: "胃腺" }, { id: "intestinal_gland", label: "腸腺" }, { id: "liver", label: "肝臟" }, { id: "pancreas", label: "胰臟" }], choices: [{ id: "tract", text: "消化道（食物會經過）" }, { id: "gland", text: "消化腺（分泌消化液）" }], answer: { mouth: "tract", esophagus: "tract", stomach: "tract", small_intestine: "tract", large_intestine: "tract", salivary_gland: "gland", gastric_gland: "gland", intestinal_gland: "gland", liver: "gland", pancreas: "gland" } },
+  { id: "q02", section: "checkpoint1", concept: "food_path", type: "sequence", prompt: "食物從吃進去到排出，依序經過哪些器官？", hint: "從吃進食物的地方開始，想想食物吞下去後接著到哪裡。", misconception: "gland_in_food_path", steps: sequenceSteps, answer: correctSequence },
+  { id: "q03", section: "checkpoint1", concept: "digestive_system_parts", type: "choice", answer: "glands", prompt: "下列哪一組都是消化腺？", hint: "消化腺會分泌消化液，食物不會從它中間經過。", misconception: "tract_gland_confusion", options: [{ id: "glands", text: "唾液腺、肝臟、胰臟" }, { id: "tract", text: "食道、小腸、大腸" }, { id: "ends", text: "口腔、胃、肛門" }, { id: "other", text: "口腔、小腸、胰臟" }] },
+  { id: "q04", section: "checkpoint1", concept: "organ_functions", type: "mapping", prompt: "這些器官主要的功能是什麼？", hint: "想想食物到了這一段，主要發生什麼事。", misconception: "all_organs_same_function", items: [{ id: "mouth", label: "口腔" }, { id: "esophagus", label: "食道" }, { id: "stomach", label: "胃" }, { id: "small_intestine", label: "小腸" }, { id: "large_intestine", label: "大腸" }], choices: [{ id: "chew", text: "咀嚼食物，開始消化澱粉" }, { id: "push", text: "把食物推送到胃" }, { id: "mix", text: "攪拌食物，開始消化蛋白質" }, { id: "absorb_nutrients", text: "消化與吸收養分的主要場所" }, { id: "absorb_water", text: "吸收水分，形成糞便" }], answer: { mouth: "chew", esophagus: "push", stomach: "mix", small_intestine: "absorb_nutrients", large_intestine: "absorb_water" } },
+  { id: "q05", section: "checkpoint2", concept: "digestion_process", type: "choice", answer: "digestion", prompt: "大分子養分被分解成小分子，才容易被吸收。這個過程稱為什麼？", hint: "題目說的是養分被分解，還是養分進入身體？", misconception: "digestion_absorption_same", options: [{ id: "digestion", text: "消化作用" }, { id: "absorption", text: "吸收作用" }, { id: "photosynthesis", text: "呼吸作用" }, { id: "excretion", text: "排泄作用" }] },
+  { id: "q06", section: "checkpoint2", concept: "enzyme_digestive_link", type: "mapping", prompt: "這些消化酵素分別分解哪一類養分？", hint: "酵素有專一性：一種酵素通常只分解一類養分。", misconception: "enzyme_target_confusion", items: [{ id: "amylase", label: "澱粉酶" }, { id: "protease", label: "蛋白酶" }, { id: "lipase", label: "脂肪酶" }], choices: [{ id: "starch", text: "澱粉" }, { id: "protein", text: "蛋白質" }, { id: "lipid", text: "脂質" }], answer: { amylase: "starch", protease: "protein", lipase: "lipid" } },
+  { id: "q07", section: "checkpoint2", concept: "bile_not_enzyme", type: "choice", answer: "bile", prompt: "小明說：「膽汁是分解脂質的酵素。」哪一個說法才正確？", hint: "回想膽汁由哪裡製造，以及它讓脂質變成什麼樣子。", misconception: "bile_is_enzyme", options: [{ id: "bile", text: "膽汁不是酵素，但能幫助脂質分散" }, { id: "starch", text: "膽汁是把澱粉分解成葡萄糖的酵素" }, { id: "push", text: "膽汁只負責把食物推送到小腸裡" }, { id: "acid", text: "膽汁是由胃分泌、能分解食物的酸" }] },
+  { id: "q08", section: "checkpoint2", concept: "enzyme_digestive_link", type: "choice", answer: "protein", prompt: "胃液含有分解蛋白質的酵素。胃液主要幫助消化哪一類養分？", hint: "先找出這種酵素分解的對象。", misconception: "enzyme_target_confusion", options: [{ id: "protein", text: "蛋白質" }, { id: "starch", text: "澱粉" }, { id: "lipid", text: "脂質" }, { id: "water", text: "水" }] },
+  { id: "q09", section: "checkpoint3", concept: "small_intestine_absorption", type: "choice", answer: "small_intestine", prompt: "人體主要在哪裡吸收養分？", hint: "回想食物經過的順序：養分在哪一段被消化完成？", misconception: "stomach_main_absorption", options: [{ id: "small_intestine", text: "小腸" }, { id: "stomach", text: "胃" }, { id: "esophagus", text: "食道" }, { id: "mouth", text: "口腔" }] },
+  { id: "q10", section: "checkpoint3", concept: "small_intestine_absorption", type: "choice", answer: "absorb", prompt: "某器官的內壁有許多絨毛，增加了表面積。這有什麼好處？", hint: "表面積變大，和養分接觸的地方就變多。", misconception: "villi_as_digestion_only", options: [{ id: "absorb", text: "有利於吸收養分" }, { id: "grind", text: "有利於磨碎食物" }, { id: "breathe", text: "有利於交換氣體" }, { id: "bile", text: "有利於製造膽汁" }] },
+  { id: "q11", section: "checkpoint3", concept: "absorption_transport", type: "choice", answer: "absorb_transport", prompt: "小分子養分進入小腸壁，再由血液送到全身。這句話描述了哪兩件事？", hint: "先看養分有沒有進入身體，再看它被帶到哪裡。", misconception: "food_chunk_enters_blood", options: [{ id: "absorb_transport", text: "吸收與運送" }, { id: "chew_swallow", text: "咀嚼與吞嚥" }, { id: "photosynthesis", text: "消化與排遺" }, { id: "sweat", text: "呼吸與排汗" }] },
+  { id: "q12", section: "checkpoint3", concept: "digestion_absorption_difference", type: "mapping", prompt: "下列各項屬於消化，還是吸收？", hint: "養分是被分解，還是進入身體？", misconception: "digestion_absorption_same", items: [{ id: "starch_break", label: "澱粉被分解成較小分子" }, { id: "enter_wall", label: "小分子養分進入小腸壁" }, { id: "protein_break", label: "蛋白質被酵素分解" }, { id: "enter_blood", label: "養分進入血液" }], choices: [{ id: "digestion", text: "消化" }, { id: "absorption", text: "吸收" }], answer: { starch_break: "digestion", enter_wall: "absorption", protein_break: "digestion", enter_blood: "absorption" } },
+  { id: "q13", section: "checkpoint3", concept: "small_intestine_absorption", type: "choice", answer: "small_intestine", prompt: "小華說：「胃是人體吸收養分的主要地方。」哪一個說法才正確？", hint: "想想哪一段的內壁有許多絨毛。", misconception: "stomach_main_absorption", options: [{ id: "small_intestine", text: "胃能消化部分食物，主要吸收養分的是小腸" }, { id: "stomach", text: "胃能吸收所有養分，小腸只負責吸收水分" }, { id: "large_intestine", text: "胃只負責攪拌食物，主要吸收養分的是大腸" }, { id: "none", text: "養分不必經過吸收，就能直接被細胞使用" }] },
+  { id: "q14", section: "checkpoint3", concept: "digestion_absorption_difference", type: "choice", answer: "different", prompt: "小美說：「消化就是吸收，兩個詞意思一樣。」哪一個說法才正確？", hint: "養分被分解，和養分進入血液，是同一件事嗎？", misconception: "digestion_absorption_same", options: [{ id: "different", text: "消化是把養分分解，吸收是小分子進入體內" }, { id: "large", text: "消化和吸收都只發生在大腸，所以意思一樣" }, { id: "chew", text: "消化是指咀嚼，吸收是指把食物吞下去" }, { id: "waste", text: "消化和吸收都是把廢物排出體外的過程" }] }
 ];
 
 const questionMap = Object.fromEntries(questions.map((question) => [question.id, question]));
@@ -1018,10 +1018,10 @@ function renderBrief() {
             <strong>${escapeHtml(identity.greeting)}</strong>
             <span>${escapeHtml(identity.details)}</span>
           </div>
-          <p>生命補給轉運站收到一份食物進入人體後的追蹤紀錄。請協助整理它如何被分解、吸收並由血液運送。</p>
+          <p>一口飯吃下去之後，會經過哪些器官？在哪裡被分解、在哪裡進入身體，又怎麼送到全身？一起來追蹤。</p>
         </div>
         <div class="button-row">
-          <button class="primary" data-next="scan">查看進關卡提醒</button>
+          <button class="primary" data-next="scan">下一步：任務準備</button>
           <button class="secondary" data-next="rules">先看規則</button>
         </div>
       </section>
@@ -1030,24 +1030,16 @@ function renderBrief() {
 }
 
 function renderDigestiveSystemFallbackFigure() {
-  const hotspots = ["mouth", "salivary_gland", "pharynx", "esophagus", "stomach", "liver", "pancreas", "small_intestine", "large_intestine", "rectum_anus", "gastric_gland", "intestinal_gland"];
   const versioned = (src) => `${src}?v=${VERSION}`;
   return `
     <figure class="digestive-system-figure" data-digestive-system-figure data-asset-status="ready">
-      <div class="digestive-system-canvas has-approved-image" aria-label="人體消化系統圖，搭配下方圖例觀察食物通過路線與分泌消化液的支援構造。">
+      <div class="digestive-system-canvas has-approved-image" aria-label="人體消化系統圖">
         <picture class="digestive-system-media">
           <source media="(max-width: 680px)" srcset="${versioned(assets.digestiveSystemMap960)} 960w, ${versioned(assets.digestiveSystemMap1440)} 1440w" sizes="100vw">
-          <img src="${versioned(assets.digestiveSystemMap)}" srcset="${versioned(assets.digestiveSystemMap960)} 960w, ${versioned(assets.digestiveSystemMap1440)} 1440w, ${versioned(assets.digestiveSystemMap)} 1600w" sizes="(max-width: 680px) 100vw, min(100vw, 920px)" alt="人體消化系統圖，保留互動點位與圖例供辨識。">
+          <img src="${versioned(assets.digestiveSystemMap)}" srcset="${versioned(assets.digestiveSystemMap960)} 960w, ${versioned(assets.digestiveSystemMap1440)} 1440w, ${versioned(assets.digestiveSystemMap)} 1600w" sizes="(max-width: 680px) 100vw, min(100vw, 920px)" alt="人體消化系統圖：從口腔、食道、胃、小腸、大腸到肛門，以及肝臟、胰臟等構造。">
         </picture>
-        <div class="digestive-hotspot-layer" aria-label="消化系統互動點位">
-          ${hotspots.map((id, index) => `<button class="digestive-hotspot digestive-hotspot-${index + 1}" type="button" data-digestive-hotspot="${id}" aria-label="消化系統互動點位"></button>`).join("")}
-        </div>
       </div>
-      <figcaption>觀察人體消化系統圖，再用圖例區分食物通過路線與分泌消化液的支援構造。</figcaption>
-      <div class="digestive-legend" aria-label="圖例">
-        <span><i class="legend-track"></i>食物通過路線</span>
-        <span><i class="legend-gland"></i>消化液支援構造</span>
-      </div>
+      <figcaption>人體消化系統。對照課本的圖，找找各器官的位置。</figcaption>
     </figure>
   `;
 }
@@ -1057,22 +1049,22 @@ function renderScan() {
     <div class="stack">
       <section class="panel prep-panel">
         <p class="eyebrow">任務準備</p>
-        <h2>進入生命補給轉運站前，先抓住四個判斷線索</h2>
+        <h2>先複習前面學過的</h2>
         <div class="prep-owl-hero">
           <img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'">
           <div>
-            <h3>先把食物流向、消化、吸收和運送分開看。</h3>
-            <p>食物會通過消化道；消化腺提供消化液；小腸是主要吸收養分的地方。</p>
+            <h3>作答時先分清楚：食物經過哪裡、在哪裡被分解、在哪裡進入身體。</h3>
+            <p>排序題可以拖曳，手機也能用 ↑ ↓ 按鈕調整順序。</p>
           </div>
         </div>
         ${renderDigestiveSystemFallbackFigure()}
         <div class="concept-grid">
-          <article><strong>路線</strong><p>食物依序通過口腔、食道、胃、小腸、大腸與肛門。</p></article>
-          <article><strong>分工</strong><p>消化道是食物路線；消化腺分泌消化液協助消化。</p></article>
-          <article><strong>消化與吸收</strong><p>消化是分解；吸收是小分子進入體內。</p></article>
-          <article><strong>轉運</strong><p>小腸吸收養分後，血液可將養分運送到全身。</p></article>
+          <article><strong>器官系統（第 9 站）</strong><p>功能相關的器官合在一起，組成器官系統。</p></article>
+          <article><strong>食物中的養分（第 11 站）</strong><p>醣類、蛋白質、脂質能提供能量或構成身體。</p></article>
+          <article><strong>澱粉與葡萄糖（第 11、12 站）</strong><p>澱粉是由許多葡萄糖連接而成的大分子。</p></article>
+          <article><strong>酵素（第 13 站）</strong><p>酵素能幫忙分解物質，一種酵素通常只作用在特定的物質上。</p></article>
         </div>
-        <button class="primary" data-next="checkpoint1">開始消化路線整理</button>
+        <button class="primary" data-next="checkpoint1">開始消化系統</button>
       </section>
     </div>
   `;
@@ -1080,9 +1072,9 @@ function renderScan() {
 
 function renderCheckpoint(section) {
   const heading = {
-    checkpoint1: ["消化系統與食物流向", "先整理消化道、消化腺、食物流向與主要器官功能。"],
-    checkpoint2: ["消化、酵素與膽汁", "把食物分解、酵素專一性與膽汁的角色分開判斷。"],
-    checkpoint3: ["小腸吸收與血液運送", "用小腸絨毛、消化／吸收差異與迷思修正整理轉運概念。"]
+    checkpoint1: ["消化系統", "消化道、消化腺，以及食物經過的順序。"],
+    checkpoint2: ["消化作用", "大分子養分怎麼被分解，酵素和膽汁各做什麼。"],
+    checkpoint3: ["吸收與運送", "養分在哪裡進入身體，又怎麼送到全身。"]
   }[section];
   return `
     <div class="stack checkpoint-stack">
@@ -1093,7 +1085,7 @@ function renderCheckpoint(section) {
       </section>
       ${sections[section].map((id) => renderQuestion(questionMap[id])).join("")}
       <section class="panel action-panel">
-        <p class="muted">本區每題都需留下作答紀錄；不確定可先選擇，任務後會給概念回饋。</p>
+        <p class="muted">每一題都要作答才能前往下一關；不確定也先選一個，最後會有回饋。</p>
         <button class="primary" data-section-next="${section}">${section === "checkpoint3" ? "整理任務回饋" : "前往下一關"}</button>
       </section>
     </div>
@@ -1120,19 +1112,17 @@ function conceptLabel(concept) {
     digestive_system_parts: "消化系統組成",
     food_path: "食物流向",
     organ_functions: "主要器官功能",
-    digestion_process: "消化作用",
+    digestion_process: "養分的分解",
     enzyme_digestive_link: "酵素與消化",
-    bile_not_enzyme: "膽汁不是酵素",
-    small_intestine_absorption: "小腸吸收",
-    absorption_transport: "吸收與血液運送",
-    digestion_absorption_difference: "消化與吸收差異"
+    bile_not_enzyme: "膽汁的作用",
+    small_intestine_absorption: "養分的吸收",
+    absorption_transport: "養分的去向",
+    digestion_absorption_difference: "消化與吸收"
   }[concept] || concept;
 }
 
 function renderQuestionEvidence(qid) {
-  if (qid === "q01") return `<div class="evidence-card"><strong>路線與支援站資料卡</strong><p>先依「食物是否實際通過」判斷，再看是否主要分泌消化液。</p></div>`;
-  if (qid === "q02") return `<div class="evidence-card"><strong>食物流向任務</strong><p>拖曳排序題。手機可使用上移／下移按鈕調整順序；消化腺不是食物一定通過的路線。</p></div>`;
-  if (qid === "q06") return `<div class="evidence-card"><strong>酵素專一性資料卡</strong><p>每種酵素有較適合的作用對象；請依養分類型配對。</p></div>`;
+  if (qid === "q02") return `<div class="evidence-card"><strong>操作方式</strong><p>拖曳卡片排序；手機可用 ↑ ↓ 按鈕調整順序。</p></div>`;
   return "";
 }
 
@@ -1213,8 +1203,8 @@ function renderReview() {
     <div class="review-layout" data-feedback-state="${stateName}">
       <section class="panel">
         <p class="eyebrow">概念回饋</p>
-        <h2>先整理你目前的養分轉運線索</h2>
-        <p class="lead">這裡不只看分數，也會整理你可以再閱讀或帶到課堂討論的方向。</p>
+        <h2>看看你這次的作答</h2>
+        <p class="lead">下面列出你已經掌握的概念，以及建議回課本再確認的地方，也可以帶到課堂上問老師。</p>
         <div class="feedback-columns">
           <article>
             <h3>目前較穩定</h3>
@@ -1222,7 +1212,7 @@ function renderReview() {
           </article>
           <article>
             <h3>建議再確認</h3>
-            <ul>${(feedback.missed.length ? feedback.missed.map(misconceptionText) : ["目前沒有明顯需要補強的迷思標籤"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+            <ul>${(feedback.missed.length ? feedback.missed.map(misconceptionText) : ["目前沒有需要再確認的地方"]).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
           </article>
         </div>
         <button class="primary" data-next="reflection">前往任務回報</button>
@@ -1233,13 +1223,13 @@ function renderReview() {
 
 function misconceptionText(tag) {
   return {
-    tract_gland_confusion: "消化道器官是食物通過的路線；胃腺、腸腺等消化腺構造才是分泌消化液的支援構造。",
-    gland_in_food_path: "食物會通過消化道，不會直接通過肝臟或胰臟。",
+    tract_gland_confusion: "消化道是食物經過的路線；唾液腺、胃腺、腸腺、肝臟、胰臟是分泌消化液的消化腺。",
+    gland_in_food_path: "食物只經過消化道，不會直接經過肝臟或胰臟。",
     all_organs_same_function: "口腔、食道、胃、小腸和大腸負責不同步驟。",
     digestion_absorption_same: "消化是分解；吸收是小分子養分進入體內或血液。",
-    enzyme_target_confusion: "消化酵素通常有較適合的作用對象。",
+    enzyme_target_confusion: "一種消化酵素通常只分解一類養分。",
     bile_is_enzyme: "膽汁可幫助脂質分散，但本身不是酵素。",
-    stomach_main_absorption: "胃會混合並進行部分消化，小腸才是主要吸收養分的位置。",
+    stomach_main_absorption: "胃會攪拌食物並消化部分養分，小腸才是主要吸收養分的地方。",
     food_chunk_enters_blood: "食物需先被消化成較小分子，才能被吸收並由血液運送。",
     villi_as_digestion_only: "小腸絨毛可增加吸收面積，利於養分進入體內。"
   }[tag] || tag;
@@ -1249,8 +1239,8 @@ function feedbackTitle(stateName) {
   return {
     excellent: "概念連線非常穩定",
     strong: "概念掌握良好",
-    stable: "可以再補幾個線索",
-    needs_review: "適合回到證據慢慢整理",
+    stable: "還有幾個地方可以再確認",
+    needs_review: "適合回課本再看一次",
     retry_ready: "先整理關鍵概念再挑戰"
   }[stateName];
 }

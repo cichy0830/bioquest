@@ -70,7 +70,7 @@ appVersionOverrides.set("photosynthesis", "20261105-photosynthesis-wording-r3-v1
 appVersionOverrides.set("biological_organization", "20261030-biological-organization-wording-r3-v1");
 appVersionOverrides.set("cell_transport", "20261029-cell-transport-wording-r3-v1");
 appVersionOverrides.set("plant_material_transport", "20261017-plant-material-transport-reflection-spec-v1");
-appVersionOverrides.set("human_nutrition", "20261013-human-nutrition-result-fields-v1");
+appVersionOverrides.set("human_nutrition", "20261106-human-nutrition-wording-r3-v1");
 appVersionOverrides.set("plant_transport_structures", "20261015-plant-transport-structures-reflection-spec-v1");
 appVersionOverrides.set("cardiovascular_components", "20261019-cardiovascular-components-reflection-spec-v1");
 appVersionOverrides.set("human_circulation", "20261021-human-circulation-reflection-spec-v1");

@@ -23,7 +23,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-human-nutrition/app.js" });
 
 const api = context.window.__human_nutritionTest;
-assert.equal(api.VERSION, "20261013-human-nutrition-result-fields-v1");
+assert.equal(api.VERSION, "20261106-human-nutrition-wording-r3-v1");
 assert.equal(api.QUESTION_VERSION, "20260723-human-nutrition-digestive-classification-v2");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
@@ -119,7 +119,7 @@ assert(api.renderDigestiveSystemFallbackFigure().includes('data-asset-status="re
 assert(api.renderDigestiveSystemFallbackFigure().includes("human-nutrition-digestive-system-map-960w.webp"), "digestive figure responsive 960w asset missing");
 assert(api.renderDigestiveSystemFallbackFigure().includes("human-nutrition-digestive-system-map-1440w.webp"), "digestive figure responsive 1440w asset missing");
 assert(api.renderDigestiveSystemFallbackFigure().includes(`?v=${api.VERSION}`), "digestive figure image URL must use runtime cache key");
-assert(api.renderScan().includes("data-digestive-hotspot=\"gastric_gland\""), "gastric gland overlay hook missing");
+assert(!api.renderScan().includes("data-digestive-hotspot"), "R3：消化系統圖上沒有對準器官、點了也沒反應的白色圓點已移除");
 assert(api.badges.every((badge) => badge.image_status === "ready" && badge.badge_image_status === "USER_APPROVED" && badge.badge_image_path.includes("../shared-assets/badges/human_nutrition/")), "U15 badges must use approved shared WebP images");
 assert.equal(api.badges.filter((badge) => badge.is_gold_badge).map((badge) => badge.id).join(","), "human_nutrition_flawless", "flawless must remain the only gold badge");
 

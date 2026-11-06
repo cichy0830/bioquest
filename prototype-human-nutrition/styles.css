@@ -207,8 +207,7 @@ textarea { resize: vertical; min-height: 116px; }
   background: rgba(240, 248, 246, 0.88);
 }
 .digestive-system-media,
-.digestive-system-media img,
-.digestive-hotspot-layer {
+.digestive-system-media img {
   position: absolute;
   inset: 0;
 }
@@ -218,49 +217,6 @@ textarea { resize: vertical; min-height: 116px; }
   height: 100%;
   object-fit: contain;
 }
-.digestive-hotspot-layer {
-  pointer-events: none;
-}
-.digestive-hotspot {
-  position: absolute;
-  width: 22px;
-  height: 22px;
-  border: 2px solid rgba(31, 68, 65, 0.32);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.42);
-  pointer-events: auto;
-}
-.digestive-hotspot-1 { left: 48%; top: 15%; }
-.digestive-hotspot-2 { left: 36%; top: 20%; }
-.digestive-hotspot-3 { left: 49%; top: 25%; }
-.digestive-hotspot-4 { left: 50%; top: 39%; }
-.digestive-hotspot-5 { left: 57%; top: 51%; }
-.digestive-hotspot-6 { left: 42%; top: 47%; }
-.digestive-hotspot-7 { left: 58%; top: 58%; }
-.digestive-hotspot-8 { left: 50%; top: 69%; }
-.digestive-hotspot-9 { left: 42%; top: 75%; }
-.digestive-hotspot-10 { left: 51%; top: 87%; }
-.digestive-hotspot-11 { left: 62%; top: 50%; }
-.digestive-hotspot-12 { left: 55%; top: 68%; }
-.digestive-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  color: var(--muted);
-  font-size: 0.92rem;
-}
-.digestive-legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.digestive-legend i {
-  width: 24px;
-  height: 8px;
-  border-radius: 999px;
-}
-.legend-track { background: rgba(54, 111, 99, 0.58); }
-.legend-gland { background: rgba(240, 175, 82, 0.48); border: 1px dashed rgba(206, 129, 35, 0.7); }
 .concept-grid, .ledger-grid, .feedback-columns, .badge-wall {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
