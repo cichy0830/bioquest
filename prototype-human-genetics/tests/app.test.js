@@ -69,7 +69,7 @@ const answers = {
   [Q(14)]: "human_genetics_basic_model_belongs_u33"
 };
 
-assert.equal(api.VERSION, "20260817-human-genetics-evidence-neutral-v2");
+assert.equal(api.VERSION, "20261107-human-genetics-backend-client-v1");
 assert.equal(api.QUESTION_VERSION, "20260817-human-genetics-v1");
 assert.equal(api.mission.unit_id, "human_genetics");
 assert.equal(html.includes('data-unit-sequence="33"'), true);

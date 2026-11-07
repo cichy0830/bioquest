@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-genetics-chromosome-gene")
   : sourceRoot;
-const VERSION = "20260816-genetics-chromosome-gene-functional-build-v1";
+const VERSION = "20261107-genetics-chromosome-gene-backend-client-v1";
 const QUESTION_VERSION = "20260725-genetics-chromosome-gene-v1.1";
 const Q = (n) => `genetics_chromosome_gene_q${String(n).padStart(2, "0")}`;
 const viewports = [{ width: 1440, height: 900 }, { width: 390, height: 844 }];

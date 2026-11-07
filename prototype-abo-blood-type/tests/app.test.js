@@ -66,7 +66,7 @@ const answers = {
   [Q(14)]: "model_not_supported_not_parentage"
 };
 
-assert.equal(api.VERSION, "20260817-abo-blood-type-local-functional-v1");
+assert.equal(api.VERSION, "20261107-abo-blood-type-backend-client-v1");
 assert.equal(api.QUESTION_VERSION, "20260817-abo-blood-type-v1");
 assert.equal(api.mission.unit_id, "abo_blood_type");
 assert.equal(html.includes('data-unit-sequence="34"'), true);

@@ -65,7 +65,7 @@ const answers = {
   [Q(14)]: "evidence_supports_limited_relative_trait_inference"
 };
 
-assert.equal(api.VERSION, "20260819-fossils-evolution-p1-fix-v1");
+assert.equal(api.VERSION, "20261107-fossils-evolution-backend-client-v1");
 assert.equal(api.QUESTION_VERSION, "20260818-fossils-evolution-v1");
 assert.equal(api.mission.unit_id, "fossils_evolution");
 assert.equal(html.includes('data-unit-sequence="37"'), true);

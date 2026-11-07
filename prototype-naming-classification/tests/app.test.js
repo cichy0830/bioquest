@@ -60,7 +60,7 @@ const answers = {
   [Q(14)]: "classification_clue"
 };
 
-assert.equal(api.VERSION, "20260819-naming-classification-q04-evidence-fix-v1");
+assert.equal(api.VERSION, "20261107-naming-classification-backend-client-v1");
 assert.equal(api.QUESTION_VERSION, "20260818-naming-classification-v1");
 assert.equal(api.mission.unit_id, "naming_classification");
 assert.equal(html.includes('data-unit-sequence="38"'), true);
