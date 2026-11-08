@@ -2,8 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261025-respiration-homeostasis-reflection-spec-v1";
+const VERSION = "20261108-respiration-homeostasis-backend-client-v1";
 const QUESTION_VERSION = "20260718-respiration-homeostasis-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -385,20 +384,7 @@ function titleAndProgress(student = state.student, localGain = 0) {
 }
 
 async function requestBackend(params) {
-  const queryParams = params.action === "getStudentAndAttemptStatus"
-    ? { ...params, _: String(Date.now()) }
-    : { action: params.action, _: String(Date.now()) };
-  const query = `?${new URLSearchParams(queryParams).toString()}`;
-  const response = await fetch(`${BACKEND_URL}${query}`, {
-    method: params.action === "getStudentAndAttemptStatus" ? "GET" : "POST",
-    cache: "no-store",
-    headers: params.action === "getStudentAndAttemptStatus" ? undefined : { "Content-Type": "text/plain;charset=utf-8" },
-    body: params.action === "getStudentAndAttemptStatus" ? undefined : JSON.stringify(params)
-  });
-  if (!response.ok) throw new Error(`backend_http_${response.status}`);
-  const data = await response.json();
-  if (!data || data.ok === false) throw new Error(data?.error || "backend_error");
-  return data;
+  return window.BioQuestBackendClient.request(params);
 }
 
 function normalizeBackendStudent(data, inputId) {

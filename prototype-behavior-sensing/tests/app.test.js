@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-behavior-sensing/app.js" });
 const api = context.window.__behavior_sensingTest;
 
-assert.equal(api.VERSION, "20261024-behavior-sensing-reflection-spec-v1");
+assert.equal(api.VERSION, "20261108-behavior-sensing-backend-client-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-behavior-sensing-v1");
 assert.equal(api.mission.unit_id, "behavior_sensing");
 assert.equal(api.questions.length, 14);

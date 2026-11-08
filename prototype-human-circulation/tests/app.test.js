@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-human-circulation/app.js" });
 const api = context.window.__human_circulationTest;
 
-assert.equal(api.VERSION, "20261021-human-circulation-reflection-spec-v1");
+assert.equal(api.VERSION, "20261108-human-circulation-backend-client-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-human-circulation-ready-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);

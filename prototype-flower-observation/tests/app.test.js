@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-flower-observation/app.js" });
 const api = context.window.__flower_observationTest;
 
-assert.equal(api.VERSION, "20260814-flower-observation-mapping-login-v1");
+assert.equal(api.VERSION, "20261108-flower-observation-backend-client-v1");
 assert.equal(api.QUESTION_VERSION, "20260725-flower-observation-v1.1");
 assert.equal(api.mission.unit_id, "flower_observation");
 assert.equal(api.questions.length, 14);
@@ -184,7 +184,7 @@ assert(api.renderCheckpoint("checkpoint4").includes("flower_observation_q13"));
 
 const q04Evidence = api.renderQuestionEvidence(Q(4));
 assert(q04Evidence.includes("flower-structure-figure"));
-assert(q04Evidence.includes("flower-observation-q04-flower-structure-base-390w.webp?v=20260814-flower-observation-mapping-login-v1"));
+assert(q04Evidence.includes("flower-observation-q04-flower-structure-base-390w.webp?v=20261108-flower-observation-backend-client-v1"));
 assert(q04Evidence.includes("未標註的花部構造觀察圖"));
 assert(q04Evidence.includes("target-list"));
 assert.equal((q04Evidence.match(/flower-hotspot/g) || []).length, 5, "q04 should expose a hotspot layer and four target markers");
@@ -213,7 +213,7 @@ assert(!api.renderAchievements().includes("本單元 16"));
 assert(api.renderAchievements().includes("重新登入／再挑戰"));
 const earnedHtml = api.renderBadgeWall(["flower_observation_entry", "flower_parts_labeler"], { onlyEarned: true });
 assert(earnedHtml.includes("<img"), "U31 ready badges should create approved image requests");
-assert(earnedHtml.includes("?v=20260814-flower-observation-mapping-login-v1"));
+assert(earnedHtml.includes("?v=20261108-flower-observation-backend-client-v1"));
 assert(!earnedHtml.includes("candidate-badge-list"));
 assert(earnedHtml.includes("花部構造標記"));
 

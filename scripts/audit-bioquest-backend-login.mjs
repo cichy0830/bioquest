@@ -22,12 +22,23 @@ function assert(condition, message) {
 const config = fs.readFileSync(path.join(root, "shared-assets", "bioquest-backend-config.js"), "utf8");
 assert(config.includes(expectedUrl), "shared backend config does not contain the approved deployment");
 assert(!config.includes(oldDeployment), "shared backend config still contains the retired deployment");
+const client = fs.readFileSync(path.join(root, "shared-assets", "bioquest-backend-client.js"), "utf8");
+assert(client.includes(expectedUrl), "shared backend client fallback is not the approved deployment");
+assert(!client.includes(oldDeployment), "shared backend client still contains the retired deployment");
 
 for (const folder of units) {
   const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
   const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
-  assert(app.includes("window.BioQuestBackend?.url"), `${folder} does not use the shared backend config`);
-  assert(app.includes(expectedUrl), `${folder} fallback endpoint is not the approved deployment`);
+  // R4：第 14 站以後改由 shared-assets/bioquest-backend-client.js 呼叫後台，app.js 不再含網址；第 1–13 站仍內嵌網址（R4-1c 前）
+  const usesSharedClient = app.includes("window.BioQuestBackendClient.request(");
+  if (usesSharedClient) {
+    assert(!app.includes("BACKEND_URL") && !/\bfetch\(/.test(app), `${folder} uses the shared backend client but still calls the backend itself`);
+    const clientAt = index.indexOf("bioquest-backend-client.js?v=");
+    assert(clientAt > index.indexOf("bioquest-backend-config.js") && clientAt < index.indexOf("app.js?v="), `${folder} must load backend-config → backend-client → app.js`);
+  } else {
+    assert(app.includes("window.BioQuestBackend?.url"), `${folder} does not use the shared backend config`);
+    assert(app.includes(expectedUrl), `${folder} fallback endpoint is not the approved deployment`);
+  }
   assert(!app.includes(oldDeployment), `${folder} still contains the retired deployment`);
   assert(!/(林安安|陳柏宇|許若晴)/.test(app), `${folder} still contains a formal-student local roster`);
   assert(index.includes(`bioquest-backend-config.js?v=${version}`), `${folder} backend config script/cache missing`);

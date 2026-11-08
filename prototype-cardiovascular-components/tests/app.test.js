@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-cardiovascular-components/app.js" });
 const api = context.window.__cardiovascular_componentsTest;
 
-assert.equal(api.VERSION, "20261019-cardiovascular-components-reflection-spec-v1");
+assert.equal(api.VERSION, "20261108-cardiovascular-components-backend-client-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-cardiovascular-components-ready-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);

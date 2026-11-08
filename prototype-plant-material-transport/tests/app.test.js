@@ -15,7 +15,7 @@ const context = { console, window: null, document: { readyState: "loading", quer
 context.window = context; context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-plant-material-transport/app.js" });
 const api = context.window.__plant_material_transportTest;
-assert.equal(api.VERSION, "20261017-plant-material-transport-reflection-spec-v1");
+assert.equal(api.VERSION, "20261108-plant-material-transport-backend-client-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-plant-material-transport-canonical-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);

@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-sexual-reproduction/app.js" });
 const api = context.window.__sexual_reproductionTest;
 
-assert.equal(api.VERSION, "20260814-sexual-reproduction-mapping-v1");
+assert.equal(api.VERSION, "20261108-sexual-reproduction-backend-client-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-sexual-reproduction-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION);
 assert.equal(api.mission.unit_id, "sexual_reproduction");

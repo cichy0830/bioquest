@@ -3,6 +3,7 @@
 //    （原本寫法保留在下方 LEGACY_REQUEST_BACKEND 當對照）。
 // 2. 已遷移的站：index.html 依序載入 backend-config → backend-client → app.js；app.js 不再自己 fetch 後台。
 // 3. 尚未遷移的 JSON 協定站：內嵌版本仍與對照逐字相同（避免各站又各自分歧）。
+//    R4-1b（2026-11-08）後第 14–40 站全部遷移，JSON 協定站已無內嵌版本；第 1–13 站為表單協定，留待 R4-1c。
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -15,6 +16,24 @@ const configSource = fs.readFileSync(path.join(root, "shared-assets", "bioquest-
 const clientVersion = clientSource.match(/const VERSION = "([^"]+)"/)[1];
 
 export const MIGRATED_STATIONS = [
+  "photosynthesis",
+  "human-nutrition",
+  "plant-transport-structures",
+  "plant-material-transport",
+  "cardiovascular-components",
+  "human-circulation",
+  "stimulus-response",
+  "nervous-system",
+  "endocrine-system",
+  "behavior-sensing",
+  "respiration-homeostasis",
+  "excretion-water-homeostasis",
+  "temperature-glucose-homeostasis",
+  "cell-division",
+  "asexual-reproduction",
+  "sexual-reproduction",
+  "egg-observation",
+  "flower-observation",
   "genetics-chromosome-gene",
   "human-genetics",
   "abo-blood-type",
@@ -119,5 +138,8 @@ for (const folder of fs.readdirSync(root).filter((name) => name.startsWith("prot
   assert.equal(block, LEGACY_REQUEST_BACKEND, `${folder} 的 requestBackend 與共用寫法不同，遷移前需先比對`);
   legacyCount += 1;
 }
+
+assert.equal(MIGRATED_STATIONS.length, 27, "第 14–40 站應全部改用共用模組");
+assert.equal(legacyCount, 0, "JSON 協定站不應再有內嵌 requestBackend");
 
 console.log(`backend client test passed: ${cases.length} cases identical, ${MIGRATED_STATIONS.length} stations migrated, ${legacyCount} JSON-protocol stations pending`);

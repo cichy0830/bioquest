@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-temperature-glucose-homeostasis/app.js" });
 const api = context.window.__temperature_glucose_homeostasisTest;
 
-assert.equal(api.VERSION, "20261025-temperature-glucose-homeostasis-reflection-spec-v1");
+assert.equal(api.VERSION, "20261108-temperature-glucose-homeostasis-backend-client-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-temperature-glucose-homeostasis-v1");
 assert.equal(api.mission.unit_id, "temperature_glucose_homeostasis");
 assert.equal(api.questions.length, 14);

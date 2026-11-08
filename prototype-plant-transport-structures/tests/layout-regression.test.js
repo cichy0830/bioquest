@@ -25,7 +25,7 @@ try {
         return { ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) };
       };
     });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261015-plant-transport-structures-reflection-spec-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261108-plant-transport-structures-backend-client-v1`);
     await page.evaluate(() => document.querySelector("#guestBtn")?.click());
     await page.waitForFunction(() => window.__plant_transport_structuresTest.state().screen === "brief");
     await page.evaluate(() => window.scrollTo(0, 520));

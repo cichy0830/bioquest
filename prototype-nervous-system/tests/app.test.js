@@ -28,7 +28,7 @@ context.globalThis = context;
 vm.runInNewContext(source, context, { filename: "prototype-nervous-system/app.js" });
 const api = context.window.__nervous_systemTest;
 
-assert.equal(api.VERSION, "20261024-nervous-system-reflection-spec-v1");
+assert.equal(api.VERSION, "20261108-nervous-system-backend-client-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-nervous-system-ready-v1");
 assert.equal(api.mission.unit_id, "nervous_system");
 assert.equal(api.questions.length, 14);

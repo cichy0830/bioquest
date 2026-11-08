@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-asexual-reproduction")
   : sourceRoot;
-const CACHE_VERSION = "20260813-asexual-reproduction-mapping-v1";
+const CACHE_VERSION = "20261108-asexual-reproduction-backend-client-v1";
 const QUESTION_VERSION = "20260718-asexual-reproduction-v1";
 const Q = (n) => `asexual_reproduction_q${String(n).padStart(2, "0")}`;
 const browser = await chromium.launch({ executablePath: process.env.BIOQUEST_CHROME_PATH || undefined });

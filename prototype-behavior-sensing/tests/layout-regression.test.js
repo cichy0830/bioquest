@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-behavior-sensing")
   : sourceRoot;
-const APP_VERSION = "20261024-behavior-sensing-reflection-spec-v1";
+const APP_VERSION = "20261108-behavior-sensing-backend-client-v1";
 const QUESTION_VERSION = "20260718-behavior-sensing-v1";
 const Q = (n) => `behavior_sensing_q${String(n).padStart(2, "0")}`;
 const browser = await chromium.launch({ executablePath: process.env.BIOQUEST_CHROME_PATH || undefined });
