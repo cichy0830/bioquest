@@ -55,11 +55,9 @@ for (const q of questions) {
   assert.ok([...answerText].length - longestWrong <= 5, `${q.id} 正解比誘答長太多：${answerText}`);
   for (const text of [q.prompt, q.hint, q.imageAlt || "", q.imageEvidence || "", ...texts]) assert.ok(!internalTerms.test(text), `${q.id} 含內部用語：${text}`);
 }
-// 同一關卡內同一張圖只放一次
-for (const section of ["checkpoint1", "checkpoint2", "checkpoint3"]) {
-  const imgs = questions.filter((q) => q.section === section && q.image).map((q) => q.image);
-  assert.equal(new Set(imgs).size, imgs.length, `${section} 同一張圖重複出現`);
-}
+// 附圖（2026-11-08 老師決定，W24）：q02、q04、q08、q10、q12 放回圖；q05 擴散水槽圖與題目不符，維持移除
+const withImage = questions.filter((q) => q.image).map((q) => q.id);
+assert.deepEqual(withImage, ["q01", "q02", "q03", "q04", "q08", "q09", "q10", "q11", "q12"], "附圖題目與老師決定不符");
 
 const screens = source.slice(source.indexOf("function renderBrief()"), source.indexOf("function selectedClass("))
   + source.slice(source.indexOf("function renderQuestionImage("), source.indexOf("function isCorrect(qid)"));

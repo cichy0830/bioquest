@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261105-photosynthesis-wording-r3-v1";
+const VERSION = "20261108-photosynthesis-brief-points-v1";
 const QUESTION_VERSION = "20260721-photosynthesis-q09-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -832,6 +832,17 @@ function renderBrief() {
           <button class="primary" data-next="scan">查看進關卡提醒</button>
           <button class="secondary" data-next="rules">先看規則</button>
         </div>
+      </section>
+      <section class="panel brief-points">
+        <p class="eyebrow">本站重點</p>
+        <h2>植物怎麼製造養分？</h2>
+        <p style="margin:10px 0;padding:12px 14px;border-radius:10px;background:rgba(46,125,50,.10);font-size:1.15rem;font-weight:800;text-align:center;line-height:1.7"><span style="white-space:nowrap">二氧化碳 ＋ 水</span> <span style="white-space:nowrap">─光、葉綠體→</span> <span style="white-space:nowrap">葡萄糖 ＋ 氧氣</span></p>
+        <div class="concept-grid">
+          <article><strong>光合作用</strong><p>綠色植物利用光能，把二氧化碳和水製造成葡萄糖，同時放出氧氣。</p></article>
+          <article><strong>在哪裡進行</strong><p>主要在葉片。葉片細胞裡的葉綠體，是進行光合作用的地方。</p></article>
+          <article><strong>製造出的養分</strong><p>葡萄糖可以再轉變成澱粉儲存在葉片中，所以可以用碘液檢查葉片有沒有澱粉。</p></article>
+        </div>
+        <p class="muted" style="margin-top:10px">作答前，先把課本這一節的文字式和葉片構造圖再看一次。</p>
       </section>
     </div>
   `;

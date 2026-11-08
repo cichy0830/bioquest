@@ -3,7 +3,7 @@ const roster = {
 };
 
 const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261029-cell-transport-wording-r3-v1";
+const VERSION = "20261108-cell-transport-images-v1";
 const QUESTION_VERSION = "20260721-cell-transport-q07-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -69,6 +69,7 @@ const questions = [
   },
   {
     id: "q02", section: "checkpoint1", concept: "diffusion", misconception: "diffusion_requires_cell_membrane",
+    image: assets.diffusionImage, imageAlt: "粒子在水中由密集處慢慢散開的示意圖", imageEvidence: "請仔細看圖再作答。",
     prompt: "小明說：「擴散一定要有細胞膜才會發生。」這句話對嗎？",
     answer: "no_membrane_needed", hint: "噴了香水，香味會在教室裡散開。香味散開時有經過細胞膜嗎？",
     options: [
@@ -86,6 +87,7 @@ const questions = [
   },
   {
     id: "q04", section: "checkpoint1", concept: "semipermeable_membrane", misconception: "semipermeable_as_wall",
+    image: assets.osmosisImage, imageAlt: "半透膜隔開清水和濃糖水的示意圖", imageEvidence: "請仔細看圖再作答。",
     prompt: "半透膜在滲透作用中有什麼特性？",
     answer: "selective", hint: "「半透」的「半」是什麼意思？想想上一題的水和糖。",
     options: [
@@ -110,6 +112,7 @@ const questions = [
   },
   {
     id: "q08", section: "checkpoint2", concept: "evidence_based_prediction", misconception: "data_not_evidence",
+    image: assets.potatoDataImage, imageAlt: "馬鈴薯泡在不同溶液中的比較圖", imageEvidence: "圖是實驗情境；請用下方表格甲、乙兩組的質量變化判斷。",
     prompt: "兩條馬鈴薯分別泡在甲、乙兩杯溶液中，質量變化如下表。哪一個推論正確？",
     answer: "water_direction", hint: "馬鈴薯變重，是水分進入還是離開馬鈴薯？",
     dataTable: [
@@ -131,6 +134,7 @@ const questions = [
   },
   {
     id: "q10", section: "checkpoint3", concept: "animal_cell_concentration_change", misconception: "animal_cell_wall_confusion",
+    image: assets.animalCellImage, imageAlt: "紅血球在三種不同溶液中的外形", imageEvidence: "請仔細看圖再作答。",
     prompt: "把紅血球放進清水中，紅血球會有什麼變化？",
     answer: "swell", hint: "清水比紅血球內部濃還是稀？紅血球有沒有細胞壁？",
     options: [
@@ -148,6 +152,7 @@ const questions = [
   },
   {
     id: "q12", section: "checkpoint3", concept: "plant_cell_concentration_change", misconception: "plasmolysis_unknown",
+    image: assets.plantCellImage, imageAlt: "植物細胞在三種不同溶液中的樣子", imageEvidence: "請仔細看圖再作答。",
     prompt: "把植物細胞放進濃食鹽水中，在顯微鏡下會看到什麼？",
     answer: "plasmolysis", hint: "水分離開後，細胞壁和細胞內部，哪一個比較容易縮小？",
     options: [
