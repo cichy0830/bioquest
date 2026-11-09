@@ -9,7 +9,7 @@ import playwright from "playwright";
 const { chromium } = playwright;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = process.env.BIOQUEST_AUDIT_ROOT ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT) : path.resolve(root, "..");
-const CACHE_VERSION = "20261031-scale-wording-r3-v1";
+const CACHE_VERSION = "20261109-scale-backend-client-v1";
 const QUESTION_VERSION = "20260711-scale-security-v1";
 const artifactDir = path.join(root, "tests", "artifacts", CACHE_VERSION);
 fs.mkdirSync(artifactDir, { recursive: true });

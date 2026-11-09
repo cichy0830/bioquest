@@ -4,7 +4,7 @@ const { pathToFileURL } = require("node:url");
 const { chromium } = require("playwright");
 
 const root = process.env.BQ_TEST_ROOT ? path.resolve(process.env.BQ_TEST_ROOT) : path.resolve(__dirname, "..");
-const CACHE = "20261108-cell-transport-images-v1";
+const CACHE = "20261109-cell-transport-backend-client-v1";
 const QUESTION_VERSION = "20260721-cell-transport-q07-inactive-v1";
 const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=${CACHE}`;
 

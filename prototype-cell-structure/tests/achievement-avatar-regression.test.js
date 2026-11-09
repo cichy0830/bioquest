@@ -46,7 +46,7 @@ function startServer() {
       const address = server.address();
       resolve({
         server,
-        url: `http://127.0.0.1:${address.port}/prototype-cell-structure/index.html?v=20261027-cell-structure-wording-r3-v1`
+        url: `http://127.0.0.1:${address.port}/prototype-cell-structure/index.html?v=20261109-cell-structure-backend-client-v1`
       });
     });
   });

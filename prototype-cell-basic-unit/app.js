@@ -2,8 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const BACKEND_URL = window.BioQuestBackend?.url || "https://script.google.com/macros/s/AKfycbzR4R-sQXvXfteglNgtQpzsLpiTEOaAYBX9YaCzn6IX_yRl5tI8kVw2XrPpT2Xue_cK-A/exec";
-const VERSION = "20261026-cell-basic-unit-wording-r3-v1";
+const VERSION = "20261109-cell-basic-unit-backend-client-v1";
 const BASIC_UNIT_VERSION = "20260712-basic-unit-sheet-login-v4";
 const mission = {
   unit_id: "cell_basic_unit",
@@ -334,23 +333,10 @@ function renderLogin() {
   </div>`;
 }
 async function fetchStudentStatus(id) {
-  const url = `${BACKEND_URL}?action=getStudentAndAttemptStatus&student_id=${encodeURIComponent(id)}&unit_id=${encodeURIComponent(mission.unit_id)}&_=${Date.now()}`;
-  const response = await fetch(url, { cache: "no-store" });
-  if (!response.ok) throw new Error(`backend_${response.status}`);
-  try {
-    return await response.json();
-  } catch {
-    throw new Error("backend_invalid_json");
-  }
+  return window.BioQuestBackendClient.getStatusForm(id, mission.unit_id, { invalidJsonError: "backend_invalid_json" });
 }
 async function postBackendAction(action, payload) {
-  const body = new URLSearchParams();
-  body.set("payload", JSON.stringify({ action, ...payload }));
-  const response = await fetch(`${BACKEND_URL}?action=${encodeURIComponent(action)}`, { method: "POST", body });
-  if (!response.ok) throw new Error(`backend_${response.status}`);
-  const data = await response.json();
-  if (!data.ok) throw new Error(data.error || `backend_${action}_failed`);
-  return data;
+  return window.BioQuestBackendClient.postForm(action, window.BioQuestBackendClient.formPayload({ action, ...payload }), { failError: `backend_${action}_failed` });
 }
 function startAttemptSession(studentId) {
   return postBackendAction("startAttempt", { student_id: studentId, unit_id: mission.unit_id, question_version: BASIC_UNIT_VERSION });
@@ -985,13 +971,7 @@ function buildBackendPayload(attempt) {
   };
 }
 async function submitAttemptToBackend(attempt) {
-  const body = new URLSearchParams();
-  body.set("payload", JSON.stringify(buildBackendPayload(attempt)));
-  const response = await fetch(`${BACKEND_URL}?action=submitAttempt`, { method: "POST", body });
-  if (!response.ok) throw new Error(`backend_${response.status}`);
-  const data = await response.json();
-  if (!data.ok) throw new Error(data.error || "backend_submit_failed");
-  return data;
+  return window.BioQuestBackendClient.postForm("submitAttempt", window.BioQuestBackendClient.formPayload(buildBackendPayload(attempt)), { failError: "backend_submit_failed" });
 }
 
 function applyBackendStudentProgress(data) {

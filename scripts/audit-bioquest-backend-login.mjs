@@ -29,16 +29,11 @@ assert(!client.includes(oldDeployment), "shared backend client still contains th
 for (const folder of units) {
   const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
   const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
-  // R4：第 14 站以後改由 shared-assets/bioquest-backend-client.js 呼叫後台，app.js 不再含網址；第 1–13 站仍內嵌網址（R4-1c 前）
-  const usesSharedClient = app.includes("window.BioQuestBackendClient.request(");
-  if (usesSharedClient) {
-    assert(!app.includes("BACKEND_URL") && !/\bfetch\(/.test(app), `${folder} uses the shared backend client but still calls the backend itself`);
-    const clientAt = index.indexOf("bioquest-backend-client.js?v=");
-    assert(clientAt > index.indexOf("bioquest-backend-config.js") && clientAt < index.indexOf("app.js?v="), `${folder} must load backend-config → backend-client → app.js`);
-  } else {
-    assert(app.includes("window.BioQuestBackend?.url"), `${folder} does not use the shared backend config`);
-    assert(app.includes(expectedUrl), `${folder} fallback endpoint is not the approved deployment`);
-  }
+  // R4：所有站改由 shared-assets/bioquest-backend-client.js 呼叫後台（第 14 站以後 request，第 1–13 站表單協定 getStatusForm／postForm，R4-1c），app.js 不再含網址
+  assert(app.includes("window.BioQuestBackendClient."), `${folder} does not use the shared backend client`);
+  assert(!app.includes("BACKEND_URL") && !app.includes("script.google.com") && !/\bfetch\(/.test(app), `${folder} uses the shared backend client but still calls the backend itself`);
+  const clientAt = index.indexOf("bioquest-backend-client.js?v=");
+  assert(clientAt > index.indexOf("bioquest-backend-config.js") && clientAt < index.indexOf("app.js?v="), `${folder} must load backend-config → backend-client → app.js`);
   assert(!app.includes(oldDeployment), `${folder} still contains the retired deployment`);
   assert(!/(林安安|陳柏宇|許若晴)/.test(app), `${folder} still contains a formal-student local roster`);
   assert(index.includes(`bioquest-backend-config.js?v=${version}`), `${folder} backend config script/cache missing`);
@@ -57,7 +52,7 @@ assert(basicLogin.includes('class="panel hero-panel"'), "cell_basic_unit login s
 const cellStructureApp = fs.readFileSync(path.join(root, "prototype-cell-structure", "app.js"), "utf8");
 assert(cellStructureApp.includes("async function login(id)"), "cell_structure login is not backend-aware");
 assert(cellStructureApp.includes('const useGuest = id === "guest"') && cellStructureApp.includes("beginLocalGuestAttempt()"), "cell_structure guest-only local branch missing");
-assert(cellStructureApp.includes('cache: "no-store"'), "cell_structure backend login must disable cache");
+assert(/postForm\(action, [^\n]*noStore: true/.test(cellStructureApp), "cell_structure backend login must disable cache");
 
 const readyUrls = readyUnits.map((unit) => unit.url);
 assert(readyUrls.length >= 17, `expected at least 17 ready URLs, found ${readyUrls.length}`);

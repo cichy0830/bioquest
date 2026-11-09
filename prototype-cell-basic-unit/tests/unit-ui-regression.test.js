@@ -147,8 +147,11 @@ assert.equal(loginContext.normalizeBackendStudent({ ok: true, student: { student
 
 const fetchStudentStatusSource = functionSource("fetchStudentStatus");
 const loginSource = functionSource("login");
-assert.ok(fetchStudentStatusSource.includes("unit_id=${encodeURIComponent(mission.unit_id)}"));
-assert.ok(fetchStudentStatusSource.includes('cache: "no-store"'));
+// R4-1c：查詢改由共用模組送出（unit_id、no-store、時間參數在 getStatusForm 內）
+const sharedClientSource = fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-backend-client.js"), "utf8");
+assert.ok(fetchStudentStatusSource.includes("window.BioQuestBackendClient.getStatusForm(id, mission.unit_id"));
+assert.ok(sharedClientSource.includes("unit_id=${encodeURIComponent(unitId)}"));
+assert.ok(sharedClientSource.includes('{ cache: "no-store" }'));
 assert.ok(loginSource.includes('const isGuest = id === "guest"'));
 assert.ok(loginSource.includes("if (isGuest)"));
 assert.ok(loginSource.indexOf("if (isGuest)") < loginSource.indexOf("fetchStudentStatus(id)"), "guest must branch before backend fetch");
@@ -199,8 +202,8 @@ assert.ok(source.includes("請先完成關卡檢核並查看概念回饋，再�
 assert.ok(source.includes('addEventListener("click", enterReflectionFromReview)'));
 assert.ok(index.includes("bioquest-title-progress.js"));
 assert.ok(index.includes("20260713-backend-endpoint-v1"));
-assert.ok(index.includes("styles.css?v=20261026-cell-basic-unit-wording-r3-v1"));
-assert.ok(index.includes("app.js?v=20261026-cell-basic-unit-wording-r3-v1"));
+assert.ok(index.includes("styles.css?v=20261109-cell-basic-unit-backend-client-v1"));
+assert.ok(index.includes("app.js?v=20261109-cell-basic-unit-backend-client-v1"));
 assert.ok(index.includes('data-result-owl-src="assets/owl-basic-unit-result.webp"'));
 assert.ok(source.includes('prep: `assets/owl-basic-unit-prep-reminder-v2.webp?v=${VERSION}`'));
 

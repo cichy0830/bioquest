@@ -106,9 +106,12 @@ async function run() {
   assert.ok(message.innerHTML.includes("後台版本尚未更新，請通知老師。"));
 
   const fetchSource = functionSource("fetchStudentStatus");
-  assert.ok(fetchSource.includes("unit_id=${encodeURIComponent(mission.unit_id)}"));
-  assert.ok(fetchSource.includes('cache: "no-store"'));
-  assert.ok(fetchSource.includes("Date.now()"));
+  // R4-1c：查詢改由共用模組送出（unit_id、no-store、時間參數在 getStatusForm 內）
+  const sharedClientSource = fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-backend-client.js"), "utf8");
+  assert.ok(fetchSource.includes("window.BioQuestBackendClient.getStatusForm(id, mission.unit_id"));
+  assert.ok(sharedClientSource.includes("unit_id=${encodeURIComponent(unitId)}"));
+  assert.ok(sharedClientSource.includes('{ cache: "no-store" }'));
+  assert.ok(sharedClientSource.includes("&_=${Date.now()}"));
   const loginSource = functionSource("login");
   assert.ok(loginSource.includes("isServerVerifiedSession(serverSession)"));
   assert.ok(loginSource.includes("backend_registry_not_ready"));

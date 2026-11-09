@@ -57,18 +57,18 @@ const appVersionOverrides = new Map();
 for (const unitId of ["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit"]) {
   appVersionOverrides.set(unitId, "20260831-student-id-example-115001-v1");
 }
-appVersionOverrides.set("cell_observation", "20261028-cell-observation-wording-r3-v1");
-appVersionOverrides.set("cell_structure", "20261027-cell-structure-wording-r3-v1");
+appVersionOverrides.set("cell_observation", "20261109-cell-observation-backend-client-v1");
+appVersionOverrides.set("cell_structure", "20261109-cell-structure-backend-client-v1");
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
-appVersionOverrides.set("enzymes", "20261102-enzymes-wording-r3-v1");
-appVersionOverrides.set("nutrient_test", "20261104-nutrient-test-lab-official-v1");
-appVersionOverrides.set("scale", "20261031-scale-wording-r3-v1");
-appVersionOverrides.set("nutrients_energy", "20261101-nutrients-energy-wording-r3-v1");
+appVersionOverrides.set("enzymes", "20261109-enzymes-backend-client-v1");
+appVersionOverrides.set("nutrient_test", "20261109-nutrient-test-backend-client-v1");
+appVersionOverrides.set("scale", "20261109-scale-backend-client-v1");
+appVersionOverrides.set("nutrients_energy", "20261109-nutrients-energy-backend-client-v1");
 appVersionOverrides.set("photosynthesis", "20261108-photosynthesis-backend-client-v1");
-appVersionOverrides.set("biological_organization", "20261030-biological-organization-wording-r3-v1");
-appVersionOverrides.set("cell_transport", "20261108-cell-transport-images-v1");
+appVersionOverrides.set("biological_organization", "20261109-biological-organization-backend-client-v1");
+appVersionOverrides.set("cell_transport", "20261109-cell-transport-backend-client-v1");
 appVersionOverrides.set("plant_material_transport", "20261108-plant-material-transport-backend-client-v1");
 appVersionOverrides.set("human_nutrition", "20261108-human-nutrition-backend-client-v1");
 appVersionOverrides.set("plant_transport_structures", "20261108-plant-transport-structures-backend-client-v1");
@@ -81,11 +81,11 @@ appVersionOverrides.set("behavior_sensing", "20261108-behavior-sensing-backend-c
 appVersionOverrides.set("respiration_homeostasis", "20261108-respiration-homeostasis-backend-client-v1");
 appVersionOverrides.set("excretion_water_homeostasis", "20261108-excretion-water-homeostasis-backend-client-v1");
 appVersionOverrides.set("temperature_glucose_homeostasis", "20261108-temperature-glucose-homeostasis-backend-client-v1");
-appVersionOverrides.set("life_world", "20261026-life-world-wording-r3-v1");
-appVersionOverrides.set("scientific_method", "20261026-scientific-method-wording-r3-v1");
-appVersionOverrides.set("lab_intro", "20261026-lab-intro-wording-r3-v1");
-appVersionOverrides.set("microscope_use", "20261026-microscope-use-wording-r3-v1");
-appVersionOverrides.set("cell_basic_unit", "20261026-cell-basic-unit-wording-r3-v1");
+appVersionOverrides.set("life_world", "20261109-life-world-backend-client-v1");
+appVersionOverrides.set("scientific_method", "20261109-scientific-method-backend-client-v1");
+appVersionOverrides.set("lab_intro", "20261109-lab-entry-backend-client-v1");
+appVersionOverrides.set("microscope_use", "20261109-microscope-use-backend-client-v1");
+appVersionOverrides.set("cell_basic_unit", "20261109-cell-basic-unit-backend-client-v1");
 appVersionOverrides.set("cell_division", "20261108-cell-division-backend-client-v1");
 appVersionOverrides.set("asexual_reproduction", "20261108-asexual-reproduction-backend-client-v1");
 appVersionOverrides.set("sexual_reproduction", "20261108-sexual-reproduction-backend-client-v1");
@@ -206,10 +206,10 @@ const audit = units.map(([unitId, folder]) => {
     `app.js?v=${expectedAppVersion}`
   ]) assert(index.includes(marker), `${unitId} index hook missing: ${marker}`);
   if (unitId === "microscope_use") {
-    assert(index.includes("styles.css?v=20261026-microscope-use-wording-r3-v1"), "microscope_use style cache bust missing");
+    assert(index.includes("styles.css?v=20261109-microscope-use-backend-client-v1"), "microscope_use style cache bust missing");
   }
   if (unitId === "cell_basic_unit") {
-    assert(index.includes("styles.css?v=20261026-cell-basic-unit-wording-r3-v1"), "cell_basic_unit style cache bust missing");
+    assert(index.includes("styles.css?v=20261109-cell-basic-unit-backend-client-v1"), "cell_basic_unit style cache bust missing");
   }
   if (unitId === "cell_structure") {
     assert(index.includes("styles.css?v=20260731-cell-structure-submitted-retry-ia-v1"), "cell_structure style cache bust missing");
@@ -253,7 +253,7 @@ assert(
   && microscopeApp.includes("startAttemptSession(student.student_id)")
   && microscopeApp.includes('startData.verification_mode !== "server_verified"')
   && microscopeApp.includes("backend_registry_not_ready")
-  && microscopeApp.includes("cache: \"no-store\""),
+  && /postForm\(action, [^\n]*noStore: true/.test(microscopeApp), // R4-1c：no-store 改由共用模組 postForm 的 noStore 選項設定
   "microscope_use official login backend handling missing"
 );
 assert(microscopeApp.includes("function selectPartTarget(partId)") && microscopeApp.includes("尚有 ${remaining} 個部位未辨識"), "microscope_use target completion blocking missing");
