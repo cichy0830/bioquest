@@ -25,10 +25,11 @@ const context = {
 };
 context.window = context;
 context.globalThis = context;
+vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8"), context, { filename: "shared-assets/bioquest-achievements.js" });
 vm.runInNewContext(source, context, { filename: "prototype-temperature-glucose-homeostasis/app.js" });
 const api = context.window.__temperature_glucose_homeostasisTest;
 
-assert.equal(api.VERSION, "20261108-temperature-glucose-homeostasis-backend-client-v1");
+assert.equal(api.VERSION, "20261110-temperature-glucose-homeostasis-achievements-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-temperature-glucose-homeostasis-v1");
 assert.equal(api.mission.unit_id, "temperature_glucose_homeostasis");
 assert.equal(api.questions.length, 14);

@@ -25,10 +25,11 @@ const context = {
 };
 context.window = context;
 context.globalThis = context;
+vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8"), context, { filename: "shared-assets/bioquest-achievements.js" });
 vm.runInNewContext(source, context, { filename: "prototype-stimulus-response/app.js" });
 const api = context.window.__stimulus_responseTest;
 
-assert.equal(api.VERSION, "20261108-stimulus-response-backend-client-v1");
+assert.equal(api.VERSION, "20261110-stimulus-response-achievements-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-stimulus-response-ready-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);

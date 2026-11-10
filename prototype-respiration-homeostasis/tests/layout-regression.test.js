@@ -11,7 +11,7 @@ const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-respiration-homeostasis")
   : sourceRoot;
 const Q = (n) => `respiration_homeostasis_q${String(n).padStart(2, "0")}`;
-const VERSION = "20261108-respiration-homeostasis-backend-client-v1";
+const VERSION = "20261110-respiration-homeostasis-achievements-v1";
 const browser = await chromium.launch({ executablePath: process.env.BIOQUEST_CHROME_PATH || undefined });
 
 async function answerChoice(page, qid, value) {

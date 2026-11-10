@@ -27,6 +27,7 @@ const context = {
 };
 context.window = context;
 context.globalThis = context;
+vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8"), context, { filename: "shared-assets/bioquest-achievements.js" });
 vm.runInNewContext(source, context, { filename: "prototype-naming-classification/app.js" });
 const api = context.window.__namingClassificationTest;
 
@@ -60,7 +61,7 @@ const answers = {
   [Q(14)]: "classification_clue"
 };
 
-assert.equal(api.VERSION, "20261107-naming-classification-backend-client-v1");
+assert.equal(api.VERSION, "20261110-naming-classification-achievements-v1");
 assert.equal(api.QUESTION_VERSION, "20260818-naming-classification-v1");
 assert.equal(api.mission.unit_id, "naming_classification");
 assert.equal(html.includes('data-unit-sequence="38"'), true);

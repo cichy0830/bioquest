@@ -27,6 +27,7 @@ const context = {
 };
 context.window = context;
 context.globalThis = context;
+vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8"), context, { filename: "shared-assets/bioquest-achievements.js" });
 vm.runInNewContext(source, context, { filename: "prototype-biotechnology/app.js" });
 const api = context.window.__biotechnologyTest;
 
@@ -69,7 +70,7 @@ const answers = {
   [Q(14)]: "biotech_risk_needs_context_evidence"
 };
 
-assert.equal(api.VERSION, "20261107-biotechnology-backend-client-v1");
+assert.equal(api.VERSION, "20261110-biotechnology-achievements-v1");
 assert.equal(api.QUESTION_VERSION, "20260817-biotechnology-v1");
 assert.equal(api.mission.unit_id, "biotechnology");
 assert.equal(html.includes('data-unit-sequence="36"'), true);

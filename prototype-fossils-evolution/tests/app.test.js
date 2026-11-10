@@ -27,6 +27,7 @@ const context = {
 };
 context.window = context;
 context.globalThis = context;
+vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8"), context, { filename: "shared-assets/bioquest-achievements.js" });
 vm.runInNewContext(source, context, { filename: "prototype-fossils-evolution/app.js" });
 const api = context.window.__fossilsEvolutionTest;
 
@@ -65,7 +66,7 @@ const answers = {
   [Q(14)]: "evidence_supports_limited_relative_trait_inference"
 };
 
-assert.equal(api.VERSION, "20261107-fossils-evolution-backend-client-v1");
+assert.equal(api.VERSION, "20261110-fossils-evolution-achievements-v1");
 assert.equal(api.QUESTION_VERSION, "20260818-fossils-evolution-v1");
 assert.equal(api.mission.unit_id, "fossils_evolution");
 assert.equal(html.includes('data-unit-sequence="37"'), true);

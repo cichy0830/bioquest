@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-temperature-glucose-homeostasis")
   : sourceRoot;
-const CACHE_VERSION = "20261108-temperature-glucose-homeostasis-backend-client-v1";
+const CACHE_VERSION = "20261110-temperature-glucose-homeostasis-achievements-v1";
 const Q = (n) => `temperature_glucose_homeostasis_q${String(n).padStart(2, "0")}`;
 const browser = await chromium.launch({ executablePath: process.env.BIOQUEST_CHROME_PATH || undefined });
 

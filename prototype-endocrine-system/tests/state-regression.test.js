@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-endocrine-system")
   : sourceRoot;
-const VERSION = "20261108-endocrine-system-backend-client-v1";
+const VERSION = "20261110-endocrine-system-achievements-v1";
 const QUESTION_VERSION = "20260718-endocrine-system-ready-v1";
 const storageKey = "bioquest_endocrine_system_state_v1";
 const attemptsKey = "bioquest_attempts_v1";

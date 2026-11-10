@@ -27,6 +27,7 @@ const context = {
 };
 context.window = context;
 context.globalThis = context;
+vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8"), context, { filename: "shared-assets/bioquest-achievements.js" });
 vm.runInNewContext(source, context, { filename: "prototype-genetics-chromosome-gene/app.js" });
 const api = context.window.__genetics_chromosome_geneTest;
 
@@ -64,7 +65,7 @@ const answers = {
   [Q(14)]: "chromosome_gene_trait_basic_belongs_u32"
 };
 
-assert.equal(api.VERSION, "20261107-genetics-chromosome-gene-backend-client-v1");
+assert.equal(api.VERSION, "20261110-genetics-chromosome-gene-achievements-v1");
 assert.equal(api.QUESTION_VERSION, "20260725-genetics-chromosome-gene-v1.1");
 assert.equal(api.mission.unit_id, "genetics_chromosome_gene");
 assert.equal(html.includes('data-unit-sequence="32"'), true);
@@ -149,7 +150,7 @@ assert.equal(payload.question_logs.find((log) => log.question_id === Q(2)).hint_
 assert.equal(payload.question_logs.find((log) => log.question_id === Q(2)).exp_type, "revision");
 
 const q06Evidence = api.renderQuestionEvidence(Q(6));
-assert(q06Evidence.includes("u32-genetics-chromosome-gene-q06-v4-gene-location-zero-text-base-390w.webp?v=20261107-genetics-chromosome-gene-backend-client-v1"));
+assert(q06Evidence.includes("u32-genetics-chromosome-gene-q06-v4-gene-location-zero-text-base-390w.webp?v=20261110-genetics-chromosome-gene-achievements-v1"));
 assert(q06Evidence.includes("未標註的遺傳訊息位置示意圖"));
 assert(q06Evidence.includes("等效觀察清單"));
 assert(api.renderBrief().includes("u32-scene-neutral"));

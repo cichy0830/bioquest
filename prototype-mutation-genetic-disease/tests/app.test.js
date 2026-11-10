@@ -27,6 +27,7 @@ const context = {
 };
 context.window = context;
 context.globalThis = context;
+vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8"), context, { filename: "shared-assets/bioquest-achievements.js" });
 vm.runInNewContext(source, context, { filename: "prototype-mutation-genetic-disease/app.js" });
 const api = context.window.__mutation_genetic_diseaseTest;
 
@@ -72,7 +73,7 @@ const answers = {
   [Q(14)]: "u35_not_testing_or_treatment_advice"
 };
 
-assert.equal(api.VERSION, "20261107-mutation-genetic-disease-backend-client-v1");
+assert.equal(api.VERSION, "20261110-mutation-genetic-disease-achievements-v1");
 assert.equal(api.QUESTION_VERSION, "20260817-mutation-genetic-disease-v1");
 assert.equal(api.mission.unit_id, "mutation_genetic_disease");
 assert.equal(html.includes('data-unit-sequence="35"'), true);

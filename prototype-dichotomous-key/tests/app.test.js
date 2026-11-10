@@ -27,6 +27,7 @@ const context = {
 };
 context.window = context;
 context.globalThis = context;
+vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8"), context, { filename: "shared-assets/bioquest-achievements.js" });
 vm.runInNewContext(source, context, { filename: "prototype-dichotomous-key/app.js" });
 const api = context.window.__dichotomousKeyTest;
 
@@ -58,7 +59,7 @@ const answers = {
   [Q(14)]: "observable_exclusive_feature"
 };
 
-assert.equal(api.VERSION, "20261107-dichotomous-key-backend-client-v1");
+assert.equal(api.VERSION, "20261110-dichotomous-key-achievements-v1");
 assert.equal(api.QUESTION_VERSION, "20260819-dichotomous-key-v1");
 assert.equal(api.mission.unit_id, "dichotomous_key");
 assert.equal(html.includes('data-unit-id="dichotomous_key"'), true);

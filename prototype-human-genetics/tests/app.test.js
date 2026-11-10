@@ -27,6 +27,7 @@ const context = {
 };
 context.window = context;
 context.globalThis = context;
+vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8"), context, { filename: "shared-assets/bioquest-achievements.js" });
 vm.runInNewContext(source, context, { filename: "prototype-human-genetics/app.js" });
 const api = context.window.__human_geneticsTest;
 
@@ -69,7 +70,7 @@ const answers = {
   [Q(14)]: "human_genetics_basic_model_belongs_u33"
 };
 
-assert.equal(api.VERSION, "20261107-human-genetics-backend-client-v1");
+assert.equal(api.VERSION, "20261110-human-genetics-achievements-v1");
 assert.equal(api.QUESTION_VERSION, "20260817-human-genetics-v1");
 assert.equal(api.mission.unit_id, "human_genetics");
 assert.equal(html.includes('data-unit-sequence="33"'), true);

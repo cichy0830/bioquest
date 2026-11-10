@@ -27,6 +27,7 @@ const context = {
 };
 context.window = context;
 context.globalThis = context;
+vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8"), context, { filename: "shared-assets/bioquest-achievements.js" });
 vm.runInNewContext(source, context, { filename: "prototype-abo-blood-type/app.js" });
 const api = context.window.__abo_blood_typeTest;
 
@@ -66,7 +67,7 @@ const answers = {
   [Q(14)]: "model_not_supported_not_parentage"
 };
 
-assert.equal(api.VERSION, "20261107-abo-blood-type-backend-client-v1");
+assert.equal(api.VERSION, "20261110-abo-blood-type-achievements-v1");
 assert.equal(api.QUESTION_VERSION, "20260817-abo-blood-type-v1");
 assert.equal(api.mission.unit_id, "abo_blood_type");
 assert.equal(html.includes('data-unit-sequence="34"'), true);

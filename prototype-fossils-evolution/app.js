@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261107-fossils-evolution-backend-client-v1";
+const VERSION = "20261110-fossils-evolution-achievements-v1";
 const QUESTION_VERSION = "20260818-fossils-evolution-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -428,21 +428,7 @@ function titleAvatarPath(student = state.student) {
 }
 
 function titleAndProgress(student = state.student, localGain = 0) {
-  const remoteTotal = Number(student?.progress?.total_exp ?? student?.total_exp);
-  const localTotal = loadAttempts()
-    .filter((attempt) => attempt.student_id === student?.student_id && attempt.unit_id !== mission.unit_id)
-    .reduce((sum, attempt) => sum + Number(attempt.unit_credited_exp || 0), 0) + Number(localGain || 0);
-  const explicitLevel = titleLevels.find((level) => level.id === (student?.current_title_id || student?.progress?.current_title_id));
-  const totalExp = Math.max(Number.isFinite(remoteTotal) ? remoteTotal : 0, localTotal, explicitLevel?.need || 0);
-  const current = titleLevels.filter((level) => totalExp >= level.need).at(-1) || titleLevels[0];
-  const next = titleLevels.find((level) => level.need > totalExp) || null;
-  return {
-    totalExp,
-    current,
-    next,
-    remaining: next ? Math.max(0, next.need - totalExp) : 0,
-    progressPercent: Math.min(100, Math.round((totalExp / 23400) * 100))
-  };
+  return window.BioQuestAchievements.titleAndProgress({ titleLevels, countLocalAttempts: true, loadAttempts, unitId: mission.unit_id }, student, localGain);
 }
 
 function studentIdentityLine(student = state.student) {
@@ -1282,16 +1268,7 @@ function creditStatusText(result) {
 }
 
 function renderAchievements() {
-  return `
-    <div class="stack achievements-stack" data-bq-achievements-overview-only="true">
-      <section class="panel action-panel">
-        <p class="eyebrow">再挑戰</p>
-        <h2>重新登入後開始新的挑戰</h2>
-        <p class="muted">本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。</p>
-        <button class="secondary" data-relogin="true">重新登入／再挑戰</button>
-      </section>
-    </div>
-  `;
+  return window.BioQuestAchievements.renderAchievements();
 }
 
 function resultMode(result = state.result || scoreAttempt()) {

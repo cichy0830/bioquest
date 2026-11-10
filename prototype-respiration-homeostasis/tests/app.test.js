@@ -25,10 +25,11 @@ const context = {
 };
 context.window = context;
 context.globalThis = context;
+vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8"), context, { filename: "shared-assets/bioquest-achievements.js" });
 vm.runInNewContext(source, context, { filename: "prototype-respiration-homeostasis/app.js" });
 const api = context.window.__respiration_homeostasisTest;
 
-assert.equal(api.VERSION, "20261108-respiration-homeostasis-backend-client-v1");
+assert.equal(api.VERSION, "20261110-respiration-homeostasis-achievements-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-respiration-homeostasis-v1");
 assert.equal(api.mission.unit_id, "respiration_homeostasis");
 assert.equal(api.questions.length, 14);

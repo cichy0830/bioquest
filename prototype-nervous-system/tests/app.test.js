@@ -25,10 +25,11 @@ const context = {
 };
 context.window = context;
 context.globalThis = context;
+vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8"), context, { filename: "shared-assets/bioquest-achievements.js" });
 vm.runInNewContext(source, context, { filename: "prototype-nervous-system/app.js" });
 const api = context.window.__nervous_systemTest;
 
-assert.equal(api.VERSION, "20261108-nervous-system-backend-client-v1");
+assert.equal(api.VERSION, "20261110-nervous-system-achievements-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-nervous-system-ready-v1");
 assert.equal(api.mission.unit_id, "nervous_system");
 assert.equal(api.questions.length, 14);

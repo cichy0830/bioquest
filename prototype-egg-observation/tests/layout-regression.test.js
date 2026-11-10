@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-egg-observation")
   : sourceRoot;
-const VERSION = "20261108-egg-observation-backend-client-v1";
+const VERSION = "20261110-egg-observation-achievements-v1";
 const QUESTION_VERSION = "20260718-egg-observation-v1";
 const Q = (n) => `egg_observation_q${String(n).padStart(2, "0")}`;
 const viewports = [{ width: 1440, height: 900 }, { width: 390, height: 844 }];

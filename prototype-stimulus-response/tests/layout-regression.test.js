@@ -49,7 +49,7 @@ try {
     });
     page.on("dialog", (dialog) => dialog.accept());
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261108-stimulus-response-backend-client-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261110-stimulus-response-achievements-v1`);
     await page.locator("#guestBtn").click();
     await page.locator(".bq-brief-scene-stage").waitFor();
     const briefSnapshot = await page.evaluate(() => {
