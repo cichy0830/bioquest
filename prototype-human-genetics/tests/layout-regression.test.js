@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-human-genetics")
   : sourceRoot;
-const VERSION = "20261110-human-genetics-achievements-v1";
+const VERSION = "20261111-human-genetics-badge-wall-v1";
 const QUESTION_VERSION = "20260817-human-genetics-v1";
 const viewports = [{ width: 1440, height: 900 }, { width: 390, height: 844 }];
 const modes = ["guest", "pending", "verified"];

@@ -67,7 +67,7 @@ const answers = {
   [Q(14)]: "model_not_supported_not_parentage"
 };
 
-assert.equal(api.VERSION, "20261110-abo-blood-type-achievements-v1");
+assert.equal(api.VERSION, "20261111-abo-blood-type-badge-wall-v1");
 assert.equal(api.QUESTION_VERSION, "20260817-abo-blood-type-v1");
 assert.equal(api.mission.unit_id, "abo_blood_type");
 assert.equal(html.includes('data-unit-sequence="34"'), true);

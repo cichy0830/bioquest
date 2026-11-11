@@ -54,7 +54,7 @@ const answers = {
   [Q(14)]: "nutrition_and_group"
 };
 
-assert.equal(api.VERSION, "20261110-prokaryotes-protists-fungi-achievements-v1");
+assert.equal(api.VERSION, "20261111-prokaryotes-protists-fungi-badge-wall-v1");
 assert.equal(api.QUESTION_VERSION, "20260819-prokaryotes-protists-fungi-v1");
 assert.equal(api.mission.unit_id, "prokaryotes_protists_fungi");
 assert.equal(html.includes('data-unit-id="prokaryotes_protists_fungi"'), true);

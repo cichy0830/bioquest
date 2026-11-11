@@ -59,7 +59,7 @@ const answers = {
   [Q(14)]: "observable_exclusive_feature"
 };
 
-assert.equal(api.VERSION, "20261110-dichotomous-key-achievements-v1");
+assert.equal(api.VERSION, "20261111-dichotomous-key-badge-wall-v1");
 assert.equal(api.QUESTION_VERSION, "20260819-dichotomous-key-v1");
 assert.equal(api.mission.unit_id, "dichotomous_key");
 assert.equal(html.includes('data-unit-id="dichotomous_key"'), true);

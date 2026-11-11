@@ -2,12 +2,14 @@
 // 1. 共用模組的 renderAchievements／titleAndProgress，輸出必須和第 16–40 站遷移前內嵌的原寫法
 //    （legacy-achievements.mjs）逐案相同；titleAndProgress 用各站真正的稱號等級表、多種學生資料與本機紀錄比對。
 // 2. 已遷移的站：index.html 在 app.js 之前載入共用模組；app.js 只剩薄包裝，不再內嵌原寫法。
+// 3. R4-2b 徽章牆 renderBadgeWall：第 30–40 站載入真正的 app.js，用站內徽章表（另加含特殊字元與未核准圖的測試徽章）
+//    × 多種取得徽章組合 × 選項，和遷移前原寫法（LEGACY_BADGE_WALL_30_40）逐字比對。
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
-import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE } from "./legacy-achievements.mjs";
+import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40 } from "./legacy-achievements.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const sharedSource = fs.readFileSync(path.join(root, "shared-assets", "bioquest-achievements.js"), "utf8");
@@ -132,4 +134,70 @@ for (const [slug, kind] of ACHIEVEMENT_STATIONS) {
   }
 }
 
-console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared }));
+// 3. renderBadgeWall（R4-2b：第 30–40 站）
+export const BADGE_WALL_STATIONS = [
+  "egg-observation",
+  "flower-observation",
+  "genetics-chromosome-gene",
+  "human-genetics",
+  "abo-blood-type",
+  "mutation-genetic-disease",
+  "biotechnology",
+  "fossils-evolution",
+  "naming-classification",
+  "dichotomous-key",
+  "prokaryotes-protists-fungi"
+];
+let badgeWallCases = 0;
+for (const slug of BADGE_WALL_STATIONS) {
+  const folder = `prototype-${slug}`;
+  const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
+  assert(app.includes("return window.BioQuestAchievements.renderBadgeWall({ badges, version: VERSION }, earned, options);"), `${folder}: renderBadgeWall 應改用共用模組`);
+  assert(!app.includes("本次達成候選項目"), `${folder}: 不應再內嵌 renderBadgeWall 原寫法`);
+  const store = new Map();
+  const context = {
+    console: { log() {}, warn() {}, error() {} },
+    document: { readyState: "loading", querySelector() { return null; }, querySelectorAll() { return []; }, addEventListener() {} },
+    localStorage: { getItem: (key) => store.get(key) || null, setItem: (key, value) => store.set(key, String(value)) },
+    URLSearchParams,
+    fetch: async () => ({ ok: true, json: async () => ({ ok: true }) }),
+    Date,
+    Math,
+    setTimeout,
+    clearTimeout
+  };
+  context.window = context;
+  context.globalThis = context;
+  vm.runInNewContext(sharedSource, context);
+  vm.runInNewContext(app, context, { filename: `${folder}/app.js` });
+  const api = Object.entries(context).find(([key, value]) => /^__.+Test$/.test(key) && value?.renderBadgeWall)?.[1];
+  assert(api, `${folder}: 找不到站內測試介面`);
+  const escapeSource = app.match(/function escapeHtml\(value\) \{\n[^\n]*\n\}/)[0];
+  const legacyContext = { badges: api.badges, VERSION: api.VERSION };
+  const legacyWall = vm.runInNewContext(`${escapeSource}\n${LEGACY_BADGE_WALL_30_40}; renderBadgeWall`, legacyContext);
+
+  const extras = [
+    { id: "zz_test_special", name: `測<試>&"'徽章`, condition: `條件<b>&"'`, image_status: "ready", badge_image_path: "assets/x.webp" },
+    { id: "zz_test_pending", name: "未核准圖", condition: "等待圖像", image_status: "pending", badge_image_path: "assets/y.webp" },
+    { id: "zz_test_nopath", name: "沒有圖片路徑", condition: "無路徑", image_status: "ready", badge_image_path: "" },
+    { id: "zz_test_nostatus", name: "沒有狀態", condition: "無狀態" }
+  ];
+  for (const withExtras of [false, true]) {
+    if (withExtras) api.badges.push(...extras);
+    const ids = api.badges.map((badge) => badge.id);
+    const ready = api.badges.filter((badge) => badge.image_status === "ready" && badge.badge_image_path).map((badge) => badge.id);
+    const notReady = ids.filter((id) => !ready.includes(id));
+    const earnedSets = [undefined, null, [], ids, ids.slice(0, 1), ids.slice(-2), ready, notReady, ready.slice(0, 2).concat(notReady.slice(0, 2)), ["unknown_badge"], [ids[0], ids[0], "unknown_badge", ids[1]]];
+    for (const earned of earnedSets) {
+      for (const options of [undefined, {}, { onlyEarned: true }, { onlyEarned: false }, { onlyEarned: 1 }]) {
+        const expected = legacyWall(earned, options);
+        assert.equal(api.renderBadgeWall(earned, options), expected, `${folder}: renderBadgeWall 與原寫法不同（${JSON.stringify({ earned, options, withExtras })}）`);
+        badgeWallCases += 1;
+      }
+    }
+    if (withExtras) api.badges.splice(api.badges.length - extras.length, extras.length);
+  }
+  assert.equal(api.renderBadgeWall(), legacyWall(), `${folder}: 預設參數結果不同`);
+}
+
+console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases }));

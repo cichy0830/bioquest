@@ -73,7 +73,7 @@ const answers = {
   [Q(14)]: "u35_not_testing_or_treatment_advice"
 };
 
-assert.equal(api.VERSION, "20261110-mutation-genetic-disease-achievements-v1");
+assert.equal(api.VERSION, "20261111-mutation-genetic-disease-badge-wall-v1");
 assert.equal(api.QUESTION_VERSION, "20260817-mutation-genetic-disease-v1");
 assert.equal(api.mission.unit_id, "mutation_genetic_disease");
 assert.equal(html.includes('data-unit-sequence="35"'), true);

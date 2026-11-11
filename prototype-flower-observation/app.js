@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261110-flower-observation-achievements-v1";
+const VERSION = "20261111-flower-observation-badge-wall-v1";
 const QUESTION_VERSION = "20260725-flower-observation-v1.1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -1727,31 +1727,7 @@ function resultMode(result = state.result || scoreAttempt()) {
 }
 
 function renderBadgeWall(earned = [], options = {}) {
-  const earnedSet = new Set(earned);
-  const earnedBadges = [...earnedSet].map((id) => badges.find((badge) => badge.id === id)).filter(Boolean);
-  const visibleBadges = options.onlyEarned ? earnedBadges.filter((badge) => badge.image_status === "ready" && badge.badge_image_path) : badges;
-  const candidateBadges = options.onlyEarned ? earnedBadges.filter((badge) => badge.image_status !== "ready" || !badge.badge_image_path) : [];
-  if (options.onlyEarned && visibleBadges.length === 0 && candidateBadges.length === 0) {
-    return `<section class="panel">
-      <p class="eyebrow">本次取得項目</p>
-      <h2>本次尚未取得新項目</h2>
-      <p class="muted">完成任務後會依本次表現列出實際取得的正式圖像徽章；正式累積以後台確認為準。</p>
-    </section>`;
-  }
-  return `<section class="panel">
-    <p class="eyebrow">${options.onlyEarned ? "本次取得項目" : "本單元項目"}</p>
-    <h2>${options.onlyEarned ? "本次正式圖像徽章" : `本單元 ${badges.length} 項`}</h2>
-    ${visibleBadges.length ? `<div class="${options.onlyEarned ? "earned-badge-list" : "badge-wall"}">
-      ${visibleBadges.map((badge) => `
-        <article class="badge ${earnedSet.has(badge.id) ? "earned" : "locked"}">
-          <div class="badge-visual" data-badge-image-status="${badge.image_status || "pending"}"><img src="${badge.badge_image_path}?v=${VERSION}" alt="${escapeHtml(badge.name)}" onerror="this.closest('.badge-visual').classList.add('asset-missing'); this.remove();"></div>
-          <strong>${escapeHtml(badge.name)}</strong>
-          ${options.onlyEarned ? "" : `<p>${escapeHtml(badge.condition)}</p>`}
-        </article>
-      `).join("")}
-    </div>` : `<p class="muted">本次沒有已核准正式圖像徽章可顯示；正式累積以後台確認為準。</p>`}
-    ${candidateBadges.length ? `<div class="candidate-badge-list" aria-label="本次達成但未列正式圖像的項目"><h3>本次達成候選項目</h3><p class="muted">以下項目等正式圖像核准後才會進入正式徽章圖像展示；本頁不請求不存在的圖檔。</p><ul>${candidateBadges.map((badge) => `<li><strong>${escapeHtml(badge.name)}</strong><span>${escapeHtml(badge.condition)}</span></li>`).join("")}</ul></div>` : ""}
-  </section>`;
+  return window.BioQuestAchievements.renderBadgeWall({ badges, version: VERSION }, earned, options);
 }
 
 function renderRules() {

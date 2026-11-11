@@ -61,7 +61,7 @@ const answers = {
   [Q(14)]: "classification_clue"
 };
 
-assert.equal(api.VERSION, "20261110-naming-classification-achievements-v1");
+assert.equal(api.VERSION, "20261111-naming-classification-badge-wall-v1");
 assert.equal(api.QUESTION_VERSION, "20260818-naming-classification-v1");
 assert.equal(api.mission.unit_id, "naming_classification");
 assert.equal(html.includes('data-unit-sequence="38"'), true);
