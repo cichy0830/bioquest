@@ -70,7 +70,7 @@ const answers = {
   [Q(14)]: "biotech_risk_needs_context_evidence"
 };
 
-assert.equal(api.VERSION, "20261111-biotechnology-badge-wall-v1");
+assert.equal(api.VERSION, "20261112-biotechnology-submit-response-v1");
 assert.equal(api.QUESTION_VERSION, "20260817-biotechnology-v1");
 assert.equal(api.mission.unit_id, "biotechnology");
 assert.equal(html.includes('data-unit-sequence="36"'), true);

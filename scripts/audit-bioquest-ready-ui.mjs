@@ -90,7 +90,7 @@ appVersionOverrides.set("cell_division", "20261110-cell-division-achievements-v1
 appVersionOverrides.set("asexual_reproduction", "20261110-asexual-reproduction-achievements-v1");
 appVersionOverrides.set("sexual_reproduction", "20261110-sexual-reproduction-achievements-v1");
 appVersionOverrides.set("egg_observation", "20261111-egg-observation-badge-wall-v1");
-appVersionOverrides.set("flower_observation", "20261111-flower-observation-badge-wall-v1");
+appVersionOverrides.set("flower_observation", "20261112-flower-observation-submit-response-v1");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);

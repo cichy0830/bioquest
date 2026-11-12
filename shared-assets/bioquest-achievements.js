@@ -14,13 +14,18 @@
  *   R4-2b（2026-11-11）：先收第 30–40 站（11 站原本逐字相同）；第 16–29 站還有 9 種寫法（文字與圖片備援不同），
  *   統一會改學生畫面，待老師決定後再收。
  *
- * R4-2a（2026-11-10）、R4-2b（2026-11-11）：輸出與各站原本內嵌的函式逐字等價
+ * applySubmitResponse(ctx, response, localResult)：結算頁送出後，用後台回應（verified_attempt／attempt_result／student_progress）
+ *   覆寫本機結算結果與學生累積資料；ctx = { student, saveVerifiedSnapshot }（student 會被就地更新，與原寫法相同）。
+ *   R4-2c（2026-11-12）：先收第 31–40 站（10 站原本逐字相同，連同 numberFromAliases／objectFromValue／badgeIdsFromValue／backendBadgeIds）；
+ *   第 16、17、18–21、22–30 站另有 4 種寫法（取數字的先後順序與本機備援不同），之後再以選項收。
+ *
+ * R4-2a（2026-11-10）、R4-2b（2026-11-11）、R4-2c（2026-11-12）：輸出與各站原本內嵌的函式逐字等價
  * （原寫法保留在 scripts/tests/legacy-achievements.mjs，scripts/tests/achievements.test.mjs 逐案比對）。
  */
 (function configureBioQuestAchievements(global) {
   "use strict";
 
-  const VERSION = "20261111-achievements-v2";
+  const VERSION = "20261112-achievements-v3";
 
   function renderAchievements() {
     return `
@@ -93,5 +98,100 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
   </section>`;
 }
 
-  global.BioQuestAchievements = Object.freeze({ VERSION, renderAchievements, titleAndProgress, renderBadgeWall });
+  // R4-2c：第 31–40 站 applyBackendSubmitResponse 與輔助函式（state.student → ctx.student）。
+  function applySubmitResponse(ctx, response, localResult) {
+    if (!response || response.ok === false) return localResult;
+    const verified = response.verified_attempt || response.attempt || null;
+    const attemptResult = response.attempt_result || response.result || null;
+    const progress = response.student_progress || response.progress || null;
+    if (progress) {
+      ctx.student.progress = progress;
+      ctx.student.total_exp = Number(progress.total_exp ?? ctx.student.total_exp ?? 0);
+      ctx.student.current_title_id = progress.current_title_id || ctx.student.current_title_id;
+      ctx.student.current_title = progress.current_title || ctx.student.current_title;
+      ctx.student.title_avatar_path = progress.title_avatar_path || ctx.student.title_avatar_path;
+      ctx.saveVerifiedSnapshot(ctx.student);
+    }
+    if (!verified && !attemptResult) return { ...localResult, backend_response: response };
+    const verificationStatus = verified?.verification_status || attemptResult?.verification_status || response.verification_status || "server_verified";
+    const serverVerified = verificationStatus === "server_verified" || verificationStatus === "server_verified_credited";
+    const serverBadgeIds = backendBadgeIds(response, verified, attemptResult);
+    const earnedBadges = serverBadgeIds.length ? serverBadgeIds : (serverVerified ? [] : localResult.earned_badges);
+    const authoritative = verified || attemptResult || {};
+    return {
+      ...localResult,
+      verification_status: verificationStatus,
+      correct_count: numberFromAliases(localResult.correct_count, authoritative.correct_count, attemptResult?.correct_count),
+      total_questions: numberFromAliases(localResult.total_questions, authoritative.total_questions, attemptResult?.total_questions),
+      accuracy: numberFromAliases(localResult.accuracy, authoritative.accuracy, attemptResult?.accuracy),
+      hint_used_count: numberFromAliases(localResult.hint_used_count, authoritative.hint_used_count, attemptResult?.hint_used_count),
+      completion_exp: numberFromAliases(localResult.completion_exp, authoritative.completion_exp, attemptResult?.completion_exp),
+      direct_exp: numberFromAliases(localResult.direct_exp, authoritative.direct_exp, authoritative.concept_exp, attemptResult?.direct_exp, attemptResult?.concept_exp),
+      revision_exp: numberFromAliases(localResult.revision_exp, authoritative.revision_exp, attemptResult?.revision_exp),
+      reflection_exp: numberFromAliases(localResult.reflection_exp, authoritative.reflection_exp, authoritative.question_exp, attemptResult?.reflection_exp, attemptResult?.question_exp),
+      mastery_exp: numberFromAliases(localResult.mastery_exp, authoritative.mastery_exp, attemptResult?.mastery_exp),
+      retry_exp: numberFromAliases(localResult.retry_exp, authoritative.retry_exp, attemptResult?.retry_exp),
+      attempt_exp: numberFromAliases(localResult.attempt_exp, authoritative.attempt_exp, authoritative.attempt_total_exp, attemptResult?.attempt_exp, attemptResult?.attempt_total_exp),
+      unit_credited_exp: numberFromAliases(localResult.unit_credited_exp, authoritative.unit_credited_exp, attemptResult?.unit_credited_exp, authoritative.attempt_exp, authoritative.attempt_total_exp, attemptResult?.attempt_exp, attemptResult?.attempt_total_exp),
+      exp_delta: numberFromAliases(localResult.exp_delta, authoritative.credited_delta, authoritative.exp_delta, attemptResult?.credited_delta, attemptResult?.exp_delta),
+      earned_badges: earnedBadges,
+      backend_response: response
+    };
+  }
+
+  function numberFromAliases(fallback, ...values) {
+    for (const value of values) {
+      const numeric = Number(value);
+      if (Number.isFinite(numeric)) return numeric;
+    }
+    return Number(fallback || 0);
+  }
+
+  function objectFromValue(value) {
+    if (!value) return null;
+    if (typeof value === "object") return value;
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        return parsed && typeof parsed === "object" ? parsed : null;
+      } catch (error) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  function badgeIdsFromValue(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.map((item) => typeof item === "string" ? item : item?.badge_id || item?.id).filter(Boolean);
+    const parsed = objectFromValue(value);
+    if (Array.isArray(parsed)) return badgeIdsFromValue(parsed);
+    if (parsed && typeof parsed === "object") return Object.keys(parsed).filter((id) => parsed[id]);
+    return [];
+  }
+
+  function backendBadgeIds(response, verified, attemptResult) {
+    const sources = [
+      attemptResult?.newly_credited_badges_json,
+      attemptResult?.earned_badges_json,
+      attemptResult?.newly_credited_badges,
+      attemptResult?.earned_badges,
+      verified?.newly_credited_badges_json,
+      verified?.earned_badges_json,
+      verified?.earned_badges,
+      verified?.badges,
+      verified?.badges_json,
+      response?.newly_credited_badges_json,
+      response?.earned_badges_json,
+      response?.earned_badges,
+      response?.badges_json
+    ];
+    for (const value of sources) {
+      const ids = badgeIdsFromValue(value);
+      if (ids.length) return [...new Set(ids)];
+    }
+    return [];
+  }
+
+  global.BioQuestAchievements = Object.freeze({ VERSION, renderAchievements, titleAndProgress, renderBadgeWall, applySubmitResponse });
 })(typeof window !== "undefined" ? window : globalThis);

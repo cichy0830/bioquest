@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-mutation-genetic-disease")
   : sourceRoot;
-const VERSION = "20261111-mutation-genetic-disease-badge-wall-v1";
+const VERSION = "20261112-mutation-genetic-disease-submit-response-v1";
 const QUESTION_VERSION = "20260817-mutation-genetic-disease-v1";
 const viewports = [{ width: 1440, height: 900 }, { width: 390, height: 844 }];
 const modes = ["guest", "pending", "verified"];

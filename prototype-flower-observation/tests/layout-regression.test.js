@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-flower-observation")
   : sourceRoot;
-const VERSION = "20261111-flower-observation-badge-wall-v1";
+const VERSION = "20261112-flower-observation-submit-response-v1";
 const QUESTION_VERSION = "20260725-flower-observation-v1.1";
 const Q = (n) => `flower_observation_q${String(n).padStart(2, "0")}`;
 const viewports = [{ width: 1440, height: 900 }, { width: 390, height: 844 }];
