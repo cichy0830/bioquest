@@ -4,3 +4,6 @@
 node_modules/
 # 測試輸出的截圖與報告不進公開 repo（已追蹤的舊檔不受影響）
 prototype-*/tests/artifacts/
+
+# audit-bioquest-ready-ui.mjs 在 repo 根目錄產生的盤點報告（屬 workspace，不進網站 repo）
+04_網頁模板/
