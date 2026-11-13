@@ -10,7 +10,7 @@ const sourceRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-excretion-water-homeostasis")
   : sourceRoot;
-const VERSION = "20261110-excretion-water-homeostasis-achievements-v1";
+const VERSION = "20261113-excretion-water-homeostasis-submit-response-v1";
 const QUESTION_VERSION = "20260718-excretion-water-homeostasis-v1";
 const storageKey = "bioquest_excretion_water_homeostasis_state_v1";
 const attemptsKey = "bioquest_attempts_v1";

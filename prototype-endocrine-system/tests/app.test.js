@@ -29,7 +29,7 @@ vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioqu
 vm.runInNewContext(source, context, { filename: "prototype-endocrine-system/app.js" });
 const api = context.window.__endocrine_systemTest;
 
-assert.equal(api.VERSION, "20261110-endocrine-system-achievements-v1");
+assert.equal(api.VERSION, "20261113-endocrine-system-submit-response-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-endocrine-system-ready-v1");
 assert.equal(api.mission.unit_id, "endocrine_system");
 assert.equal(api.questions.length, 14);

@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261110-temperature-glucose-homeostasis-achievements-v1";
+const VERSION = "20261113-temperature-glucose-homeostasis-submit-response-v1";
 const QUESTION_VERSION = "20260718-temperature-glucose-homeostasis-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -870,108 +870,8 @@ async function submitAttemptToBackend(payload) {
   return requestBackend(payload);
 }
 
-function numberFromAliases(...values) {
-  for (const value of values) {
-    if (value === null || value === undefined || value === "") continue;
-    const numeric = Number(value);
-    if (Number.isFinite(numeric)) return numeric;
-  }
-  return null;
-}
-
-function badgeIdsFromValue(value) {
-  if (!value) return null;
-  if (Array.isArray(value)) {
-    return value.map((item) => {
-      if (typeof item === "string") return item;
-      if (item && typeof item === "object") return item.badge_id || item.id || item.badgeId || "";
-      return "";
-    }).filter(Boolean);
-  }
-  if (typeof value === "string") {
-    try {
-      return badgeIdsFromValue(JSON.parse(value));
-    } catch (error) {
-      return value.split(",").map((item) => item.trim()).filter(Boolean);
-    }
-  }
-  return null;
-}
-
-function objectFromValue(value) {
-  if (!value) return {};
-  if (typeof value === "object" && !Array.isArray(value)) return value;
-  if (typeof value === "string") {
-    try {
-      const parsed = JSON.parse(value);
-      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
-    } catch (error) {
-      return {};
-    }
-  }
-  return {};
-}
-
-function firstBadgeIds(...values) {
-  for (const value of values) {
-    const ids = badgeIdsFromValue(value);
-    if (ids) return ids;
-  }
-  return null;
-}
-
-function backendBadgeIds(response = {}, verified = null) {
-  const attemptResult = objectFromValue(response.attempt_result || response.attempt_result_json || response.result);
-  return firstBadgeIds(
-    attemptResult.newly_credited_badges_json,
-    attemptResult.earned_badges_json,
-    attemptResult.newly_credited_badges,
-    attemptResult.earned_badges,
-    response.newly_credited_badges_json,
-    response.earned_badges_json,
-    verified?.earned_badges,
-    verified?.badges,
-    verified?.badges_json
-  );
-}
-
 function applyBackendSubmitResponse(response, localResult) {
-  if (!response || response.ok === false) return localResult;
-  const verified = response.verified_attempt || response.attempt || null;
-  const attemptResult = objectFromValue(response.attempt_result || response.attempt_result_json || response.result);
-  const progress = response.student_progress || response.progress || null;
-  if (progress) {
-    state.student.progress = progress;
-    state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
-    state.student.current_title_id = progress.current_title_id || state.student.current_title_id;
-    state.student.current_title = progress.current_title || state.student.current_title;
-    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path;
-    saveVerifiedSnapshot(state.student);
-  }
-  if (!verified) return { ...localResult, backend_response: response };
-  const verificationStatus = verified.verification_status || response.verification_status || (response.verified_attempt ? "server_verified" : localResult.verification_status || "pending_backend");
-  const serverVerified = verificationStatus === "server_verified" || verificationStatus === "server_verified_credited";
-  const serverBadgeIds = backendBadgeIds(response, verified);
-  const localFallback = (key) => (serverVerified ? null : localResult[key]);
-  return {
-    ...localResult,
-    verification_status: verificationStatus,
-    correct_count: numberFromAliases(verified.correct_count, attemptResult.correct_count, localFallback("correct_count")) ?? 0,
-    total_questions: numberFromAliases(verified.total_questions, attemptResult.total_questions, localFallback("total_questions")) ?? 0,
-    accuracy: numberFromAliases(verified.accuracy, attemptResult.accuracy, localFallback("accuracy")) ?? 0,
-    hint_used_count: numberFromAliases(verified.hint_used_count, attemptResult.hint_used_count, localFallback("hint_used_count")) ?? 0,
-    completion_exp: numberFromAliases(verified.completion_exp, attemptResult.completion_exp, localFallback("completion_exp")) ?? 0,
-    direct_exp: numberFromAliases(verified.direct_exp, verified.concept_exp, attemptResult.direct_exp, attemptResult.concept_exp, localFallback("direct_exp")) ?? 0,
-    revision_exp: numberFromAliases(verified.revision_exp, attemptResult.revision_exp, localFallback("revision_exp")) ?? 0,
-    reflection_exp: numberFromAliases(verified.reflection_exp, verified.question_exp, attemptResult.reflection_exp, attemptResult.question_exp, localFallback("reflection_exp")) ?? 0,
-    mastery_exp: numberFromAliases(verified.mastery_exp, attemptResult.mastery_exp, localFallback("mastery_exp")) ?? 0,
-    retry_exp: numberFromAliases(verified.retry_exp, attemptResult.retry_exp, localFallback("retry_exp")) ?? 0,
-    attempt_exp: numberFromAliases(verified.attempt_exp, verified.attempt_total_exp, attemptResult.attempt_exp, attemptResult.attempt_total_exp, localFallback("attempt_exp")) ?? 0,
-    unit_credited_exp: numberFromAliases(verified.unit_credited_exp, attemptResult.unit_credited_exp, localFallback("unit_credited_exp")) ?? 0,
-    exp_delta: numberFromAliases(verified.credited_delta, verified.exp_delta, attemptResult.credited_delta, attemptResult.exp_delta, localFallback("exp_delta")) ?? 0,
-    earned_badges: serverVerified ? (serverBadgeIds || []) : (serverBadgeIds || localResult.earned_badges),
-    backend_response: response
-  };
+  return window.BioQuestAchievements.applyVerifiedSubmitResponse({ student: state.student, saveVerifiedSnapshot }, response, localResult);
 }
 
 async function submitMission() {
@@ -1616,7 +1516,6 @@ if (typeof window !== "undefined") {
     buildBackendPayload,
     applyBackendSubmitResponse,
     shortQuestionId,
-    backendBadgeIds,
     evaluateReflection,
     REPORT_DIRECTIONS,
     reflectionRules,

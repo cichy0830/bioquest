@@ -29,7 +29,7 @@ vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioqu
 vm.runInNewContext(source, context, { filename: "prototype-sexual-reproduction/app.js" });
 const api = context.window.__sexual_reproductionTest;
 
-assert.equal(api.VERSION, "20261110-sexual-reproduction-achievements-v1");
+assert.equal(api.VERSION, "20261113-sexual-reproduction-submit-response-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-sexual-reproduction-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION);
 assert.equal(api.mission.unit_id, "sexual_reproduction");

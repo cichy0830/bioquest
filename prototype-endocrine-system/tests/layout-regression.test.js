@@ -11,7 +11,7 @@ const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT, "prototype-endocrine-system")
   : sourceRoot;
 const Q = (n) => `endocrine_system_q${String(n).padStart(2, "0")}`;
-const APP_VERSION = "20261110-endocrine-system-achievements-v1";
+const APP_VERSION = "20261113-endocrine-system-submit-response-v1";
 const QUESTION_VERSION = "20260718-endocrine-system-ready-v1";
 const browser = await chromium.launch({ executablePath: process.env.BIOQUEST_CHROME_PATH || undefined });
 

@@ -29,7 +29,7 @@ vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioqu
 vm.runInNewContext(source, context, { filename: "prototype-behavior-sensing/app.js" });
 const api = context.window.__behavior_sensingTest;
 
-assert.equal(api.VERSION, "20261110-behavior-sensing-achievements-v1");
+assert.equal(api.VERSION, "20261113-behavior-sensing-submit-response-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-behavior-sensing-v1");
 assert.equal(api.mission.unit_id, "behavior_sensing");
 assert.equal(api.questions.length, 14);

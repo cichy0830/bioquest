@@ -6,12 +6,13 @@
 //    × 多種取得徽章組合 × 選項，和遷移前原寫法（LEGACY_BADGE_WALL_30_40）逐字比對。
 // 4. R4-2c 結算頁 applyBackendSubmitResponse：第 31–40 站載入真正的 app.js，用多種後台回應 × 本機結果 × 學生資料，
 //    和遷移前原寫法（LEGACY_SUBMIT_31_40）比對回傳值、學生資料的就地更新、存進本機的快照，以及丟出的錯誤。
+// 5. R4-2c 第二批：第 22–30 站改用 applyVerifiedSubmitResponse，同樣方式和 LEGACY_SUBMIT_22_30 比對（另加 JSON 字串 attempt_result、逗號分隔徽章等回應）。
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
-import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40, LEGACY_SUBMIT_31_40 } from "./legacy-achievements.mjs";
+import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40, LEGACY_SUBMIT_31_40, LEGACY_SUBMIT_22_30 } from "./legacy-achievements.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const sharedSource = fs.readFileSync(path.join(root, "shared-assets", "bioquest-achievements.js"), "utf8");
@@ -295,4 +296,72 @@ for (const slug of SUBMIT_STATIONS) {
   }
 }
 
-console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases, submitStations: SUBMIT_STATIONS.length, submitCases }));
+// 5. applyBackendSubmitResponse（R4-2c 第二批：第 22–30 站，applyVerifiedSubmitResponse）
+export const SUBMIT_VERIFIED_STATIONS = ["cell-division", "egg-observation", "behavior-sensing", "endocrine-system", "sexual-reproduction", "asexual-reproduction", "respiration-homeostasis", "excretion-water-homeostasis", "temperature-glucose-homeostasis"];
+const verifiedResponses = submitResponses.concat([
+  { ok: true, verified_attempt: { verification_status: "server_verified", correct_count: "", total_questions: "12" }, attempt_result_json: JSON.stringify({ correct_count: 10, direct_exp: "80", newly_credited_badges_json: "x1, x2 ,,x3" }) },
+  { ok: true, attempt: { verification_status: "local_only", accuracy: null }, attempt_result: "not json", newly_credited_badges_json: "[{\"badgeId\":\"c1\"},{\"badge_id\":\"c2\"},7]" },
+  { ok: true, attempt: {}, result: "[1,2]", earned_badges_json: "{\"a\":1}" },
+  { ok: true, verified_attempt: { earned_badges: [] }, attempt_result: { earned_badges: "" }, earned_badges_json: "[]" },
+  { ok: true, verified_attempt: { verification_status: "server_verified_credited", unit_credited_exp: "0", exp_delta: "-5" }, attempt_result: ["arr"] },
+  { ok: true, attempt: { verification_status: "pending_review" }, student_progress: { total_exp: undefined, title_avatar_path: "" } }
+]);
+let verifiedCases = 0;
+for (const slug of SUBMIT_VERIFIED_STATIONS) {
+  const folder = `prototype-${slug}`;
+  const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
+  assert(app.includes("return window.BioQuestAchievements.applyVerifiedSubmitResponse({ student: state.student, saveVerifiedSnapshot }, response, localResult);"), `${folder}: applyBackendSubmitResponse 應改用共用模組 applyVerifiedSubmitResponse`);
+  for (const name of ["numberFromAliases", "objectFromValue", "badgeIdsFromValue", "firstBadgeIds", "backendBadgeIds"]) {
+    assert(!app.includes(`function ${name}(`), `${folder}: 不應再內嵌 ${name}`);
+  }
+  const store = new Map();
+  const context = {
+    console: { log() {}, warn() {}, error() {} },
+    document: { readyState: "loading", querySelector() { return null; }, querySelectorAll() { return []; }, addEventListener() {} },
+    localStorage: { getItem: (key) => store.get(key) || null, setItem: (key, value) => store.set(key, String(value)), removeItem: (key) => store.delete(key) },
+    URLSearchParams,
+    fetch: async () => ({ ok: true, json: async () => ({ ok: true }) }),
+    Date,
+    Math,
+    setTimeout,
+    clearTimeout
+  };
+  context.window = context;
+  context.globalThis = context;
+  vm.runInNewContext(sharedSource, context);
+  vm.runInNewContext(app, context, { filename: `${folder}/app.js` });
+  const api = Object.entries(context).find(([key, value]) => /^__.+Test$/.test(key) && value?.applyBackendSubmitResponse)?.[1];
+  assert(api, `${folder}: 找不到站內測試介面`);
+
+  for (const makeStudent of submitStudents) {
+    for (const response of verifiedResponses) {
+      for (const local of submitLocal) {
+        const legacySnapshots = [];
+        const legacyState = { student: makeStudent() };
+        const legacyCtx = { state: legacyState, saveVerifiedSnapshot: (s) => legacySnapshots.push(JSON.stringify(s)), JSON, Object, Number, Array, Set };
+        const legacyFn = vm.runInNewContext(`${LEGACY_SUBMIT_22_30}; applyBackendSubmitResponse`, legacyCtx);
+        let expected;
+        try { expected = { value: JSON.stringify(legacyFn(structuredClone(response), structuredClone(local))) }; } catch (error) { expected = { error: error.constructor.name }; }
+
+        const student = makeStudent();
+        store.clear();
+        api.setState({ student });
+        let actual;
+        try { actual = { value: JSON.stringify(api.applyBackendSubmitResponse(structuredClone(response), structuredClone(local))) }; } catch (error) { actual = { error: error.constructor.name }; }
+        const label = JSON.stringify({ response, local, student: makeStudent() });
+        assert.deepEqual(actual, expected, `${folder}: applyBackendSubmitResponse 回傳與原寫法不同（${label}）`);
+        assert.equal(JSON.stringify(api.state().student), JSON.stringify(legacyState.student), `${folder}: 學生資料更新與原寫法不同（${label}）`);
+        const snapshotWrites = [...store.entries()].filter(([key]) => /verified/i.test(key));
+        if (legacySnapshots.length && !legacyState.student?.is_guest) {
+          assert.equal(snapshotWrites.length, 1, `${folder}: 應寫入一次本機快照（${label}）`);
+          assert.equal(JSON.parse(snapshotWrites[0][1]).total_exp, Number(legacyState.student.progress?.total_exp ?? legacyState.student.total_exp ?? 0), `${folder}: 快照 total_exp 不同（${label}）`);
+        } else {
+          assert.equal(snapshotWrites.length, 0, `${folder}: 不應寫入本機快照（${label}）`);
+        }
+        verifiedCases += 1;
+      }
+    }
+  }
+}
+
+console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases, submitStations: SUBMIT_STATIONS.length, submitCases, submitVerifiedStations: SUBMIT_VERIFIED_STATIONS.length, verifiedCases }));

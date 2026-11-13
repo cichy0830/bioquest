@@ -29,7 +29,7 @@ vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioqu
 vm.runInNewContext(source, context, { filename: "prototype-cell-division/app.js" });
 const api = context.window.__cell_divisionTest;
 
-assert.equal(api.VERSION, "20261110-cell-division-achievements-v1");
+assert.equal(api.VERSION, "20261113-cell-division-submit-response-v1");
 assert.equal(api.QUESTION_VERSION, "20260731-cell-division-v1.2");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION);
 assert.equal(api.mission.unit_id, "cell_division");

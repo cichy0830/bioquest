@@ -76,20 +76,20 @@ appVersionOverrides.set("cardiovascular_components", "20261113-cardiovascular-co
 appVersionOverrides.set("human_circulation", "20261113-human-circulation-student-id-v1");
 appVersionOverrides.set("stimulus_response", "20261110-stimulus-response-achievements-v1");
 appVersionOverrides.set("nervous_system", "20261110-nervous-system-achievements-v1");
-appVersionOverrides.set("endocrine_system", "20261110-endocrine-system-achievements-v1");
-appVersionOverrides.set("behavior_sensing", "20261110-behavior-sensing-achievements-v1");
-appVersionOverrides.set("respiration_homeostasis", "20261110-respiration-homeostasis-achievements-v1");
-appVersionOverrides.set("excretion_water_homeostasis", "20261110-excretion-water-homeostasis-achievements-v1");
-appVersionOverrides.set("temperature_glucose_homeostasis", "20261110-temperature-glucose-homeostasis-achievements-v1");
+appVersionOverrides.set("endocrine_system", "20261113-endocrine-system-submit-response-v1");
+appVersionOverrides.set("behavior_sensing", "20261113-behavior-sensing-submit-response-v1");
+appVersionOverrides.set("respiration_homeostasis", "20261113-respiration-homeostasis-submit-response-v1");
+appVersionOverrides.set("excretion_water_homeostasis", "20261113-excretion-water-homeostasis-submit-response-v1");
+appVersionOverrides.set("temperature_glucose_homeostasis", "20261113-temperature-glucose-homeostasis-submit-response-v1");
 appVersionOverrides.set("life_world", "20261109-life-world-backend-client-v1");
 appVersionOverrides.set("scientific_method", "20261109-scientific-method-backend-client-v1");
 appVersionOverrides.set("lab_intro", "20261109-lab-entry-backend-client-v1");
 appVersionOverrides.set("microscope_use", "20261109-microscope-use-backend-client-v1");
 appVersionOverrides.set("cell_basic_unit", "20261109-cell-basic-unit-backend-client-v1");
-appVersionOverrides.set("cell_division", "20261110-cell-division-achievements-v1");
-appVersionOverrides.set("asexual_reproduction", "20261110-asexual-reproduction-achievements-v1");
-appVersionOverrides.set("sexual_reproduction", "20261110-sexual-reproduction-achievements-v1");
-appVersionOverrides.set("egg_observation", "20261111-egg-observation-badge-wall-v1");
+appVersionOverrides.set("cell_division", "20261113-cell-division-submit-response-v1");
+appVersionOverrides.set("asexual_reproduction", "20261113-asexual-reproduction-submit-response-v1");
+appVersionOverrides.set("sexual_reproduction", "20261113-sexual-reproduction-submit-response-v1");
+appVersionOverrides.set("egg_observation", "20261113-egg-observation-submit-response-v1");
 appVersionOverrides.set("flower_observation", "20261112-flower-observation-submit-response-v1");
 
 function assert(condition, message) {

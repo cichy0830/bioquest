@@ -29,7 +29,7 @@ vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioqu
 vm.runInNewContext(source, context, { filename: "prototype-excretion-water-homeostasis/app.js" });
 const api = context.window.__excretion_water_homeostasisTest;
 
-assert.equal(api.VERSION, "20261110-excretion-water-homeostasis-achievements-v1");
+assert.equal(api.VERSION, "20261113-excretion-water-homeostasis-submit-response-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-excretion-water-homeostasis-v1");
 assert.equal(api.mission.unit_id, "excretion_water_homeostasis");
 assert.equal(api.questions.length, 14);
