@@ -29,7 +29,7 @@ vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioqu
 vm.runInNewContext(source, context, { filename: "prototype-human-circulation/app.js" });
 const api = context.window.__human_circulationTest;
 
-assert.equal(api.VERSION, "20261110-human-circulation-achievements-v1");
+assert.equal(api.VERSION, "20261113-human-circulation-student-id-v1");
 assert.equal(api.QUESTION_VERSION, "20260718-human-circulation-ready-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);

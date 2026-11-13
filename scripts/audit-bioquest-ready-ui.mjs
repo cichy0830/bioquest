@@ -72,8 +72,8 @@ appVersionOverrides.set("cell_transport", "20261109-cell-transport-backend-clien
 appVersionOverrides.set("plant_material_transport", "20261110-plant-material-transport-achievements-v1");
 appVersionOverrides.set("human_nutrition", "20261108-human-nutrition-backend-client-v1");
 appVersionOverrides.set("plant_transport_structures", "20261110-plant-transport-structures-achievements-v1");
-appVersionOverrides.set("cardiovascular_components", "20261110-cardiovascular-components-achievements-v1");
-appVersionOverrides.set("human_circulation", "20261110-human-circulation-achievements-v1");
+appVersionOverrides.set("cardiovascular_components", "20261113-cardiovascular-components-q14-pulse-v1");
+appVersionOverrides.set("human_circulation", "20261113-human-circulation-student-id-v1");
 appVersionOverrides.set("stimulus_response", "20261110-stimulus-response-achievements-v1");
 appVersionOverrides.set("nervous_system", "20261110-nervous-system-achievements-v1");
 appVersionOverrides.set("endocrine_system", "20261110-endocrine-system-achievements-v1");

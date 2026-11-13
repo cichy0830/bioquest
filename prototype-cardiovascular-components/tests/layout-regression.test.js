@@ -72,7 +72,7 @@ try {
     });
     page.on("dialog", (dialog) => dialog.accept());
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261110-cardiovascular-components-achievements-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261113-cardiovascular-components-q14-pulse-v1`);
     await page.locator("#guestBtn").click();
     await page.locator(".bq-brief-scene-image").waitFor();
     const briefScene = await page.evaluate(() => {
@@ -132,7 +132,7 @@ try {
     await answerChoice(page, Q(11), "red_blood_cell");
     await answerMapping(page, Q(12), { defense_case: "white_blood_cell", wound_clotting: "platelet", liquid_environment: "plasma" });
     await answerChoice(page, Q(13), "heartbeat_vessel_pulse");
-    await answerChoice(page, Q(14), "pressure_on_vessel_wall");
+    await answerChoice(page, Q(14), "heart_beats_faster");
     await orderSequence(page, Q(15), ["heart_contracts", "blood_enters_vessels", "blood_components_carry", "capillary_exchange"]);
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await page.locator('[data-section-next="checkpoint3"]').click();

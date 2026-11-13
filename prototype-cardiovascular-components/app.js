@@ -2,8 +2,8 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261110-cardiovascular-components-achievements-v1";
-const QUESTION_VERSION = "20260718-cardiovascular-components-ready-v1";
+const VERSION = "20261113-cardiovascular-components-q14-pulse-v1";
+const QUESTION_VERSION = "20261113-cardiovascular-components-q14-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
 const REVISION_EXP_POOL = 180;
@@ -114,12 +114,12 @@ const questions = [
   {id:"cardiovascular_components_q06",section:"checkpoint2",concept:"vessel_types",type:"mapping",prompt:"請將血管類型與主要方向或功能配對。",hint:"先不要用紅藍顏色判斷，改用血液相對於心臟的流動方向與交換功能。",misconception:"artery_vein_oxygen_rule",items:[{id:"artery",label:"動脈"},{id:"vein",label:"靜脈"},{id:"capillary",label:"微血管"}],choices:[{id:"away_from_heart",text:"通常把血液帶離心臟"},{id:"back_to_heart",text:"通常把血液帶回心臟"},{id:"exchange_near_tissue",text:"利於血液和組織進行物質交換"}],answer:{artery:"away_from_heart",vein:"back_to_heart",capillary:"exchange_near_tissue"}},
   {id:"cardiovascular_components_q07",section:"checkpoint2",concept:"vessel_types",type:"choice",answer:"direction_not_oxygen_only",prompt:"有同學說：「動脈一定流含氧血，靜脈一定流缺氧血。」哪個修正較合理？",hint:"回想血管命名先看相對於心臟的方向，不是只看顏色或氧氣多寡。",misconception:"artery_vein_oxygen_rule",options:[{id:"direction_not_oxygen_only",text:"動脈和靜脈主要依血液離開或回到心臟來區分，不能只用含氧量判斷"},{id:"artery_no_pressure",text:"動脈一定沒有血壓"},{id:"vein_no_blood",text:"靜脈一定不流血"},{id:"capillary_heart_only",text:"微血管只存在心臟裡"}]},
   {id:"cardiovascular_components_q08",section:"checkpoint2",concept:"vessel_structure_function",type:"choice",answer:"artery",prompt:"下列哪個判斷最合理？",hint:"想想哪類血管最常接收心臟剛推出的血液。",misconception:"same_vessel_structure",options:[{id:"artery",text:"動脈的管壁較厚、彈性較明顯，較能承受心臟推出血液時的壓力"},{id:"vein",text:"靜脈的管壁最厚，最適合承受剛離開心臟的壓力"},{id:"capillary",text:"微血管的管壁最厚，最適合承受剛離開心臟的壓力"},{id:"same_vessel",text:"三種血管的管壁厚度和功能都相同"}]},
-  {id:"cardiovascular_components_q09",section:"checkpoint2",concept:"vessel_structure_function",type:"choice",answer:"capillary",prompt:"哪一種血管很細、分布廣，較適合讓血液和組織細胞附近進行物質交換？",hint:"注意「很細、分布廣、靠近組織」這些線索。",misconception:"same_vessel_structure",options:[{id:"capillary",text:"微血管"},{id:"large_artery",text:"動脈主幹"},{id:"large_vein",text:"大靜脈"},{id:"trachea",text:"氣管"}]},
+  {id:"cardiovascular_components_q09",section:"checkpoint2",concept:"vessel_structure_function",type:"choice",answer:"capillary",prompt:"哪一種血管很細、分布廣，較適合讓血液和組織細胞附近進行物質交換？",hint:"注意「很細、分布廣、靠近組織」這些線索。",misconception:"same_vessel_structure",options:[{id:"capillary",text:"微血管"},{id:"aorta",text:"主動脈"},{id:"pulmonary_artery",text:"肺動脈"},{id:"vena_cava",text:"上、下大靜脈"}]},
   {id:"cardiovascular_components_q10",section:"checkpoint3",concept:"blood_components",type:"mapping",prompt:"請將血液成分與主要功能配對。",hint:"先把「液體部分、氧氣運送、防禦、止血」四個功能分開看。",misconception:"blood_only_red_cells",items:[{id:"plasma",label:"血漿"},{id:"red_blood_cell",label:"紅血球"},{id:"white_blood_cell",label:"白血球"},{id:"platelet",label:"血小板"}],choices:[{id:"liquid_transport",text:"液體部分，可運送多種物質"},{id:"oxygen_transport",text:"主要和氧氣運送有關"},{id:"defense",text:"和身體防禦有關"},{id:"clotting",text:"和止血有關"}],answer:{plasma:"liquid_transport",red_blood_cell:"oxygen_transport",white_blood_cell:"defense",platelet:"clotting"}},
   {id:"cardiovascular_components_q11",section:"checkpoint3",concept:"red_blood_cells",type:"choice",answer:"red_blood_cell",prompt:"血液中哪一種成分最常被連到氧氣運送？",hint:"想想哪一種血液成分數量多，且和血液呈紅色及氧氣運送常被連在一起。",misconception:"blood_cell_function_confusion",options:[{id:"red_blood_cell",text:"紅血球"},{id:"platelet",text:"血小板"},{id:"gastric_juice",text:"胃液"},{id:"bile",text:"膽汁"}]},
   {id:"cardiovascular_components_q12",section:"checkpoint3",concept:"white_platelets_plasma",type:"mapping",prompt:"請將下列情境與較相關的血液成分配對。",hint:"先看題目中的功能詞：防禦、止血、液體運輸。",misconception:"blood_cell_function_confusion",items:[{id:"defense_case",label:"身體防禦"},{id:"wound_clotting",label:"傷口止血"},{id:"liquid_environment",label:"運送養分和廢物的液體環境"}],choices:[{id:"white_blood_cell",text:"白血球"},{id:"platelet",text:"血小板"},{id:"plasma",text:"血漿"}],answer:{defense_case:"white_blood_cell",wound_clotting:"platelet",liquid_environment:"plasma"}},
   {id:"cardiovascular_components_q13",section:"checkpoint3",concept:"pulse_blood_pressure",type:"choice",answer:"heartbeat_vessel_pulse",prompt:"手腕摸到的脈搏，最直接和下列哪一項活動有關？",hint:"想想脈搏是一下一下的搏動感，和哪個器官規律收縮最相關。",misconception:"pulse_pressure_confusion",options:[{id:"heartbeat_vessel_pulse",text:"心臟跳動造成血管搏動"},{id:"blood_flow_sound",text:"脈搏只是血液流過血管的聲音"},{id:"wrist_muscle_contraction",text:"脈搏是手腕肌肉規律收縮"},{id:"bone_growth_vibration",text:"脈搏是骨骼生長造成的震動"}]},
-  {id:"cardiovascular_components_q14",section:"checkpoint3",concept:"pulse_blood_pressure",type:"choice",answer:"pressure_on_vessel_wall",prompt:"血壓的基礎意義較接近下列哪一項？",hint:"先區分心跳次數、血管搏動與血管內壓力這幾種資料。",misconception:"pulse_pressure_confusion",options:[{id:"pressure_on_vessel_wall",text:"血液對血管壁的壓力"},{id:"heartbeats_per_minute",text:"心臟每分鐘跳動的次數"},{id:"blood_oxygen_amount",text:"血液中氧氣的多寡"},{id:"rbc_color_depth",text:"紅血球的顏色深淺"}]},
+  {id:"cardiovascular_components_q14",section:"checkpoint3",concept:"pulse_blood_pressure",type:"choice",answer:"heart_beats_faster",prompt:"小明運動前量脈搏每分鐘 72 下，跑步後量到 120 下。這個變化最直接表示什麼？",hint:"脈搏是怎麼產生的？想想脈搏次數變多，代表哪個構造的活動改變了。",misconception:"pulse_pressure_confusion",options:[{id:"heart_beats_faster",text:"心臟跳動變快了"},{id:"vessels_wider",text:"血管變粗了"},{id:"more_blood",text:"身體裡的血液變多了"},{id:"more_red_cells",text:"紅血球的數量變多了"}]},
   {id:"cardiovascular_components_q15",section:"checkpoint3",concept:"cardiovascular_overview",type:"sequence",prompt:"請拖曳排序卡，依「推動 → 流動與攜帶 → 交換」的基礎關係整理心血管系統如何合作。這不是體循環或肺循環的路徑題。",hint:"先找推動來源，再想血液在流動時會做什麼，最後找最利於交換的位置。",misconception:"heart_only_system",steps:sequenceSteps,answer:correctSequence}
 ];
 
@@ -899,7 +899,7 @@ function renderLogin() {
         <p class="lead">請先確認身份。登入後會開啟本次任務簡報。</p>
         <div class="login-card">
           <label for="studentId">學生學號</label>
-          <input id="studentId" type="text" autocomplete="username" placeholder="例如 S70101">
+          <input id="studentId" type="text" autocomplete="username" placeholder="例如 115001">
           <div class="button-row">
             <button class="primary" id="loginBtn">登入任務</button>
             <button class="secondary" id="guestBtn">guest 測試</button>
@@ -924,7 +924,7 @@ function renderBrief() {
         <div class="scene-copy bq-brief-scene-caption">
           <p class="eyebrow">${mission.mission_area}</p>
           <h2>${mission.mission_title}</h2>
-          <p>心血管調度中心收到一組人體運輸系統零件：心臟剖面圖、不同血管截面、血液成分卡，以及脈搏和血壓的觀察紀錄。阿澤老師提醒：人體不像植物依靠木質部與韌皮部運送物質，而是由心臟推動血液在血管中流動，並由血液攜帶各種物質。貓頭鷹助理已整理好心臟構造、血管比較與血液成分圖卡，請你用「組成、功能、方向、資料線索」協助判斷各零件的主要功能。</p>
+          <p>心血管調度中心收到一組人體運輸系統零件：心臟剖面圖、不同血管截面、血液成分卡，以及運動前後的脈搏紀錄。阿澤老師提醒：人體不像植物依靠木質部與韌皮部運送物質，而是由心臟推動血液在血管中流動，並由血液攜帶各種物質。貓頭鷹助理已整理好心臟構造、血管比較與血液成分圖卡，請你用「組成、功能、方向、資料線索」協助判斷各零件的主要功能。</p>
         </div>
         <div class="button-row">
           <button class="primary" data-next="scan">查看進關卡提醒</button>
@@ -936,11 +936,11 @@ function renderBrief() {
 }
 
 function renderScan() {
-  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入心血管調度中心前，先抓住五個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚組成、功能、方向與資料線索。</h3><p>關卡中會用到下面五個基礎概念。</p></div></div><div class="concept-grid"><article><strong>心臟</strong><p>推動血液流動。</p></article><article><strong>血管</strong><p>包含動脈、靜脈、微血管。</p></article><article><strong>血液</strong><p>含血漿和血球等成分。</p></article><article><strong>脈搏</strong><p>與心臟活動有關。</p></article><article><strong>血壓</strong><p>和血液在血管中流動有關的觀察資料，作答時要和心跳次數分開看。</p></article></div><button class="primary" data-next="checkpoint1">開始心血管零件判讀</button></section></div>`;
+  return `<div class="stack"><section class="panel prep-panel"><p class="eyebrow">任務準備</p><h2>進入心血管調度中心前，先抓住五個判斷線索</h2><div class="prep-owl-hero"><img src="${assets.owlPrep}" alt="貓頭鷹助理提醒" onerror="this.style.display='none'"><div><h3>先分清楚組成、功能、方向與資料線索。</h3><p>關卡中會用到下面五個基礎概念。</p></div></div><div class="concept-grid"><article><strong>心臟</strong><p>推動血液流動。</p></article><article><strong>血管</strong><p>包含動脈、靜脈、微血管。</p></article><article><strong>血液</strong><p>含血漿和血球等成分。</p></article><article><strong>脈搏</strong><p>與心臟活動有關。</p></article><article><strong>資料前後比較</strong><p>看到活動前後的數字，先比較變多還是變少，再想是哪個構造的活動改變了。</p></article></div><button class="primary" data-next="checkpoint1">開始心血管零件判讀</button></section></div>`;
 }
 
 function renderCheckpoint(section) {
-  const heading = { checkpoint1:["心臟與系統總覽","用心臟、心房心室與瓣膜線索，整理心血管系統的基本組成。"], checkpoint2:["血管種類與功能比較","比較動脈、靜脈、微血管的方向、構造與物質交換功能。"], checkpoint3:["血液成分、脈搏血壓與合作流程","用配對、情境判斷與拖曳排序整理血液成分和整體合作流程。"] }[section];
+  const heading = { checkpoint1:["心臟與系統總覽","用心臟、心房心室與瓣膜線索，整理心血管系統的基本組成。"], checkpoint2:["血管種類與功能比較","比較動脈、靜脈、微血管的方向、構造與物質交換功能。"], checkpoint3:["血液成分、脈搏與合作流程","用配對、情境判斷與拖曳排序整理血液成分和整體合作流程。"] }[section];
   return `<div class="stack checkpoint-stack"><section class="panel"><p class="eyebrow">互動關卡</p><h2>${heading[0]}</h2><p class="lead">${heading[1]}</p></section>${sections[section].map((id)=>renderQuestion(questionMap[id])).join("")}<section class="panel action-panel"><p class="muted">本區每題都需留下作答紀錄；不確定時可先選擇，任務後會給概念回饋。</p><button class="primary" data-section-next="${section}">${section === "checkpoint3" ? "整理任務回饋" : "前往下一關"}</button></section></div>`;
 }
 
@@ -959,7 +959,7 @@ function renderQuestion(question) {
   `;
 }
 
-function conceptLabel(concept) { return {cardiovascular_overview:"心血管組成總覽",heart_pump:"心臟幫浦",atria_ventricles:"心房心室瓣膜",valves_direction:"瓣膜與單向流動",vessel_types:"血管類型",vessel_structure_function:"血管構造功能",blood_components:"血液成分",red_blood_cells:"紅血球運氧",white_platelets_plasma:"白血球血小板血漿",pulse_blood_pressure:"脈搏與血壓"}[concept] || concept; }
+function conceptLabel(concept) { return {cardiovascular_overview:"心血管組成總覽",heart_pump:"心臟幫浦",atria_ventricles:"心房心室瓣膜",valves_direction:"瓣膜與單向流動",vessel_types:"血管類型",vessel_structure_function:"血管構造功能",blood_components:"血液成分",red_blood_cells:"紅血球運氧",white_platelets_plasma:"白血球血小板血漿",pulse_blood_pressure:"脈搏與心跳"}[concept] || concept; }
 
 function renderQuestionEvidence(qid) {
   if (qid === "cardiovascular_components_q01") return `<div class="evidence-card"><strong>系統零件卡</strong><p>一套運輸系統需要推動來源、通道，以及實際攜帶物質的液體。</p></div>`;
@@ -1060,7 +1060,7 @@ const STABLE_CONCEPT_TEXT = [
   { concepts: ["vessel_types"], text: "你能用血液相對於心臟的方向分辨動脈與靜脈。" },
   { concepts: ["vessel_structure_function"], text: "你能理解微血管和物質交換有關。" },
   { concepts: ["blood_components", "red_blood_cells", "white_platelets_plasma"], text: "你能分辨血漿、紅血球、白血球與血小板的主要功能。" },
-  { concepts: ["pulse_blood_pressure"], text: "你能說出脈搏與血壓的基礎意義。" }
+  { concepts: ["pulse_blood_pressure"], text: "你能說出脈搏和心臟跳動的關係，並判讀脈搏的變化。" }
 ];
 
 function renderReview() {
@@ -1089,7 +1089,7 @@ function renderReview() {
   `;
 }
 
-function misconceptionText(tag) { return {heart_only_system:"心血管系統不是只有心臟，還包含血管與血液。",heart_storage_only:"心臟像幫浦，收縮舒張可推動血液流動。",atria_ventricles_confusion:"心房主要接收血液，心室主要把血液推出心臟。",valves_unimportant:"瓣膜像單向門，可幫助血液朝固定方向流動。",artery_vein_oxygen_rule:"動脈和靜脈先看血液離開或回到心臟，不只用含氧量判斷。",same_vessel_structure:"動脈、靜脈與微血管的構造不同，功能也不同。",blood_only_red_cells:"血液除了紅血球，也有血漿、白血球與血小板。",blood_cell_function_confusion:"紅血球和氧氣運送有關，白血球和防禦有關，血小板和止血有關。",pulse_pressure_confusion:"脈搏是血管搏動感，血壓是血液對血管壁的壓力。",advanced_medical_overreach:"本單元先抓組成、功能與基礎觀察意義，不做疾病診斷。"}[tag] || tag; }
+function misconceptionText(tag) { return {heart_only_system:"心血管系統不是只有心臟，還包含血管與血液。",heart_storage_only:"心臟像幫浦，收縮舒張可推動血液流動。",atria_ventricles_confusion:"心房主要接收血液，心室主要把血液推出心臟。",valves_unimportant:"瓣膜像單向門，可幫助血液朝固定方向流動。",artery_vein_oxygen_rule:"動脈和靜脈先看血液離開或回到心臟，不只用含氧量判斷。",same_vessel_structure:"動脈、靜脈與微血管的構造不同，功能也不同。",blood_only_red_cells:"血液除了紅血球，也有血漿、白血球與血小板。",blood_cell_function_confusion:"紅血球和氧氣運送有關，白血球和防禦有關，血小板和止血有關。",pulse_pressure_confusion:"脈搏是心臟跳動造成的血管搏動，脈搏次數變多表示心臟跳得比較快。",advanced_medical_overreach:"本單元先抓組成、功能與基礎觀察意義，不做疾病診斷。"}[tag] || tag; }
 
 function feedbackTitle(stateName) {
   return {

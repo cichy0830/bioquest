@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261110-human-circulation-achievements-v1";
+const VERSION = "20261113-human-circulation-student-id-v1";
 const QUESTION_VERSION = "20260718-human-circulation-ready-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -921,7 +921,7 @@ function renderLogin() {
         <p class="lead">請先確認身份。登入後會開啟本次任務簡報。</p>
         <div class="login-card">
           <label for="studentId">學生學號</label>
-          <input id="studentId" type="text" autocomplete="username" placeholder="例如 S70101">
+          <input id="studentId" type="text" autocomplete="username" placeholder="例如 115001">
           <div class="button-row">
             <button class="primary" id="loginBtn">登入任務</button>
             <button class="secondary" id="guestBtn">guest 測試</button>

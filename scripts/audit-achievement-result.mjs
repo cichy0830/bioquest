@@ -155,7 +155,7 @@ const DRIVERS = {
   },
   async cardiovascular_components(page) {
     const Q = (n) => `cardiovascular_components_q${String(n).padStart(2, "0")}`;
-    const choice = { 1: "heart_vessels_blood", 2: "push_blood_flow", 4: "atria_receive_ventricles_push", 5: "valves_reduce_backflow", 7: "direction_not_oxygen_only", 8: "artery", 9: "capillary", 11: "red_blood_cell", 13: "heartbeat_vessel_pulse", 14: "pressure_on_vessel_wall" };
+    const choice = { 1: "heart_vessels_blood", 2: "push_blood_flow", 4: "atria_receive_ventricles_push", 5: "valves_reduce_backflow", 7: "direction_not_oxygen_only", 8: "artery", 9: "capillary", 11: "red_blood_cell", 13: "heartbeat_vessel_pulse", 14: "heart_beats_faster" };
     const click = (n) => page.locator(`[data-answer="${Q(n)}"][data-value="${choice[n]}"]`).click();
     const map = async (n, answers) => { for (const [item, value] of Object.entries(answers)) await page.locator(`select[data-map-question="${Q(n)}"][data-map-item="${item}"]`).selectOption(value); };
     const sequence = async (qid, order) => {

@@ -29,8 +29,8 @@ vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioqu
 vm.runInNewContext(source, context, { filename: "prototype-cardiovascular-components/app.js" });
 const api = context.window.__cardiovascular_componentsTest;
 
-assert.equal(api.VERSION, "20261110-cardiovascular-components-achievements-v1");
-assert.equal(api.QUESTION_VERSION, "20260718-cardiovascular-components-ready-v1");
+assert.equal(api.VERSION, "20261113-cardiovascular-components-q14-pulse-v1");
+assert.equal(api.QUESTION_VERSION, "20261113-cardiovascular-components-q14-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);
 assert(source.includes("question_version: QUESTION_VERSION"), "backend question_version must use canonical QUESTION_VERSION");
@@ -61,7 +61,7 @@ const answers = {
   [Q(11)]: "red_blood_cell",
   [Q(12)]: { defense_case: "white_blood_cell", wound_clotting: "platelet", liquid_environment: "plasma" },
   [Q(13)]: "heartbeat_vessel_pulse",
-  [Q(14)]: "pressure_on_vessel_wall",
+  [Q(14)]: "heart_beats_faster",
   [`${Q(15)}_sequence`]: ["heart_contracts", "blood_enters_vessels", "blood_components_carry", "capillary_exchange"]
 };
 
@@ -127,7 +127,7 @@ api.setState({ answers, hints: {} });
 assert.equal(api.conceptFeedback().stable.length, 7, "all 7 spec stable sentences when all correct without hints");
 const capillarySentence = "你能理解微血管和物質交換有關。";
 const heartPartsSentence = "你能區分心房、心室與瓣膜的基本功能。";
-api.setState({ answers: { ...answers, [Q(9)]: "large_vein" }, hints: { [Q(8)]: true } });
+api.setState({ answers: { ...answers, [Q(9)]: "vena_cava" }, hints: { [Q(8)]: true } });
 assert(!api.conceptFeedback().stable.includes(capillarySentence), "vessel structure needs a clean first try or >=80% accuracy");
 api.setState({ answers, hints: { [Q(8)]: true, [Q(9)]: true } });
 assert(api.conceptFeedback().stable.includes(capillarySentence), "2/2 correct (100%) counts as stable even with hints");
@@ -164,10 +164,15 @@ assert(!qById[Q(8)].options.some((option) => /淋巴管|膽管/.test(option.text
 assert(!qById[Q(13)].options.some((option) => /肺泡|胃消化/.test(option.text)));
 assert.equal(qById[Q(13)].answer, "heartbeat_vessel_pulse");
 assert(qById[Q(13)].options.some((option) => option.text === "脈搏是手腕肌肉規律收縮"));
-assert.equal(qById[Q(14)].answer, "pressure_on_vessel_wall");
-assert(!qById[Q(14)].hint.includes("壓」這個字"));
-assert(qById[Q(14)].options.some((option) => option.text === "心臟每分鐘跳動的次數"));
-assert(!qById[Q(14)].options.some((option) => /糖分的味道|白血球的數量/.test(option.text)));
+// 2026-11-13 W7：q14 改資料判讀（脈搏 72→120），q09 誤答改血管名稱
+assert.equal(qById[Q(14)].answer, "heart_beats_faster");
+assert(qById[Q(14)].prompt.includes("72") && qById[Q(14)].prompt.includes("120"));
+assert.deepEqual(Array.from(qById[Q(14)].options.map((option) => option.text)), ["心臟跳動變快了", "血管變粗了", "身體裡的血液變多了", "紅血球的數量變多了"]);
+assert(!/血壓|壓力/.test(qById[Q(14)].prompt + qById[Q(14)].hint), "q14 should not test blood pressure");
+assert.equal(qById[Q(9)].answer, "capillary");
+assert.deepEqual(Array.from(qById[Q(9)].options.map((option) => option.text)), ["微血管", "主動脈", "肺動脈", "上、下大靜脈"]);
+assert(!scanHtml.includes("血壓"), "prep page should not mention blood pressure");
+
 api.setState({ attempt_id: "u18-forced-collision", optionOrders: { [Q(15)]: [...qById[Q(15)].answer] } });
 assert.notDeepEqual(Array.from(api.orderedOptions(qById[Q(15)]).map((item) => item.id)), Array.from(qById[Q(15)].answer), "q15 stored collision should be guarded");
 for (let n = 0; n < 200; n += 1) {
