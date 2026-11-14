@@ -72,10 +72,10 @@ appVersionOverrides.set("cell_transport", "20261109-cell-transport-backend-clien
 appVersionOverrides.set("plant_material_transport", "20261110-plant-material-transport-achievements-v1");
 appVersionOverrides.set("human_nutrition", "20261108-human-nutrition-backend-client-v1");
 appVersionOverrides.set("plant_transport_structures", "20261110-plant-transport-structures-achievements-v1");
-appVersionOverrides.set("cardiovascular_components", "20261113-cardiovascular-components-q14-pulse-v1");
-appVersionOverrides.set("human_circulation", "20261113-human-circulation-student-id-v1");
-appVersionOverrides.set("stimulus_response", "20261110-stimulus-response-achievements-v1");
-appVersionOverrides.set("nervous_system", "20261110-nervous-system-achievements-v1");
+appVersionOverrides.set("cardiovascular_components", "20261114-cardiovascular-components-submit-response-v1");
+appVersionOverrides.set("human_circulation", "20261114-human-circulation-submit-response-v1");
+appVersionOverrides.set("stimulus_response", "20261114-stimulus-response-submit-response-v1");
+appVersionOverrides.set("nervous_system", "20261114-nervous-system-submit-response-v1");
 appVersionOverrides.set("endocrine_system", "20261113-endocrine-system-submit-response-v1");
 appVersionOverrides.set("behavior_sensing", "20261113-behavior-sensing-submit-response-v1");
 appVersionOverrides.set("respiration_homeostasis", "20261113-respiration-homeostasis-submit-response-v1");

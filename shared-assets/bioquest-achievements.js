@@ -20,6 +20,11 @@
  *   第 16、17、18–21、22–30 站另有 4 種寫法（取數字的先後順序與本機備援不同），之後再以選項收。
  * applyVerifiedSubmitResponse(ctx, response, localResult)：同上，第 22–30 站的寫法（R4-2c 第二批，2026-11-13；9 站原本逐字相同）：
  *   只在有 verified_attempt／attempt 時覆寫；後台已確認時數字不用本機備援。第 16、17、18–21 站還有 3 種寫法，之後再收。
+ *   R4-2c 第三批（2026-11-14）：第 18–21 站也改用 applyVerifiedSubmitResponse，原寫法差異以 ctx 選項保留：
+ *   ctx.assumeVerified（第 18–21 站）：verified／attempt 沒寫狀態時一律當 server_verified；有 response.verified_attempt 就算後台已確認
+ *     （server_verified_credited 不算，除非有 verified_attempt）。
+ *   ctx.plainBadgeIds（第 18 站）：徽章陣列只濾掉空值、不從物件取 badge_id；JSON 不是陣列時視為沒有；
+ *     也不讀 response 層的 newly_credited_badges_json／earned_badges_json。
  *
  * R4-2a（2026-11-10）、R4-2b（2026-11-11）、R4-2c（2026-11-12）：輸出與各站原本內嵌的函式逐字等價
  * （原寫法保留在 scripts/tests/legacy-achievements.mjs，scripts/tests/achievements.test.mjs 逐案比對）。
@@ -27,7 +32,7 @@
 (function configureBioQuestAchievements(global) {
   "use strict";
 
-  const VERSION = "20261113-achievements-v4";
+  const VERSION = "20261114-achievements-v5";
 
   function renderAchievements() {
     return `
@@ -241,27 +246,35 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
     return {};
   }
 
-  function firstBadgeIds(...values) {
-    for (const value of values) {
-      const ids = badgeIdsOrNull(value);
-      if (ids) return ids;
+  // 第 18 站原寫法（ctx.plainBadgeIds）：陣列只濾空值；JSON 字串解析後不是陣列就當沒有。
+  function plainBadgeIdsOrNull(value) {
+    if (!value) return null;
+    if (Array.isArray(value)) return value.filter(Boolean);
+    if (typeof value === "string") {
+      try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) return parsed.filter(Boolean);
+      } catch (error) {
+        return value.split(",").map((item) => item.trim()).filter(Boolean);
+      }
     }
     return null;
   }
 
-  function verifiedBackendBadgeIds(response = {}, verified = null) {
+  function verifiedBackendBadgeIds(response = {}, verified = null, plain = false) {
     const attemptResult = plainObjectFromValue(response.attempt_result || response.attempt_result_json || response.result);
-    return firstBadgeIds(
-      attemptResult.newly_credited_badges_json,
-      attemptResult.earned_badges_json,
-      attemptResult.newly_credited_badges,
-      attemptResult.earned_badges,
-      response.newly_credited_badges_json,
-      response.earned_badges_json,
-      verified?.earned_badges,
-      verified?.badges,
-      verified?.badges_json
-    );
+    const candidates = plain
+      ? [attemptResult.newly_credited_badges_json, attemptResult.earned_badges_json, attemptResult.newly_credited_badges, attemptResult.earned_badges,
+        verified?.earned_badges, verified?.badges, verified?.badges_json]
+      : [attemptResult.newly_credited_badges_json, attemptResult.earned_badges_json, attemptResult.newly_credited_badges, attemptResult.earned_badges,
+        response.newly_credited_badges_json, response.earned_badges_json,
+        verified?.earned_badges, verified?.badges, verified?.badges_json];
+    const parse = plain ? plainBadgeIdsOrNull : badgeIdsOrNull;
+    for (const value of candidates) {
+      const ids = parse(value);
+      if (ids) return ids;
+    }
+    return null;
   }
 
   function applyVerifiedSubmitResponse(ctx, response, localResult) {
@@ -278,9 +291,13 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
       ctx.saveVerifiedSnapshot(ctx.student);
     }
     if (!verified) return { ...localResult, backend_response: response };
-    const verificationStatus = verified.verification_status || response.verification_status || (response.verified_attempt ? "server_verified" : localResult.verification_status || "pending_backend");
-    const serverVerified = verificationStatus === "server_verified" || verificationStatus === "server_verified_credited";
-    const serverBadgeIds = verifiedBackendBadgeIds(response, verified);
+    const verificationStatus = ctx.assumeVerified
+      ? (verified.verification_status || response.verification_status || "server_verified")
+      : (verified.verification_status || response.verification_status || (response.verified_attempt ? "server_verified" : localResult.verification_status || "pending_backend"));
+    const serverVerified = ctx.assumeVerified
+      ? (verificationStatus === "server_verified" || Boolean(response.verified_attempt))
+      : (verificationStatus === "server_verified" || verificationStatus === "server_verified_credited");
+    const serverBadgeIds = verifiedBackendBadgeIds(response, verified, Boolean(ctx.plainBadgeIds));
     const localFallback = (key) => (serverVerified ? null : localResult[key]);
     return {
       ...localResult,

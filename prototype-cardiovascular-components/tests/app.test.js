@@ -29,7 +29,7 @@ vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioqu
 vm.runInNewContext(source, context, { filename: "prototype-cardiovascular-components/app.js" });
 const api = context.window.__cardiovascular_componentsTest;
 
-assert.equal(api.VERSION, "20261113-cardiovascular-components-q14-pulse-v1");
+assert.equal(api.VERSION, "20261114-cardiovascular-components-submit-response-v1");
 assert.equal(api.QUESTION_VERSION, "20261113-cardiovascular-components-q14-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);

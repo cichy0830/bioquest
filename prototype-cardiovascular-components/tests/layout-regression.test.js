@@ -72,7 +72,7 @@ try {
     });
     page.on("dialog", (dialog) => dialog.accept());
     await page.addInitScript(() => { window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, student: { student_id: "guest", student_name: "老師測試帳號" } }) }); });
-    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261113-cardiovascular-components-q14-pulse-v1`);
+    await page.goto(`${pathToFileURL(path.join(root, "index.html")).href}?v=20261114-cardiovascular-components-submit-response-v1`);
     await page.locator("#guestBtn").click();
     await page.locator(".bq-brief-scene-image").waitFor();
     const briefScene = await page.evaluate(() => {
