@@ -69,9 +69,9 @@ appVersionOverrides.set("nutrients_energy", "20261109-nutrients-energy-backend-c
 appVersionOverrides.set("photosynthesis", "20261108-photosynthesis-backend-client-v1");
 appVersionOverrides.set("biological_organization", "20261109-biological-organization-backend-client-v1");
 appVersionOverrides.set("cell_transport", "20261109-cell-transport-backend-client-v1");
-appVersionOverrides.set("plant_material_transport", "20261110-plant-material-transport-achievements-v1");
+appVersionOverrides.set("plant_material_transport", "20261115-plant-material-transport-submit-response-v1");
 appVersionOverrides.set("human_nutrition", "20261108-human-nutrition-backend-client-v1");
-appVersionOverrides.set("plant_transport_structures", "20261110-plant-transport-structures-achievements-v1");
+appVersionOverrides.set("plant_transport_structures", "20261115-plant-transport-structures-submit-response-v1");
 appVersionOverrides.set("cardiovascular_components", "20261114-cardiovascular-components-submit-response-v1");
 appVersionOverrides.set("human_circulation", "20261114-human-circulation-submit-response-v1");
 appVersionOverrides.set("stimulus_response", "20261114-stimulus-response-submit-response-v1");

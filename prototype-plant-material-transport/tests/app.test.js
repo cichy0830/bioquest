@@ -16,7 +16,7 @@ context.window = context; context.globalThis = context;
 vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8"), context, { filename: "shared-assets/bioquest-achievements.js" });
 vm.runInNewContext(source, context, { filename: "prototype-plant-material-transport/app.js" });
 const api = context.window.__plant_material_transportTest;
-assert.equal(api.VERSION, "20261110-plant-material-transport-achievements-v1");
+assert.equal(api.VERSION, "20261115-plant-material-transport-submit-response-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-plant-material-transport-canonical-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert.equal(api.createEmptyState().question_version, api.QUESTION_VERSION);

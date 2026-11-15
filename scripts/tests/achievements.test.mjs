@@ -9,12 +9,14 @@
 // 5. R4-2c 第二批：第 22–30 站改用 applyVerifiedSubmitResponse，同樣方式和 LEGACY_SUBMIT_22_30 比對（另加 JSON 字串 attempt_result、逗號分隔徽章等回應）。
 // 6. R4-2c 第三批：第 18 站（assumeVerified＋plainBadgeIds）、第 19–21 站（assumeVerified）改用 applyVerifiedSubmitResponse，
 //    和 LEGACY_SUBMIT_18／LEGACY_SUBMIT_19_21 比對（另加沒寫狀態的 attempt、server_verified_credited、物件徽章等回應）。
+// 7. R4-2c 第四批：第 16 站（rawAttemptResult＋localCounts＋countAliases＋badgeOrder skipEmpty）、第 17 站（同上但不存快照、badgeOrder attemptFirst）
+//    改用 applyVerifiedSubmitResponse，和 LEGACY_SUBMIT_16／LEGACY_SUBMIT_17 比對（另加 correct／hints_used 別名、空清單在前、重複徽章等回應）。
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
-import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40, LEGACY_SUBMIT_31_40, LEGACY_SUBMIT_22_30, LEGACY_SUBMIT_18, LEGACY_SUBMIT_19_21 } from "./legacy-achievements.mjs";
+import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40, LEGACY_SUBMIT_31_40, LEGACY_SUBMIT_22_30, LEGACY_SUBMIT_18, LEGACY_SUBMIT_19_21, LEGACY_SUBMIT_16, LEGACY_SUBMIT_17 } from "./legacy-achievements.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const sharedSource = fs.readFileSync(path.join(root, "shared-assets", "bioquest-achievements.js"), "utf8");
@@ -439,4 +441,78 @@ for (const { slug, legacy, ctx } of SUBMIT_OPTION_STATIONS) {
   }
 }
 
-console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases, submitStations: SUBMIT_STATIONS.length, submitCases, submitVerifiedStations: SUBMIT_VERIFIED_STATIONS.length, verifiedCases, submitOptionStations: SUBMIT_OPTION_STATIONS.length, optionCases }));
+
+// 7. applyBackendSubmitResponse（R4-2c 第四批：第 16、17 站，applyVerifiedSubmitResponse＋選項）
+export const SUBMIT_EARLY_STATIONS = [
+  { slug: "plant-transport-structures", legacy: LEGACY_SUBMIT_16, ctx: "{ student: state.student, saveVerifiedSnapshot, assumeVerified: true, rawAttemptResult: true, localCounts: true, countAliases: true, badgeOrder: \"skipEmpty\" }" },
+  { slug: "plant-material-transport", legacy: LEGACY_SUBMIT_17, ctx: "{ student: state.student, assumeVerified: true, rawAttemptResult: true, localCounts: true, badgeOrder: \"attemptFirst\" }" }
+];
+const earlyResponses = optionResponses.concat([
+  { ok: true, verified_attempt: { correct: "6", hints_used: 3, total_questions: undefined, accuracy: "x" } },
+  { ok: true, attempt: { verification_status: "pending_review", correct_count: null, correct: 4, hint_used_count: 0, hints_used: 9 } },
+  { ok: true, verified_attempt: { newly_credited_badges_json: "[\"vn\"]", earned_badges_json: "[\"ve\"]" }, attempt_result: { newly_credited_badges_json: "[]", newly_credited_badges: [], earned_badges: ["e1", "e1", "e2"] } },
+  { ok: true, attempt: { verification_status: "local_only" }, attempt_result: { newly_credited_badges: [], earned_badges_json: "[]" }, newly_credited_badges_json: "[]" },
+  { ok: true, attempt: { verification_status: "local_only" }, attempt_result: { earned_badges: ["a", "a"] }, newly_credited_badges_json: "[\"r\",\"r\"]" },
+  { ok: true, verified_attempt: { badges_json: "\"q1,q2\"" }, attempt_result_json: "{\"earned_badges\":[\"s\"],\"direct_exp\":5}" },
+  { ok: true, verified_attempt: {}, attempt_result: { newly_credited_badges: ["n"], earned_badges_json: "[\"e\"]" } },
+  { ok: true, attempt: { verification_status: "pending_review", earned_badges: 0, badges: false, badges_json: "[{\"id\":\"i1\"},null,{}]" }, attempt_result: "{\"mastery_exp\":9}" }
+]);
+let earlyCases = 0;
+for (const { slug, legacy, ctx } of SUBMIT_EARLY_STATIONS) {
+  const folder = `prototype-${slug}`;
+  const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
+  assert(app.includes(`return window.BioQuestAchievements.applyVerifiedSubmitResponse(${ctx}, response, localResult);`), `${folder}: applyBackendSubmitResponse 應改用共用模組 applyVerifiedSubmitResponse（選項 ${ctx}）`);
+  for (const name of ["numberFromAliases", "objectFromValue", "badgeIdsFromValue", "firstBadgeIds", "backendBadgeIds"]) {
+    assert(!app.includes(`function ${name}(`), `${folder}: 不應再內嵌 ${name}`);
+  }
+  const store = new Map();
+  const context = {
+    console: { log() {}, warn() {}, error() {} },
+    document: { readyState: "loading", querySelector() { return null; }, querySelectorAll() { return []; }, addEventListener() {} },
+    localStorage: { getItem: (key) => store.get(key) || null, setItem: (key, value) => store.set(key, String(value)), removeItem: (key) => store.delete(key) },
+    URLSearchParams,
+    fetch: async () => ({ ok: true, json: async () => ({ ok: true }) }),
+    Date,
+    Math,
+    setTimeout,
+    clearTimeout
+  };
+  context.window = context;
+  context.globalThis = context;
+  vm.runInNewContext(sharedSource, context);
+  vm.runInNewContext(app, context, { filename: `${folder}/app.js` });
+  const api = Object.entries(context).find(([key, value]) => /^__.+Test$/.test(key) && value?.applyBackendSubmitResponse)?.[1];
+  assert(api, `${folder}: 找不到站內測試介面`);
+
+  for (const makeStudent of submitStudents) {
+    for (const response of earlyResponses) {
+      for (const local of submitLocal) {
+        const legacySnapshots = [];
+        const legacyState = { student: makeStudent() };
+        const legacyCtx = { state: legacyState, saveVerifiedSnapshot: (s) => legacySnapshots.push(JSON.stringify(s)), JSON, Object, Number, Array, Set };
+        const legacyFn = vm.runInNewContext(`${legacy}; applyBackendSubmitResponse`, legacyCtx);
+        let expected;
+        try { expected = { value: JSON.stringify(legacyFn(structuredClone(response), structuredClone(local))) }; } catch (error) { expected = { error: error.constructor.name }; }
+
+        const student = makeStudent();
+        store.clear();
+        api.setState({ student });
+        let actual;
+        try { actual = { value: JSON.stringify(api.applyBackendSubmitResponse(structuredClone(response), structuredClone(local))) }; } catch (error) { actual = { error: error.constructor.name }; }
+        const label = JSON.stringify({ response, local, student: makeStudent() });
+        assert.deepEqual(actual, expected, `${folder}: applyBackendSubmitResponse 回傳與原寫法不同（${label}）`);
+        assert.equal(JSON.stringify(api.state().student), JSON.stringify(legacyState.student), `${folder}: 學生資料更新與原寫法不同（${label}）`);
+        const snapshotWrites = [...store.entries()].filter(([key]) => /verified/i.test(key));
+        if (legacySnapshots.length && !legacyState.student?.is_guest) {
+          assert.equal(snapshotWrites.length, 1, `${folder}: 應寫入一次本機快照（${label}）`);
+          assert.equal(JSON.parse(snapshotWrites[0][1]).total_exp, Number(legacyState.student.progress?.total_exp ?? legacyState.student.total_exp ?? 0), `${folder}: 快照 total_exp 不同（${label}）`);
+        } else {
+          assert.equal(snapshotWrites.length, 0, `${folder}: 不應寫入本機快照（${label}）`);
+        }
+        earlyCases += 1;
+      }
+    }
+  }
+}
+
+console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases, submitStations: SUBMIT_STATIONS.length, submitCases, submitVerifiedStations: SUBMIT_VERIFIED_STATIONS.length, verifiedCases, submitOptionStations: SUBMIT_OPTION_STATIONS.length, optionCases, submitEarlyStations: SUBMIT_EARLY_STATIONS.length, earlyCases }));

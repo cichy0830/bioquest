@@ -25,6 +25,14 @@
  *     （server_verified_credited 不算，除非有 verified_attempt）。
  *   ctx.plainBadgeIds（第 18 站）：徽章陣列只濾掉空值、不從物件取 badge_id；JSON 不是陣列時視為沒有；
  *     也不讀 response 層的 newly_credited_badges_json／earned_badges_json。
+ *   R4-2c 第四批（2026-11-15）：第 16、17 站也改用 applyVerifiedSubmitResponse（都帶 assumeVerified），另加選項：
+ *   ctx.rawAttemptResult（第 16、17 站）：attempt_result 照原值使用，不解析 JSON 字串。
+ *   ctx.localCounts（第 16、17 站）：答對題數／總題數／正確率／提示次數 = Number(verified 值 ?? 本機值)，不讀 attempt_result；
+ *     ctx.countAliases（第 16 站）另讀 verified.correct、verified.hints_used。
+ *   ctx.badgeOrder：徽章 JSON 解析後不是陣列就當沒有、逗號字串可分隔、物件取 badge_id／id／badgeId；
+ *     "skipEmpty"（第 16 站）依序取第一個「有內容」的清單並去重，都沒有內容才取第一個空清單；
+ *     "attemptFirst"（第 17 站）依序取第一個清單（attempt_result 的 newly_credited 先於 earned）。
+ *   ctx.saveVerifiedSnapshot 可省略（第 17 站原本不存本機快照）。
  *
  * R4-2a（2026-11-10）、R4-2b（2026-11-11）、R4-2c（2026-11-12）：輸出與各站原本內嵌的函式逐字等價
  * （原寫法保留在 scripts/tests/legacy-achievements.mjs，scripts/tests/achievements.test.mjs 逐案比對）。
@@ -32,7 +40,7 @@
 (function configureBioQuestAchievements(global) {
   "use strict";
 
-  const VERSION = "20261114-achievements-v5";
+  const VERSION = "20261115-achievements-v6";
 
   function renderAchievements() {
     return `
@@ -277,10 +285,52 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
     return null;
   }
 
+  // 第 16、17 站原寫法（ctx.badgeOrder）：JSON 解析後不是陣列就當沒有。
+  function strictBadgeIdsOrNull(value) {
+    if (value === undefined || value === null || value === "") return null;
+    let source = value;
+    if (typeof source === "string") {
+      try {
+        source = JSON.parse(source);
+      } catch (error) {
+        source = source.split(",").map((item) => item.trim()).filter(Boolean);
+      }
+    }
+    if (!Array.isArray(source)) return null;
+    return source.map((item) => {
+      if (typeof item === "string") return item;
+      if (item && typeof item === "object") return item.badge_id || item.id || item.badgeId || "";
+      return "";
+    }).filter(Boolean);
+  }
+
+  function orderedBackendBadgeIds(response, verified, attemptResult, order) {
+    const sources = order === "skipEmpty"
+      ? [attemptResult.newly_credited_badges_json, attemptResult.newly_credited_badges, response.newly_credited_badges_json, verified?.newly_credited_badges_json,
+        attemptResult.earned_badges_json, attemptResult.earned_badges, response.earned_badges_json, verified?.earned_badges_json,
+        verified?.earned_badges, verified?.badges, verified?.badges_json]
+      : [attemptResult.newly_credited_badges_json, attemptResult.newly_credited_badges, attemptResult.earned_badges_json, attemptResult.earned_badges,
+        response.newly_credited_badges_json, response.earned_badges_json,
+        verified?.earned_badges, verified?.badges, verified?.badges_json];
+    if (order === "skipEmpty") {
+      for (const value of sources) {
+        const ids = strictBadgeIdsOrNull(value);
+        if (ids && ids.length) return [...new Set(ids)];
+      }
+    }
+    for (const value of sources) {
+      const ids = strictBadgeIdsOrNull(value);
+      if (ids) return ids;
+    }
+    return null;
+  }
+
   function applyVerifiedSubmitResponse(ctx, response, localResult) {
     if (!response || response.ok === false) return localResult;
     const verified = response.verified_attempt || response.attempt || null;
-    const attemptResult = plainObjectFromValue(response.attempt_result || response.attempt_result_json || response.result);
+    const attemptResult = ctx.rawAttemptResult
+      ? (response.attempt_result || response.attempt_result_json || response.result || {})
+      : plainObjectFromValue(response.attempt_result || response.attempt_result_json || response.result);
     const progress = response.student_progress || response.progress || null;
     if (progress) {
       ctx.student.progress = progress;
@@ -288,7 +338,7 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
       ctx.student.current_title_id = progress.current_title_id || ctx.student.current_title_id;
       ctx.student.current_title = progress.current_title || ctx.student.current_title;
       ctx.student.title_avatar_path = progress.title_avatar_path || ctx.student.title_avatar_path;
-      ctx.saveVerifiedSnapshot(ctx.student);
+      if (ctx.saveVerifiedSnapshot) ctx.saveVerifiedSnapshot(ctx.student);
     }
     if (!verified) return { ...localResult, backend_response: response };
     const verificationStatus = ctx.assumeVerified
@@ -297,15 +347,27 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
     const serverVerified = ctx.assumeVerified
       ? (verificationStatus === "server_verified" || Boolean(response.verified_attempt))
       : (verificationStatus === "server_verified" || verificationStatus === "server_verified_credited");
-    const serverBadgeIds = verifiedBackendBadgeIds(response, verified, Boolean(ctx.plainBadgeIds));
+    const serverBadgeIds = ctx.badgeOrder
+      ? orderedBackendBadgeIds(response, verified, attemptResult, ctx.badgeOrder)
+      : verifiedBackendBadgeIds(response, verified, Boolean(ctx.plainBadgeIds));
     const localFallback = (key) => (serverVerified ? null : localResult[key]);
+    const counts = ctx.localCounts
+      ? {
+        correct_count: Number(verified.correct_count ?? (ctx.countAliases ? verified.correct : undefined) ?? localResult.correct_count),
+        total_questions: Number(verified.total_questions ?? localResult.total_questions),
+        accuracy: Number(verified.accuracy ?? localResult.accuracy),
+        hint_used_count: Number(verified.hint_used_count ?? (ctx.countAliases ? verified.hints_used : undefined) ?? localResult.hint_used_count)
+      }
+      : {
+        correct_count: numberOrNull(verified.correct_count, attemptResult.correct_count, localFallback("correct_count")) ?? 0,
+        total_questions: numberOrNull(verified.total_questions, attemptResult.total_questions, localFallback("total_questions")) ?? 0,
+        accuracy: numberOrNull(verified.accuracy, attemptResult.accuracy, localFallback("accuracy")) ?? 0,
+        hint_used_count: numberOrNull(verified.hint_used_count, attemptResult.hint_used_count, localFallback("hint_used_count")) ?? 0
+      };
     return {
       ...localResult,
       verification_status: verificationStatus,
-      correct_count: numberOrNull(verified.correct_count, attemptResult.correct_count, localFallback("correct_count")) ?? 0,
-      total_questions: numberOrNull(verified.total_questions, attemptResult.total_questions, localFallback("total_questions")) ?? 0,
-      accuracy: numberOrNull(verified.accuracy, attemptResult.accuracy, localFallback("accuracy")) ?? 0,
-      hint_used_count: numberOrNull(verified.hint_used_count, attemptResult.hint_used_count, localFallback("hint_used_count")) ?? 0,
+      ...counts,
       completion_exp: numberOrNull(verified.completion_exp, attemptResult.completion_exp, localFallback("completion_exp")) ?? 0,
       direct_exp: numberOrNull(verified.direct_exp, verified.concept_exp, attemptResult.direct_exp, attemptResult.concept_exp, localFallback("direct_exp")) ?? 0,
       revision_exp: numberOrNull(verified.revision_exp, attemptResult.revision_exp, localFallback("revision_exp")) ?? 0,

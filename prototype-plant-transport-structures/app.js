@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261110-plant-transport-structures-achievements-v1";
+const VERSION = "20261115-plant-transport-structures-submit-response-v1";
 const QUESTION_VERSION = "20260727-plant-transport-structures-q03-continuity-v3";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -723,102 +723,8 @@ async function submitAttemptToBackend(payload) {
   return requestBackend(payload);
 }
 
-function numberFromAliases(...values) {
-  for (const value of values) {
-    if (value === undefined || value === null || value === "") continue;
-    const numeric = Number(value);
-    if (Number.isFinite(numeric)) return numeric;
-  }
-  return undefined;
-}
-
-function badgeIdsFromValue(value) {
-  if (value === undefined || value === null || value === "") return null;
-  let source = value;
-  if (typeof source === "string") {
-    try {
-      source = JSON.parse(source);
-    } catch (error) {
-      source = source.split(",").map((item) => item.trim()).filter(Boolean);
-    }
-  }
-  if (!Array.isArray(source)) return null;
-  return source.map((item) => {
-    if (typeof item === "string") return item;
-    if (item && typeof item === "object") return item.badge_id || item.id || item.badgeId || "";
-    return "";
-  }).filter(Boolean);
-}
-
-function firstBadgeIds(...values) {
-  for (const value of values) {
-    const ids = badgeIdsFromValue(value);
-    if (ids) return ids;
-  }
-  return null;
-}
-
-function backendBadgeIds(response = {}, verified = null) {
-  const attemptResult = response.attempt_result || response.attempt_result_json || response.result || {};
-  const sources = [
-    attemptResult.newly_credited_badges_json,
-    attemptResult.newly_credited_badges,
-    response.newly_credited_badges_json,
-    verified?.newly_credited_badges_json,
-    attemptResult.earned_badges_json,
-    attemptResult.earned_badges,
-    response.earned_badges_json,
-    verified?.earned_badges_json,
-    verified?.earned_badges,
-    verified?.badges,
-    verified?.badges_json
-  ];
-  // 依序取第一個「有內容」的清單；前面欄位是空陣列時繼續往下找
-  for (const value of sources) {
-    const ids = badgeIdsFromValue(value);
-    if (ids && ids.length) return [...new Set(ids)];
-  }
-  // 後台已正式回傳徽章清單（即使是空的）時，不改用本機判定
-  return firstBadgeIds(...sources);
-}
-
 function applyBackendSubmitResponse(response, localResult) {
-  if (!response || response.ok === false) return localResult;
-  const verified = response.verified_attempt || response.attempt || null;
-  const attemptResult = response.attempt_result || response.attempt_result_json || response.result || {};
-  const progress = response.student_progress || response.progress || null;
-  if (progress) {
-    state.student.progress = progress;
-    state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
-    state.student.current_title_id = progress.current_title_id || state.student.current_title_id;
-    state.student.current_title = progress.current_title || state.student.current_title;
-    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path;
-    saveVerifiedSnapshot(state.student);
-  }
-  if (!verified) return { ...localResult, backend_response: response };
-  const verificationStatus = verified.verification_status || response.verification_status || "server_verified";
-  const isServerVerified = verificationStatus === "server_verified" || Boolean(response.verified_attempt);
-  const verifiedBadgeIds = backendBadgeIds(response, verified);
-  const localFallback = (key) => isServerVerified ? 0 : localResult[key];
-  return {
-    ...localResult,
-    verification_status: verificationStatus,
-    correct_count: Number(verified.correct_count ?? verified.correct ?? localResult.correct_count),
-    total_questions: Number(verified.total_questions ?? localResult.total_questions),
-    accuracy: Number(verified.accuracy ?? localResult.accuracy),
-    hint_used_count: Number(verified.hint_used_count ?? verified.hints_used ?? localResult.hint_used_count),
-    completion_exp: numberFromAliases(verified.completion_exp, attemptResult.completion_exp, localFallback("completion_exp")) ?? 0,
-    direct_exp: numberFromAliases(verified.direct_exp, verified.concept_exp, attemptResult.direct_exp, attemptResult.concept_exp, localFallback("direct_exp")) ?? 0,
-    revision_exp: numberFromAliases(verified.revision_exp, attemptResult.revision_exp, localFallback("revision_exp")) ?? 0,
-    reflection_exp: numberFromAliases(verified.reflection_exp, verified.question_exp, attemptResult.reflection_exp, attemptResult.question_exp, localFallback("reflection_exp")) ?? 0,
-    mastery_exp: numberFromAliases(verified.mastery_exp, attemptResult.mastery_exp, localFallback("mastery_exp")) ?? 0,
-    retry_exp: numberFromAliases(verified.retry_exp, attemptResult.retry_exp, localFallback("retry_exp")) ?? 0,
-    attempt_exp: numberFromAliases(verified.attempt_exp, verified.attempt_total_exp, attemptResult.attempt_exp, attemptResult.attempt_total_exp, localFallback("attempt_exp")) ?? 0,
-    unit_credited_exp: numberFromAliases(verified.unit_credited_exp, attemptResult.unit_credited_exp, localFallback("unit_credited_exp")) ?? 0,
-    exp_delta: numberFromAliases(verified.credited_delta, verified.exp_delta, attemptResult.credited_delta, attemptResult.exp_delta, localFallback("exp_delta")) ?? 0,
-    earned_badges: isServerVerified ? (verifiedBadgeIds || []) : (verifiedBadgeIds || localResult.earned_badges),
-    backend_response: response
-  };
+  return window.BioQuestAchievements.applyVerifiedSubmitResponse({ student: state.student, saveVerifiedSnapshot, assumeVerified: true, rawAttemptResult: true, localCounts: true, countAliases: true, badgeOrder: "skipEmpty" }, response, localResult);
 }
 
 async function submitMission() {
@@ -1337,7 +1243,6 @@ if (typeof window !== "undefined") {
     isCorrect,
     scoreAttempt,
     buildBackendPayload,
-    backendBadgeIds,
     applyBackendSubmitResponse,
     evaluateReflection,
     REPORT_DIRECTIONS,
