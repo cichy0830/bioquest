@@ -58,7 +58,7 @@ for (const unitId of ["life_world", "scientific_method", "lab_intro", "microscop
   appVersionOverrides.set(unitId, "20260831-student-id-example-115001-v1");
 }
 appVersionOverrides.set("cell_observation", "20261109-cell-observation-backend-client-v1");
-appVersionOverrides.set("cell_structure", "20261109-cell-structure-backend-client-v1");
+appVersionOverrides.set("cell_structure", "20261116-cell-structure-submit-response-v1");
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
@@ -81,10 +81,10 @@ appVersionOverrides.set("behavior_sensing", "20261113-behavior-sensing-submit-re
 appVersionOverrides.set("respiration_homeostasis", "20261113-respiration-homeostasis-submit-response-v1");
 appVersionOverrides.set("excretion_water_homeostasis", "20261113-excretion-water-homeostasis-submit-response-v1");
 appVersionOverrides.set("temperature_glucose_homeostasis", "20261113-temperature-glucose-homeostasis-submit-response-v1");
-appVersionOverrides.set("life_world", "20261109-life-world-backend-client-v1");
-appVersionOverrides.set("scientific_method", "20261109-scientific-method-backend-client-v1");
-appVersionOverrides.set("lab_intro", "20261109-lab-entry-backend-client-v1");
-appVersionOverrides.set("microscope_use", "20261109-microscope-use-backend-client-v1");
+appVersionOverrides.set("life_world", "20261116-life-world-submit-response-v1");
+appVersionOverrides.set("scientific_method", "20261116-scientific-method-submit-response-v1");
+appVersionOverrides.set("lab_intro", "20261116-lab-entry-submit-response-v1");
+appVersionOverrides.set("microscope_use", "20261116-microscope-use-submit-response-v1");
 appVersionOverrides.set("cell_basic_unit", "20261109-cell-basic-unit-backend-client-v1");
 appVersionOverrides.set("cell_division", "20261113-cell-division-submit-response-v1");
 appVersionOverrides.set("asexual_reproduction", "20261113-asexual-reproduction-submit-response-v1");
@@ -206,7 +206,7 @@ const audit = units.map(([unitId, folder]) => {
     `app.js?v=${expectedAppVersion}`
   ]) assert(index.includes(marker), `${unitId} index hook missing: ${marker}`);
   if (unitId === "microscope_use") {
-    assert(index.includes("styles.css?v=20261109-microscope-use-backend-client-v1"), "microscope_use style cache bust missing");
+    assert(index.includes("styles.css?v=20261116-microscope-use-submit-response-v1"), "microscope_use style cache bust missing");
   }
   if (unitId === "cell_basic_unit") {
     assert(index.includes("styles.css?v=20261109-cell-basic-unit-backend-client-v1"), "cell_basic_unit style cache bust missing");

@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", profile_gender: "neutral", is_guest: true }
 };
 
-const VERSION = "20261109-lab-entry-backend-client-v1";
+const VERSION = "20261116-lab-entry-submit-response-v1";
 const QUESTION_VERSION = "20260720-lab-intro-canonical-v1";
 
 const mission = {
@@ -1466,48 +1466,9 @@ async function submitAttemptToBackend(attempt) {
 }
 
 function applyBackendSubmitResponse(response, localResult) {
-  if (!response || response.ok === false) return localResult;
-  const progress = response.student_progress || response.progress || null;
-  if (progress && state.student) {
-    state.student.progress = progress;
-    state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
-    state.student.current_title_id = progress.current_title_id || state.student.current_title_id;
-    state.student.current_title = progress.current_title || state.student.current_title;
-    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path;
-    state.student.title_avatar_variant = progress.title_avatar_variant || state.student.title_avatar_variant;
-  }
-  const verified = response.verified_attempt || response.attempt || null;
-  if (!verified) {
-    return {
-      ...localResult,
-      verification_status: response.verification_status || "pending_backend",
-      backend_response: response
-    };
-  }
-  return {
-    ...localResult,
-    ...verified,
-    total: Number(verified.total_questions ?? localResult.total),
-    correct: Number(verified.correct ?? localResult.correct),
-    correct_without_hint: Number(verified.correct_without_hint ?? localResult.correct_without_hint),
-    corrected_after_hint: Number(verified.corrected_after_hint ?? localResult.corrected_after_hint),
-    hint_used: Number(verified.hints_used ?? localResult.hint_used),
-    concept_exp: Number(verified.concept_exp ?? localResult.concept_exp),
-    revision_exp: Number(verified.revision_exp ?? localResult.revision_exp),
-    question_exp: Number(verified.question_exp ?? localResult.question_exp),
-    mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
-    retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
-    attempt_total_exp: Number(verified.attempt_total_exp ?? localResult.attempt_total_exp),
-    total_exp: Number(verified.attempt_total_exp ?? localResult.total_exp),
-    unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
-    credited_delta: Number(verified.credited_delta ?? localResult.credited_delta),
-    no_hint_perfect: Boolean(verified.no_hint_perfect),
-    badges: Array.isArray(verified.badges) ? verified.badges : localResult.badges,
-    verification_status: verified.verification_status || response.verification_status || "server_verified",
-    hint_verification_status: verified.hint_verification_status || response.hint_verification_status || "",
-    backend_response: response
-  };
+  return window.BioQuestAchievements.applyAttemptSubmitResponse({ student: state.student }, response, localResult);
 }
+
 
 function misconceptionText(tag) {
   const map = {

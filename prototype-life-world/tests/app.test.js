@@ -34,10 +34,11 @@ const context = {
 };
 context.window = context;
 context.globalThis = context;
+vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8"), context, { filename: "shared-assets/bioquest-achievements.js" });
 vm.runInNewContext(source, context, { filename: "prototype-life-world/app.js" });
 
 const api = context.window.__lifeWorldTest;
-assert.equal(api.VERSION, "20261109-life-world-backend-client-v1");
+assert.equal(api.VERSION, "20261116-life-world-submit-response-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-life-world-canonical-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert(source.includes("question_version: QUESTION_VERSION"), "backend payload must use QUESTION_VERSION");

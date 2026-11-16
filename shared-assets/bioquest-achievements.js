@@ -34,13 +34,18 @@
  *     "attemptFirst"（第 17 站）依序取第一個清單（attempt_result 的 newly_credited 先於 earned）。
  *   ctx.saveVerifiedSnapshot 可省略（第 17 站原本不存本機快照）。
  *
+ * applyAttemptSubmitResponse(ctx, response, localResult)：第 1–4、6 站的寫法（R4-2d 第一批，2026-11-16；第 1–4 站原本逐字相同）：
+ *   欄位名稱是第 1–13 站的舊格式（total／correct／hint_used／concept_exp…）；沒有 verified_attempt／attempt 時，
+ *   回傳本機結果加上 verification_status（預設 pending_backend）；ctx = { student, trackCompletedAttempts }，
+ *   student 為 null 時不更新學生資料；ctx.trackCompletedAttempts（第 6 站）另存 progress.completed_attempts。
+ *
  * R4-2a（2026-11-10）、R4-2b（2026-11-11）、R4-2c（2026-11-12）：輸出與各站原本內嵌的函式逐字等價
  * （原寫法保留在 scripts/tests/legacy-achievements.mjs，scripts/tests/achievements.test.mjs 逐案比對）。
  */
 (function configureBioQuestAchievements(global) {
   "use strict";
 
-  const VERSION = "20261115-achievements-v6";
+  const VERSION = "20261116-achievements-v7";
 
   function renderAchievements() {
     return `
@@ -382,5 +387,51 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
     };
   }
 
-  global.BioQuestAchievements = Object.freeze({ VERSION, renderAchievements, titleAndProgress, renderBadgeWall, applySubmitResponse, applyVerifiedSubmitResponse });
+  function applyAttemptSubmitResponse(ctx, response, localResult) {
+    if (!response || response.ok === false) return localResult;
+    const progress = response.student_progress || response.progress || null;
+    const student = ctx.student;
+    if (progress && student) {
+      student.progress = progress;
+      student.total_exp = Number(progress.total_exp ?? student.total_exp ?? 0);
+      student.current_title_id = progress.current_title_id || student.current_title_id;
+      student.current_title = progress.current_title || student.current_title;
+      student.title_avatar_path = progress.title_avatar_path || student.title_avatar_path;
+      student.title_avatar_variant = progress.title_avatar_variant || student.title_avatar_variant;
+      if (ctx.trackCompletedAttempts) student.completed_attempts = Number(progress.completed_attempts ?? student.completed_attempts ?? 0);
+    }
+    const verified = response.verified_attempt || response.attempt || null;
+    if (!verified) {
+      return {
+        ...localResult,
+        verification_status: response.verification_status || "pending_backend",
+        backend_response: response
+      };
+    }
+    return {
+      ...localResult,
+      ...verified,
+      total: Number(verified.total_questions ?? localResult.total),
+      correct: Number(verified.correct ?? localResult.correct),
+      correct_without_hint: Number(verified.correct_without_hint ?? localResult.correct_without_hint),
+      corrected_after_hint: Number(verified.corrected_after_hint ?? localResult.corrected_after_hint),
+      hint_used: Number(verified.hints_used ?? localResult.hint_used),
+      concept_exp: Number(verified.concept_exp ?? localResult.concept_exp),
+      revision_exp: Number(verified.revision_exp ?? localResult.revision_exp),
+      question_exp: Number(verified.question_exp ?? localResult.question_exp),
+      mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
+      retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
+      attempt_total_exp: Number(verified.attempt_total_exp ?? localResult.attempt_total_exp),
+      total_exp: Number(verified.attempt_total_exp ?? localResult.total_exp),
+      unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
+      credited_delta: Number(verified.credited_delta ?? localResult.credited_delta),
+      no_hint_perfect: Boolean(verified.no_hint_perfect),
+      badges: Array.isArray(verified.badges) ? verified.badges : localResult.badges,
+      verification_status: verified.verification_status || response.verification_status || "server_verified",
+      hint_verification_status: verified.hint_verification_status || response.hint_verification_status || "",
+      backend_response: response
+    };
+  }
+
+  global.BioQuestAchievements = Object.freeze({ VERSION, renderAchievements, titleAndProgress, renderBadgeWall, applySubmitResponse, applyVerifiedSubmitResponse, applyAttemptSubmitResponse });
 })(typeof window !== "undefined" ? window : globalThis);

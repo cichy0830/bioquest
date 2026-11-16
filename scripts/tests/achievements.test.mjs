@@ -11,12 +11,14 @@
 //    和 LEGACY_SUBMIT_18／LEGACY_SUBMIT_19_21 比對（另加沒寫狀態的 attempt、server_verified_credited、物件徽章等回應）。
 // 7. R4-2c 第四批：第 16 站（rawAttemptResult＋localCounts＋countAliases＋badgeOrder skipEmpty）、第 17 站（同上但不存快照、badgeOrder attemptFirst）
 //    改用 applyVerifiedSubmitResponse，和 LEGACY_SUBMIT_16／LEGACY_SUBMIT_17 比對（另加 correct／hints_used 別名、空清單在前、重複徽章等回應）。
+// 8. R4-2d 第一批：第 1–4 站、第 6 站（trackCompletedAttempts）改用 applyAttemptSubmitResponse（第 1–13 站舊欄位格式），
+//    和 LEGACY_SUBMIT_1_4／LEGACY_SUBMIT_6 比對（另加舊格式本機結果、title_avatar_variant、completed_attempts、badges 陣列等回應）。
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
-import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40, LEGACY_SUBMIT_31_40, LEGACY_SUBMIT_22_30, LEGACY_SUBMIT_18, LEGACY_SUBMIT_19_21, LEGACY_SUBMIT_16, LEGACY_SUBMIT_17 } from "./legacy-achievements.mjs";
+import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40, LEGACY_SUBMIT_31_40, LEGACY_SUBMIT_22_30, LEGACY_SUBMIT_18, LEGACY_SUBMIT_19_21, LEGACY_SUBMIT_16, LEGACY_SUBMIT_17, LEGACY_SUBMIT_1_4, LEGACY_SUBMIT_6 } from "./legacy-achievements.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const sharedSource = fs.readFileSync(path.join(root, "shared-assets", "bioquest-achievements.js"), "utf8");
@@ -515,4 +517,86 @@ for (const { slug, legacy, ctx } of SUBMIT_EARLY_STATIONS) {
   }
 }
 
-console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases, submitStations: SUBMIT_STATIONS.length, submitCases, submitVerifiedStations: SUBMIT_VERIFIED_STATIONS.length, verifiedCases, submitOptionStations: SUBMIT_OPTION_STATIONS.length, optionCases, submitEarlyStations: SUBMIT_EARLY_STATIONS.length, earlyCases }));
+// 8. applyBackendSubmitResponse（R4-2d 第一批：第 1–4、6 站，applyAttemptSubmitResponse）
+export const SUBMIT_ATTEMPT_STATIONS = [
+  { slug: "life-world", legacy: LEGACY_SUBMIT_1_4, ctx: "{ student: state.student }" },
+  { slug: "scientific-method", legacy: LEGACY_SUBMIT_1_4, ctx: "{ student: state.student }" },
+  { slug: "lab-entry", legacy: LEGACY_SUBMIT_1_4, ctx: "{ student: state.student }" },
+  { slug: "microscope-use", legacy: LEGACY_SUBMIT_1_4, ctx: "{ student: state.student }" },
+  { slug: "cell-structure", legacy: LEGACY_SUBMIT_6, ctx: "{ student: state.student, trackCompletedAttempts: true }" }
+];
+const attemptLocal = submitLocal.concat([
+  { total: 12, correct: 9, correct_without_hint: 7, corrected_after_hint: 2, hint_used: 3, concept_exp: 70, revision_exp: 10, question_exp: 20, mastery_exp: 0, retry_exp: 5, attempt_total_exp: 105, total_exp: 105, unit_credited_exp: 105, credited_delta: 105, no_hint_perfect: false, badges: ["local_badge"], verification_status: "local_only" },
+  { total: "10", correct: null, hint_used: undefined, badges: "not array" }
+]);
+const legacyVerified = { verification_status: "server_verified", total_questions: 12, correct: 11, correct_without_hint: 10, corrected_after_hint: 1, hints_used: 1, concept_exp: 110, revision_exp: 5, question_exp: 40, mastery_exp: 50, retry_exp: 0, attempt_total_exp: 205, unit_credited_exp: 205, credited_delta: 60, no_hint_perfect: 0, badges: ["srv_a"], hint_verification_status: "hint_verified" };
+const attemptResponses = earlyResponses.concat([
+  { ok: true, verified_attempt: legacyVerified, student_progress: { ...progress, title_avatar_variant: "female", completed_attempts: "3" } },
+  { ok: true, attempt: { ...legacyVerified, verification_status: "", badges: "x", no_hint_perfect: 1 }, verification_status: "pending_review", hint_verification_status: "hint_pending" },
+  { ok: true, attempt: { total_questions: null, correct: "abc", hints_used: "", attempt_total_exp: undefined } },
+  { ok: true, progress: { completed_attempts: null, title_avatar_variant: "" }, verification_status: "pending_review" },
+  { ok: true, progress: { total_exp: 0, completed_attempts: 0 } },
+  { ok: true, verified_attempt: { total: 99, backend_response: "x" }, student_progress: {} }
+]);
+const attemptStudents = submitStudents.concat([
+  () => ({ student_id: "s2", total_exp: 50, completed_attempts: 2, title_avatar_variant: "male" })
+]);
+// 第 1–13 站載入時會直接寫入畫面元素（例：第 4 站學生資訊），給一個什麼都接受的假元素。
+function stubElement() {
+  const fn = () => stub;
+  const stub = new Proxy(fn, {
+    get: (target, key) => (key === Symbol.toPrimitive ? () => "" : key === "length" ? 0 : stub),
+    set: () => true,
+    apply: () => stub
+  });
+  return stub;
+}
+let attemptCases = 0;
+for (const { slug, legacy, ctx } of SUBMIT_ATTEMPT_STATIONS) {
+  const folder = `prototype-${slug}`;
+  const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
+  const html = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
+  assert(app.includes(`return window.BioQuestAchievements.applyAttemptSubmitResponse(${ctx}, response, localResult);`), `${folder}: applyBackendSubmitResponse 應改用共用模組 applyAttemptSubmitResponse（選項 ${ctx}）`);
+  const sharedTag = html.indexOf(`../shared-assets/bioquest-achievements.js?v=${sharedVersion}`);
+  assert(sharedTag > 0 && sharedTag < html.indexOf('<script src="app.js'), `${folder}: index.html 應在 app.js 之前載入共用成就模組 ${sharedVersion}`);
+  const store = new Map();
+  const context = {
+    console: { log() {}, warn() {}, error() {} },
+    document: { readyState: "loading", querySelector() { return stubElement(); }, querySelectorAll() { return []; }, getElementById() { return stubElement(); }, addEventListener() {}, createElement() { return stubElement(); } },
+    localStorage: { getItem: (key) => store.get(key) || null, setItem: (key, value) => store.set(key, String(value)), removeItem: (key) => store.delete(key) },
+    URLSearchParams,
+    fetch: async () => ({ ok: true, json: async () => ({ ok: true }) }),
+    Date,
+    Math,
+    setTimeout,
+    clearTimeout,
+    structuredClone
+  };
+  context.window = context;
+  context.globalThis = context;
+  vm.runInNewContext(sharedSource, context);
+  vm.runInNewContext(app, context, { filename: `${folder}/app.js` });
+  const api = Object.entries(context).find(([key, value]) => /^__.+Test$/.test(key) && value?.applyBackendSubmitResponse)?.[1];
+  assert(api, `${folder}: 找不到站內測試介面`);
+
+  for (const makeStudent of attemptStudents) {
+    for (const response of attemptResponses) {
+      for (const local of attemptLocal) {
+        const legacyState = { student: makeStudent() };
+        const legacyFn = vm.runInNewContext(`${legacy}; applyBackendSubmitResponse`, { state: legacyState, Object, Number, Array, Boolean });
+        let expected;
+        try { expected = { value: JSON.stringify(legacyFn(structuredClone(response), structuredClone(local))) }; } catch (error) { expected = { error: error.constructor.name }; }
+
+        api.setState({ student: makeStudent() });
+        let actual;
+        try { actual = { value: JSON.stringify(api.applyBackendSubmitResponse(structuredClone(response), structuredClone(local))) }; } catch (error) { actual = { error: error.constructor.name }; }
+        const label = JSON.stringify({ response, local, student: makeStudent() });
+        assert.deepEqual(actual, expected, `${folder}: applyBackendSubmitResponse 回傳與原寫法不同（${label}）`);
+        assert.equal(JSON.stringify(api.state().student), JSON.stringify(legacyState.student), `${folder}: 學生資料更新與原寫法不同（${label}）`);
+        attemptCases += 1;
+      }
+    }
+  }
+}
+
+console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases, submitStations: SUBMIT_STATIONS.length, submitCases, submitVerifiedStations: SUBMIT_VERIFIED_STATIONS.length, verifiedCases, submitOptionStations: SUBMIT_OPTION_STATIONS.length, optionCases, submitEarlyStations: SUBMIT_EARLY_STATIONS.length, earlyCases, submitAttemptStations: SUBMIT_ATTEMPT_STATIONS.length, attemptCases }));
