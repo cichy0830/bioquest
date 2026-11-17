@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261109-biological-organization-backend-client-v1";
+const VERSION = "20261117-biological-organization-submit-response-v1";
 const QUESTION_VERSION = "20260716-biological-organization-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -332,20 +332,7 @@ function cumulativeBadgeIds(current = []) {
   return [...new Set([...(state.cumulative_badges || []), ...local, ...current])];
 }
 function applyBackendProgress(progress = {}) {
-  if (!progress || typeof progress !== "object") return;
-  state.cumulative_badges = parseArray(progress.badges_json || progress.badges || state.cumulative_badges);
-  state.cumulative_total_exp = Number(progress.total_exp ?? progress.total_credited_exp ?? state.cumulative_total_exp ?? 0);
-  state.completed_unit_count = Number(progress.completed_unit_count ?? state.completed_unit_count ?? 0);
-  if (state.student) {
-    const previous = state.student.progress || {};
-    state.student.progress = { ...previous, ...progress };
-    state.student.current_title_id = progress.current_title_id || state.student.current_title_id || "";
-    state.student.current_title = progress.current_title || state.student.current_title || "";
-    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path || "";
-    state.student.profile_gender = progress.profile_gender || state.student.profile_gender || "";
-    state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
-  }
-  updateBadgeOverviewBridge();
+  window.BioQuestAchievements.applyLegacyStudentProgress({ state, ignoreInvalid: true, syncProfileAndExp: true, afterApply: updateBadgeOverviewBridge }, progress);
 }
 function pendingQueue() {
   try { return JSON.parse(localStorage.getItem(pendingQueueKey)) || []; } catch { return []; }
@@ -1135,7 +1122,7 @@ function attachReflection() {
     try {
       const response = await submitAttemptToBackend(attempt);
       state.backend_status = state.student?.is_guest ? "local_guest" : "submitted";
-      if (response.verified_attempt) state.result = { ...state.result, ...response.verified_attempt };
+      state.result = window.BioQuestAchievements.mergeVerifiedAttempt(state.result, response);
       applyBackendProgress(response.student_progress || response.progress || {});
       attempt = { ...attempt, ...state.result, backend_status: state.backend_status, backend_attempt_id: response.attempt_id || attempt.attempt_id };
     } catch {

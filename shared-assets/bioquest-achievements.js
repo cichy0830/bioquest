@@ -39,13 +39,21 @@
  *   回傳本機結果加上 verification_status（預設 pending_backend）；ctx = { student, trackCompletedAttempts }，
  *   student 為 null 時不更新學生資料；ctx.trackCompletedAttempts（第 6 站）另存 progress.completed_attempts。
  *
+ * mergeVerifiedAttempt(result, response)：第 7–13 站送出流程，後台有 verified_attempt 時把它疊到本機結果上（沒有就回傳原物件）。
+ * applyLegacyStudentProgress(ctx, progress)：第 7–13 站 applyBackendProgress（R4-2d 第二批，2026-11-17；第 9–13 站原本逐字相同）：
+ *   就地更新 ctx.state 的 cumulative_badges／cumulative_total_exp／completed_unit_count 與 state.student 的稱號、頭像。
+ *   ctx = { state, ignoreInvalid, syncProfileAndExp, afterApply }
+ *   ctx.ignoreInvalid（第 9–13 站）：progress 不是物件時直接略過（第 7、8 站原寫法沒有這個檢查，遇到 null 會丟錯，照舊）。
+ *   ctx.syncProfileAndExp（第 8–13 站）：另存 profile_gender 與 student.total_exp。
+ *   ctx.afterApply（第 9–13 站傳 updateBadgeOverviewBridge）：更新完後呼叫。
+ *
  * R4-2a（2026-11-10）、R4-2b（2026-11-11）、R4-2c（2026-11-12）：輸出與各站原本內嵌的函式逐字等價
  * （原寫法保留在 scripts/tests/legacy-achievements.mjs，scripts/tests/achievements.test.mjs 逐案比對）。
  */
 (function configureBioQuestAchievements(global) {
   "use strict";
 
-  const VERSION = "20261116-achievements-v7";
+  const VERSION = "20261117-achievements-v8";
 
   function renderAchievements() {
     return `
@@ -433,5 +441,35 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
     };
   }
 
-  global.BioQuestAchievements = Object.freeze({ VERSION, renderAchievements, titleAndProgress, renderBadgeWall, applySubmitResponse, applyVerifiedSubmitResponse, applyAttemptSubmitResponse });
+  function parseLegacyArray(value) {
+    if (Array.isArray(value)) return value;
+    if (!value) return [];
+    try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; } catch { return []; }
+  }
+
+  function mergeVerifiedAttempt(result, response) {
+    if (response.verified_attempt) return { ...result, ...response.verified_attempt };
+    return result;
+  }
+
+  function applyLegacyStudentProgress(ctx, progress = {}) {
+    const state = ctx.state;
+    if (ctx.ignoreInvalid && (!progress || typeof progress !== "object")) return;
+    state.cumulative_badges = parseLegacyArray(progress.badges_json || progress.badges || state.cumulative_badges);
+    state.cumulative_total_exp = Number(progress.total_exp ?? progress.total_credited_exp ?? state.cumulative_total_exp ?? 0);
+    state.completed_unit_count = Number(progress.completed_unit_count ?? state.completed_unit_count ?? 0);
+    if (state.student) {
+      state.student.progress = { ...(state.student.progress || {}), ...progress };
+      state.student.current_title_id = progress.current_title_id || state.student.current_title_id || "";
+      state.student.current_title = progress.current_title || state.student.current_title || "";
+      state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path || "";
+      if (ctx.syncProfileAndExp) {
+        state.student.profile_gender = progress.profile_gender || state.student.profile_gender || "";
+        state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
+      }
+    }
+    if (ctx.afterApply) ctx.afterApply();
+  }
+
+  global.BioQuestAchievements = Object.freeze({ VERSION, renderAchievements, titleAndProgress, renderBadgeWall, applySubmitResponse, applyVerifiedSubmitResponse, applyAttemptSubmitResponse, mergeVerifiedAttempt, applyLegacyStudentProgress });
 })(typeof window !== "undefined" ? window : globalThis);

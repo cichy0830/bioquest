@@ -13,12 +13,15 @@
 //    改用 applyVerifiedSubmitResponse，和 LEGACY_SUBMIT_16／LEGACY_SUBMIT_17 比對（另加 correct／hints_used 別名、空清單在前、重複徽章等回應）。
 // 8. R4-2d 第一批：第 1–4 站、第 6 站（trackCompletedAttempts）改用 applyAttemptSubmitResponse（第 1–13 站舊欄位格式），
 //    和 LEGACY_SUBMIT_1_4／LEGACY_SUBMIT_6 比對（另加舊格式本機結果、title_avatar_variant、completed_attempts、badges 陣列等回應）。
+// 9. R4-2d 第二批：第 7–13 站 applyBackendProgress 改用 applyLegacyStudentProgress（第 7 站無選項；第 8 站 syncProfileAndExp；
+//    第 9–13 站 ignoreInvalid＋syncProfileAndExp＋afterApply），送出流程合併 verified_attempt 改用 mergeVerifiedAttempt；
+//    載入真正的 app.js，用多種 progress × 站內狀態和 LEGACY_PROGRESS_7／_8／_9_13 比對 state 就地更新、丟出的錯誤與 updateBadgeOverviewBridge 呼叫次數。
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
-import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40, LEGACY_SUBMIT_31_40, LEGACY_SUBMIT_22_30, LEGACY_SUBMIT_18, LEGACY_SUBMIT_19_21, LEGACY_SUBMIT_16, LEGACY_SUBMIT_17, LEGACY_SUBMIT_1_4, LEGACY_SUBMIT_6 } from "./legacy-achievements.mjs";
+import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40, LEGACY_SUBMIT_31_40, LEGACY_SUBMIT_22_30, LEGACY_SUBMIT_18, LEGACY_SUBMIT_19_21, LEGACY_SUBMIT_16, LEGACY_SUBMIT_17, LEGACY_SUBMIT_1_4, LEGACY_SUBMIT_6, LEGACY_PROGRESS_7, LEGACY_PROGRESS_8, LEGACY_PROGRESS_9_13, LEGACY_MERGE_VERIFIED_7_13 } from "./legacy-achievements.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const sharedSource = fs.readFileSync(path.join(root, "shared-assets", "bioquest-achievements.js"), "utf8");
@@ -599,4 +602,118 @@ for (const { slug, legacy, ctx } of SUBMIT_ATTEMPT_STATIONS) {
   }
 }
 
-console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases, submitStations: SUBMIT_STATIONS.length, submitCases, submitVerifiedStations: SUBMIT_VERIFIED_STATIONS.length, verifiedCases, submitOptionStations: SUBMIT_OPTION_STATIONS.length, optionCases, submitEarlyStations: SUBMIT_EARLY_STATIONS.length, earlyCases, submitAttemptStations: SUBMIT_ATTEMPT_STATIONS.length, attemptCases }));
+// 9. applyBackendProgress＋verified_attempt 合併（R4-2d 第二批：第 7–13 站）
+const PROGRESS_STATIONS = [
+  { slug: "cell-observation", legacy: LEGACY_PROGRESS_7, ctx: "{ state }", bridge: false },
+  { slug: "cell-transport", legacy: LEGACY_PROGRESS_8, ctx: "{ state, syncProfileAndExp: true }", bridge: false },
+  ...["biological-organization", "scale", "nutrients-energy", "nutrient-test", "enzymes"].map((slug) => ({ slug, legacy: LEGACY_PROGRESS_9_13, ctx: "{ state, ignoreInvalid: true, syncProfileAndExp: true, afterApply: updateBadgeOverviewBridge }", bridge: true }))
+];
+const fullProgress = { total_exp: 320, completed_unit_count: 4, badges_json: "[\"a\",\"b\"]", current_title_id: "t3", current_title: "細胞偵查員", title_avatar_path: "../shared-assets/title-avatars/t3-female.webp", profile_gender: "female", extra_field: 1 };
+const progressInputs = [
+  undefined,
+  {},
+  fullProgress,
+  { badges: ["x", "y"], total_credited_exp: "150", completed_unit_count: "2" },
+  { badges_json: "not json", badges: ["fallback"], total_exp: null, total_credited_exp: 90 },
+  { badges_json: "{\"a\":1}", total_exp: "", completed_unit_count: null, current_title: "", title_avatar_path: null, profile_gender: "" },
+  { badges_json: "", badges: "", total_exp: 0, completed_unit_count: 0 },
+  { total_exp: "abc", current_title_id: "t9" },
+  null,
+  "abc",
+  ["p"],
+  5,
+  false
+];
+const progressStates = [
+  () => ({ student: null }),
+  () => ({ student: null, cumulative_badges: ["old"], cumulative_total_exp: 40, completed_unit_count: 1 }),
+  () => ({ student: { student_id: "s1" } }),
+  () => ({ student: { student_id: "s1", progress: { total_exp: 10, keep: true }, current_title_id: "t1", current_title: "新手", title_avatar_path: "old.webp", profile_gender: "male", total_exp: 10 }, cumulative_badges: "[\"old\"]", cumulative_total_exp: "12", completed_unit_count: "3" }),
+  () => ({ student: { student_id: "s2", progress: null, total_exp: undefined }, cumulative_badges: undefined })
+];
+let progressCases = 0;
+let mergeCases = 0;
+for (const { slug, legacy, ctx, bridge } of PROGRESS_STATIONS) {
+  const folder = `prototype-${slug}`;
+  const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
+  const html = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
+  assert(app.includes(`window.BioQuestAchievements.applyLegacyStudentProgress(${ctx}, progress);`), `${folder}: applyBackendProgress 應改用共用模組 applyLegacyStudentProgress（選項 ${ctx}）`);
+  assert(app.includes("state.result = window.BioQuestAchievements.mergeVerifiedAttempt(state.result, response);"), `${folder}: 送出流程應改用共用模組 mergeVerifiedAttempt`);
+  assert(!app.includes(LEGACY_MERGE_VERIFIED_7_13), `${folder}: 不應再內嵌原本的 verified_attempt 合併`);
+  const sharedTag = html.indexOf(`../shared-assets/bioquest-achievements.js?v=${sharedVersion}`);
+  assert(sharedTag > 0 && sharedTag < html.indexOf('<script src="app.js'), `${folder}: index.html 應在 app.js 之前載入共用成就模組 ${sharedVersion}`);
+  const store = new Map();
+  const context = {
+    console: { log() {}, warn() {}, error() {} },
+    document: { readyState: "loading", querySelector() { return stubElement(); }, querySelectorAll() { return []; }, getElementById() { return stubElement(); }, addEventListener() {}, createElement() { return stubElement(); }, body: stubElement(), documentElement: stubElement() },
+    localStorage: { getItem: (key) => store.get(key) || null, setItem: (key, value) => store.set(key, String(value)), removeItem: (key) => store.delete(key) },
+    location: { search: "", href: "http://localhost/", hash: "" },
+    URLSearchParams,
+    fetch: async () => ({ ok: true, json: async () => ({ ok: true }) }),
+    addEventListener() {},
+    Date,
+    Math,
+    setTimeout,
+    clearTimeout,
+    structuredClone
+  };
+  context.window = context;
+  context.globalThis = context;
+  vm.runInNewContext(sharedSource, context);
+  const labPath = path.join(root, folder, "lab.js"); // 第 12 站互動實驗台在 app.js 之前載入
+  if (fs.existsSync(labPath)) vm.runInNewContext(fs.readFileSync(labPath, "utf8"), context, { filename: `${folder}/lab.js` });
+  const hook = bridge
+    ? "updateBadgeOverviewBridge = function () { globalThis.__bridgeCalls += 1; };"
+    : "";
+  vm.runInNewContext(`${app}\n;globalThis.__bridgeCalls = 0; ${hook} globalThis.__r4Progress = { apply: (...args) => applyBackendProgress(...args), get: () => state, set: (next) => { state = next; } };`, context, { filename: `${folder}/app.js` });
+  const api = context.__r4Progress;
+
+  for (const makeState of progressStates) {
+    for (const input of progressInputs) {
+      const legacyState = makeState();
+      const legacyCtx = { state: legacyState, parseArray(value) { if (Array.isArray(value)) return value; if (!value) return []; try { const parsed = JSON.parse(value); return Array.isArray(parsed) ? parsed : []; } catch { return []; } }, bridgeCalls: 0, Number, JSON, Array, Object };
+      legacyCtx.updateBadgeOverviewBridge = () => { legacyCtx.bridgeCalls += 1; };
+      const legacyFn = vm.runInNewContext(`${legacy}; applyBackendProgress`, legacyCtx);
+      const arg = input === undefined ? [] : [structuredClone(input)];
+      let expected;
+      try { legacyFn(...arg); expected = { state: JSON.stringify(legacyState) }; } catch (error) { expected = { error: error.constructor.name, state: JSON.stringify(legacyState) }; }
+
+      api.set(makeState());
+      context.__bridgeCalls = 0;
+      let actual;
+      try { api.apply(...arg); actual = { state: JSON.stringify(api.get()) }; } catch (error) { actual = { error: error.constructor.name, state: JSON.stringify(api.get()) }; }
+      const label = JSON.stringify({ input: input === undefined ? "(undefined)" : input, state: makeState() });
+      assert.deepEqual(actual, expected, `${folder}: applyBackendProgress 與原寫法不同（${label}）`);
+      assert.equal(context.__bridgeCalls, legacyCtx.bridgeCalls, `${folder}: updateBadgeOverviewBridge 呼叫次數與原寫法不同（${label}）`);
+      progressCases += 1;
+    }
+  }
+}
+const mergeResponses = [
+  {},
+  { verified_attempt: null },
+  { verified_attempt: { total_questions: 12, correct: 11, badges: ["a"], concept_exp: 0 } },
+  { verified_attempt: { total: undefined, correct: null } },
+  { verified_attempt: "" },
+  { verified_attempt: 0 },
+  { verified_attempt: [1, 2] },
+  { attempt: { correct: 5 } }
+];
+const mergeResults = [
+  () => ({ total: 12, correct: 9, hint_used: 2, badges: ["local"] }),
+  () => ({}),
+  () => null
+];
+for (const response of mergeResponses) {
+  for (const makeResult of mergeResults) {
+    const legacyState = { result: makeResult() };
+    vm.runInNewContext(LEGACY_MERGE_VERIFIED_7_13, { state: legacyState, response: structuredClone(response) });
+    const before = makeResult();
+    const merged = vm.runInNewContext("BioQuestAchievements.mergeVerifiedAttempt(before, response)", Object.assign(vm.createContext({}), { BioQuestAchievements: (() => { const c = {}; c.window = c; vm.runInNewContext(sharedSource, c); return c.BioQuestAchievements; })(), before, response: structuredClone(response) }));
+    assert.equal(JSON.stringify(merged), JSON.stringify(legacyState.result), `mergeVerifiedAttempt 與原寫法不同（${JSON.stringify({ response, result: makeResult() })}）`);
+    if (!response.verified_attempt) assert.equal(merged, before, "沒有 verified_attempt 時應回傳原物件");
+    mergeCases += 1;
+  }
+}
+
+console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases, submitStations: SUBMIT_STATIONS.length, submitCases, submitVerifiedStations: SUBMIT_VERIFIED_STATIONS.length, verifiedCases, submitOptionStations: SUBMIT_OPTION_STATIONS.length, optionCases, submitEarlyStations: SUBMIT_EARLY_STATIONS.length, earlyCases, submitAttemptStations: SUBMIT_ATTEMPT_STATIONS.length, attemptCases, progressStations: PROGRESS_STATIONS.length, progressCases, mergeCases }));

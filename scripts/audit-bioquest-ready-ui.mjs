@@ -57,18 +57,18 @@ const appVersionOverrides = new Map();
 for (const unitId of ["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit"]) {
   appVersionOverrides.set(unitId, "20260831-student-id-example-115001-v1");
 }
-appVersionOverrides.set("cell_observation", "20261109-cell-observation-backend-client-v1");
+appVersionOverrides.set("cell_observation", "20261117-cell-observation-submit-response-v1");
 appVersionOverrides.set("cell_structure", "20261116-cell-structure-submit-response-v1");
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
-appVersionOverrides.set("enzymes", "20261109-enzymes-backend-client-v1");
-appVersionOverrides.set("nutrient_test", "20261109-nutrient-test-backend-client-v1");
-appVersionOverrides.set("scale", "20261109-scale-backend-client-v1");
-appVersionOverrides.set("nutrients_energy", "20261109-nutrients-energy-backend-client-v1");
+appVersionOverrides.set("enzymes", "20261117-enzymes-submit-response-v1");
+appVersionOverrides.set("nutrient_test", "20261117-nutrient-test-submit-response-v1");
+appVersionOverrides.set("scale", "20261117-scale-submit-response-v1");
+appVersionOverrides.set("nutrients_energy", "20261117-nutrients-energy-submit-response-v1");
 appVersionOverrides.set("photosynthesis", "20261108-photosynthesis-backend-client-v1");
-appVersionOverrides.set("biological_organization", "20261109-biological-organization-backend-client-v1");
-appVersionOverrides.set("cell_transport", "20261109-cell-transport-backend-client-v1");
+appVersionOverrides.set("biological_organization", "20261117-biological-organization-submit-response-v1");
+appVersionOverrides.set("cell_transport", "20261117-cell-transport-submit-response-v1");
 appVersionOverrides.set("plant_material_transport", "20261115-plant-material-transport-submit-response-v1");
 appVersionOverrides.set("human_nutrition", "20261108-human-nutrition-backend-client-v1");
 appVersionOverrides.set("plant_transport_structures", "20261115-plant-transport-structures-submit-response-v1");
