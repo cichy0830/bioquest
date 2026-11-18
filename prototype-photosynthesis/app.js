@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261108-photosynthesis-backend-client-v1";
+const VERSION = "20261118-photosynthesis-submit-response-v1";
 const QUESTION_VERSION = "20260721-photosynthesis-q09-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -694,38 +694,9 @@ async function submitAttemptToBackend(payload) {
 }
 
 function applyBackendSubmitResponse(response, localResult) {
-  if (!response || response.ok === false) return localResult;
-  const verified = response.verified_attempt || response.attempt || null;
-  const progress = response.student_progress || response.progress || null;
-  if (progress) {
-    state.student.progress = progress;
-    state.student.total_exp = Number(progress.total_exp ?? state.student.total_exp ?? 0);
-    state.student.current_title_id = progress.current_title_id || state.student.current_title_id;
-    state.student.current_title = progress.current_title || state.student.current_title;
-    state.student.title_avatar_path = progress.title_avatar_path || state.student.title_avatar_path;
-  }
-  if (!verified) return { ...localResult, backend_response: response };
-  const backendBadgeIds = badgeIdsFromResult(verified);
-  return {
-    ...localResult,
-    verification_status: verified.verification_status || response.verification_status || "server_verified",
-    correct_count: Number(verified.correct_count ?? verified.correct ?? localResult.correct_count),
-    total_questions: Number(verified.total_questions ?? localResult.total_questions),
-    accuracy: Number(verified.accuracy ?? localResult.accuracy),
-    hint_used_count: Number(verified.hint_used_count ?? verified.hints_used ?? localResult.hint_used_count),
-    completion_exp: Number(verified.completion_exp ?? localResult.completion_exp),
-    direct_exp: Number(verified.direct_exp ?? verified.concept_exp ?? localResult.direct_exp),
-    revision_exp: Number(verified.revision_exp ?? localResult.revision_exp),
-    reflection_exp: Number(verified.reflection_exp ?? verified.question_exp ?? localResult.reflection_exp),
-    mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
-    retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
-    attempt_exp: Number(verified.attempt_exp ?? verified.attempt_total_exp ?? localResult.attempt_exp),
-    unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
-    exp_delta: Number(verified.credited_delta ?? verified.exp_delta ?? localResult.exp_delta),
-    earned_badges: backendBadgeIds.length || Array.isArray(verified.badges) || typeof verified.badges_json === "string" ? backendBadgeIds : localResult.earned_badges,
-    backend_response: response
-  };
+  return window.BioQuestAchievements.applyNumberedSubmitResponse({ student: state.student, badgeIds: (_response, verified) => badgeIdsFromResult(verified) }, response, localResult);
 }
+
 
 async function submitMission() {
   if (!requiredQuestionIds.every((id) => questionAnswered(questionMap[id]))) {

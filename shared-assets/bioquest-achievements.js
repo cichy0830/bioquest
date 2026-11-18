@@ -47,13 +47,18 @@
  *   ctx.syncProfileAndExp（第 8–13 站）：另存 profile_gender 與 student.total_exp。
  *   ctx.afterApply（第 9–13 站傳 updateBadgeOverviewBridge）：更新完後呼叫。
  *
+ * applyNumberedSubmitResponse(ctx, response, localResult)：第 14、15 站（R4-2d 第三批，2026-11-18）：
+ *   欄位是新格式（correct_count／direct_exp…），數字 = Number(後台值 ?? 本機值)；ctx = { student, applyProgress, badgeIds }，
+ *   見函式上方說明。
+ * applyMergedStudentProgress(student, data)／applyServerVerifiedAttempt(localAttempt, response)：第 5 站（R4-2d 第三批）。
+ *
  * R4-2a（2026-11-10）、R4-2b（2026-11-11）、R4-2c（2026-11-12）：輸出與各站原本內嵌的函式逐字等價
  * （原寫法保留在 scripts/tests/legacy-achievements.mjs，scripts/tests/achievements.test.mjs 逐案比對）。
  */
 (function configureBioQuestAchievements(global) {
   "use strict";
 
-  const VERSION = "20261117-achievements-v8";
+  const VERSION = "20261118-achievements-v9";
 
   function renderAchievements() {
     return `
@@ -126,6 +131,15 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
   </section>`;
 }
 
+  // 第 14–40 站與第 1–4、6 站送出後共用的學生資料更新（progress 整個取代，稱號／頭像沒給就保留原值）。
+  function copyProgressToStudent(student, progress) {
+    student.progress = progress;
+    student.total_exp = Number(progress.total_exp ?? student.total_exp ?? 0);
+    student.current_title_id = progress.current_title_id || student.current_title_id;
+    student.current_title = progress.current_title || student.current_title;
+    student.title_avatar_path = progress.title_avatar_path || student.title_avatar_path;
+  }
+
   // R4-2c：第 31–40 站 applyBackendSubmitResponse 與輔助函式（state.student → ctx.student）。
   function applySubmitResponse(ctx, response, localResult) {
     if (!response || response.ok === false) return localResult;
@@ -133,11 +147,7 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
     const attemptResult = response.attempt_result || response.result || null;
     const progress = response.student_progress || response.progress || null;
     if (progress) {
-      ctx.student.progress = progress;
-      ctx.student.total_exp = Number(progress.total_exp ?? ctx.student.total_exp ?? 0);
-      ctx.student.current_title_id = progress.current_title_id || ctx.student.current_title_id;
-      ctx.student.current_title = progress.current_title || ctx.student.current_title;
-      ctx.student.title_avatar_path = progress.title_avatar_path || ctx.student.title_avatar_path;
+      copyProgressToStudent(ctx.student, progress);
       ctx.saveVerifiedSnapshot(ctx.student);
     }
     if (!verified && !attemptResult) return { ...localResult, backend_response: response };
@@ -346,11 +356,7 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
       : plainObjectFromValue(response.attempt_result || response.attempt_result_json || response.result);
     const progress = response.student_progress || response.progress || null;
     if (progress) {
-      ctx.student.progress = progress;
-      ctx.student.total_exp = Number(progress.total_exp ?? ctx.student.total_exp ?? 0);
-      ctx.student.current_title_id = progress.current_title_id || ctx.student.current_title_id;
-      ctx.student.current_title = progress.current_title || ctx.student.current_title;
-      ctx.student.title_avatar_path = progress.title_avatar_path || ctx.student.title_avatar_path;
+      copyProgressToStudent(ctx.student, progress);
       if (ctx.saveVerifiedSnapshot) ctx.saveVerifiedSnapshot(ctx.student);
     }
     if (!verified) return { ...localResult, backend_response: response };
@@ -400,11 +406,7 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
     const progress = response.student_progress || response.progress || null;
     const student = ctx.student;
     if (progress && student) {
-      student.progress = progress;
-      student.total_exp = Number(progress.total_exp ?? student.total_exp ?? 0);
-      student.current_title_id = progress.current_title_id || student.current_title_id;
-      student.current_title = progress.current_title || student.current_title;
-      student.title_avatar_path = progress.title_avatar_path || student.title_avatar_path;
+      copyProgressToStudent(student, progress);
       student.title_avatar_variant = progress.title_avatar_variant || student.title_avatar_variant;
       if (ctx.trackCompletedAttempts) student.completed_attempts = Number(progress.completed_attempts ?? student.completed_attempts ?? 0);
     }
@@ -471,5 +473,88 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
     if (ctx.afterApply) ctx.afterApply();
   }
 
-  global.BioQuestAchievements = Object.freeze({ VERSION, renderAchievements, titleAndProgress, renderBadgeWall, applySubmitResponse, applyVerifiedSubmitResponse, applyAttemptSubmitResponse, mergeVerifiedAttempt, applyLegacyStudentProgress });
+  // R4-2d 第三批（2026-11-18）：第 14、15 站 applyBackendSubmitResponse（兩站回傳欄位逐字相同）。
+  // 學生資料：預設照 copyProgressToStudent 更新 ctx.student（第 14 站）；ctx.applyProgress(progress, response) 另行處理（第 15 站）。
+  // 徽章：ctx.badgeIds(response, verified) 回傳後台徽章清單；清單是空的時，後台有正式列出徽章欄（badges 陣列或 badges_json 字串）
+  // 就當本次沒有徽章，否則用本機判定；ctx.defaultLocalBadges（第 15 站）本機結果沒有 earned_badges 時給空清單。
+  function applyNumberedSubmitResponse(ctx, response, localResult) {
+    if (!response || response.ok === false) return localResult;
+    const verified = response.verified_attempt || response.attempt || null;
+    const progress = response.student_progress || response.progress || null;
+    if (progress) {
+      if (ctx.applyProgress) ctx.applyProgress(progress, response);
+      else copyProgressToStudent(ctx.student, progress);
+    }
+    if (!verified) return { ...localResult, backend_response: response };
+    const serverBadgeIds = ctx.badgeIds(response, verified);
+    const backendListedBadges = Array.isArray(verified.badges) || typeof verified.badges_json === "string";
+    return {
+      ...localResult,
+      verification_status: verified.verification_status || response.verification_status || "server_verified",
+      correct_count: Number(verified.correct_count ?? verified.correct ?? localResult.correct_count),
+      total_questions: Number(verified.total_questions ?? localResult.total_questions),
+      accuracy: Number(verified.accuracy ?? localResult.accuracy),
+      hint_used_count: Number(verified.hint_used_count ?? verified.hints_used ?? localResult.hint_used_count),
+      completion_exp: Number(verified.completion_exp ?? localResult.completion_exp),
+      direct_exp: Number(verified.direct_exp ?? verified.concept_exp ?? localResult.direct_exp),
+      revision_exp: Number(verified.revision_exp ?? localResult.revision_exp),
+      reflection_exp: Number(verified.reflection_exp ?? verified.question_exp ?? localResult.reflection_exp),
+      mastery_exp: Number(verified.mastery_exp ?? localResult.mastery_exp),
+      retry_exp: Number(verified.retry_exp ?? localResult.retry_exp),
+      attempt_exp: Number(verified.attempt_exp ?? verified.attempt_total_exp ?? localResult.attempt_exp),
+      unit_credited_exp: Number(verified.unit_credited_exp ?? localResult.unit_credited_exp),
+      exp_delta: Number(verified.credited_delta ?? verified.exp_delta ?? localResult.exp_delta),
+      earned_badges: serverBadgeIds.length || backendListedBadges ? serverBadgeIds : (ctx.defaultLocalBadges ? localResult.earned_badges ?? [] : localResult.earned_badges),
+      backend_response: response
+    };
+  }
+
+  // R4-2d 第三批（2026-11-18）：第 5 站 applyBackendStudentProgress（progress 合併進原有資料，有給的欄位才覆寫；
+  // 回傳是否有同步）與 applyVerifiedAttempt（只認 server_verified；第 1–13 站舊欄位格式，數字沒給當 0）。
+  function applyMergedStudentProgress(student, data) {
+    const progress = data?.student_progress || data?.progress;
+    if (!progress || typeof progress !== "object" || !student) return false;
+    student.progress = { ...(student.progress || {}), ...progress };
+    ["total_exp", "current_title_id", "current_title", "profile_gender", "title_avatar_variant", "title_avatar_path"].forEach((field) => {
+      if (progress[field] !== undefined && progress[field] !== null) student[field] = progress[field];
+    });
+    return true;
+  }
+
+  function applyServerVerifiedAttempt(localAttempt, backendResponse) {
+    const verified = backendResponse?.verified_attempt || backendResponse?.attempt || null;
+    if (!verified || verified.verification_status !== "server_verified") return localAttempt;
+    const badgeIds = parseLegacyArray(verified.badges || verified.badges_json);
+    const totalQuestions = Number(verified.total_questions || localAttempt.total || 0);
+    const correct = Number(verified.correct || 0);
+    const accuracy = Number(verified.accuracy ?? (totalQuestions ? correct / totalQuestions : 0));
+    return {
+      ...localAttempt,
+      verification_status: verified.verification_status,
+      hint_verification_status: verified.hint_verification_status,
+      total: totalQuestions,
+      total_questions: totalQuestions,
+      correct,
+      accuracy,
+      correct_without_hint: Number(verified.correct_without_hint || 0),
+      corrected_after_hint: Number(verified.corrected_after_hint || 0),
+      hint_used: Number(verified.hints_used || verified.hint_used || 0),
+      completion_exp: Number(verified.completion_exp || 0),
+      concept_exp: Number(verified.concept_exp || 0),
+      revision_exp: Number(verified.revision_exp || 0),
+      question_exp: Number(verified.question_exp || 0),
+      mastery_exp: Number(verified.mastery_exp || 0),
+      retry_exp: Number(verified.retry_exp || 0),
+      attempt_total_exp: Number(verified.attempt_total_exp || 0),
+      unit_credited_exp: Number(verified.unit_credited_exp || 0),
+      credited_delta: Number(verified.credited_delta || 0),
+      badges: badgeIds,
+      question_logs: verified.question_logs || localAttempt.question_logs || [],
+      reflection_quality: verified.reflection_quality || localAttempt.reflection_quality,
+      reflection_exp_reason: verified.reflection_exp_reason || localAttempt.reflection_exp_reason,
+      teacher_attention_needed: Boolean(verified.teacher_attention_needed)
+    };
+  }
+
+  global.BioQuestAchievements = Object.freeze({ VERSION, renderAchievements, titleAndProgress, renderBadgeWall, applySubmitResponse, applyVerifiedSubmitResponse, applyAttemptSubmitResponse, mergeVerifiedAttempt, applyLegacyStudentProgress, applyNumberedSubmitResponse, applyMergedStudentProgress, applyServerVerifiedAttempt });
 })(typeof window !== "undefined" ? window : globalThis);

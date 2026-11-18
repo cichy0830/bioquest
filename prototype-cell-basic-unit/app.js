@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261109-cell-basic-unit-backend-client-v1";
+const VERSION = "20261118-cell-basic-unit-submit-response-v1";
 const BASIC_UNIT_VERSION = "20260712-basic-unit-sheet-login-v4";
 const mission = {
   unit_id: "cell_basic_unit",
@@ -975,57 +975,14 @@ async function submitAttemptToBackend(attempt) {
 }
 
 function applyBackendStudentProgress(data) {
-  const progress = data?.student_progress || data?.progress;
-  if (!progress || typeof progress !== "object" || !state.student) return false;
-  state.student.progress = { ...(state.student.progress || {}), ...progress };
-  ["total_exp", "current_title_id", "current_title", "profile_gender", "title_avatar_variant", "title_avatar_path"].forEach((field) => {
-    if (progress[field] !== undefined && progress[field] !== null) state.student[field] = progress[field];
-  });
-  return true;
+  return window.BioQuestAchievements.applyMergedStudentProgress(state.student, data);
 }
-function parseBadgeIds(value) {
-  if (Array.isArray(value)) return value;
-  try {
-    const parsed = JSON.parse(value || "[]");
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
+
+
 function applyVerifiedAttempt(localAttempt, backendResponse) {
-  const verified = backendResponse?.verified_attempt || backendResponse?.attempt || null;
-  if (!verified || verified.verification_status !== "server_verified") return localAttempt;
-  const badgeIds = parseBadgeIds(verified.badges || verified.badges_json);
-  const totalQuestions = Number(verified.total_questions || localAttempt.total || 0);
-  const correct = Number(verified.correct || 0);
-  const accuracy = Number(verified.accuracy ?? (totalQuestions ? correct / totalQuestions : 0));
-  return {
-    ...localAttempt,
-    verification_status: verified.verification_status,
-    hint_verification_status: verified.hint_verification_status,
-    total: totalQuestions,
-    total_questions: totalQuestions,
-    correct,
-    accuracy,
-    correct_without_hint: Number(verified.correct_without_hint || 0),
-    corrected_after_hint: Number(verified.corrected_after_hint || 0),
-    hint_used: Number(verified.hints_used || verified.hint_used || 0),
-    completion_exp: Number(verified.completion_exp || 0),
-    concept_exp: Number(verified.concept_exp || 0),
-    revision_exp: Number(verified.revision_exp || 0),
-    question_exp: Number(verified.question_exp || 0),
-    mastery_exp: Number(verified.mastery_exp || 0),
-    retry_exp: Number(verified.retry_exp || 0),
-    attempt_total_exp: Number(verified.attempt_total_exp || 0),
-    unit_credited_exp: Number(verified.unit_credited_exp || 0),
-    credited_delta: Number(verified.credited_delta || 0),
-    badges: badgeIds,
-    question_logs: verified.question_logs || localAttempt.question_logs || [],
-    reflection_quality: verified.reflection_quality || localAttempt.reflection_quality,
-    reflection_exp_reason: verified.reflection_exp_reason || localAttempt.reflection_exp_reason,
-    teacher_attention_needed: Boolean(verified.teacher_attention_needed)
-  };
+  return window.BioQuestAchievements.applyServerVerifiedAttempt(localAttempt, backendResponse);
 }
+
 
 function misconceptionText(tag) {
   const map = {

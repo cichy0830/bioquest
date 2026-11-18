@@ -66,11 +66,11 @@ appVersionOverrides.set("enzymes", "20261117-enzymes-submit-response-v1");
 appVersionOverrides.set("nutrient_test", "20261117-nutrient-test-submit-response-v1");
 appVersionOverrides.set("scale", "20261117-scale-submit-response-v1");
 appVersionOverrides.set("nutrients_energy", "20261117-nutrients-energy-submit-response-v1");
-appVersionOverrides.set("photosynthesis", "20261108-photosynthesis-backend-client-v1");
+appVersionOverrides.set("photosynthesis", "20261118-photosynthesis-submit-response-v1");
 appVersionOverrides.set("biological_organization", "20261117-biological-organization-submit-response-v1");
 appVersionOverrides.set("cell_transport", "20261117-cell-transport-submit-response-v1");
 appVersionOverrides.set("plant_material_transport", "20261115-plant-material-transport-submit-response-v1");
-appVersionOverrides.set("human_nutrition", "20261108-human-nutrition-backend-client-v1");
+appVersionOverrides.set("human_nutrition", "20261118-human-nutrition-submit-response-v1");
 appVersionOverrides.set("plant_transport_structures", "20261115-plant-transport-structures-submit-response-v1");
 appVersionOverrides.set("cardiovascular_components", "20261114-cardiovascular-components-submit-response-v1");
 appVersionOverrides.set("human_circulation", "20261114-human-circulation-submit-response-v1");
@@ -85,7 +85,7 @@ appVersionOverrides.set("life_world", "20261116-life-world-submit-response-v1");
 appVersionOverrides.set("scientific_method", "20261116-scientific-method-submit-response-v1");
 appVersionOverrides.set("lab_intro", "20261116-lab-entry-submit-response-v1");
 appVersionOverrides.set("microscope_use", "20261116-microscope-use-submit-response-v1");
-appVersionOverrides.set("cell_basic_unit", "20261109-cell-basic-unit-backend-client-v1");
+appVersionOverrides.set("cell_basic_unit", "20261118-cell-basic-unit-submit-response-v1");
 appVersionOverrides.set("cell_division", "20261113-cell-division-submit-response-v1");
 appVersionOverrides.set("asexual_reproduction", "20261113-asexual-reproduction-submit-response-v1");
 appVersionOverrides.set("sexual_reproduction", "20261113-sexual-reproduction-submit-response-v1");
@@ -209,7 +209,7 @@ const audit = units.map(([unitId, folder]) => {
     assert(index.includes("styles.css?v=20261116-microscope-use-submit-response-v1"), "microscope_use style cache bust missing");
   }
   if (unitId === "cell_basic_unit") {
-    assert(index.includes("styles.css?v=20261109-cell-basic-unit-backend-client-v1"), "cell_basic_unit style cache bust missing");
+    assert(index.includes("styles.css?v=20261118-cell-basic-unit-submit-response-v1"), "cell_basic_unit style cache bust missing");
   }
   if (unitId === "cell_structure") {
     assert(index.includes("styles.css?v=20260731-cell-structure-submitted-retry-ia-v1"), "cell_structure style cache bust missing");

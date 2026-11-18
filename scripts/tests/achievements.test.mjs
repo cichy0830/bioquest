@@ -16,12 +16,16 @@
 // 9. R4-2d 第二批：第 7–13 站 applyBackendProgress 改用 applyLegacyStudentProgress（第 7 站無選項；第 8 站 syncProfileAndExp；
 //    第 9–13 站 ignoreInvalid＋syncProfileAndExp＋afterApply），送出流程合併 verified_attempt 改用 mergeVerifiedAttempt；
 //    載入真正的 app.js，用多種 progress × 站內狀態和 LEGACY_PROGRESS_7／_8／_9_13 比對 state 就地更新、丟出的錯誤與 updateBadgeOverviewBridge 呼叫次數。
+// 10. R4-2d 第三批：第 14、15 站 applyBackendSubmitResponse 改用 applyNumberedSubmitResponse（第 15 站 applyProgress＋自己的徽章來源），
+//    第 5 站 applyBackendStudentProgress／applyVerifiedAttempt 改用 applyMergedStudentProgress／applyServerVerifiedAttempt；
+//    載入真正的 app.js，原寫法（LEGACY_SUBMIT_14／_15／LEGACY_STUDENT_5）在同一個站內環境執行（共用站內其他輔助函式），
+//    比對回傳值、學生資料就地更新與丟出的錯誤。
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
-import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40, LEGACY_SUBMIT_31_40, LEGACY_SUBMIT_22_30, LEGACY_SUBMIT_18, LEGACY_SUBMIT_19_21, LEGACY_SUBMIT_16, LEGACY_SUBMIT_17, LEGACY_SUBMIT_1_4, LEGACY_SUBMIT_6, LEGACY_PROGRESS_7, LEGACY_PROGRESS_8, LEGACY_PROGRESS_9_13, LEGACY_MERGE_VERIFIED_7_13 } from "./legacy-achievements.mjs";
+import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40, LEGACY_SUBMIT_31_40, LEGACY_SUBMIT_22_30, LEGACY_SUBMIT_18, LEGACY_SUBMIT_19_21, LEGACY_SUBMIT_16, LEGACY_SUBMIT_17, LEGACY_SUBMIT_1_4, LEGACY_SUBMIT_6, LEGACY_PROGRESS_7, LEGACY_PROGRESS_8, LEGACY_PROGRESS_9_13, LEGACY_MERGE_VERIFIED_7_13, LEGACY_SUBMIT_14, LEGACY_SUBMIT_15, LEGACY_STUDENT_5 } from "./legacy-achievements.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const sharedSource = fs.readFileSync(path.join(root, "shared-assets", "bioquest-achievements.js"), "utf8");
@@ -716,4 +720,99 @@ for (const response of mergeResponses) {
   }
 }
 
-console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases, submitStations: SUBMIT_STATIONS.length, submitCases, submitVerifiedStations: SUBMIT_VERIFIED_STATIONS.length, verifiedCases, submitOptionStations: SUBMIT_OPTION_STATIONS.length, optionCases, submitEarlyStations: SUBMIT_EARLY_STATIONS.length, earlyCases, submitAttemptStations: SUBMIT_ATTEMPT_STATIONS.length, attemptCases, progressStations: PROGRESS_STATIONS.length, progressCases, mergeCases }));
+// 10. 第 5、14、15 站送出回應（R4-2d 第三批）
+const NUMBERED_STATIONS = [
+  { slug: "photosynthesis", legacy: LEGACY_SUBMIT_14, call: "applyNumberedSubmitResponse({ student: state.student, badgeIds: (_response, verified) => badgeIdsFromResult(verified) }, response, localResult);" },
+  { slug: "human-nutrition", legacy: LEGACY_SUBMIT_15, call: "applyNumberedSubmitResponse({\n    applyProgress: (progress) => applyStudentProgress({" },
+  { slug: "cell-basic-unit", legacy: LEGACY_STUDENT_5, call: "applyServerVerifiedAttempt(localAttempt, backendResponse);" }
+];
+const numberedResponses = attemptResponses.concat([
+  { ok: true, verified_attempt: { ...fullVerified, badges: [], badges_json: undefined, earned_badges_json: undefined } },
+  { ok: true, verified_attempt: { ...fullVerified, badges_json: "", earned_badges_json: undefined } },
+  { ok: true, verified_attempt: { ...fullVerified, badges_json: "[]", earned_badges_json: undefined, verification_status: "server_verified" } },
+  { ok: true, verified_attempt: { ...fullVerified, earned_badges_json: undefined, earned_badges: [{ badge_id: "obj_a" }, "str_b", { id: "obj_c" }, null] } },
+  { ok: true, verified_attempt: { ...fullVerified, earned_badges_json: undefined, earned_badge_ids_json: "[\"ids_a\"]", badges: "x" } },
+  { ok: true, verified_attempt: { ...legacyVerified, accuracy: undefined, question_logs: [{ q: 1 }], reflection_quality: "good", reflection_exp_reason: "r", teacher_attention_needed: 1, badges: undefined, badges_json: "[\"j1\",\"j2\"]" } },
+  { ok: true, verified_attempt: { ...legacyVerified, verification_status: "pending_review" } },
+  { ok: true, verified_attempt: { ...legacyVerified, correct: NaN, badges: ["b_arr"], badges_json: "[\"b_json\"]" } },
+  { ok: true, verified_attempt: { ...legacyVerified, badges: "", badges_json: "[\"b_json\"]" } },
+  { ok: true, attempt: { ...legacyVerified, total_questions: 0, correct: 0 }, student_progress: { total_exp: null, current_title: null, title_avatar_variant: "female", profile_gender: "female" } },
+  { ok: true, attempt_result: { newly_credited_badges_json: "[\"ar_new\"]", earned_badges_json: "[\"ar_old\"]", unit_badge_summary_patch_json: "[{\"unit_id\":\"human_nutrition\",\"badges\":[\"x\"]}]" }, verified_attempt: { ...fullVerified, earned_badges_json: undefined }, student_progress: { ...progress, badges_json: "[\"p1\"]" } },
+  { ok: true, newly_credited_badges_json: "[\"resp_new\"]", unit_badge_summary_patch_json: "[{\"unit_id\":\"human_nutrition\",\"badges\":[\"y\"]}]", verified_attempt: { correct: "7", hints_used: "2", concept_exp: "30", question_exp: null, attempt_total_exp: "150", exp_delta: 5 }, progress: { total_exp: "900", unit_badge_summary_patch_json: "[]" } },
+  { ok: true, verified_attempt: { newly_credited_badges_json: "not json", badges_json: 5 } },
+  { ok: true, student_progress: "abc" },
+  { ok: true, student_progress: ["p"] },
+  null,
+  undefined,
+  { ok: false, verified_attempt: fullVerified }
+]);
+const numberedStudents = attemptStudents.concat([
+  () => null,
+  () => ({ student_id: "s3", total_exp: 10, progress: { total_exp: 10, badges_json: "[\"old_b\"]", unit_badge_summary_json: "[{\"unit_id\":\"enzymes\",\"badges\":[\"e\"]}]" }, current_title: "見習調查員" })
+]);
+const numberedLocal = attemptLocal.concat([
+  { correct_count: 5, total_questions: 12, accuracy: 0.42, hint_used_count: 2, completion_exp: 100, direct_exp: 50, revision_exp: 5, reflection_exp: 20, mastery_exp: 0, retry_exp: 0, attempt_exp: 175, unit_credited_exp: 175, exp_delta: 175, earned_badges: ["local_a"], question_logs: [{ q: "local" }], reflection_quality: "ok" }
+]);
+let numberedCases = 0;
+for (const { slug, legacy, call } of NUMBERED_STATIONS) {
+  const folder = `prototype-${slug}`;
+  const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
+  const html = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
+  assert(app.includes(`window.BioQuestAchievements.${call}`), `${folder}: 應改用共用模組（${call}）`);
+  if (slug === "cell-basic-unit") {
+    assert(app.includes("return window.BioQuestAchievements.applyMergedStudentProgress(state.student, data);"), `${folder}: applyBackendStudentProgress 應改用共用模組`);
+    assert(!app.includes("function parseBadgeIds("), `${folder}: parseBadgeIds 已併入共用模組`);
+  }
+  const sharedTag = html.indexOf(`../shared-assets/bioquest-achievements.js?v=${sharedVersion}`);
+  assert(sharedTag > 0 && sharedTag < html.indexOf('<script src="app.js'), `${folder}: index.html 應在 app.js 之前載入共用成就模組 ${sharedVersion}`);
+  const store = new Map();
+  const context = {
+    console: { log() {}, warn() {}, error() {} },
+    document: { readyState: "loading", querySelector() { return stubElement(); }, querySelectorAll() { return []; }, getElementById() { return stubElement(); }, addEventListener() {}, createElement() { return stubElement(); }, body: stubElement(), documentElement: stubElement() },
+    localStorage: { getItem: (key) => store.get(key) || null, setItem: (key, value) => store.set(key, String(value)), removeItem: (key) => store.delete(key) },
+    location: { search: "", href: "http://localhost/", hash: "" },
+    URLSearchParams,
+    fetch: async () => ({ ok: true, json: async () => ({ ok: true }) }),
+    addEventListener() {},
+    Date,
+    Math,
+    setTimeout,
+    clearTimeout,
+    structuredClone
+  };
+  context.window = context;
+  context.globalThis = context;
+  vm.runInNewContext(sharedSource, context);
+  vm.runInNewContext(app, context, { filename: `${folder}/app.js` });
+  const names = slug === "cell-basic-unit" ? "{ progress: applyBackendStudentProgress, verified: applyVerifiedAttempt }" : "{ submit: applyBackendSubmitResponse }";
+  vm.runInNewContext(`globalThis.__r4Numbered = { current: ${names}, legacy: (() => { ${legacy}\n return ${names}; })(), get: () => state, set: (next) => { state = next; } };`, context);
+  const api = context.__r4Numbered;
+  const run = (fns, response, local) => {
+    const out = {};
+    try {
+      if (fns.submit) out.value = JSON.stringify(fns.submit(structuredClone(response), structuredClone(local)));
+      else out.value = JSON.stringify([fns.progress(structuredClone(response)), fns.verified(structuredClone(local), structuredClone(response))]);
+    } catch (error) {
+      out.error = error.constructor.name;
+    }
+    out.state = JSON.stringify(api.get().student);
+    return out;
+  };
+  const baseState = api.get();
+  for (const makeStudent of numberedStudents) {
+    for (const response of numberedResponses) {
+      for (const local of numberedLocal) {
+        if (slug === "cell-basic-unit" && local === null) continue;
+        api.set({ ...baseState, student: makeStudent() });
+        const expected = run(api.legacy, response, local);
+        api.set({ ...baseState, student: makeStudent() });
+        const actual = run(api.current, response, local);
+        const label = JSON.stringify({ response, local, student: makeStudent() });
+        assert.deepEqual(actual, expected, `${folder}: 送出回應處理與原寫法不同（${label}）`);
+        numberedCases += 1;
+      }
+    }
+  }
+}
+
+console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases, submitStations: SUBMIT_STATIONS.length, submitCases, submitVerifiedStations: SUBMIT_VERIFIED_STATIONS.length, verifiedCases, submitOptionStations: SUBMIT_OPTION_STATIONS.length, optionCases, submitEarlyStations: SUBMIT_EARLY_STATIONS.length, earlyCases, submitAttemptStations: SUBMIT_ATTEMPT_STATIONS.length, attemptCases, progressStations: PROGRESS_STATIONS.length, progressCases, mergeCases, numberedStations: NUMBERED_STATIONS.length, numberedCases }));
