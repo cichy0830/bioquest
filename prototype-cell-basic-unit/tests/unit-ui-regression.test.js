@@ -170,7 +170,10 @@ assert.ok(source.includes("本次取得徽章"));
 assert.ok(!source.includes('earnedNow.has(badge.name) ? "本次取得"'));
 for (const label of ["直接答對", "提示後修正", "完成任務", "任務回報", "精熟加成", "再挑戰進步", "本次總計"]) assert.ok(source.includes(label));
 assert.ok(!source.includes('data-bq-unit-achievements="true"'));
-assert.ok(source.includes('data-bq-badge-overview="true"'));
+// R4-2d 第四批：成就頁（全冊徽章總覽空殼）改由共用模組 renderRetryAchievements 產生
+const sharedAchievementsSource = fs.readFileSync(path.join(root, "..", "shared-assets", "bioquest-achievements.js"), "utf8");
+assert.ok(functionSource("renderAchievements").includes('window.BioQuestAchievements.renderRetryAchievements({ backPrefix: "返回" })'));
+assert.ok(sharedAchievementsSource.includes('data-bq-badge-overview="true"'));
 assert.ok(source.includes("function resetForRelogin()"));
 assert.ok(source.includes('data-relogin-action="true"'));
 assert.ok(source.includes("重新登入，並從登入頁開始"));
@@ -204,8 +207,8 @@ assert.ok(source.includes("請先完成關卡檢核並查看概念回饋，再�
 assert.ok(source.includes('addEventListener("click", enterReflectionFromReview)'));
 assert.ok(index.includes("bioquest-title-progress.js"));
 assert.ok(index.includes("20260713-backend-endpoint-v1"));
-assert.ok(index.includes("styles.css?v=20261118-cell-basic-unit-submit-response-v1"));
-assert.ok(index.includes("app.js?v=20261118-cell-basic-unit-submit-response-v1"));
+assert.ok(index.includes("styles.css?v=20261119-cell-basic-unit-achievements-page-v1"));
+assert.ok(index.includes("app.js?v=20261119-cell-basic-unit-achievements-page-v1"));
 assert.ok(index.includes('data-result-owl-src="assets/owl-basic-unit-result.webp"'));
 assert.ok(source.includes('prep: `assets/owl-basic-unit-prep-reminder-v2.webp?v=${VERSION}`'));
 

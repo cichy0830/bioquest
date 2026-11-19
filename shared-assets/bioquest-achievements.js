@@ -4,6 +4,7 @@
  * 把站內資料（稱號等級表、本機紀錄、單元代號）交給這裡處理。
  *
  * renderAchievements()：成就頁（只放「重新登入／再挑戰」區塊；成就總覽由 bioquest-character-layout.js 疊加）。
+ * renderRetryAchievements(options)：第 1–10 站成就頁（R4-2d 第四批，2026-11-19），選項見函式上方說明。
  * titleAndProgress(ctx, student, localGain)：簡報頁「目前稱號｜EXP」。
  *   ctx = { titleLevels, countLocalAttempts, loadAttempts, unitId }
  *   countLocalAttempts 為 true（第 24–40 站原寫法）時，另把本機其他單元紀錄加總當下限；
@@ -58,7 +59,7 @@
 (function configureBioQuestAchievements(global) {
   "use strict";
 
-  const VERSION = "20261118-achievements-v9";
+  const VERSION = "20261119-achievements-v10";
 
   function renderAchievements() {
     return `
@@ -71,6 +72,32 @@
       </section>
     </div>
   `;
+  }
+
+  const RETRY_LOCKED_TEXT = "本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。";
+  const OVERVIEW_PANEL = `<div class="panel bq-all-unit-badge-overview" data-bq-badge-overview="true"></div>`;
+
+  // 第 1–10 站成就頁（R4-2d 第四批，2026-11-19）：「再挑戰」區塊＋全冊徽章總覽空殼（總覽由 bioquest-character-layout.js 填入）。
+  // 原本 7 種寫法，差異以選項保留（輸出只差標籤之間的空白，畫面逐像素相同）：
+  //   overviewOnly：外框加 achievements-stack 與 data-bq-achievements-overview-only（第 1、2、7–10 站）
+  //   overviewFirst：總覽放在再挑戰區塊之前（第 6 站）；headingTag：標題標籤（第 6 站 h3）；plainText：說明不加 muted（第 6 站）
+  //   backPrefix：有就顯示「返回／回到＋結算或任務」按鈕並把重新登入按鈕放進 .actions（第 5–10 站）；沒有就只放「重新登入／再挑戰」（第 1–4 站）
+  //   submitted：false 時改顯示「目前進度」文字、只留回到任務按鈕（第 8–10 站依 state.submitted_at）
+  function renderRetryAchievements(options = {}) {
+    const submitted = options.submitted !== false;
+    const tag = options.headingTag || "h2";
+    const textClass = options.plainText ? "" : ` class="muted"`;
+    const eyebrow = submitted ? "再挑戰" : "目前進度";
+    const title = submitted ? "重新登入後開始新的挑戰" : "目前稱號與全冊徽章總覽";
+    const text = submitted ? RETRY_LOCKED_TEXT : "這裡只顯示正式稱號進度與全冊徽章總覽；本單元徽章改在結算頁呈現本次實得。";
+    const actions = options.backPrefix
+      ? `<div class="actions"><button class="secondary" id="achieveResult">${options.backPrefix}${submitted ? "結算" : "任務"}</button>${submitted ? `<button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button>` : ""}</div>`
+      : `<button class="secondary" data-relogin-action="true">重新登入／再挑戰</button>`;
+    const retryPanel = `<div class="panel"><p class="eyebrow">${eyebrow}</p><${tag}>${title}</${tag}><p${textClass}>${text}</p>${actions}</div>`;
+    const wrapper = options.overviewOnly
+      ? `<div class="wide-layout achievements-stack" data-bq-achievements-overview-only="true">`
+      : `<div class="wide-layout">`;
+    return `${wrapper}${options.overviewFirst ? OVERVIEW_PANEL + retryPanel : retryPanel + OVERVIEW_PANEL}</div>`;
   }
 
   function titleAndProgress(ctx, student, localGain = 0) {
@@ -556,5 +583,5 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
     };
   }
 
-  global.BioQuestAchievements = Object.freeze({ VERSION, renderAchievements, titleAndProgress, renderBadgeWall, applySubmitResponse, applyVerifiedSubmitResponse, applyAttemptSubmitResponse, mergeVerifiedAttempt, applyLegacyStudentProgress, applyNumberedSubmitResponse, applyMergedStudentProgress, applyServerVerifiedAttempt });
+  global.BioQuestAchievements = Object.freeze({ VERSION, renderAchievements, renderRetryAchievements, titleAndProgress, renderBadgeWall, applySubmitResponse, applyVerifiedSubmitResponse, applyAttemptSubmitResponse, mergeVerifiedAttempt, applyLegacyStudentProgress, applyNumberedSubmitResponse, applyMergedStudentProgress, applyServerVerifiedAttempt });
 })(typeof window !== "undefined" ? window : globalThis);

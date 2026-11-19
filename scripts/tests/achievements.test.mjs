@@ -20,12 +20,14 @@
 //    第 5 站 applyBackendStudentProgress／applyVerifiedAttempt 改用 applyMergedStudentProgress／applyServerVerifiedAttempt；
 //    載入真正的 app.js，原寫法（LEGACY_SUBMIT_14／_15／LEGACY_STUDENT_5）在同一個站內環境執行（共用站內其他輔助函式），
 //    比對回傳值、學生資料就地更新與丟出的錯誤。
+// 11. R4-2d 第四批：第 1–10 站成就頁 renderAchievements 改用 renderRetryAchievements（7 種原寫法以選項保留），
+//    載入真正的 app.js，在多種 state（有無學生、是否已送出）下和原寫法比對：去掉標籤之間的空白後逐字相同。
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
-import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40, LEGACY_SUBMIT_31_40, LEGACY_SUBMIT_22_30, LEGACY_SUBMIT_18, LEGACY_SUBMIT_19_21, LEGACY_SUBMIT_16, LEGACY_SUBMIT_17, LEGACY_SUBMIT_1_4, LEGACY_SUBMIT_6, LEGACY_PROGRESS_7, LEGACY_PROGRESS_8, LEGACY_PROGRESS_9_13, LEGACY_MERGE_VERIFIED_7_13, LEGACY_SUBMIT_14, LEGACY_SUBMIT_15, LEGACY_STUDENT_5 } from "./legacy-achievements.mjs";
+import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40, LEGACY_SUBMIT_31_40, LEGACY_SUBMIT_22_30, LEGACY_SUBMIT_18, LEGACY_SUBMIT_19_21, LEGACY_SUBMIT_16, LEGACY_SUBMIT_17, LEGACY_SUBMIT_1_4, LEGACY_SUBMIT_6, LEGACY_PROGRESS_7, LEGACY_PROGRESS_8, LEGACY_PROGRESS_9_13, LEGACY_MERGE_VERIFIED_7_13, LEGACY_SUBMIT_14, LEGACY_SUBMIT_15, LEGACY_STUDENT_5, LEGACY_ACH_LIFE_WORLD, LEGACY_ACH_SCIENTIFIC_METHOD, LEGACY_ACH_LAB_ENTRY, LEGACY_ACH_MICROSCOPE_USE, LEGACY_ACH_CELL_BASIC_UNIT, LEGACY_ACH_CELL_STRUCTURE, LEGACY_ACH_CELL_OBSERVATION, LEGACY_ACH_CELL_TRANSPORT, LEGACY_ACH_BIOLOGICAL_ORGANIZATION, LEGACY_ACH_SCALE } from "./legacy-achievements.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const sharedSource = fs.readFileSync(path.join(root, "shared-assets", "bioquest-achievements.js"), "utf8");
@@ -815,4 +817,50 @@ for (const { slug, legacy, call } of NUMBERED_STATIONS) {
   }
 }
 
-console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases, submitStations: SUBMIT_STATIONS.length, submitCases, submitVerifiedStations: SUBMIT_VERIFIED_STATIONS.length, verifiedCases, submitOptionStations: SUBMIT_OPTION_STATIONS.length, optionCases, submitEarlyStations: SUBMIT_EARLY_STATIONS.length, earlyCases, submitAttemptStations: SUBMIT_ATTEMPT_STATIONS.length, attemptCases, progressStations: PROGRESS_STATIONS.length, progressCases, mergeCases, numberedStations: NUMBERED_STATIONS.length, numberedCases }));
+// 11. R4-2d 第四批：第 1–10 站成就頁
+const RETRY_ACH_STATIONS = {
+  "life-world": LEGACY_ACH_LIFE_WORLD,
+  "scientific-method": LEGACY_ACH_SCIENTIFIC_METHOD,
+  "lab-entry": LEGACY_ACH_LAB_ENTRY,
+  "microscope-use": LEGACY_ACH_MICROSCOPE_USE,
+  "cell-basic-unit": LEGACY_ACH_CELL_BASIC_UNIT,
+  "cell-structure": LEGACY_ACH_CELL_STRUCTURE,
+  "cell-observation": LEGACY_ACH_CELL_OBSERVATION,
+  "cell-transport": LEGACY_ACH_CELL_TRANSPORT,
+  "biological-organization": LEGACY_ACH_BIOLOGICAL_ORGANIZATION,
+  "scale": LEGACY_ACH_SCALE
+};
+const squash = (html) => String(html).replace(/>\s+</g, "><").trim();
+let retryAchCases = 0;
+const retryVariants = new Set();
+for (const [slug, legacySource] of Object.entries(RETRY_ACH_STATIONS)) {
+  const folder = `prototype-${slug}`;
+  const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
+  const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
+  const sharedTag = index.indexOf(`../shared-assets/bioquest-achievements.js?v=${sharedVersion}`);
+  const appTag = index.indexOf('<script src="app.js?v=');
+  assert(sharedTag > 0 && appTag > sharedTag, `${folder}: index.html 必須在 app.js 之前載入共用成就模組 ${sharedVersion}`);
+  assert(app.includes("return window.BioQuestAchievements.renderRetryAchievements("), `${folder}: renderAchievements 應改用 renderRetryAchievements`);
+  assert(!app.includes("重新登入後開始新的挑戰"), `${folder}: 不應再內嵌成就頁原寫法`);
+  const start = app.indexOf("function renderAchievements(");
+  const end = app.indexOf("\n}", start) + 2;
+  const wrapper = app.slice(start, end);
+  const context = { window: null, renderLogin: () => "<LOGIN>" };
+  context.window = context;
+  vm.runInNewContext(sharedSource, context);
+  vm.runInNewContext(`var state = {};\n${wrapper.replace("function renderAchievements(", "function currentAch(")}\n${legacySource.replace("function renderAchievements(", "function legacyAch(")}`, context);
+  for (const student of [null, { student_id: "s1" }, { student_id: "guest", is_guest: true }]) {
+    for (const submittedAt of [null, "", "2026-11-19T00:00:00Z"]) {
+      context.state = { student, submitted_at: submittedAt, submitted: Boolean(submittedAt) };
+      const expected = context.legacyAch();
+      const actual = context.currentAch();
+      assert.equal(squash(actual), squash(expected), `${folder}: 成就頁與原寫法不同（student=${JSON.stringify(student)}, submitted_at=${submittedAt}）`);
+      assert.equal(actual.replace(/\s+/g, ""), expected.replace(/\s+/g, ""), `${folder}: 除空白外應逐字相同`);
+      retryVariants.add(squash(expected));
+      retryAchCases += 1;
+    }
+  }
+}
+assert(retryVariants.size >= 8, `第 1–10 站成就頁原寫法應涵蓋至少 8 種輸出（實際 ${retryVariants.size}）`);
+
+console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases, submitStations: SUBMIT_STATIONS.length, submitCases, submitVerifiedStations: SUBMIT_VERIFIED_STATIONS.length, verifiedCases, submitOptionStations: SUBMIT_OPTION_STATIONS.length, optionCases, submitEarlyStations: SUBMIT_EARLY_STATIONS.length, earlyCases, submitAttemptStations: SUBMIT_ATTEMPT_STATIONS.length, attemptCases, progressStations: PROGRESS_STATIONS.length, progressCases, mergeCases, numberedStations: NUMBERED_STATIONS.length, numberedCases, retryAchStations: Object.keys(RETRY_ACH_STATIONS).length, retryAchCases, retryVariants: retryVariants.size }));

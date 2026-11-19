@@ -42,7 +42,7 @@ vm.runInNewContext(fs.readFileSync(path.join(root, "..", "shared-assets", "bioqu
 vm.runInNewContext(source, context, { filename: "prototype-lab-entry/app.js" });
 
 const api = context.window.__labIntroTest;
-assert.equal(api.VERSION, "20261116-lab-entry-submit-response-v1");
+assert.equal(api.VERSION, "20261119-lab-entry-achievements-page-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-lab-intro-canonical-v1");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "cache VERSION must stay separate from canonical QUESTION_VERSION");
 assert(source.includes("question_version: QUESTION_VERSION"), "backend payload must use QUESTION_VERSION");

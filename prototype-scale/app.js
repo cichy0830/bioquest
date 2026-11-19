@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261117-scale-submit-response-v1";
+const VERSION = "20261119-scale-achievements-page-v1";
 const QUESTION_VERSION = "20260711-scale-security-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -743,7 +743,7 @@ function buildBackendPayload(attempt) {
   };
 }
 function renderAchievements() {
-  return `<div class="wide-layout achievements-stack" data-bq-achievements-overview-only="true"><div class="panel"><p class="eyebrow">${state.submitted_at ? "再挑戰" : "目前進度"}</p><h2>${state.submitted_at ? "重新登入後開始新的挑戰" : "目前稱號與全冊徽章總覽"}</h2><p class="muted">${state.submitted_at ? "本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。" : "這裡只顯示正式稱號進度與全冊徽章總覽；本單元徽章改在結算頁呈現本次實得。"}</p><div class="actions"><button class="secondary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button>${state.submitted_at ? `<button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button>` : ""}</div></div><div class="panel bq-all-unit-badge-overview" data-bq-badge-overview="true"></div></div>`;
+  return window.BioQuestAchievements.renderRetryAchievements({ overviewOnly: true, backPrefix: "回到", submitted: Boolean(state.submitted_at) });
 }
 function renderRules() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元上限</strong><p>本單元最高認列 500 EXP；零提示全對是最高路徑。</p></div><div class="story-panel"><strong>完成條件</strong><p>回答完所有必答題即可提交，不必先全對；需要調整的概念會保留一次提示與回饋。</p></div><div class="story-panel"><strong>提示後修正</strong><p>每題第一次錯選會出現一次概念提示；提示後修正仍有 EXP，但低於直接答對。</p></div><div class="story-panel"><strong>再挑戰</strong><p>提交後本次作答鎖定。若要再挑戰，請重新登入並從頭完成整份任務。</p></div></div><div class="actions"><button class="primary" id="rulesBack">回到任務</button>${state.submitted_at ? `<button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button>` : ""}</div></div></div>`;

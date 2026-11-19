@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261116-cell-structure-submit-response-v1";
+const VERSION = "20261119-cell-structure-achievements-page-v1";
 const QUESTION_VERSION = "20260720-cell-structure-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -2062,20 +2062,7 @@ function titleForExp(exp) {
 
 function renderAchievements() {
   if (!state.student) return renderLogin();
-  return `
-    <div class="wide-layout">
-      <div class="panel bq-all-unit-badge-overview" data-bq-badge-overview="true"></div>
-      <div class="panel">
-        <p class="eyebrow">再挑戰</p>
-        <h3>重新登入後開始新的挑戰</h3>
-        <p>本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。</p>
-        <div class="actions">
-          <button class="secondary" id="achieveResult">返回結算</button>
-          <button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button>
-        </div>
-      </div>
-    </div>
-  `;
+  return window.BioQuestAchievements.renderRetryAchievements({ overviewFirst: true, headingTag: "h3", plainText: true, backPrefix: "返回" });
 }
 
 function renderRules() {

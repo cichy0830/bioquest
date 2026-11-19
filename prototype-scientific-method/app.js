@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", profile_gender: "neutral", is_guest: true }
 };
 
-const VERSION = "20261116-scientific-method-submit-response-v1";
+const VERSION = "20261119-scientific-method-achievements-page-v1";
 const QUESTION_VERSION = "20260720-scientific-method-canonical-v1";
 
 const mission = {
@@ -1849,17 +1849,7 @@ function studentTitleCharacterPath(titleId) {
 
 function renderAchievements() {
   if (!state.student) return renderLogin();
-  return `
-    <div class="wide-layout achievements-stack" data-bq-achievements-overview-only="true">
-      <div class="panel">
-        <p class="eyebrow">再挑戰</p>
-        <h2>重新登入後開始新的挑戰</h2>
-        <p class="muted">本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。</p>
-        <button class="secondary" data-relogin-action="true">重新登入／再挑戰</button>
-      </div>
-      <div class="panel bq-all-unit-badge-overview" data-bq-badge-overview="true"></div>
-    </div>
-  `;
+  return window.BioQuestAchievements.renderRetryAchievements({ overviewOnly: true });
 }
 
 function renderRules() {

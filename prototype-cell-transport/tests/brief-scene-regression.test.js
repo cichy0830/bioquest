@@ -7,8 +7,8 @@ const { chromium } = require("playwright");
 const root = process.env.BIOQUEST_AUDIT_ROOT
   ? path.resolve(process.env.BIOQUEST_AUDIT_ROOT)
   : path.resolve(__dirname, "..", "..");
-const artifactDir = path.join(__dirname, "artifacts", "20261117-cell-transport-submit-response-v1");
-const version = "20261117-cell-transport-submit-response-v1";
+const artifactDir = path.join(__dirname, "artifacts", "20261119-cell-transport-achievements-page-v1");
+const version = "20261119-cell-transport-achievements-page-v1";
 const storageKey = "bioquest_cell_transport_state_v1";
 
 function contentType(filePath) {

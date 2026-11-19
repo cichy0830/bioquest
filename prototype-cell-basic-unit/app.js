@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261118-cell-basic-unit-submit-response-v1";
+const VERSION = "20261119-cell-basic-unit-achievements-page-v1";
 const BASIC_UNIT_VERSION = "20260712-basic-unit-sheet-login-v4";
 const mission = {
   unit_id: "cell_basic_unit",
@@ -1133,7 +1133,7 @@ function renderResult() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務結算</p><h2>生命積木辨識完成</h2>${state.lockNotice ? `<div class="feedback warn">${state.lockNotice}</div>` : ""}<div class="feedback good">提交後本次作答已鎖定；若要再挑戰，請重新登入並從頭完成。</div><div class="score-grid"><div class="score-box"><span>${summary.totalLabel}</span><strong>${result.attempt_total_exp}</strong></div><div class="score-box"><span>${summary.creditLabel}</span><strong>${summary.creditValue}</strong></div><div class="score-box"><span>${summary.deltaLabel}</span><strong>${summary.deltaValue}</strong></div><div class="score-box"><span>正確率</span><strong>${Math.round(result.accuracy * 100)}%</strong></div></div><section class="exp-ledger"><h3>EXP 明細</h3><div class="exp-ledger-grid">${ledger.map(([label, value], index) => `<div class="exp-ledger-item ${index === ledger.length - 1 ? "total" : ""}"><span>${label}</span><strong>${value} EXP</strong></div>`).join("")}</div></section><div class="story-panel highlight"><strong>${summary.heading}</strong><p>${summary.note}</p></div><div class="story-panel"><strong>回報品質</strong><p>${result.reflection_exp_reason}</p></div>${renderResultBadges(result)}<div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button><button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button></div></div></div>`;
 }
 function renderAchievements() {
-  return `<div class="wide-layout"><div class="panel"><p class="eyebrow">再挑戰</p><h2>重新登入後開始新的挑戰</h2><p class="muted">本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。</p><div class="actions"><button class="secondary" id="achieveResult">返回結算</button><button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button></div></div><div class="panel bq-all-unit-badge-overview" data-bq-badge-overview="true"></div></div>`;
+  return window.BioQuestAchievements.renderRetryAchievements({ backPrefix: "返回" });
 }
 function renderRules() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2><div class="card-grid"><div class="story-panel"><strong>單元封頂</strong><p>本單元認列 EXP 上限為 500。零提示全對可取得題目與精熟 EXP；空白回報固定 0 EXP，因此最高為 460，具體有效回報取得 40 EXP 時才可達 500。</p></div><div class="story-panel"><strong>提示後修正</strong><p>提示會給判斷線索，不直接公布答案。提示後答對仍有修正 EXP，但低於未提示答對。</p></div><div class="story-panel"><strong>提交鎖定</strong><p>提交任務後本次作答結果鎖定。再挑戰必須重新登入並從頭完成整份任務。</p></div></div><div class="actions"><button class="secondary" id="rulesBack">返回目前任務</button>${state.submitted_at ? `<button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button>` : ""}</div></div></div>`;

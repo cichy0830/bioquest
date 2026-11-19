@@ -4,7 +4,7 @@ const { pathToFileURL } = require("node:url");
 const { chromium } = require("playwright");
 
 const root = process.env.BQ_TEST_ROOT ? path.resolve(process.env.BQ_TEST_ROOT) : path.resolve(__dirname, "..");
-const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=20261116-microscope-use-submit-response-v1`;
+const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=20261119-microscope-use-achievements-page-v1`;
 
 async function fieldState(page) {
   return page.evaluate(() => {

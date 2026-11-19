@@ -57,18 +57,18 @@ const appVersionOverrides = new Map();
 for (const unitId of ["life_world", "scientific_method", "lab_intro", "microscope_use", "cell_basic_unit"]) {
   appVersionOverrides.set(unitId, "20260831-student-id-example-115001-v1");
 }
-appVersionOverrides.set("cell_observation", "20261117-cell-observation-submit-response-v1");
-appVersionOverrides.set("cell_structure", "20261116-cell-structure-submit-response-v1");
+appVersionOverrides.set("cell_observation", "20261119-cell-observation-achievements-page-v1");
+appVersionOverrides.set("cell_structure", "20261119-cell-structure-achievements-page-v1");
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
 appVersionOverrides.set("enzymes", "20261117-enzymes-submit-response-v1");
 appVersionOverrides.set("nutrient_test", "20261117-nutrient-test-submit-response-v1");
-appVersionOverrides.set("scale", "20261117-scale-submit-response-v1");
+appVersionOverrides.set("scale", "20261119-scale-achievements-page-v1");
 appVersionOverrides.set("nutrients_energy", "20261117-nutrients-energy-submit-response-v1");
 appVersionOverrides.set("photosynthesis", "20261118-photosynthesis-submit-response-v1");
-appVersionOverrides.set("biological_organization", "20261117-biological-organization-submit-response-v1");
-appVersionOverrides.set("cell_transport", "20261117-cell-transport-submit-response-v1");
+appVersionOverrides.set("biological_organization", "20261119-biological-organization-achievements-page-v1");
+appVersionOverrides.set("cell_transport", "20261119-cell-transport-achievements-page-v1");
 appVersionOverrides.set("plant_material_transport", "20261115-plant-material-transport-submit-response-v1");
 appVersionOverrides.set("human_nutrition", "20261118-human-nutrition-submit-response-v1");
 appVersionOverrides.set("plant_transport_structures", "20261115-plant-transport-structures-submit-response-v1");
@@ -81,11 +81,11 @@ appVersionOverrides.set("behavior_sensing", "20261113-behavior-sensing-submit-re
 appVersionOverrides.set("respiration_homeostasis", "20261113-respiration-homeostasis-submit-response-v1");
 appVersionOverrides.set("excretion_water_homeostasis", "20261113-excretion-water-homeostasis-submit-response-v1");
 appVersionOverrides.set("temperature_glucose_homeostasis", "20261113-temperature-glucose-homeostasis-submit-response-v1");
-appVersionOverrides.set("life_world", "20261116-life-world-submit-response-v1");
-appVersionOverrides.set("scientific_method", "20261116-scientific-method-submit-response-v1");
-appVersionOverrides.set("lab_intro", "20261116-lab-entry-submit-response-v1");
-appVersionOverrides.set("microscope_use", "20261116-microscope-use-submit-response-v1");
-appVersionOverrides.set("cell_basic_unit", "20261118-cell-basic-unit-submit-response-v1");
+appVersionOverrides.set("life_world", "20261119-life-world-achievements-page-v1");
+appVersionOverrides.set("scientific_method", "20261119-scientific-method-achievements-page-v1");
+appVersionOverrides.set("lab_intro", "20261119-lab-entry-achievements-page-v1");
+appVersionOverrides.set("microscope_use", "20261119-microscope-use-achievements-page-v1");
+appVersionOverrides.set("cell_basic_unit", "20261119-cell-basic-unit-achievements-page-v1");
 appVersionOverrides.set("cell_division", "20261113-cell-division-submit-response-v1");
 appVersionOverrides.set("asexual_reproduction", "20261113-asexual-reproduction-submit-response-v1");
 appVersionOverrides.set("sexual_reproduction", "20261113-sexual-reproduction-submit-response-v1");
@@ -206,10 +206,10 @@ const audit = units.map(([unitId, folder]) => {
     `app.js?v=${expectedAppVersion}`
   ]) assert(index.includes(marker), `${unitId} index hook missing: ${marker}`);
   if (unitId === "microscope_use") {
-    assert(index.includes("styles.css?v=20261116-microscope-use-submit-response-v1"), "microscope_use style cache bust missing");
+    assert(index.includes("styles.css?v=20261119-microscope-use-achievements-page-v1"), "microscope_use style cache bust missing");
   }
   if (unitId === "cell_basic_unit") {
-    assert(index.includes("styles.css?v=20261118-cell-basic-unit-submit-response-v1"), "cell_basic_unit style cache bust missing");
+    assert(index.includes("styles.css?v=20261119-cell-basic-unit-achievements-page-v1"), "cell_basic_unit style cache bust missing");
   }
   if (unitId === "cell_structure") {
     assert(index.includes("styles.css?v=20260731-cell-structure-submitted-retry-ia-v1"), "cell_structure style cache bust missing");

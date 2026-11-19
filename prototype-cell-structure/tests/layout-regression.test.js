@@ -7,7 +7,7 @@ const sharp = require("sharp");
 
 const root = process.env.BQ_TEST_ROOT ? path.resolve(process.env.BQ_TEST_ROOT) : path.resolve(__dirname, "..");
 const artifactDir = path.join(__dirname, "artifacts", "cell-structure-submitted-retry-ia-v1");
-const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=20261116-cell-structure-submit-response-v1`;
+const url = `${pathToFileURL(path.join(root, "index.html")).href}?v=20261119-cell-structure-achievements-page-v1`;
 const checkpoint1ForbiddenTerms = ["控制中心", "代謝", "能量", "光合作用", "控制物質進出", "支撐保護"];
 const targets = [
   { id: "nucleus", diagram: "animal", revealShapes: 1, label: "細胞核" },

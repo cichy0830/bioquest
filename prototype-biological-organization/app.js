@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261117-biological-organization-submit-response-v1";
+const VERSION = "20261119-biological-organization-achievements-page-v1";
 const QUESTION_VERSION = "20260716-biological-organization-canonical-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -1191,7 +1191,7 @@ function renderResult() {
     <div class="actions"><button class="primary" id="resultAchievements">查看成就</button><button class="secondary" id="resultRules">查看規則</button><button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button></div></div></div>`;
 }
 function renderAchievements() {
-  return `<div class="wide-layout achievements-stack" data-bq-achievements-overview-only="true"><div class="panel"><p class="eyebrow">${state.submitted_at ? "再挑戰" : "目前進度"}</p><h2>${state.submitted_at ? "重新登入後開始新的挑戰" : "目前稱號與全冊徽章總覽"}</h2><p class="muted">${state.submitted_at ? "本次作答與結算已鎖定；若要再挑戰，請重新登入並從頭完成。這不會刪除既有正式累積資料。" : "這裡只顯示正式稱號進度與全冊徽章總覽；本單元徽章改在結算頁呈現本次實得。"}</p><div class="actions"><button class="secondary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button>${state.submitted_at ? `<button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button>` : ""}</div></div><div class="panel bq-all-unit-badge-overview" data-bq-badge-overview="true"></div></div>`;
+  return window.BioQuestAchievements.renderRetryAchievements({ overviewOnly: true, backPrefix: "回到", submitted: Boolean(state.submitted_at) });
 }
 function renderRules() {
   return `<div class="wide-layout"><div class="panel"><p class="eyebrow">任務規則</p><h2>EXP、提示與再挑戰</h2>
