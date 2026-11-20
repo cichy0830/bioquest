@@ -22,12 +22,15 @@
 //    比對回傳值、學生資料就地更新與丟出的錯誤。
 // 11. R4-2d 第四批：第 1–10 站成就頁 renderAchievements 改用 renderRetryAchievements（7 種原寫法以選項保留），
 //    載入真正的 app.js，在多種 state（有無學生、是否已送出）下和原寫法比對：去掉標籤之間的空白後逐字相同。
+// 12. R4-2d 第四批 b：第 11–15 站成就頁改用 renderOverviewAchievements、第 11–14 站 renderReloginAction 改用共用模組、
+//    第 14 站 titleAndProgress 改用共用模組（countLocalAttempts: true；第 15 站原本沒被呼叫，已刪）；
+//    取出站內薄包裝，在多種狀態下和原寫法比對：去掉標籤之間的空白後逐字相同；titleAndProgress 逐案相同。
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
-import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40, LEGACY_SUBMIT_31_40, LEGACY_SUBMIT_22_30, LEGACY_SUBMIT_18, LEGACY_SUBMIT_19_21, LEGACY_SUBMIT_16, LEGACY_SUBMIT_17, LEGACY_SUBMIT_1_4, LEGACY_SUBMIT_6, LEGACY_PROGRESS_7, LEGACY_PROGRESS_8, LEGACY_PROGRESS_9_13, LEGACY_MERGE_VERIFIED_7_13, LEGACY_SUBMIT_14, LEGACY_SUBMIT_15, LEGACY_STUDENT_5, LEGACY_ACH_LIFE_WORLD, LEGACY_ACH_SCIENTIFIC_METHOD, LEGACY_ACH_LAB_ENTRY, LEGACY_ACH_MICROSCOPE_USE, LEGACY_ACH_CELL_BASIC_UNIT, LEGACY_ACH_CELL_STRUCTURE, LEGACY_ACH_CELL_OBSERVATION, LEGACY_ACH_CELL_TRANSPORT, LEGACY_ACH_BIOLOGICAL_ORGANIZATION, LEGACY_ACH_SCALE } from "./legacy-achievements.mjs";
+import { LEGACY_ACH, LEGACY_T_LOCAL, LEGACY_T_REMOTE, LEGACY_BADGE_WALL_30_40, LEGACY_SUBMIT_31_40, LEGACY_SUBMIT_22_30, LEGACY_SUBMIT_18, LEGACY_SUBMIT_19_21, LEGACY_SUBMIT_16, LEGACY_SUBMIT_17, LEGACY_SUBMIT_1_4, LEGACY_SUBMIT_6, LEGACY_PROGRESS_7, LEGACY_PROGRESS_8, LEGACY_PROGRESS_9_13, LEGACY_MERGE_VERIFIED_7_13, LEGACY_SUBMIT_14, LEGACY_SUBMIT_15, LEGACY_STUDENT_5, LEGACY_ACH_LIFE_WORLD, LEGACY_ACH_SCIENTIFIC_METHOD, LEGACY_ACH_LAB_ENTRY, LEGACY_ACH_MICROSCOPE_USE, LEGACY_ACH_CELL_BASIC_UNIT, LEGACY_ACH_CELL_STRUCTURE, LEGACY_ACH_CELL_OBSERVATION, LEGACY_ACH_CELL_TRANSPORT, LEGACY_ACH_BIOLOGICAL_ORGANIZATION, LEGACY_ACH_SCALE, LEGACY_ACH_11, LEGACY_ACH_12, LEGACY_ACH_13, LEGACY_ACH_14, LEGACY_ACH_15, LEGACY_RELOGIN_11, LEGACY_RELOGIN_12, LEGACY_RELOGIN_13, LEGACY_RELOGIN_14, LEGACY_TITLE_14_15 } from "./legacy-achievements.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const sharedSource = fs.readFileSync(path.join(root, "shared-assets", "bioquest-achievements.js"), "utf8");
@@ -863,4 +866,83 @@ for (const [slug, legacySource] of Object.entries(RETRY_ACH_STATIONS)) {
 }
 assert(retryVariants.size >= 8, `第 1–10 站成就頁原寫法應涵蓋至少 8 種輸出（實際 ${retryVariants.size}）`);
 
-console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases, submitStations: SUBMIT_STATIONS.length, submitCases, submitVerifiedStations: SUBMIT_VERIFIED_STATIONS.length, verifiedCases, submitOptionStations: SUBMIT_OPTION_STATIONS.length, optionCases, submitEarlyStations: SUBMIT_EARLY_STATIONS.length, earlyCases, submitAttemptStations: SUBMIT_ATTEMPT_STATIONS.length, attemptCases, progressStations: PROGRESS_STATIONS.length, progressCases, mergeCases, numberedStations: NUMBERED_STATIONS.length, numberedCases, retryAchStations: Object.keys(RETRY_ACH_STATIONS).length, retryAchCases, retryVariants: retryVariants.size }));
+// 12. R4-2d 第四批 b：第 11–15 站成就頁、第 11–14 站重新登入區塊、第 14 站簡報頁稱號
+const OVERVIEW_ACH_STATIONS = [
+  { slug: "nutrients-energy", ach: LEGACY_ACH_11, relogin: LEGACY_RELOGIN_11 },
+  { slug: "nutrient-test", ach: LEGACY_ACH_12, relogin: LEGACY_RELOGIN_12 },
+  { slug: "enzymes", ach: LEGACY_ACH_13, relogin: LEGACY_RELOGIN_13 },
+  { slug: "photosynthesis", ach: LEGACY_ACH_14, relogin: LEGACY_RELOGIN_14 },
+  { slug: "human-nutrition", ach: LEGACY_ACH_15, relogin: null }
+];
+function stationFunction(app, name) {
+  const start = app.indexOf(`function ${name}(`);
+  assert(start >= 0, `找不到 ${name}`);
+  return app.slice(start, app.indexOf("\n}", start) + 2);
+}
+let overviewAchCases = 0;
+let reloginCases = 0;
+const overviewVariants = new Set();
+for (const { slug, ach, relogin } of OVERVIEW_ACH_STATIONS) {
+  const folder = `prototype-${slug}`;
+  const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
+  const index = fs.readFileSync(path.join(root, folder, "index.html"), "utf8");
+  const sharedTag = index.indexOf(`../shared-assets/bioquest-achievements.js?v=${sharedVersion}`);
+  assert(sharedTag > 0 && index.indexOf('<script src="app.js?v=') > sharedTag, `${folder}: index.html 必須在 app.js 之前載入共用成就模組 ${sharedVersion}`);
+  assert(app.includes("window.BioQuestAchievements.renderOverviewAchievements("), `${folder}: renderAchievements 應改用 renderOverviewAchievements`);
+  assert(!app.includes("<h2>稱號進度與全冊徽章總覽</h2>"), `${folder}: 不應再內嵌成就頁原寫法`);
+  const capMatch = app.match(/const UNIT_EXP_CAP = (\d+);/);
+  const helpers = `var UNIT_EXP_CAP = ${capMatch ? capMatch[1] : 1000}; var state = {}; var __status = "verified"; function submissionStatus() { return __status; } function resultMode() { return __status; } function calculateResult() { return { attempt_total_exp: 333 }; }`;
+  const current = { window: null };
+  current.window = current;
+  vm.runInNewContext(sharedSource, current);
+  vm.runInNewContext(`${helpers}\n${stationFunction(app, "renderAchievements")}\n${relogin ? stationFunction(app, "renderReloginAction") : ""}`, current);
+  const legacyCtx = {};
+  vm.runInNewContext(`${helpers}\n${ach}\n${relogin || ""}`, legacyCtx);
+  if (relogin) {
+    assert(app.includes("return window.BioQuestAchievements.renderReloginAction(context"), `${folder}: renderReloginAction 應改用共用模組`);
+    for (const entry of ["result", "achievements", "rules", 'x"y']) {
+      assert.equal(squash(current.renderReloginAction(entry)), squash(legacyCtx.renderReloginAction(entry)), `${folder}: 重新登入區塊與原寫法不同（${entry}）`);
+      reloginCases += 1;
+    }
+  }
+  for (const status of ["verified", "guest", "pending", "local", undefined]) {
+    for (const submittedAt of [null, "", "2026-11-21T00:00:00Z"]) {
+      for (const result of [null, { attempt_total_exp: 120 }, { attempt_total_exp: 99999 }, {}]) {
+        const s = { student: { student_id: "s1" }, submitted_at: submittedAt, submitted: Boolean(submittedAt), result };
+        current.__status = status; legacyCtx.__status = status;
+        current.state = s; legacyCtx.state = structuredClone(s);
+        const expected = legacyCtx.renderAchievements();
+        const actual = current.renderAchievements();
+        assert.equal(squash(actual), squash(expected), `${folder}: 成就頁與原寫法不同（status=${status}, submitted_at=${submittedAt}, result=${JSON.stringify(result)}）`);
+        overviewVariants.add(squash(expected));
+        overviewAchCases += 1;
+      }
+    }
+  }
+}
+assert(overviewVariants.size >= 15, `第 11–15 站成就頁原寫法應涵蓋至少 15 種輸出（實際 ${overviewVariants.size}）`);
+
+// 第 14 站簡報頁稱號（第 15 站原本的 titleAndProgress 沒被呼叫，已刪）
+let title14Cases = 0;
+{
+  const folder = "prototype-photosynthesis";
+  const app = fs.readFileSync(path.join(root, folder, "app.js"), "utf8");
+  assert(app.includes("return window.BioQuestAchievements.titleAndProgress({ titleLevels, countLocalAttempts: true, loadAttempts, unitId: mission.unit_id }, student, localGain);"), `${folder}: titleAndProgress 應改用共用模組`);
+  assert(!fs.readFileSync(path.join(root, "prototype-human-nutrition", "app.js"), "utf8").includes("titleAndProgress"), "第 15 站不應再有沒被呼叫的 titleAndProgress");
+  const levelsSource = app.match(/const titleLevels = \[[\s\S]*?\n\];/)[0];
+  const unitId = app.match(/"?unit_id"?: "([a-z_]+)"/)[1];
+  for (const store of attemptStores) {
+    const attempts = store.map((attempt) => ({ ...attempt, unit_id: attempt.unit_id === "__SELF__" ? unitId : attempt.unit_id }));
+    for (const student of students) {
+      for (const localGain of localGains) {
+        const legacyFn = vm.runInNewContext(`${levelsSource}\n${LEGACY_TITLE_14_15}; titleAndProgress`, { state: { student }, mission: { unit_id: unitId }, loadAttempts: () => attempts.map((a) => ({ ...a })), Number, Math });
+        const stationFn = vm.runInNewContext(`${levelsSource}\n${stationFunction(app, "titleAndProgress")}; titleAndProgress`, { state: { student }, mission: { unit_id: unitId }, loadAttempts: () => attempts.map((a) => ({ ...a })), window: { BioQuestAchievements: shared } });
+        assert.equal(JSON.stringify(stationFn(student, localGain)), JSON.stringify(legacyFn(student, localGain)), `${folder}: titleAndProgress 與原寫法不同（${JSON.stringify({ student, localGain, store })}）`);
+        assert.equal(JSON.stringify(stationFn()), JSON.stringify(legacyFn()), `${folder}: 預設參數結果不同`);
+        title14Cases += 2;
+      }
+    }
+  }
+}
+
+console.log(JSON.stringify({ ok: true, sharedVersion, stations: ACHIEVEMENT_STATIONS.length, titleAndProgressCases: compared, badgeWallStations: BADGE_WALL_STATIONS.length, badgeWallCases, submitStations: SUBMIT_STATIONS.length, submitCases, submitVerifiedStations: SUBMIT_VERIFIED_STATIONS.length, verifiedCases, submitOptionStations: SUBMIT_OPTION_STATIONS.length, optionCases, submitEarlyStations: SUBMIT_EARLY_STATIONS.length, earlyCases, submitAttemptStations: SUBMIT_ATTEMPT_STATIONS.length, attemptCases, progressStations: PROGRESS_STATIONS.length, progressCases, mergeCases, numberedStations: NUMBERED_STATIONS.length, numberedCases, retryAchStations: Object.keys(RETRY_ACH_STATIONS).length, retryAchCases, retryVariants: retryVariants.size, overviewAchCases, overviewVariants: overviewVariants.size, reloginCases, title14Cases }));

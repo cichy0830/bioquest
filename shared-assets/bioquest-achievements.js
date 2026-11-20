@@ -5,9 +5,11 @@
  *
  * renderAchievements()：成就頁（只放「重新登入／再挑戰」區塊；成就總覽由 bioquest-character-layout.js 疊加）。
  * renderRetryAchievements(options)：第 1–10 站成就頁（R4-2d 第四批，2026-11-19），選項見函式上方說明。
+ * renderOverviewAchievements(options)／renderReloginAction(context, options)：第 11–15 站成就頁與「重新登入／再挑戰」區塊
+ *   （R4-2d 第四批 b，2026-11-21），選項見函式上方說明。
  * titleAndProgress(ctx, student, localGain)：簡報頁「目前稱號｜EXP」。
  *   ctx = { titleLevels, countLocalAttempts, loadAttempts, unitId }
- *   countLocalAttempts 為 true（第 24–40 站原寫法）時，另把本機其他單元紀錄加總當下限；
+ *   countLocalAttempts 為 true（第 14、24–40 站原寫法）時，另把本機其他單元紀錄加總當下限；
  *   false（第 21–23 站原寫法）只看後台累積與目前稱號門檻。
  *
  * renderBadgeWall(ctx, earned, options)：結算頁「本次取得項目」徽章牆（options.onlyEarned）與本單元徽章牆。
@@ -59,7 +61,7 @@
 (function configureBioQuestAchievements(global) {
   "use strict";
 
-  const VERSION = "20261119-achievements-v10";
+  const VERSION = "20261121-achievements-v11";
 
   function renderAchievements() {
     return `
@@ -98,6 +100,41 @@
       ? `<div class="wide-layout achievements-stack" data-bq-achievements-overview-only="true">`
       : `<div class="wide-layout">`;
     return `${wrapper}${options.overviewFirst ? OVERVIEW_PANEL + retryPanel : retryPanel + OVERVIEW_PANEL}</div>`;
+  }
+
+  // 第 11–15 站成就頁（R4-2d 第四批 b，2026-11-21）：「全冊成就」說明＋回到結算／任務按鈕，送出後另附重新登入區塊
+  // （全冊徽章總覽由 bioquest-character-layout.js 疊加）。原本 4 種寫法，差異以選項保留（輸出只差標籤之間的空白）：
+  //   status：verified／guest／其他（待確認），決定說明框顏色與預設說明文字
+  //   syncNote：自訂說明文字（第 11 站另顯示本次預估 EXP）；省略時用第 12–14 站的三句說明
+  //   overviewNote：說明框下方的灰字
+  //   submitted：是否已送出（決定按鈕文字與是否顯示重新登入區塊）
+  //   layout："stack"（第 14 站：section 外框、data-next 按鈕、重新登入區塊在 section 外）；省略為第 11–13 站寫法
+  //   shellOnly：只輸出空的外框（第 15 站）
+  const OVERVIEW_SYNC_NOTES = {
+    verified: "稱號、EXP 與全冊徽章總覽以後台正式認列資料為準。",
+    guest: "guest 測試不列入正式稱號進度；此頁只顯示目前可驗證的全冊總覽。",
+    pending: "本次提交等待後台確認；正式稱號進度確認後才會更新。"
+  };
+
+  function renderOverviewAchievements(options = {}) {
+    if (options.shellOnly) {
+      return `<div class="stack achievements-stack" data-bq-achievements-overview-only="true"></div>`;
+    }
+    const status = options.status;
+    const submitted = Boolean(options.submitted);
+    const syncNote = options.syncNote ?? (status === "verified" ? OVERVIEW_SYNC_NOTES.verified : status === "guest" ? OVERVIEW_SYNC_NOTES.guest : OVERVIEW_SYNC_NOTES.pending);
+    const back = `回到${submitted ? "結算" : "任務"}`;
+    const head = `<p class="eyebrow">全冊成就</p><h2>稱號進度與全冊徽章總覽</h2><div class="feedback ${status === "verified" ? "good" : "warn"}">${syncNote}</div><p class="muted">${options.overviewNote}</p>`;
+    if (options.layout === "stack") {
+      return `<div class="stack achievements-stack" data-bq-achievements-overview-only="true"><section class="panel">${head}<div class="button-row"><button class="primary" data-next="${submitted ? "result" : "brief"}">${back}</button></div></section>${submitted ? renderReloginAction("achievements", { layout: "stack" }) : ""}</div>`;
+    }
+    return `<div class="wide-layout achievements-stack" data-bq-achievements-overview-only="true"><div class="panel">${head}<div class="actions"><button class="primary" id="achieveResult">${back}</button></div>${submitted ? renderReloginAction("achievements") : ""}</div></div>`;
+  }
+
+  // 第 11–14 站「重新登入／再挑戰」區塊（結算頁、成就頁、規則頁共用）；layout "stack" 為第 14 站寫法。
+  function renderReloginAction(context, options = {}) {
+    const stack = options.layout === "stack";
+    return `<div class="${stack ? "" : "story-panel "}relogin-panel" data-relogin-entry="${context}"><strong>重新登入／再挑戰</strong><p>若要重新作答，請回到登入頁開始新的完整任務；既有正式累積與歷史紀錄不會被清除。</p><div class="${stack ? "button-row" : "actions"}"><button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button></div></div>`;
   }
 
   function titleAndProgress(ctx, student, localGain = 0) {
@@ -583,5 +620,5 @@ function renderBadgeWall(ctx, earned = [], options = {}) {
     };
   }
 
-  global.BioQuestAchievements = Object.freeze({ VERSION, renderAchievements, renderRetryAchievements, titleAndProgress, renderBadgeWall, applySubmitResponse, applyVerifiedSubmitResponse, applyAttemptSubmitResponse, mergeVerifiedAttempt, applyLegacyStudentProgress, applyNumberedSubmitResponse, applyMergedStudentProgress, applyServerVerifiedAttempt });
+  global.BioQuestAchievements = Object.freeze({ VERSION, renderAchievements, renderRetryAchievements, renderOverviewAchievements, renderReloginAction, titleAndProgress, renderBadgeWall, applySubmitResponse, applyVerifiedSubmitResponse, applyAttemptSubmitResponse, mergeVerifiedAttempt, applyLegacyStudentProgress, applyNumberedSubmitResponse, applyMergedStudentProgress, applyServerVerifiedAttempt });
 })(typeof window !== "undefined" ? window : globalThis);

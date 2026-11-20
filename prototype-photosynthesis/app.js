@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261118-photosynthesis-submit-response-v1";
+const VERSION = "20261121-photosynthesis-achievements-page-v1";
 const QUESTION_VERSION = "20260721-photosynthesis-q09-inactive-v1";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -285,21 +285,7 @@ function titleAvatarPath(student = state.student) {
 }
 
 function titleAndProgress(student = state.student, localGain = 0) {
-  const remoteTotal = Number(student?.progress?.total_exp ?? student?.total_exp);
-  const localTotal = loadAttempts()
-    .filter((attempt) => attempt.student_id === student?.student_id && attempt.unit_id !== mission.unit_id)
-    .reduce((sum, attempt) => sum + Number(attempt.unit_credited_exp || 0), 0) + Number(localGain || 0);
-  const explicitLevel = titleLevels.find((level) => level.id === (student?.current_title_id || student?.progress?.current_title_id));
-  const totalExp = Math.max(Number.isFinite(remoteTotal) ? remoteTotal : 0, localTotal, explicitLevel?.need || 0);
-  const current = titleLevels.filter((level) => totalExp >= level.need).at(-1) || titleLevels[0];
-  const next = titleLevels.find((level) => level.need > totalExp) || null;
-  return {
-    totalExp,
-    current,
-    next,
-    remaining: next ? Math.max(0, next.need - totalExp) : 0,
-    progressPercent: Math.min(100, Math.round((totalExp / 23400) * 100))
-  };
+  return window.BioQuestAchievements.titleAndProgress({ titleLevels, countLocalAttempts: true, loadAttempts, unitId: mission.unit_id }, student, localGain);
 }
 
 function badgeById(id) {
@@ -345,11 +331,7 @@ function renderEarnedBadges(result = {}) {
 }
 
 function renderReloginAction(context) {
-  return `<div class="relogin-panel" data-relogin-entry="${context}">
-    <strong>重新登入／再挑戰</strong>
-    <p>若要重新作答，請回到登入頁開始新的完整任務；既有正式累積與歷史紀錄不會被清除。</p>
-    <div class="button-row"><button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button></div>
-  </div>`;
+  return window.BioQuestAchievements.renderReloginAction(context, { layout: "stack" });
 }
 
 async function requestBackend(params) {
@@ -1081,24 +1063,7 @@ function ledgerRow(label, value) {
 }
 
 function renderAchievements() {
-  const mode = resultMode();
-  const syncNote = mode === "verified"
-    ? "稱號、EXP 與全冊徽章總覽以後台正式認列資料為準。"
-    : mode === "guest"
-      ? "guest 測試不列入正式稱號進度；此頁只顯示目前可驗證的全冊總覽。"
-      : "本次提交等待後台確認；正式稱號進度確認後才會更新。";
-  return `
-    <div class="stack achievements-stack" data-bq-achievements-overview-only="true">
-      <section class="panel">
-        <p class="eyebrow">全冊成就</p>
-        <h2>稱號進度與全冊徽章總覽</h2>
-        <div class="feedback ${mode === "verified" ? "good" : "warn"}">${syncNote}</div>
-        <p class="muted">本單元取得徽章已在結算頁顯示；此頁只呈現全冊進度。</p>
-        <div class="button-row"><button class="primary" data-next="${state.submitted ? "result" : "brief"}">回到${state.submitted ? "結算" : "任務"}</button></div>
-      </section>
-      ${state.submitted ? renderReloginAction("achievements") : ""}
-    </div>
-  `;
+  return window.BioQuestAchievements.renderOverviewAchievements({ status: resultMode(), overviewNote: "本單元取得徽章已在結算頁顯示；此頁只呈現全冊進度。", submitted: state.submitted, layout: "stack" });
 }
 
 function renderRules() {

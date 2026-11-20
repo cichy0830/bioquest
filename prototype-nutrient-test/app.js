@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-const VERSION = "20261117-nutrient-test-submit-response-v1";
+const VERSION = "20261121-nutrient-test-achievements-page-v1";
 const QUESTION_VERSION = "20260720-nutrient-test-starch-glucose-only-v2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -204,7 +204,7 @@ function renderEarnedBadges(result = {}) {
   return `<section class="result-earned-badges" data-result-earned-badges="true" aria-label="本次取得徽章"><h3>本次取得徽章</h3><p class="muted">${statusCopy}</p><div class="badge-grid">${earned.map((badge) => `<div class="badge-card lit ${badge.id === "nutrient_test_flawless" ? "gold" : ""}" data-badge-id="${badge.id}" data-badge-image-path="${badge.badge_image_path}"><img class="badge-image" src="${cacheBustedAsset(badge.badge_image_path)}" alt="${badge.name}" loading="lazy"><strong>${badge.name}</strong><p class="muted">${badge.condition}</p></div>`).join("")}</div></section>`;
 }
 function renderReloginAction(context) {
-  return `<div class="story-panel relogin-panel" data-relogin-entry="${context}"><strong>重新登入／再挑戰</strong><p>若要重新作答，請回到登入頁開始新的完整任務；既有正式累積與歷史紀錄不會被清除。</p><div class="actions"><button class="secondary" data-relogin-action="true">重新登入，並從登入頁開始</button></div></div>`;
+  return window.BioQuestAchievements.renderReloginAction(context);
 }
 function deepFreeze(value) {
   if (!value || typeof value !== "object" || Object.isFrozen(value)) return value;
@@ -706,13 +706,7 @@ function buildBackendPayload(attempt) {
 }
 
 function renderAchievements() {
-  const status = submissionStatus();
-  const syncNote = status === "verified"
-    ? "稱號、EXP 與全冊徽章總覽以後台正式認列資料為準。"
-    : status === "guest"
-      ? "guest 測試不列入正式稱號進度；此頁只顯示目前可驗證的全冊總覽。"
-      : "本次提交等待後台確認；正式稱號進度確認後才會更新。";
-  return `<div class="wide-layout achievements-stack" data-bq-achievements-overview-only="true"><div class="panel"><p class="eyebrow">全冊成就</p><h2>稱號進度與全冊徽章總覽</h2><div class="feedback ${status === "verified" ? "good" : "warn"}">${syncNote}</div><p class="muted">本單元取得徽章已在結算頁顯示；此頁只呈現全冊進度。</p><div class="actions"><button class="primary" id="achieveResult">回到${state.submitted_at ? "結算" : "任務"}</button></div>${state.submitted_at ? renderReloginAction("achievements") : ""}</div></div>`;
+  return window.BioQuestAchievements.renderOverviewAchievements({ status: submissionStatus(), overviewNote: "本單元取得徽章已在結算頁顯示；此頁只呈現全冊進度。", submitted: Boolean(state.submitted_at) });
 }
 
 function renderRules() {

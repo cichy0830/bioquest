@@ -62,15 +62,15 @@ appVersionOverrides.set("cell_structure", "20261119-cell-structure-achievements-
 ["biological_organization", "scale", "nutrients_energy", "nutrient_test"].forEach((unitId) => {
   appVersionOverrides.set(unitId, "20260715-title-avatar-card-v1");
 });
-appVersionOverrides.set("enzymes", "20261117-enzymes-submit-response-v1");
-appVersionOverrides.set("nutrient_test", "20261117-nutrient-test-submit-response-v1");
+appVersionOverrides.set("enzymes", "20261121-enzymes-achievements-page-v1");
+appVersionOverrides.set("nutrient_test", "20261121-nutrient-test-achievements-page-v1");
 appVersionOverrides.set("scale", "20261119-scale-achievements-page-v1");
-appVersionOverrides.set("nutrients_energy", "20261117-nutrients-energy-submit-response-v1");
-appVersionOverrides.set("photosynthesis", "20261118-photosynthesis-submit-response-v1");
+appVersionOverrides.set("nutrients_energy", "20261121-nutrients-energy-achievements-page-v1");
+appVersionOverrides.set("photosynthesis", "20261121-photosynthesis-achievements-page-v1");
 appVersionOverrides.set("biological_organization", "20261119-biological-organization-achievements-page-v1");
 appVersionOverrides.set("cell_transport", "20261119-cell-transport-achievements-page-v1");
 appVersionOverrides.set("plant_material_transport", "20261115-plant-material-transport-submit-response-v1");
-appVersionOverrides.set("human_nutrition", "20261118-human-nutrition-submit-response-v1");
+appVersionOverrides.set("human_nutrition", "20261121-human-nutrition-achievements-page-v1");
 appVersionOverrides.set("plant_transport_structures", "20261115-plant-transport-structures-submit-response-v1");
 appVersionOverrides.set("cardiovascular_components", "20261114-cardiovascular-components-submit-response-v1");
 appVersionOverrides.set("human_circulation", "20261114-human-circulation-submit-response-v1");

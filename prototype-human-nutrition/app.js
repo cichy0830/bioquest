@@ -2,7 +2,7 @@ const roster = {
   guest: { student_id: "guest", class_name: "測試", seat_no: "00", student_name: "老師測試帳號", is_guest: true }
 };
 
-  const VERSION = "20261118-human-nutrition-submit-response-v1";
+  const VERSION = "20261121-human-nutrition-achievements-page-v1";
   const QUESTION_VERSION = "20260723-human-nutrition-digestive-classification-v2";
 const UNIT_EXP_CAP = 500;
 const DIRECT_EXP_POOL = 220;
@@ -389,24 +389,6 @@ function titleAvatarPath(student = state.student) {
   if (webpPath.startsWith("./")) return `.${webpPath}`;
   if (webpPath.startsWith("shared-assets/")) return `../${webpPath}`;
   return fallback;
-}
-
-function titleAndProgress(student = state.student, localGain = 0) {
-  const remoteTotal = Number(student?.progress?.total_exp ?? student?.total_exp);
-  const localTotal = loadAttempts()
-    .filter((attempt) => attempt.student_id === student?.student_id && attempt.unit_id !== mission.unit_id)
-    .reduce((sum, attempt) => sum + Number(attempt.unit_credited_exp || 0), 0) + Number(localGain || 0);
-  const explicitLevel = titleLevels.find((level) => level.id === (student?.current_title_id || student?.progress?.current_title_id));
-  const totalExp = Math.max(Number.isFinite(remoteTotal) ? remoteTotal : 0, localTotal, explicitLevel?.need || 0);
-  const current = titleLevels.filter((level) => totalExp >= level.need).at(-1) || titleLevels[0];
-  const next = titleLevels.find((level) => level.need > totalExp) || null;
-  return {
-    totalExp,
-    current,
-    next,
-    remaining: next ? Math.max(0, next.need - totalExp) : 0,
-    progressPercent: Math.min(100, Math.round((totalExp / 23400) * 100))
-  };
 }
 
 function parseJsonArray(value) {
@@ -1294,10 +1276,7 @@ function ledgerRow(label, value) {
 }
 
 function renderAchievements() {
-  return `
-    <div class="stack achievements-stack" data-bq-achievements-overview-only="true">
-    </div>
-  `;
+  return window.BioQuestAchievements.renderOverviewAchievements({ shellOnly: true });
 }
 
 function renderBadgeWall(earned = [], options = {}) {

@@ -10,7 +10,7 @@ const { chromium } = require("playwright");
 const root = path.resolve(__dirname, "..", "..");
 const unitRoot = path.resolve(__dirname, "..");
 const source = fs.readFileSync(path.join(unitRoot, "app.js"), "utf8");
-const version = "20261117-nutrients-energy-submit-response-v1";
+const version = "20261121-nutrients-energy-achievements-page-v1";
 const questionVersion = "20260721-nutrients-energy-q11-inactive-v1";
 const storageKey = "bioquest_nutrients_energy_state_v1";
 
@@ -229,6 +229,8 @@ window.__nutrientsEnergyProbe = {
   resetForRelogin
 };
 `);
+  // R4-2d 第四批 b：成就頁與重新登入區塊改用共用成就模組，先載入。
+  vm.runInNewContext(fs.readFileSync(path.join(root, "shared-assets", "bioquest-achievements.js"), "utf8"), context);
   vm.runInNewContext(instrumented, context, { filename: "prototype-nutrients-energy/app.js" });
   const api = context.window.__nutrientsEnergyProbe;
   assert.equal(api.VERSION, version);
@@ -292,7 +294,7 @@ window.__nutrientsEnergyProbe = {
   api.setState(stateFor("result"));
   assert(api.renderResult().includes("答對</span><strong>13/13"), "result should report 13 active questions");
   assert(api.renderResult().includes("data-result-earned-badges"), "result should render earned-only badge section");
-  assert(api.renderResult().includes("?v=20261117-nutrients-energy-submit-response-v1"), "earned badge image URLs must carry runtime cache");
+  assert(api.renderResult().includes("?v=20261121-nutrients-energy-achievements-page-v1"), "earned badge image URLs must carry runtime cache");
   api.setState(stateFor("achievements"));
   assert(!api.renderAchievements().includes("本單元成就：生命補給徽章牆"), "achievements must not render legacy unit badge wall");
   assert(!api.renderAchievements().includes("data-bq-unit-achievements"), "achievements must use shared overview-only mount");

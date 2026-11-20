@@ -70,6 +70,8 @@ const context = {
 };
 
 vm.createContext(context);
+// R4-2d 第四批 b：成就頁與重新登入區塊改用共用成就模組，先載入。
+vm.runInContext(fs.readFileSync(path.resolve(__dirname, "../../shared-assets/bioquest-achievements.js"), "utf8"), context);
 vm.runInContext(`${labSource}\n${appSource}\n;globalThis.__nutrientTest = { LAB_SAMPLES, labResult, labJudgeCorrect, labComplete, renderLab, renderLabEvidence, renderReflection, renderReview, renderScan, renderBrief, renderCheckpoint1, renderCheckpoint2, getState: () => state, setState: (next) => { state = next; }, calculateResult, allRequiredAnswered, isLockedScreen, evaluateReflectionQuality, mission, assets, badges, questions, classifyQuestions, multiSelectQuestions, sectionMap, renderQuestionEvidence, renderMultiSelect, renderCheckpoint3, renderResult, renderAchievements, renderRules, resetForRelogin, VERSION, QUESTION_VERSION };`, context);
 
 const api = context.__nutrientTest;
@@ -194,7 +196,7 @@ assert.match(appSource, /startAttempt/);
 assert.match(appSource, /hintEvent/);
 assert.match(appSource, /attempt_session_token/);
 assert.match(appSource, /提交後會進行結算，本次作答不能再修改/);
-assert.equal(api.VERSION, "20261117-nutrient-test-submit-response-v1");
+assert.equal(api.VERSION, "20261121-nutrient-test-achievements-page-v1");
 assert.equal(api.QUESTION_VERSION, "20260720-nutrient-test-starch-glucose-only-v2");
 assert.notEqual(api.VERSION, api.QUESTION_VERSION, "runtime cache must stay separate from canonical question version");
 assert.match(appSource, /question_version: QUESTION_VERSION/);
@@ -204,7 +206,7 @@ state.result = perfect;
 state.backend_status = "submitted_verified";
 state.screen = "result";
 assert.match(api.renderResult(), /data-result-earned-badges="true"/);
-assert.match(api.renderResult(), /badge-nutrient_test-nutrient_test_entry\.webp\?v=20261117-nutrient-test-submit-response-v1/);
+assert.match(api.renderResult(), /badge-nutrient_test-nutrient_test_entry\.webp\?v=20261121-nutrient-test-achievements-page-v1/);
 assert.match(api.renderResult(), /data-relogin-action="true"/);
 
 state.screen = "achievements";
